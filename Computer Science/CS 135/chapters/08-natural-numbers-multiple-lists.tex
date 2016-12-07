@@ -1,0 +1,216 @@
+\chapter{Natural Numbers and Processing Multiple Lists}
+
+\section{Natural numbers as recursive data}
+
+Lists are built from \code{empty} using \code{cons}. Similarly, natural numbers
+can be viewed as built from \code{0} using \code{add1}:
+
+\begin{lstlisting}[style=racket]
+;; A Nat is one of:
+;; * 0
+;; * (add1 Nat)
+\end{lstlisting}
+
+The analogues of \code{empty?} and \code{rest} are \code{zero?} and
+\code{sub1}. This gives a template:
+
+\begin{lstlisting}[style=racket]
+;; nat-template: Nat -> Any
+(define (nat-template n)
+  (cond [(zero? n) ...]
+        [else (... n ... (nat-template (sub1 n)) ...)]))
+\end{lstlisting}
+
+\begin{example}[Countdown]
+\begin{lstlisting}[style=racket]
+;; (countdown n) produces the list n, n-1, ..., 1, 0.
+;; Examples:
+(check-expect (countdown 0) '(0))
+(check-expect (countdown 3) '(3 2 1 0))
+
+;; countdown: Nat -> (listof Nat)
+(define (countdown n)
+  (cond [(zero? n) (cons 0 empty)]
+        [else (cons n (countdown (sub1 n)))]))
+\end{lstlisting}
+\end{example}
+
+\begin{example}[Factorial]
+\begin{lstlisting}[style=racket]
+;; (factorial n) produces n! = 1 * 2 * ... * n.
+;; factorial: Nat -> Nat
+(check-expect (factorial 0) 1)
+(check-expect (factorial 5) 120)
+(define (factorial n)
+  (cond [(zero? n) 1]
+        [else (* n (factorial (sub1 n)))]))
+\end{lstlisting}
+Condensed trace:
+\begin{lstlisting}[style=racket]
+(factorial 3)
+=> (* 3 (factorial 2))
+=> (* 3 (* 2 (factorial 1)))
+=> (* 3 (* 2 (* 1 (factorial 0))))
+=> (* 3 (* 2 (* 1 1)))
+=> 6
+\end{lstlisting}
+\end{example}
+
+\subsection{Subintervals of the naturals}
+To count down to a lower bound \code{b} instead of 0, change the base case:
+\begin{lstlisting}[style=racket]
+;; An integer n >= b is one of:
+;; * b
+;; * (add1 m) where m >= b
+
+;; (countdown-to n b) produces n, n-1, ..., b.
+;; countdown-to: Int Int -> (listof Int)
+;;   requires: n >= b
+(check-expect (countdown-to 5 3) '(5 4 3))
+(check-expect (countdown-to -1 -2) '(-1 -2))
+(define (countdown-to n b)
+  (cond [(= n b) (cons b empty)]
+        [else (cons n (countdown-to (sub1 n) b))]))
+\end{lstlisting}
+
+Counting \emph{up} uses \code{add1} toward an upper bound:
+\begin{lstlisting}[style=racket]
+;; (countup-to n b) produces n, n+1, ..., b.
+;; countup-to: Int Int -> (listof Int)
+;;   requires: n <= b
+(check-expect (countup-to 2 5) '(2 3 4 5))
+(define (countup-to n b)
+  (cond [(= n b) (cons b empty)]
+        [else (cons n (countup-to (add1 n) b))]))
+\end{lstlisting}
+
+\begin{example}[Primality by trial division]
+\begin{lstlisting}[style=racket]
+;; (prime? n) produces true if n is prime.
+;; prime?: Nat -> Bool
+(check-expect (prime? 7) true)
+(check-expect (prime? 9) false)
+(check-expect (prime? 1) false)
+(define (prime? n)
+  (and (> n 1) (no-divisors? n (sub1 n))))
+
+;; (no-divisors? n k) produces true if no integer in 2..k divides n.
+;; no-divisors?: Nat Nat -> Bool
+(define (no-divisors? n k)
+  (cond [(<= k 1) true]
+        [else (and (not (zero? (remainder n k)))
+                   (no-divisors? n (sub1 k)))]))
+\end{lstlisting}
+\end{example}
+
+\section{Processing two lists}
+
+When a function consumes two lists, there are three typical situations.
+
+\subsection{Case 1: one list goes along for the ride}
+Only one list is recursed on; the other is passed unchanged. \code{my-append}
+from the previous chapter is the standard example. The template is the
+ordinary list template with an extra parameter.
+
+\subsection{Case 2: processing in lockstep}
+The lists have the same length, and corresponding elements are processed
+together.
+\begin{lstlisting}[style=racket]
+;; (dot-product l1 l2) produces the dot product of l1 and l2.
+;; Examples:
+(check-expect (dot-product '(1 2 3) '(4 5 6)) 32)
+(check-expect (dot-product empty empty) 0)
+
+;; dot-product: (listof Num) (listof Num) -> Num
+;;   requires: l1 and l2 have the same length
+(define (dot-product l1 l2)
+  (cond [(empty? l1) 0]
+        [else (+ (* (first l1) (first l2))
+                 (dot-product (rest l1) (rest l2)))]))
+\end{lstlisting}
+Since both lists empty out simultaneously, checking one suffices.
+
+\subsection{Case 3: processing at different rates}
+In general, either list can be empty independently, giving four combinations.
+
+\begin{lstlisting}[style=racket]
+;; twolist-template: (listof X) (listof Y) -> Any
+(define (twolist-template lx ly)
+  (cond [(and (empty? lx) (empty? ly)) ...]
+        [(and (empty? lx) (cons? ly))
+         (... (first ly) ... (rest ly) ...)]
+        [(and (cons? lx) (empty? ly))
+         (... (first lx) ... (rest lx) ...)]
+        [(and (cons? lx) (cons? ly))
+         ;; may recurse on (rest lx), (rest ly), or both
+         (... (first lx) ... (first ly) ...
+              (twolist-template (rest lx) ly) ...
+              (twolist-template lx (rest ly)) ...
+              (twolist-template (rest lx) (rest ly)) ...)]))
+\end{lstlisting}
+Often some cases collapse.
+
+\begin{example}[Merging sorted lists]
+\begin{lstlisting}[style=racket]
+;; (merge l1 l2) produces a sorted list of all elements of the sorted
+;;   lists l1 and l2.
+;; Examples:
+(check-expect (merge '(1 4 9) '(2 3 10)) '(1 2 3 4 9 10))
+(check-expect (merge empty '(5)) '(5))
+
+;; merge: (listof Num) (listof Num) -> (listof Num)
+;;   requires: l1 and l2 are sorted in non-decreasing order
+(define (merge l1 l2)
+  (cond [(empty? l1) l2]
+        [(empty? l2) l1]
+        [(< (first l1) (first l2))
+         (cons (first l1) (merge (rest l1) l2))]
+        [else (cons (first l2) (merge l1 (rest l2)))]))
+\end{lstlisting}
+Condensed trace:
+\begin{lstlisting}[style=racket]
+(merge (list 1 4) (list 2 3))
+=> (cons 1 (merge (list 4) (list 2 3)))
+=> (cons 1 (cons 2 (merge (list 4) (list 3))))
+=> (cons 1 (cons 2 (cons 3 (merge (list 4) empty))))
+=> (cons 1 (cons 2 (cons 3 (list 4))))
+=> (list 1 2 3 4)
+\end{lstlisting}
+\end{example}
+
+\begin{example}[List equality]
+\begin{lstlisting}[style=racket]
+;; (list=? l1 l2) produces true if l1 and l2 contain the same numbers
+;;   in the same order.
+;; list=?: (listof Num) (listof Num) -> Bool
+(check-expect (list=? '(1 2) '(1 2)) true)
+(check-expect (list=? '(1 2) '(1)) false)
+(define (list=? l1 l2)
+  (cond [(and (empty? l1) (empty? l2)) true]
+        [(or (empty? l1) (empty? l2)) false]
+        [else (and (= (first l1) (first l2))
+                   (list=? (rest l1) (rest l2)))]))
+\end{lstlisting}
+\end{example}
+
+\subsection{Consuming a list and a number}
+A list and a \code{Nat} can be processed together, e.g.\ \code{list-ref}:
+\begin{lstlisting}[style=racket]
+;; (my-list-ref lst n) produces the element at position n (0-based),
+;;   or false if lst is too short.
+;; my-list-ref: (listof Any) Nat -> (anyof Any false)
+(check-expect (my-list-ref '(a b c) 1) 'b)
+(check-expect (my-list-ref '(a) 3) false)
+(define (my-list-ref lst n)
+  (cond [(empty? lst) false]
+        [(zero? n) (first lst)]
+        [else (my-list-ref (rest lst) (sub1 n))]))
+\end{lstlisting}
+
+\section{Summary}
+\begin{itemize}
+  \item Natural numbers have a recursive data definition (\code{0} or \code{add1}); template uses \code{zero?} and \code{sub1}.
+  \item Intervals: change the base case to a bound \code{b}; counting up uses \code{add1}.
+  \item Two lists: along for the ride, lockstep, or at different rates (four-case template).
+  \item \code{merge} of sorted lists is the key example of different-rate processing.
+\end{itemize}

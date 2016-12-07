@@ -1,0 +1,195 @@
+\chapter{Simple Data}
+
+This chapter introduces the atomic (non-compound) data types beyond numbers ---
+booleans, symbols, strings, and characters --- together with the conditional
+expression \code{cond}, which lets a function choose among cases.
+
+\section{Booleans and predicates}
+
+The two Boolean values are \code{true} and \code{false} (also written
+\code{\#true}/\code{\#t} and \code{\#false}/\code{\#f}). A \textbf{predicate}
+is a function that produces a Boolean; by convention its name ends in \code{?}.
+
+\begin{itemize}
+  \item Comparisons: \code{=}, \code{<}, \code{<=}, \code{>}, \code{>=} on numbers.
+  \item Type predicates: \code{number?}, \code{integer?}, \code{boolean?}, \code{symbol?}, \code{string?}, \code{char?}.
+  \item Equality: \code{equal?} works on any two values; \code{symbol=?}, \code{string=?}, \code{char=?} are type-specific.
+\end{itemize}
+
+\subsection{\code{and}, \code{or}, \code{not}}
+\code{not} is an ordinary function. \code{and} and \code{or} are
+\textbf{special forms}: they evaluate their arguments left to right and stop as
+soon as the answer is known (\textbf{short-circuit evaluation}).
+
+\begin{important}[Substitution rules for and/or]
+\begin{itemize}
+  \item \code{(and false ...)} $\Rightarrow$ \code{false}
+  \item \code{(and true e2 ...)} $\Rightarrow$ \code{(and e2 ...)}
+  \item \code{(and)} $\Rightarrow$ \code{true}
+  \item \code{(or true ...)} $\Rightarrow$ \code{true}
+  \item \code{(or false e2 ...)} $\Rightarrow$ \code{(or e2 ...)}
+  \item \code{(or)} $\Rightarrow$ \code{false}
+\end{itemize}
+\end{important}
+
+Short-circuiting lets us guard a dangerous test:
+\begin{lstlisting}[style=racket]
+(and (not (= x 0)) (> (/ 1 x) 2))   ; never divides by zero
+\end{lstlisting}
+
+\section{Conditional expressions}
+
+\begin{lstlisting}[style=racket]
+(cond
+  [question1 answer1]
+  [question2 answer2]
+  ...
+  [else answerk])
+\end{lstlisting}
+Each \code{[question answer]} pair is a \textbf{clause}. Questions are tried in
+order; the answer of the first question that evaluates to \code{true} is the
+result.
+
+\begin{important}[Substitution rules for cond]
+\begin{itemize}
+  \item \code{(cond [false e] ...)} $\Rightarrow$ \code{(cond ...)}
+  \item \code{(cond [true e] ...)} $\Rightarrow$ \code{e}
+  \item \code{(cond [else e])} $\Rightarrow$ \code{e}
+\end{itemize}
+Only the \emph{first} question is evaluated at each step; answers of
+unchosen clauses are never evaluated. If no question is true and there is no
+\code{else}, it is a run-time error.
+\end{important}
+
+\begin{example}[Grading]
+\begin{lstlisting}[style=racket]
+;; (letter-grade mark) produces the letter grade for a percentage mark.
+;; Examples:
+(check-expect (letter-grade 95) 'A)
+(check-expect (letter-grade 42) 'F)
+
+;; letter-grade: Num -> Sym
+;;   requires: 0 <= mark <= 100
+(define (letter-grade mark)
+  (cond [(>= mark 80) 'A]
+        [(>= mark 70) 'B]
+        [(>= mark 60) 'C]
+        [(>= mark 50) 'D]
+        [else 'F]))
+
+;; Tests (boundaries of every interval):
+(check-expect (letter-grade 80) 'A)
+(check-expect (letter-grade 79) 'B)
+(check-expect (letter-grade 70) 'B)
+(check-expect (letter-grade 60) 'C)
+(check-expect (letter-grade 50) 'D)
+(check-expect (letter-grade 49.9) 'F)
+\end{lstlisting}
+Because clauses are tried in order, the second clause need not say
+\code{(and (< mark 80) (>= mark 70))}. Take advantage of this, but be careful
+when reordering.
+\end{example}
+
+\begin{example}[Trace of cond]
+\begin{lstlisting}[style=racket]
+(letter-grade 75)
+=> (cond [(>= 75 80) 'A] [(>= 75 70) 'B] [(>= 75 60) 'C] [(>= 75 50) 'D] [else 'F])
+=> (cond [false 'A] [(>= 75 70) 'B] [(>= 75 60) 'C] [(>= 75 50) 'D] [else 'F])
+=> (cond [(>= 75 70) 'B] [(>= 75 60) 'C] [(>= 75 50) 'D] [else 'F])
+=> (cond [true 'B] [(>= 75 60) 'C] [(>= 75 50) 'D] [else 'F])
+=> 'B
+\end{lstlisting}
+\end{example}
+
+\subsection{Simplifying conditionals}
+\begin{itemize}
+  \item \code{(cond [test true] [else false])} is just \code{test}.
+  \item Nested \code{cond}s whose clauses can be merged with \code{and} often read better flattened.
+  \item A function that produces a Boolean rarely needs \code{cond} at all; combine \code{and}/\code{or}/\code{not}.
+\end{itemize}
+
+\subsection{Testing conditionals}
+At least one test per clause, plus tests at each boundary between intervals.
+For a \code{cond} with $k$ clauses expect at least $k$ tests; boundary values
+are where off-by-one bugs live.
+
+\section{Symbols}
+A \textbf{symbol} is written with a leading quote: \code{'blue},
+\code{'CS135}. Symbols are atomic --- they cannot be taken apart --- and the
+only useful operation is comparison with \code{symbol=?} (or \code{equal?}).
+They are ideal for representing a small fixed set of options, like an
+enumeration:
+
+\begin{lstlisting}[style=racket]
+;; A TrafficLight is (anyof 'red 'yellow 'green)
+
+;; (next-light c) produces the light shown after c.
+;; next-light: TrafficLight -> TrafficLight
+(check-expect (next-light 'red) 'green)
+(define (next-light c)
+  (cond [(symbol=? c 'red) 'green]
+        [(symbol=? c 'green) 'yellow]
+        [(symbol=? c 'yellow) 'red]))
+\end{lstlisting}
+
+\section{Strings}
+A \textbf{string} is a sequence of characters in double quotes: \code{"CS 135"}.
+Unlike symbols, strings have structure and many operations:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Function & Example \\
+\midrule
+\code{string-length} & \code{(string-length "abc")} $\Rightarrow$ 3 \\
+\code{string-append} & \code{(string-append "ab" "cd")} $\Rightarrow$ \code{"abcd"} \\
+\code{substring} & \code{(substring "hello" 1 3)} $\Rightarrow$ \code{"el"} \\
+\code{string=?}, \code{string<?} & lexicographic comparison \\
+\code{number->string} & \code{(number->string 42)} $\Rightarrow$ \code{"42"} \\
+\code{string->list} & \code{(string->list "ab")} $\Rightarrow$ \code{(list \#\textbackslash a \#\textbackslash b)} \\
+\code{list->string} & inverse of the above \\
+\bottomrule
+\end{tabular}
+\end{center}
+Note that \code{substring} uses a half-open range: start index included, end
+index excluded, with indices starting at 0.
+
+\paragraph{Symbol or string?} Use a symbol when the value is a label you only
+compare (colours, suits, states). Use a string when the value is text that
+might be examined, combined, or displayed.
+
+\section{Characters}
+A \textbf{character} is written \code{\#\textbackslash a}, \code{\#\textbackslash Z},
+\code{\#\textbackslash space}, \code{\#\textbackslash newline}. Useful functions:
+\begin{itemize}
+  \item comparison: \code{char=?}, \code{char<?};
+  \item case conversion: \code{char-upcase}, \code{char-downcase};
+  \item classification: \code{char-alphabetic?}, \code{char-numeric?}, \code{char-whitespace?};
+  \item conversion to and from character codes: \code{char->integer}, \code{integer->char}.
+\end{itemize}
+Characters become important once strings are converted to lists of characters
+(Chapter~\ref{ch:lists}).
+
+\section{Mixed data and type predicates}
+Sometimes a function accepts values of several types. The contract uses
+\code{anyof}, and the body uses type predicates to distinguish the cases:
+
+\begin{lstlisting}[style=racket]
+;; (describe v) produces a string describing v.
+;; describe: (anyof Num Sym Str) -> Str
+(check-expect (describe 5) "number")
+(check-expect (describe 'x) "symbol")
+(check-expect (describe "hi") "string")
+(define (describe v)
+  (cond [(number? v) "number"]
+        [(symbol? v) "symbol"]
+        [else "string"]))
+\end{lstlisting}
+
+\section{Summary}
+\begin{itemize}
+  \item Booleans, symbols, strings and characters are the atomic types besides numbers.
+  \item \code{and}/\code{or} short-circuit; \code{cond} evaluates questions in order and only the chosen answer.
+  \item Know the exact substitution rules for \code{cond}, \code{and}, \code{or}.
+  \item Test every clause and every boundary.
+  \item Symbols for labels, strings for text; \code{anyof} plus type predicates for mixed data.
+\end{itemize}

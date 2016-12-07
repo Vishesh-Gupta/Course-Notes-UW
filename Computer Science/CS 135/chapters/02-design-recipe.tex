@@ -1,0 +1,166 @@
+\chapter{The Design Recipe}\label{ch:design-recipe}
+
+\section{Why a recipe?}
+
+Programs are read far more often than they are written. The design recipe is a
+fixed process that produces, for every function, documentation and tests in
+addition to code. It also gives you somewhere to start when you are stuck:
+each step produces something concrete that guides the next step. In CS 135,
+marks are given for every component, not only for working code.
+
+\begin{important}[The design recipe (for each function)]
+\begin{enumerate}
+  \item \textbf{Purpose}: a short description of what the function computes, mentioning every parameter by name.
+  \item \textbf{Contract}: the types of the consumed values and the produced value.
+  \item \textbf{Examples}: a few illustrative cases written as \code{check-expect}s, written \emph{before} the body.
+  \item \textbf{Definition}: the header and body (often derived from a \emph{template}).
+  \item \textbf{Tests}: a thorough set of \code{check-expect}s covering edge cases and every branch.
+\end{enumerate}
+\end{important}
+
+The order of \emph{writing} is roughly: contract and purpose first (to
+understand the problem), then examples (to understand the answer), then the
+header and body, then tests. The standard order \emph{in the file} is:
+
+\begin{lstlisting}[style=racket]
+;; (sum-of-squares a b) produces the sum of the squares of a and b.
+;; Examples:
+(check-expect (sum-of-squares 3 4) 25)
+(check-expect (sum-of-squares 0 0) 0)
+
+;; sum-of-squares: Num Num -> Num
+(define (sum-of-squares a b)
+  (+ (* a a) (* b b)))
+
+;; Tests:
+(check-expect (sum-of-squares -2 5) 29)
+(check-expect (sum-of-squares 1/2 1/2) 1/2)
+\end{lstlisting}
+
+\section{The components in detail}
+
+\subsection{Purpose}
+The purpose statement starts with the function applied to its parameter names,
+for example \code{;; (area-of-ring outer inner) produces ...}. It says
+\emph{what} is produced, not \emph{how}. Avoid restating the code (``adds a
+times a to b times b'').
+
+\subsection{Contract}
+The contract has the form \code{name: Type1 Type2 ... -> TypeOut}. The types
+used in CS 135 include:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Type & Meaning \\
+\midrule
+\code{Num} & any number \\
+\code{Int} & integer \\
+\code{Nat} & natural number $0,1,2,\ldots$ \\
+\code{Bool} & \code{true} or \code{false} \\
+\code{Sym} & symbol, e.g.\ \code{'red} \\
+\code{Str} & string, e.g.\ \code{"hello"} \\
+\code{Char} & character, e.g.\ \code{\#\textbackslash a} \\
+\code{Any} & any value \\
+\code{(listof X)} & list whose elements have type \code{X} \\
+\code{(anyof X Y)} & a value that is of type X or of type Y \\
+\code{(X -> Y)} & a function consuming X and producing Y \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+When the type alone is not specific enough, add a \textbf{requires} clause:
+\begin{lstlisting}[style=racket]
+;; safe-div: Num Num -> Num
+;;   requires: d is not 0
+(define (safe-div n d) (/ n d))
+\end{lstlisting}
+The function does not have to check its requirements; calling it with values
+that violate the contract is the caller's error.
+
+\subsection{Examples}
+Examples are written before the body, using values worked out by hand. They
+clarify the problem and become the first tests. A useful habit: if you cannot
+write an example, you do not yet understand the problem.
+
+\subsection{Tests}
+\begin{itemize}
+  \item \code{(check-expect actual expected)}: passes if the two values are equal.
+  \item \code{(check-within actual expected tolerance)}: for inexact numbers.
+  \item \code{(check-error expr "message")}: for expressions expected to raise an error.
+\end{itemize}
+Good tests are \textbf{white-box} as well as \textbf{black-box}: exercise every
+\code{cond} branch, boundary values (0, empty list, equal arguments),
+and typical values. DrRacket highlights code never executed by any test in
+black; aim for full coverage.
+
+\section{Data definitions and templates}
+
+For functions that consume structured data (structures, lists, trees), the
+recipe gains two steps that are done \emph{once per data type}, not once per
+function:
+\begin{enumerate}
+  \item A \textbf{data definition}: a comment describing the set of values of the new type, often recursively.
+  \item A \textbf{template}: a skeleton function that takes apart a value of that type in the way the data definition suggests.
+\end{enumerate}
+Every function consuming that type begins as a copy of the template. Later
+chapters develop templates for structures, lists, natural numbers, and trees.
+
+\section{A complete example}
+
+\begin{example}
+Write a function that computes the area of a ring with given outer and inner radii.
+\begin{lstlisting}[style=racket]
+;; (area-of-ring outer inner) produces the area of a ring whose
+;;   outer radius is outer and inner (hole) radius is inner.
+;; Examples:
+(check-within (area-of-ring 2 1) (* pi 3) 0.0001)
+(check-within (area-of-ring 1 1) 0 0.0001)
+
+;; area-of-ring: Num Num -> Num
+;;   requires: outer >= inner >= 0
+(define (area-of-ring outer inner)
+  (- (area-of-disk outer) (area-of-disk inner)))
+
+;; (area-of-disk r) produces the area of a disk of radius r.
+;; Example:
+(check-within (area-of-disk 1) pi 0.0001)
+;; area-of-disk: Num -> Num
+;;   requires: r >= 0
+(define (area-of-disk r) (* pi r r))
+
+;; Tests:
+(check-within (area-of-ring 10 0) (* pi 100) 0.0001)
+(check-within (area-of-ring 3 2) (* pi 5) 0.0001)
+\end{lstlisting}
+\end{example}
+
+Note the \textbf{helper function} \code{area-of-disk}. Helpers get their own
+full design recipe (purpose, contract, examples, tests), though in some terms
+only purpose and contract were required for helpers. Introduce a helper
+whenever you notice repeated code, or when a subtask has a natural name.
+
+\section{Style conventions}
+\begin{itemize}
+  \item Use meaningful names; hyphenate multi-word names (\code{area-of-ring}).
+  \item Indent consistently; DrRacket's \emph{Reindent All} (Ctrl-I) does it for you.
+  \item Keep lines under about 80 characters.
+  \item Define constants for repeated literal values.
+  \item Put a header comment with name, ID and assignment at the top of each file.
+\end{itemize}
+
+\section{Common pitfalls}
+\begin{itemize}
+  \item Writing examples after the code by copying the output --- this tests nothing.
+  \item Purpose statements that do not mention the parameters.
+  \item Using \code{check-expect} on inexact values.
+  \item Contracts that are too vague (\code{Any} when \code{Nat} is meant) or omit requirements.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item Purpose, contract, examples, definition, tests --- for every function including helpers.
+  \item Contracts use a fixed vocabulary of types plus \code{requires} clauses.
+  \item Data definitions and templates are written once per type and reused.
+  \item Tests should cover every branch and boundary case.
+\end{itemize}
