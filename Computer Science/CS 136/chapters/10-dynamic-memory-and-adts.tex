@@ -1,0 +1,365 @@
+\chapter{Dynamic Memory and ADTs in C}
+
+\textbf{Readings:} CP:AMA 17.1--17.4, 19.
+
+\section{Motivation}
+
+So far, the size of every piece of data had to be known when the program was written: arrays
+have a fixed length, and local variables disappear when their function returns. That causes
+problems:
+\begin{itemize}
+  \item We cannot read an arbitrary number of values (how big should the array be?).
+  \item A function cannot create data that outlives its own stack frame (returning a pointer to a
+    local is a dangling pointer).
+  \item An opaque structure cannot be created by a client, since the client does not know its
+    size.
+\end{itemize}
+The solution is \emph{dynamic memory}: memory requested while the program is running, from the
+\textbf{heap} section.
+
+\section{Duration (Lifetime)}
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  Kind & Where & Lifetime \\
+  \midrule
+  global/static & global or read-only data & the entire program \\
+  local (automatic) & stack & until its block/function ends \\
+  dynamic & heap & from \code{malloc} until \code{free} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\section{\code{malloc}}
+
+\code{malloc} (``memory allocate'', in \code{<stdlib.h>}) requests a block of memory from the
+heap:
+\begin{lstlisting}[style=c]
+void *malloc(size_t s);
+\end{lstlisting}
+It returns a pointer to the start of a block of (at least) \code{s} bytes, or \code{NULL} if
+there is not enough memory. The return type \code{void *} is a \emph{generic pointer}: it can be
+assigned to any pointer type without a cast.
+
+\begin{lstlisting}[style=c]
+#include <stdlib.h>
+
+int *p = malloc(sizeof(int));          // one int
+*p = 42;
+
+int *arr = malloc(100 * sizeof(int));  // an array of 100 ints
+arr[99] = 7;
+
+struct posn *pp = malloc(sizeof(struct posn));
+pp->x = 1;
+\end{lstlisting}
+
+\begin{important}[Using \code{malloc} correctly]
+\begin{itemize}
+  \item Always use \code{sizeof} --- never hard-code sizes like 4.
+  \item The memory is \textbf{uninitialized} (garbage). Initialize it yourself, or use
+    \code{calloc(n, size)}, which zero-fills.
+  \item \code{malloc} can return \code{NULL}. In CS 136 we may assume it succeeds, but robust code
+    checks.
+  \item Every block that is \code{malloc}ed must eventually be \code{free}d exactly once.
+\end{itemize}
+\end{important}
+
+\begin{center}
+\begin{tikzpicture}[cell/.style={draw,minimum width=1.5cm,minimum height=0.7cm},
+  ptr/.style={-{Stealth[length=2mm]},thick}]
+  \node[font=\bfseries] at (0,1.2) {stack};
+  \node[cell] (p) at (0,0) {0x9000};
+  \node[left=1mm of p] {\code{p}};
+  \node[font=\bfseries] at (5,1.2) {heap};
+  \node[cell] (h) at (5,0) {42};
+  \node[below=0mm of h,font=\scriptsize] {0x9000};
+  \draw[ptr] (p.east) -- (h.west);
+\end{tikzpicture}
+\end{center}
+
+\section{\code{free}}
+
+\begin{lstlisting}[style=c]
+void free(void *p);
+\end{lstlisting}
+\code{free(p)} returns the block that \code{p} points at to the heap so it can be reused.
+\code{p} must be a pointer that was returned by \code{malloc} (or \code{calloc}/\code{realloc})
+and not yet freed. \code{free(NULL)} does nothing.
+
+\subsection{Memory errors}
+
+\begin{itemize}
+  \item \textbf{Memory leak:} losing the last pointer to a block without freeing it. The memory
+    cannot be used again until the program ends. Long-running programs that leak eventually run
+    out of memory. Seashell reports leaks when the program exits; leaks lose marks.
+\begin{lstlisting}[style=c]
+int *p = malloc(sizeof(int));
+p = malloc(sizeof(int));     // leak: the first block is unreachable
+\end{lstlisting}
+  \item \textbf{Dangling pointer (use after free):} using a pointer after its block has been
+    freed. The memory may have been reused for something else.
+\begin{lstlisting}[style=c]
+free(p);
+*p = 5;          // undefined behaviour
+p = NULL;        // good habit: then *p crashes immediately instead
+\end{lstlisting}
+  \item \textbf{Double free:} freeing the same block twice (often through two aliases): undefined
+    behaviour, typically corrupting the heap.
+  \item Freeing memory that was not \code{malloc}ed (e.g.\ \code{free(\&x)} on a local) is also
+    undefined behaviour.
+\end{itemize}
+
+\begin{aside}
+The heap does not have to be used in order: blocks can be freed in any order, which leaves
+``holes'' (\emph{fragmentation}). The heap manager keeps track of free blocks. On Linux,
+\code{valgrind} is a common tool to detect leaks and invalid accesses.
+\end{aside}
+
+\section{Documenting Dynamic Memory}
+
+If a function returns memory that the caller must free, that is part of the interface and must be
+documented:
+\begin{lstlisting}[style=c]
+// make_range(n) produces a new array {0, 1, ..., n-1}
+// requires: n > 0
+// effects: allocates memory (caller must free)
+// time: O(n)
+int *make_range(int n) {
+  assert(n > 0);
+  int *a = malloc(n * sizeof(int));
+  for (int i = 0; i < n; ++i) {
+    a[i] = i;
+  }
+  return a;
+}
+
+int main(void) {
+  int *r = make_range(10);
+  // ... use r ...
+  free(r);
+}
+\end{lstlisting}
+Unlike returning the address of a local, returning a heap pointer is fine: the block survives
+until it is freed.
+
+\section{\code{realloc}}
+
+\begin{lstlisting}[style=c]
+void *realloc(void *p, size_t newsize);
+\end{lstlisting}
+\code{realloc} resizes a previously allocated block to \code{newsize} bytes and returns a pointer
+to the (possibly moved) block. The old contents are preserved (up to the smaller of the two
+sizes). If it moves the block, it copies the data and frees the old block, so the old pointer
+must no longer be used.
+\begin{itemize}
+  \item \code{realloc(NULL, s)} behaves like \code{malloc(s)}.
+  \item Always use the returned pointer: \code{a = realloc(a, new\_len * sizeof(int));}
+  \item In the worst case realloc must copy the whole block, so it is $\bigO(n)$ where $n$ is the
+    size of the block.
+\end{itemize}
+
+\subsection{Reading a string of unknown length}
+
+\begin{lstlisting}[style=c]
+// read_line() reads a line of input (without the '\n') into a new string
+//   or produces NULL at EOF
+// effects: reads input, allocates memory (caller must free)
+// time: O(n), where n is the length of the line
+char *read_line(void) {
+  int maxlen = 1;
+  int len = 0;
+  char *str = malloc(maxlen * sizeof(char));
+  int c = getchar();
+  if (c == EOF) {
+    free(str);
+    return NULL;
+  }
+  while (c != EOF && c != '\n') {
+    if (len + 1 == maxlen) {        // need room for c and '\0'
+      maxlen *= 2;
+      str = realloc(str, maxlen * sizeof(char));
+    }
+    str[len] = c;
+    ++len;
+    c = getchar();
+  }
+  str[len] = '\0';
+  return str;
+}
+\end{lstlisting}
+
+\section{Dynamic Arrays and Amortized Analysis}
+
+A \emph{dynamic array} (resizable array) keeps a pointer to a heap array, together with the
+current length and the allocated capacity:
+\begin{lstlisting}[style=c]
+struct dynarray {
+  int *data;
+  int len;       // number of elements in use
+  int maxlen;    // allocated capacity
+};
+\end{lstlisting}
+When it is full and we want to append, we must grow it. How much should it grow?
+
+\paragraph{Grow by one.} Each append calls \code{realloc}, which may copy all $k$ existing
+elements. Appending $n$ elements costs $1 + 2 + \dots + n \in \bigO(n^2)$ --- $\bigO(n)$ per append.
+
+\paragraph{Double the capacity.} When full, double \code{maxlen}. Most appends are $\bigO(1)$; an
+expensive copy happens only when the length reaches $1, 2, 4, 8, \dots$. Appending $n$ elements
+copies at most
+\[ 1 + 2 + 4 + \dots + 2^{\floor{\log_2 n}} < 2n \]
+elements in total, plus $\bigO(1)$ work per append, so the total is $\bigO(n)$.
+
+\begin{definition}
+The \emph{amortized} running time of an operation is the total time of a sequence of $n$
+operations divided by $n$. With doubling, append is $\bigO(1)$ \emph{amortized}, even though a
+single append can take $\bigO(n)$ time.
+\end{definition}
+
+\begin{important}[Doubling strategy]
+Grow a dynamic array by a constant \emph{factor} (doubling), not by a constant \emph{amount}.
+Doubling makes $n$ appends $\bigO(n)$ in total ($\bigO(1)$ amortized each), at the cost of up to
+half the allocated memory being unused.
+\end{important}
+
+\begin{aside}
+Shrinking works similarly: halve the capacity when the array becomes only a quarter full (not
+half --- otherwise alternating append/remove at the boundary would resize every time).
+\end{aside}
+
+\section{ADTs in C}
+
+Now we can build proper ADTs in C, combining:
+\begin{itemize}
+  \item an \textbf{opaque structure} declared in the header (clients can only hold pointers);
+  \item \textbf{create} and \textbf{destroy} functions that allocate and free the structure;
+  \item interface functions that take a pointer to the structure.
+\end{itemize}
+
+\subsection{Interface: \code{stack.h}}
+\begin{lstlisting}[style=c]
+// stack.h: a stack ADT of integers
+#include <stdbool.h>
+
+struct stack;   // opaque
+
+// stack_create() creates a new empty stack
+// effects: allocates memory (client must call stack_destroy)
+// time: O(1)
+struct stack *stack_create(void);
+
+// stack_destroy(s) frees all memory used by s
+// effects: s is no longer valid
+// time: O(1)
+void stack_destroy(struct stack *s);
+
+// time: O(1)
+bool stack_is_empty(const struct stack *s);
+
+// requires: s is not empty
+// time: O(1)
+int stack_top(const struct stack *s);
+
+// stack_pop(s) removes and produces the top item
+// requires: s is not empty
+// effects: modifies s
+// time: O(1)
+int stack_pop(struct stack *s);
+
+// effects: modifies s
+// time: O(1) amortized
+void stack_push(int item, struct stack *s);
+\end{lstlisting}
+
+\subsection{Implementation: \code{stack.c}}
+\begin{lstlisting}[style=c]
+#include <assert.h>
+#include <stdlib.h>
+#include "stack.h"
+
+struct stack {
+  int len;
+  int maxlen;
+  int *data;
+};
+
+struct stack *stack_create(void) {
+  struct stack *s = malloc(sizeof(struct stack));
+  s->len = 0;
+  s->maxlen = 1;
+  s->data = malloc(s->maxlen * sizeof(int));
+  return s;
+}
+
+void stack_destroy(struct stack *s) {
+  assert(s);
+  free(s->data);     // free the inner array first...
+  free(s);           // ...then the structure itself
+}
+
+bool stack_is_empty(const struct stack *s) {
+  assert(s);
+  return s->len == 0;
+}
+
+int stack_top(const struct stack *s) {
+  assert(s);
+  assert(s->len > 0);
+  return s->data[s->len - 1];
+}
+
+int stack_pop(struct stack *s) {
+  assert(s);
+  assert(s->len > 0);
+  --s->len;
+  return s->data[s->len];
+}
+
+void stack_push(int item, struct stack *s) {
+  assert(s);
+  if (s->len == s->maxlen) {
+    s->maxlen *= 2;
+    s->data = realloc(s->data, s->maxlen * sizeof(int));
+  }
+  s->data[s->len] = item;
+  ++s->len;
+}
+\end{lstlisting}
+
+\subsection{Client}
+\begin{lstlisting}[style=c]
+#include <stdio.h>
+#include "stack.h"
+
+int main(void) {
+  struct stack *s = stack_create();
+  for (int i = 0; i < 1000; ++i) {
+    stack_push(i, s);              // no fixed maximum any more
+  }
+  while (!stack_is_empty(s)) {
+    printf("%d\n", stack_pop(s));
+  }
+  stack_destroy(s);
+}
+\end{lstlisting}
+The client cannot write \code{s->len} or \code{struct stack x;} because the structure is not
+defined in \code{stack.h}; the compiler enforces the abstraction. We can later replace the
+dynamic array by a linked list (Unit~11) without changing any client.
+
+\begin{important}[Freeing nested structures]
+Free memory ``inside out'': free what a structure points to before freeing the structure itself.
+Freeing \code{s} first would make \code{s->data} a dangling access and leak the array.
+\end{important}
+
+\section{Summary}
+\begin{itemize}
+  \item The heap holds dynamic memory whose lifetime is controlled by the programmer.
+  \item \code{malloc(n * sizeof(T))} allocates (uninitialized); \code{free} releases exactly once;
+    \code{realloc} resizes (and may move, $\bigO(n)$).
+  \item Errors: leaks, dangling pointers, double frees.
+  \item Document ``allocates memory (caller must free)'' in the interface.
+  \item Dynamic arrays with doubling give $\bigO(1)$ amortized append.
+  \item C ADTs: opaque struct + create/destroy + interface functions taking pointers.
+\end{itemize}

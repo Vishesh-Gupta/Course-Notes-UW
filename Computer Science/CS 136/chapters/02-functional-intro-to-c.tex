@@ -1,0 +1,308 @@
+\chapter{A Functional Introduction to C}
+
+\textbf{Readings:} CP:AMA 2.2--2.4, 2.6--2.8, 3.1, 4.1, 5.1, 9.1, 9.2, 10.1, 15.2.
+
+In this unit we write C in a ``functional'' style: constants only, no mutation, recursion
+instead of loops. This lets us learn the syntax of C while keeping the CS 135 way of thinking.
+
+\section{History of C}
+
+C was developed by Dennis Ritchie at Bell Labs in 1969--73 to make the Unix operating system
+more portable. It is the successor of the language B, and C++ is (roughly) its successor.
+C was designed to give low-level access to memory and to translate easily into machine code,
+which is why it is still the language of operating systems and embedded systems.
+
+\begin{important}[Standard]
+This course uses the \textbf{C99} standard.
+\end{important}
+
+\section{From Racket to C}
+
+\subsection{Comments}
+\begin{lstlisting}[style=racket]
+; single-line comment in Racket
+#| multi-line
+   comment in Racket |#
+\end{lstlisting}
+\begin{lstlisting}[style=c]
+// single-line comment in C (C99)
+/* multi-line
+   comment in C */
+\end{lstlisting}
+
+\subsection{Constants}
+\begin{lstlisting}[style=racket]
+(define my-number 42)
+\end{lstlisting}
+\begin{lstlisting}[style=c]
+const int my_number = 42;
+\end{lstlisting}
+Note: identifiers in C cannot contain \code{-}, so we use underscores (\code{my\_number}).
+Every C definition ends in a semicolon.
+
+\subsection{Static typing}
+
+Racket is \emph{dynamically typed}: the type of a value is only known (and checked) at run time,
+and an identifier can be bound to values of different types:
+\begin{lstlisting}[style=racket]
+(define dtype (cond [(>= x 0) 42]
+                    [else "invalid"]))
+\end{lstlisting}
+C is \emph{statically typed}: the type of every identifier must be declared and is known before
+the program runs. The compiler checks that types are used consistently.
+\begin{lstlisting}[style=c]
+const int stype = 42;
+\end{lstlisting}
+A consequence is that contracts in C do not need to repeat the types already in the function
+header; instead we document extra \emph{requirements} (e.g.\ \code{n >= 0}).
+
+\subsection{Initialization}
+
+In C, a \emph{definition} reserves storage for an identifier, and \emph{initialization}
+gives it its first value at the same time. A \code{const} must be initialized when it is
+defined, since it can never be assigned afterwards.
+
+\section{Expressions and Operators}
+
+C uses \emph{infix} notation (like ordinary math) instead of Racket's prefix notation:
+\code{(+ 1 (* 2 3))} becomes \code{1 + 2 * 3}. C has precedence rules (\code{*} binds tighter
+than \code{+}); use parentheses when in doubt.
+
+\begin{important}[Integer division and remainder]
+\begin{itemize}
+  \item \code{/} on integers behaves like Racket's \code{quotient}: the result is
+    \emph{truncated toward zero} (so \code{7 / 2} is 3 and \code{-7 / 2} is $-3$).
+  \item \code{\%} is the remainder operator: \code{a \% b} has the same sign as \code{a}
+    (so \code{-7 \% 2} is $-1$). It is \emph{not} the same as Math 135's mod for negative
+    numbers.
+  \item The identity \code{(a / b) * b + a \% b == a} always holds (for \code{b != 0}).
+\end{itemize}
+\end{important}
+
+\section{Functions}
+
+\begin{lstlisting}[style=racket]
+;; (my-sqr n) produces the square of n
+;; my-sqr: Int -> Int
+(define (my-sqr n)
+  (* n n))
+\end{lstlisting}
+\begin{lstlisting}[style=c]
+// my_sqr(n) produces the square of n
+int my_sqr(int n) {
+  return n * n;
+}
+\end{lstlisting}
+A C function definition gives the return type, the name, the typed parameters, and a body in
+braces. The \code{return} statement ends the function and produces the value. A function that
+takes no parameters is declared with \code{(void)}, and one that produces nothing has return
+type \code{void}.
+
+\section{Hello, World!}
+
+\begin{lstlisting}[style=c]
+// hello.c: my first C program
+#include <stdio.h>
+
+int main(void) {
+  printf("Hello, World!\n");
+}
+\end{lstlisting}
+
+\begin{itemize}
+  \item Every C program has exactly one \code{main} function, where execution starts. Its
+    return value is an error code for the operating system: 0 means success. In C99, if
+    \code{main} reaches the end without a \code{return}, it returns 0 automatically.
+  \item \code{\#include <stdio.h>} gives access to \code{printf}.
+  \item \code{\textbackslash n} is the newline character.
+\end{itemize}
+
+\subsection{\code{printf} placeholders}
+
+\code{printf} takes a \emph{format string} containing placeholders, followed by the values to
+substitute for them:
+\begin{lstlisting}[style=c]
+printf("%d squared is %d\n", 5, my_sqr(5));   // 5 squared is 25
+printf("100%%\n");                             // use %% to print a %
+\end{lstlisting}
+\begin{center}
+\begin{tabular}{ll}
+  \toprule
+  Placeholder & Type \\
+  \midrule
+  \code{\%d} & \code{int} (decimal) \\
+  \code{\%c} & \code{char} \\
+  \code{\%f} & \code{float}/\code{double} \\
+  \code{\%s} & string (Unit 08) \\
+  \code{\%p} & pointer (Unit 06) \\
+  \code{\%zd} & \code{size\_t} (Unit 05) \\
+  \bottomrule
+\end{tabular}
+\end{center}
+A field width can be given, e.g.\ \code{\%5d} right-aligns in 5 columns and \code{\%.2f}
+prints two decimal places.
+
+\section{Booleans and Comparisons}
+
+\begin{itemize}
+  \item In C, \emph{false} is represented by \code{0} and \emph{true} by \code{1}. In fact any
+    non-zero value is treated as true in a condition.
+  \item Equality is \code{==}; inequality is \code{!=}. Comparisons: \code{<}, \code{<=},
+    \code{>}, \code{>=}.
+  \item Logical not \code{!}, and \code{\&\&}, or \code{||}. Like Racket's \code{and}/\code{or},
+    \code{\&\&} and \code{||} \emph{short-circuit}: the right operand is only evaluated if needed.
+\end{itemize}
+
+\begin{important}[\code{=} vs \code{==}]
+\code{=} is assignment (Unit 04) and \code{==} is comparison. Writing \code{if (x = 0)} is a
+classic bug: it assigns 0 to \code{x} and the condition is always false.
+\end{important}
+
+The \code{bool} type is not built in; include \code{<stdbool.h>} to get \code{bool},
+\code{true} and \code{false}. Predicate functions should return \code{bool}:
+\begin{lstlisting}[style=c]
+#include <stdbool.h>
+
+// is_even(n) determines if n is even
+bool is_even(int n) {
+  return n % 2 == 0;
+}
+\end{lstlisting}
+
+\section{Conditionals}
+
+There is no direct C equivalent of \code{cond}. In functional C we use the
+\emph{conditional operator} \code{?:}, which is an \emph{expression}:
+\begin{lstlisting}[style=c]
+int my_abs(int n) {
+  return (n >= 0) ? n : -n;
+}
+\end{lstlisting}
+More generally we use the \code{if} \emph{statement} (Unit~05 covers it in detail):
+\begin{lstlisting}[style=c]
+int sign(int n) {
+  if (n > 0) {
+    return 1;
+  } else if (n < 0) {
+    return -1;
+  } else {
+    return 0;
+  }
+}
+\end{lstlisting}
+
+\section{Recursion}
+
+Recursion works exactly the same way as in Racket:
+\begin{lstlisting}[style=c]
+// sum_first(n) produces 0 + 1 + ... + n
+// requires: n >= 0
+int sum_first(int n) {
+  if (n == 0) {
+    return 0;
+  }
+  return n + sum_first(n - 1);
+}
+
+// gcd(m, n) produces the greatest common divisor (Euclid)
+// requires: m, n >= 0, not both zero
+int gcd(int m, int n) {
+  if (n == 0) return m;
+  return gcd(n, m % n);
+}
+\end{lstlisting}
+
+\section{Declarations vs.\ Definitions}
+
+C reads a file top to bottom; an identifier must be \emph{declared} before it is used.
+A \emph{declaration} only states the type (for a function: its signature, also called a
+\emph{prototype}); a \emph{definition} also provides the body/storage.
+\begin{lstlisting}[style=c]
+bool is_odd(int n);          // declaration (forward declaration)
+
+bool is_even(int n) {        // definition
+  return (n == 0) ? true : is_odd(n - 1);
+}
+
+bool is_odd(int n) {
+  return (n == 0) ? false : is_even(n - 1);
+}
+\end{lstlisting}
+Something may be declared many times but defined only once. Declarations are what we put in
+header (\code{.h}) files.
+
+\section{Scope}
+
+Identifiers defined inside a function (parameters and local constants) have \emph{local}
+(block) scope, as in Racket's \code{local}. Identifiers defined at the top level of a file are
+\emph{global}. In C, global identifiers have \emph{program} scope by default (visible from other
+files if declared there); the keyword \code{static} restricts them to \emph{module} scope
+(Unit~03).
+
+\section{Modules and \code{\#include}}
+
+\code{\#include} is a \emph{preprocessor directive}: before compilation, the preprocessor
+textually replaces the line with the contents of the named file.
+\begin{lstlisting}[style=c]
+#include <stdio.h>        // standard library module: angle brackets
+#include "my_module.h"    // our own module: quotes
+\end{lstlisting}
+A module is split into an \emph{interface} file (\code{.h}: declarations, documentation) and
+an \emph{implementation} file (\code{.c}: definitions). This is covered fully in Unit~03.
+
+\section{Testing with \code{assert}}
+
+\code{assert(e)} (from \code{<assert.h>}) does nothing if \code{e} is true, and stops the
+program with an error message if \code{e} is false. We use it to test our functions and to
+check preconditions (``requires'').
+\begin{lstlisting}[style=c]
+#include <assert.h>
+
+int main(void) {
+  assert(my_sqr(3) == 9);
+  assert(sum_first(4) == 10);
+  assert(gcd(12, 18) == 6);
+}
+\end{lstlisting}
+
+\section{Floating point}
+
+C's \code{float} and \code{double} types represent real (non-integer) numbers
+approximately. They are \emph{inexact}: \code{0.1 + 0.2 == 0.3} is false. Racket would use exact
+rationals; C cannot. Avoid floats unless the problem requires them, and never compare floats
+with \code{==}.
+
+\section{Structures}
+
+Structures are compound data, like Racket's \code{struct}, but fields are typed:
+\begin{lstlisting}[style=c]
+struct posn {          // structure declaration (note the semicolon)
+  int x;
+  int y;
+};
+
+const struct posn p = {3, 4};          // initialization with braces
+const struct posn q = {.y = 4, .x = 3}; // C99 designated initializers
+
+int manhattan(struct posn a, struct posn b) {
+  return my_abs(a.x - b.x) + my_abs(a.y - b.y);
+}
+\end{lstlisting}
+\begin{itemize}
+  \item The type is \code{struct posn} (the word \code{struct} is part of it).
+  \item Fields are accessed with the \emph{selection operator} \code{.} (e.g.\ \code{p.x}).
+  \item \code{==} does \emph{not} work on structures; compare field by field.
+  \item Unlike Racket, there is no automatic constructor/predicate; a structure is a block of
+    memory holding its fields.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item C99 is statically typed; definitions end with \code{;}; functions declare return and
+    parameter types.
+  \item \code{/} truncates toward zero; \code{\%} is the remainder with the sign of the dividend.
+  \item 0 is false, non-zero is true; use \code{<stdbool.h>} for \code{bool}.
+  \item \code{?:} is the conditional expression; \code{if} is a statement.
+  \item Declarations vs.\ definitions; \code{\#include} is textual inclusion by the preprocessor.
+  \item Test with \code{assert}; use \code{struct} for compound data and \code{.} to select fields.
+\end{itemize}

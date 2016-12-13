@@ -1,0 +1,341 @@
+\chapter{Pointers}
+
+\textbf{Readings:} CP:AMA 11, 17.7.
+
+\tikzset{
+  cell/.style={draw,minimum width=1.4cm,minimum height=0.7cm},
+  ptr/.style={-{Stealth[length=2mm]},thick}
+}
+
+\section{The Address Operator}
+
+The \emph{address operator} \code{\&} produces the (starting) address of where the value of an
+identifier is stored in memory. The \code{printf} placeholder for an address is \code{\%p}
+(printed in hexadecimal).
+\begin{lstlisting}[style=c]
+int g = 42;
+int main(void) {
+  printf("the value of g is %d\n", g);
+  printf("the address of g is %p\n", &g);   // e.g. 0x601040
+}
+\end{lstlisting}
+
+\section{Pointers}
+
+\begin{definition}
+A \emph{pointer} is a value that is an address. A pointer variable is defined by placing a star
+\code{*} before the identifier.
+\end{definition}
+
+\begin{lstlisting}[style=c]
+int i = 5;
+int *p = &i;    // p "points at" i
+\end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}
+  \node[cell] (i) {5};
+  \node[left=1mm of i] {\code{i}};
+  \node[below=0mm of i,font=\scriptsize] {0x5000};
+  \node[cell,right=3cm of i] (p) {0x5000};
+  \node[right=1mm of p] {\code{p}};
+  \node[below=0mm of p,font=\scriptsize] {0x5008};
+  \draw[ptr] (p.west) -- (i.east);
+\end{tikzpicture}
+\end{center}
+
+The type of \code{p} is ``pointer to int'', written \code{int *}. Pointers have types:
+an \code{int *} should only point at \code{int}s, a \code{char *} at \code{char}s, and so on.
+
+\begin{aside}
+The placement of the space does not matter: \code{int *p}, \code{int* p} and \code{int * p} are
+all the same. CS 136 style puts the star next to the identifier because
+\code{int *p, q;} defines a pointer \code{p} and an \emph{int} \code{q}. Avoid defining several
+pointers on one line.
+\end{aside}
+
+\subsection{Size of a pointer}
+
+On a $k$-bit system, addresses (and hence all pointers, regardless of the type they point to)
+are $k$ bits. Seashell is a 64-bit system, so \code{sizeof(int *)} is \textbf{8 bytes}.
+
+\section{The Indirection Operator}
+
+The \emph{indirection} operator \code{*} (also called the \emph{dereference} operator) is the
+inverse of \code{\&}: \code{*p} is ``the value at the address \code{p}''.
+\begin{lstlisting}[style=c]
+int i = 5;
+int *p = &i;
+printf("%d\n", *p);   // 5
+*p = 7;               // changes i!
+printf("%d\n", i);    // 7
+\end{lstlisting}
+\code{*\&i} is the same as \code{i}. Note that the star means two different things: in a
+definition (\code{int *p}) it is part of the type, and in an expression (\code{*p}) it is the
+indirection operator.
+
+Pointers can point to pointers:
+\begin{lstlisting}[style=c]
+int i = 5;
+int *p = &i;
+int **pp = &p;     // pointer to pointer to int
+**pp = 6;          // i is now 6
+\end{lstlisting}
+
+\section{The \code{NULL} Pointer}
+
+\code{NULL} (defined in \code{<stdlib.h>} and \code{<stdio.h>}, among others) is a special
+pointer value that points to nothing; it is address 0. It is used to represent ``no value''
+(like \code{empty} or \code{\#f} in Racket).
+
+\begin{important}[Dereferencing \code{NULL}]
+Dereferencing a \code{NULL} pointer (or any invalid pointer) is undefined behaviour; in practice
+the program crashes with a segmentation fault. Since \code{NULL} is false and every other
+pointer is true, \code{assert(p);} asserts that \code{p} is not \code{NULL}. Functions that take
+pointers should usually start with such asserts (and the documentation should say
+``requires: p is a valid pointer'').
+\end{important}
+
+\section{Pointer Assignment vs.\ Value Assignment}
+
+This is the single most important idea in the unit.
+\begin{lstlisting}[style=c]
+int i = 5;
+int j = 6;
+int *p = &i;
+int *q = &j;
+p = q;        // pointer assignment
+\end{lstlisting}
+\code{p = q} changes \emph{what \code{p} points at}: now both \code{p} and \code{q} point at
+\code{j}, so \code{*p} is 6. \code{i} is still 5.
+\begin{center}
+\begin{tikzpicture}
+  \node[cell] (i) {5}; \node[left=1mm of i] {\code{i}};
+  \node[cell,below=8mm of i] (j) {6}; \node[left=1mm of j] {\code{j}};
+  \node[cell,right=3cm of i] (p) {}; \node[right=1mm of p] {\code{p}};
+  \node[cell,right=3cm of j] (q) {}; \node[right=1mm of q] {\code{q}};
+  \draw[ptr] (p.center) -- (j.north east);
+  \draw[ptr] (q.center) -- (j.east);
+  \draw[ptr,dashed,gray] (p.west) -- node[above,font=\scriptsize]{before} (i.east);
+\end{tikzpicture}
+\end{center}
+
+\begin{lstlisting}[style=c]
+int i = 5;
+int j = 6;
+int *p = &i;
+int *q = &j;
+*p = *q;      // value assignment
+\end{lstlisting}
+\code{*p = *q} copies the \emph{value} that \code{q} points at into the location \code{p} points
+at. \code{p} still points at \code{i}, but now \code{i} is 6.
+
+\begin{definition}
+When two (or more) pointers point to the same location, or a pointer points to a named
+variable, we say they are \emph{aliases}: the same memory can be changed through either name.
+After \code{p = q} above, \code{*p} and \code{*q} are aliases for \code{j}.
+\end{definition}
+
+Aliasing makes code harder to reason about: changing \code{*p} silently changes \code{*q}.
+
+\section{Mutation Through Parameters}
+
+Since C passes arguments by value, a function cannot change the caller's variables directly.
+But if we pass the \emph{address} of a variable, the function can change the variable through
+the pointer. This emulates \emph{pass by reference}.
+\begin{lstlisting}[style=c]
+// inc(p) increments the integer p points at
+// requires: p is a valid pointer
+// effects: modifies *p
+void inc(int *p) {
+  assert(p);
+  *p += 1;
+}
+
+int main(void) {
+  int x = 5;
+  inc(&x);              // x is now 6
+}
+\end{lstlisting}
+
+\subsection{The classic example: swap}
+\begin{lstlisting}[style=c]
+// swap(px, py) swaps the values of *px and *py
+// effects: modifies *px and *py
+void swap(int *px, int *py) {
+  int temp = *px;
+  *px = *py;
+  *py = temp;
+}
+
+int a = 3, b = 4;
+swap(&a, &b);    // a is 4, b is 3
+\end{lstlisting}
+A version \code{void swap(int x, int y)} would only swap the copies in its own stack frame and
+have no effect on the caller.
+
+\begin{center}
+\begin{tikzpicture}[row/.style={minimum width=4.4cm,minimum height=0.55cm,text width=4.2cm,align=left,inner sep=2pt}]
+  \node[row,font=\bfseries] (sw) {swap};
+  \node[row,below=0pt of sw] (px) {px:};
+  \node[row,below=0pt of px] (py) {py:};
+  \node[row,below=0pt of py] (tmp) {temp: 3};
+  \node[row,below=0pt of tmp] (ra) {return address: main};
+  \node[row,below=0pt of ra,font=\bfseries] (mn) {main};
+  \node[row,below=0pt of mn] (a) {a: 3};
+  \node[row,below=0pt of a] (b) {b: 4};
+  \node[row,below=0pt of b] (rb) {return address: OS};
+  \draw (sw.north west) rectangle (ra.south east);
+  \draw (mn.north west) rectangle (rb.south east);
+  \draw[ptr] ($(px.west)+(0.9,0)$) -- ($(px.east)+(0.9,0)$) |- (a.east);
+  \draw[ptr] ($(py.west)+(0.9,0)$) -- ($(py.east)+(0.5,0)$) |- (b.east);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Returning more than one value}
+
+A function can only \code{return} one value, but it can ``produce'' more by storing results
+through pointer parameters (\emph{output parameters}):
+\begin{lstlisting}[style=c]
+// divide(num, denom, quot, rem) stores num / denom in *quot
+//   and num % denom in *rem
+// requires: denom != 0, quot and rem are valid pointers
+// effects: modifies *quot and *rem
+void divide(int num, int denom, int *quot, int *rem) {
+  assert(denom != 0);
+  assert(quot && rem);
+  *quot = num / denom;
+  *rem = num % denom;
+}
+\end{lstlisting}
+A common pattern is to return a \code{bool} success flag and store the actual result through a
+pointer (this is exactly how \code{scanf} works, Unit~07).
+
+\begin{important}[Never return the address of a local variable]
+\begin{lstlisting}[style=c]
+int *bad(void) {
+  int x = 5;
+  return &x;     // x's frame is popped on return: dangling pointer!
+}
+\end{lstlisting}
+Once the function returns, its stack frame is gone; the pointer now points at memory that will
+be reused by the next call. Using it is undefined behaviour.
+\end{important}
+
+\section{Passing Structures}
+
+Passing a structure by value copies the entire structure into the new stack frame. For large
+structures that wastes time and stack space (and can contribute to stack overflow). Instead we
+pass a pointer, which is always 8 bytes in Seashell regardless of the structure size.
+
+Fields are accessed through a pointer with \code{(*ptr).field}. The parentheses are needed
+because \code{.} has higher precedence than \code{*}. This is so common that C provides the
+\emph{arrow operator}, which combines indirection and selection: \code{ptr->field}.
+\begin{lstlisting}[style=c]
+struct posn { int x; int y; };
+
+// posn_scale(p, k) multiplies both coordinates of *p by k
+// effects: modifies *p
+void posn_scale(struct posn *p, int k) {
+  assert(p);
+  p->x *= k;           // same as (*p).x *= k
+  p->y *= k;
+}
+\end{lstlisting}
+
+\subsection{\code{const} pointers}
+
+If a function takes a pointer only for efficiency and does not modify the data, mark it
+\code{const} so the compiler enforces (and documents) that:
+\begin{lstlisting}[style=c]
+int posn_dist_sq(const struct posn *a, const struct posn *b) {
+  int dx = a->x - b->x;
+  int dy = a->y - b->y;
+  return dx * dx + dy * dy;
+}
+\end{lstlisting}
+The position of \code{const} matters:
+\begin{lstlisting}[style=c]
+const int *p;          // p can change; *p cannot be changed through p
+int * const q = &i;    // q cannot change; *q can
+const int * const r = &i;  // neither can change
+\end{lstlisting}
+(Read declarations right to left: ``\code{q} is a const pointer to an int''.)
+
+\section{Opaque Structures}
+
+C allows a structure to be \emph{declared} without being \emph{defined}:
+\begin{lstlisting}[style=c]
+struct account;     // incomplete type: fields unknown
+\end{lstlisting}
+A client that only sees this declaration cannot create a \code{struct account} or access its
+fields (it does not know its size or fields), but it \emph{can} use pointers to it
+(\code{struct account *}), since all pointers have the same size. This is an \emph{opaque
+structure}, and it is how C enforces information hiding for ADTs: the header declares the
+structure, the implementation file defines it, and clients can only use the interface functions.
+\begin{lstlisting}[style=c]
+// account.h
+struct account;
+struct account *account_create(int id, int balance);   // Unit 10
+int account_balance(const struct account *acc);
+void account_deposit(struct account *acc, int amount);
+\end{lstlisting}
+\begin{lstlisting}[style=c]
+// account.c
+#include "account.h"
+struct account {       // the complete definition is private to this file
+  int id;
+  int balance;
+};
+int account_balance(const struct account *acc) {
+  return acc->balance;
+}
+\end{lstlisting}
+Creating opaque structures requires dynamic memory, which we see in Unit~10.
+
+\section{Function Pointers}
+
+In Racket, functions are first-class values. In C, functions are not values, but \emph{pointers
+to functions} are: the name of a function evaluates to the address of its code (in the code
+section). This lets us pass a function to another function.
+\begin{lstlisting}[style=c]
+int my_sqr(int n) { return n * n; }
+int my_neg(int n) { return -n; }
+
+// a function pointer variable: f points to a function int -> int
+int (*f)(int) = my_sqr;
+printf("%d\n", f(5));     // 25
+f = my_neg;
+printf("%d\n", f(5));     // -5
+
+// apply_twice(f, x) produces f(f(x))
+int apply_twice(int (*f)(int), int x) {
+  return f(f(x));
+}
+apply_twice(my_sqr, 3);   // 81
+\end{lstlisting}
+The syntax \code{int (*f)(int)} reads: ``\code{f} is a pointer to a function taking an
+\code{int} and returning an \code{int}''. The parentheses around \code{*f} are needed:
+\code{int *f(int)} would declare a function returning an \code{int *}. We use function pointers
+for ``map''-style array functions (Unit~08) and generic ADTs (Unit~13).
+
+\section{Common Pitfalls}
+\begin{itemize}
+  \item Dereferencing an uninitialized or \code{NULL} pointer (segmentation fault or worse).
+  \item Returning the address of a local variable (dangling pointer).
+  \item Confusing \code{p = q} (pointer assignment) with \code{*p = *q} (value assignment).
+  \item Writing \code{*p.x} instead of \code{p->x}.
+  \item Forgetting \code{\&} when passing a variable that should be modified
+    (e.g.\ \code{scanf("\%d", n)}).
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item \code{\&x} is the address of \code{x}; \code{*p} is the value at address \code{p}.
+  \item Pointers are typed; all pointers are 8 bytes in Seashell; \code{NULL} points nowhere.
+  \item Pass a pointer to let a function modify the caller's data (emulated pass by reference);
+    use output parameters to produce several results.
+  \item Pass structures by pointer; use \code{->}; use \code{const} for read-only access.
+  \item Opaque structures (declared but not defined in the header) enforce ADT abstraction.
+  \item Function pointers let functions be passed as arguments.
+\end{itemize}

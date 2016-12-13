@@ -1,0 +1,267 @@
+\chapter{Beyond CS 136}
+
+\textbf{Readings:} CP:AMA 17.7 (function pointers), 2.1 and 15.4 (compiling and linking),
+26.2 (\code{qsort}).
+
+\begin{aside}
+Much of this unit is a preview of later courses (CS 246, CS 241, CS 240) rather than core exam
+material; check with your instructor which parts are tested. Generic \code{void *} ADTs and
+function pointers were the parts we actually used.
+\end{aside}
+
+\section{Generic Data with \code{void *}}
+
+All our ADTs so far store \code{int}s. To store strings we would copy the whole module and change
+the types. Racket does not have this problem because it is dynamically typed. In C, the
+\emph{generic pointer} \code{void *} can point to data of any type:
+\begin{itemize}
+  \item any pointer can be assigned to a \code{void *} and back without a cast;
+  \item a \code{void *} cannot be dereferenced (the type, and hence the size, is unknown) and
+    pointer arithmetic on it is not allowed;
+  \item the compiler can no longer check types, so the client must be careful.
+\end{itemize}
+
+\subsection{A generic stack}
+\begin{lstlisting}[style=c]
+// gstack.h: a generic stack; it stores pointers provided by the client.
+//   The client owns the items: the stack never frees them.
+struct stack;
+struct stack *stack_create(void);
+void stack_destroy(struct stack *s);   // requires: s is empty
+bool stack_is_empty(const struct stack *s);
+void stack_push(void *item, struct stack *s);
+void *stack_top(const struct stack *s);
+void *stack_pop(struct stack *s);
+\end{lstlisting}
+\begin{lstlisting}[style=c]
+// gstack.c (dynamic array of void *)
+struct stack {
+  int len;
+  int maxlen;
+  void **data;              // array of generic pointers
+};
+
+void stack_push(void *item, struct stack *s) {
+  assert(s);
+  if (s->len == s->maxlen) {
+    s->maxlen *= 2;
+    s->data = realloc(s->data, s->maxlen * sizeof(void *));
+  }
+  s->data[s->len] = item;
+  ++s->len;
+}
+\end{lstlisting}
+\begin{lstlisting}[style=c]
+// client: a stack of heap-allocated ints
+struct stack *s = stack_create();
+int *p = malloc(sizeof(int));
+*p = 42;
+stack_push(p, s);
+int *q = stack_pop(s);        // void * converted back to int *
+printf("%d\n", *q);           // 42
+free(q);                      // the client frees its own items
+stack_destroy(s);
+\end{lstlisting}
+
+\begin{important}[Ownership of generic items]
+With \code{void *} ADTs the interface must say who frees the items. Common choices: the client
+frees them (as above), or the client passes a ``destroy'' function pointer to
+\code{stack\_destroy} so the ADT can free any remaining items.
+\end{important}
+
+\section{Function Pointers for Generic Algorithms}
+
+A generic data structure that needs to \emph{compare} items (a sorted list, a BST dictionary)
+cannot use \code{<} on \code{void *}. The client provides a comparison function instead, using
+the same convention as \code{strcmp}: negative, zero or positive.
+
+\subsection{\code{qsort}}
+
+The C library's generic sort (in \code{<stdlib.h>}):
+\begin{lstlisting}[style=c]
+void qsort(void *base, size_t len, size_t size,
+           int (*compare)(const void *, const void *));
+\end{lstlisting}
+\begin{lstlisting}[style=c]
+// compare_ints(a, b) compares the ints a and b point at
+int compare_ints(const void *a, const void *b) {
+  const int *ia = a;
+  const int *ib = b;
+  if (*ia < *ib) return -1;
+  if (*ia > *ib) return 1;
+  return 0;
+  // (return *ia - *ib; is shorter but can overflow)
+}
+
+int a[5] = {5, 3, 9, 1, 7};
+qsort(a, 5, sizeof(int), compare_ints);   // a is {1, 3, 5, 7, 9}
+\end{lstlisting}
+Sorting an array of strings (\code{char *}) works the same way: each element is a
+\code{char *}, so the comparator receives \code{char **}s:
+\begin{lstlisting}[style=c]
+int compare_strs(const void *a, const void *b) {
+  const char * const *sa = a;
+  const char * const *sb = b;
+  return strcmp(*sa, *sb);
+}
+\end{lstlisting}
+
+\subsection{A generic BST dictionary}
+\begin{lstlisting}[style=c]
+struct dictionary {
+  struct bstnode *root;
+  int (*key_compare)(const void *, const void *);
+};
+
+struct dictionary *dict_create(int (*cmp)(const void *, const void *)) {
+  struct dictionary *d = malloc(sizeof(struct dictionary));
+  d->root = NULL;
+  d->key_compare = cmp;
+  return d;
+}
+
+void *dict_lookup(const void *key, const struct dictionary *d) {
+  const struct bstnode *node = d->root;
+  while (node) {
+    int result = d->key_compare(key, node->key);
+    if (result == 0) return node->val;
+    node = (result < 0) ? node->left : node->right;
+  }
+  return NULL;
+}
+\end{lstlisting}
+This is a limited form of what Racket gets for free with higher-order functions, and what C++
+achieves with templates (CS 246).
+
+\section{\code{typedef}}
+
+\code{typedef} creates an alias for a type. CS 136 style mostly avoided it (so that pointers and
+structures stay visible), but it is common in real code, especially for function pointer types:
+\begin{lstlisting}[style=c]
+typedef int (*CompareFn)(const void *, const void *);
+typedef struct dictionary *Dictionary;   // hides the pointer: use carefully
+
+Dictionary dict_create(CompareFn cmp);
+\end{lstlisting}
+
+\section{The Compilation Pipeline}
+
+Seashell hides how a C program becomes an executable. Running \code{gcc} on several files does
+four steps:
+\begin{center}
+\begin{tikzpicture}[box/.style={draw,rounded corners,align=center,minimum height=0.9cm,
+  text width=2.2cm,font=\small},
+  arr/.style={-{Stealth[length=2mm]},thick}]
+  \node[box] (src) {\code{.c} / \code{.h}\\ source};
+  \node[box,right=0.6cm of src] (pre) {preprocessor};
+  \node[box,right=0.6cm of pre] (cc) {compiler\\ (+ assembler)};
+  \node[box,right=0.6cm of cc] (ld) {linker};
+  \node[box,below=0.8cm of ld] (exe) {executable};
+  \draw[arr] (src) -- (pre);
+  \draw[arr] (pre) -- (cc);
+  \draw[arr] (cc) -- node[above,font=\scriptsize]{\code{.o}} (ld);
+  \draw[arr] (ld) -- (exe);
+\end{tikzpicture}
+\end{center}
+\begin{enumerate}
+  \item \textbf{Preprocessing:} handles directives starting with \code{\#}: \code{\#include}
+    pastes in header files, \code{\#define} does textual macro substitution, \code{\#ifdef}
+    includes code conditionally. The result is a single ``translation unit'' per \code{.c} file.
+  \item \textbf{Compiling:} each translation unit is checked (types, syntax) and translated to
+    assembly language and then (by the \emph{assembler}) to machine code in an \emph{object file}
+    (\code{.o}). References to functions in other modules are left unresolved. This is why a
+    \code{.c} file only needs the \emph{declarations} from headers.
+  \item \textbf{Linking:} the linker combines all object files and libraries (e.g.\ the C
+    standard library for \code{printf}), resolves every reference to its definition, and
+    produces the executable. ``Undefined reference'' errors and duplicate-definition errors come
+    from this step.
+\end{enumerate}
+\begin{lstlisting}[style=bash]
+gcc -std=c99 -Wall -c stack.c        # produces stack.o
+gcc -std=c99 -Wall -c main.c         # produces main.o
+gcc stack.o main.o -o prog           # link
+./prog < test1.in
+\end{lstlisting}
+Separate compilation means that when one module changes, only that module needs to be
+recompiled before relinking. Tools like \code{make} automate this (CS 246).
+
+\subsection{Include guards}
+
+If a header is included twice in one translation unit (e.g.\ directly and through another
+header), structure definitions would be duplicated. Headers are therefore protected:
+\begin{lstlisting}[style=c]
+#ifndef STACK_H
+#define STACK_H
+// ... declarations ...
+#endif
+\end{lstlisting}
+
+\subsection{Command-line arguments}
+
+Outside Seashell, \code{main} can receive arguments typed on the command line:
+\begin{lstlisting}[style=c]
+int main(int argc, char *argv[]) {
+  // argc: number of arguments (including the program name)
+  // argv: array of strings; argv[0] is the program name
+  for (int i = 1; i < argc; ++i) {
+    printf("argument %d: %s\n", i, argv[i]);
+  }
+}
+\end{lstlisting}
+
+\section{C vs.\ Racket vs.\ Other Languages}
+
+\begin{center}
+\begin{tabular}{p{3.2cm}p{3.6cm}p{3.6cm}p{3.6cm}}
+  \toprule
+  & Racket & C & C++ / Java / Python \\
+  \midrule
+  Paradigm & functional (mostly) & imperative & imperative + object-oriented \\
+  Typing & dynamic & static (weak: casts, \code{void *}) & static (C++, Java), dynamic (Python) \\
+  Memory & garbage collected & manual \code{malloc}/\code{free} & RAII/destructors (C++), GC (Java, Python) \\
+  Execution & interpreted / JIT & compiled to machine code & compiled (C++), bytecode VM (Java), interpreted (Python) \\
+  Generic code & automatic & \code{void *}, function pointers & templates / generics / duck typing \\
+  Safety & errors reported & undefined behaviour & exceptions, bounds checks (Java, Python) \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+  \item \textbf{Garbage collection:} Racket, Java and Python automatically free memory that is
+    no longer reachable, so leaks and dangling pointers (mostly) cannot happen, at some cost in
+    run-time overhead and control. C gives full control and full responsibility.
+  \item \textbf{Object-oriented programming} (CS 246) bundles data with the functions that operate
+    on it (\emph{classes}), with access control (\code{private}) enforcing information hiding ---
+    a language-level version of our opaque-structure ADTs. Constructors and destructors replace
+    \code{\_create} and \code{\_destroy}.
+  \item \textbf{Undefined behaviour} is C's trade-off for speed: no bounds checks, no overflow
+    checks. Many security vulnerabilities (buffer overflows) come from it.
+  \item Despite its age, C remains essential for operating systems, embedded systems, and
+    performance-critical libraries, and its memory model underlies how every other language is
+    implemented.
+\end{itemize}
+
+\section{Where the Ideas Go Next}
+
+\begin{itemize}
+  \item \textbf{CS 246} (Object-Oriented Software Development): C++, classes, RAII, templates,
+    design patterns, \code{make}.
+  \item \textbf{CS 241} (Foundations of Sequential Programs): how the compiler, assembler and
+    linker actually work; MIPS assembly; how the stack and heap are managed.
+  \item \textbf{CS 240} (Data Structures and Data Management): balanced trees, hash tables,
+    priority queues, sorting lower bounds, and more rigorous analysis.
+  \item \textbf{CS 251} (Computer Organization and Design): how memory, bits and machine code are
+    realised in hardware.
+  \item \textbf{CS 350} (Operating Systems): processes, virtual memory --- the segmentation faults
+    we saw come from here.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item \code{void *} allows generic ADTs; the interface must define ownership of items.
+  \item Function pointers (comparators like \code{qsort}'s) make algorithms generic.
+  \item Building a program: preprocess $\to$ compile/assemble to object files $\to$ link.
+    Headers hold declarations; include guards prevent double inclusion.
+  \item C trades safety for control and speed; other languages add garbage collection,
+    objects and generics on top of the same memory model.
+\end{itemize}

@@ -1,0 +1,331 @@
+\chapter{The C Model: Memory and Control Flow}
+
+\textbf{Readings:} CP:AMA 5.2--5.3, 6, 7.1--7.3, 9.2--9.3, 18.2.
+
+\section{Models of Computation}
+
+In CS 135 we modelled Racket's behaviour with \emph{substitution}. Substitution cannot handle
+mutation, so in CS 136 we model C with two components:
+\begin{itemize}
+  \item \textbf{memory}: what data is stored where, and
+  \item \textbf{control flow}: which statement is being executed, and what runs next.
+\end{itemize}
+
+\section{Memory}
+
+\subsection{Bits, bytes and addresses}
+
+A \emph{bit} of storage has two possible states: 0 or 1. A \emph{byte} is 8 bits, so a byte has
+$2^8 = 256$ possible states. Memory is a huge array of bytes; the position of a byte is its
+\emph{address}. To access data we go to its address. Addresses are usually written in
+hexadecimal, e.g.\ \code{0x5000}.
+
+\subsection{\code{sizeof}}
+
+When C defines a variable it reserves enough consecutive bytes for its type. The \code{sizeof}
+operator (it looks like a function but is an operator evaluated at compile time) gives the number
+of bytes a type or expression uses. Its result has type \code{size\_t}, printed with \code{\%zd}.
+\begin{lstlisting}[style=c]
+printf("%zd\n", sizeof(int));    // 4 (in Seashell)
+printf("%zd\n", sizeof(char));   // 1 (always)
+int n = 0;
+printf("%zd\n", sizeof n);       // 4
+\end{lstlisting}
+
+\subsection{Integer limits and overflow}
+
+An \code{int} in Seashell is 4 bytes $=$ 32 bits, so there are only $2^{32}$ possible values.
+Integers are \emph{signed}: the range is $-2^{31}$ to $2^{31}-1$. The limits are provided by
+\code{<limits.h>}:
+\begin{lstlisting}[style=c]
+#include <limits.h>
+INT_MAX   //  2147483647  =  2^31 - 1
+INT_MIN   // -2147483648  = -2^31
+\end{lstlisting}
+(You do not need to memorise these values.)
+
+\begin{important}[Overflow]
+If an arithmetic result is outside the range of its type, \emph{overflow} occurs. For signed
+\code{int}, overflow is \textbf{undefined behaviour}: anything may happen (in practice the
+value usually ``wraps around'', e.g.\ \code{INT\_MAX + 1} becomes \code{INT\_MIN}). It is your
+job to make sure overflow cannot happen.
+\end{important}
+
+\begin{aside}
+\code{unsigned int} uses the same 32 bits to store $0$ to $2^{32}-1$, and overflow of unsigned
+values is well defined (arithmetic modulo $2^{32}$). \code{long long} is at least 64 bits.
+\end{aside}
+
+\subsection{The \code{char} type and ASCII}
+
+A \code{char} is 1 byte and is used to store a single character. It is really a small integer:
+characters are encoded using ASCII (American Standard Code for Information Interchange), which
+assigns codes 0--127, e.g.\ \code{'A'} is 65, \code{'a'} is 97, \code{'0'} is 48, \code{' '} is
+32 and \code{'\textbackslash n'} is 10.
+\begin{lstlisting}[style=c]
+char c = 'A';       // the same value as
+char d = 65;        // ... this
+printf("%c %d\n", c, c);         // A 65
+char lower = c + ('a' - 'A');    // 'a'
+int digit = '7' - '0';           // 7
+\end{lstlisting}
+The placeholder for \code{char} is \code{\%c}. Single quotes give a character; double quotes give
+a string (Unit~08). Many assignment problems are solved by doing arithmetic on characters as
+above.
+
+\subsection{Structures in memory}
+
+A structure occupies (at least) the sum of the sizes of its fields; the compiler may add
+\emph{padding} between fields for alignment, so \code{sizeof(struct s)} can be larger than the
+sum. Always use \code{sizeof} rather than computing sizes by hand.
+
+\section{Sections of Memory}
+
+The memory available to a C program is divided into five \emph{sections} (also called
+segments):
+
+\begin{center}
+\begin{tikzpicture}[sec/.style={draw,minimum width=4.2cm,minimum height=0.75cm}]
+  \node[sec] (code) {code};
+  \node[sec,below=0pt of code] (ro) {read-only data};
+  \node[sec,below=0pt of ro] (glob) {global data};
+  \node[sec,below=0pt of glob] (heap) {heap $\downarrow$};
+  \node[sec,below=0pt of heap,minimum height=1.2cm,fill=gray!10] (gap) {(free)};
+  \node[sec,below=0pt of gap] (stack) {stack $\uparrow$};
+  \node[left=0.3cm of code] {low addresses};
+  \node[left=0.3cm of stack] {high addresses};
+\end{tikzpicture}
+\end{center}
+
+The operating system and hardware enforce the boundaries: trying to access memory outside the
+sections your program owns (or writing to a read-only section) causes a
+\textbf{segmentation fault}, and the program crashes.
+
+\subsection{The code section}
+
+\emph{Source code} is the human-readable ASCII text we write. The compiler translates it into
+\emph{machine code}, which the processor can execute; this translation is called
+\emph{compiling}. When the program runs, the machine code is placed in the code section.
+(CS 241 shows how this is done.)
+
+\subsection{Read-only and global data}
+
+Global (top-level) identifiers are stored in one of these two sections:
+\begin{itemize}
+  \item global \emph{constants} go in the \textbf{read-only data} section;
+  \item global \emph{variables} go in the \textbf{global data} section.
+\end{itemize}
+These are created and initialized \emph{before} \code{main} runs, and exist until the program
+ends. This is why global initializers must be constant expressions.
+
+The heap is covered in Unit~10, and the stack below.
+
+\section{Control Flow}
+
+\subsection{Return addresses and the call stack}
+
+When a function is called, the program ``jumps'' to the function's code. When it finishes,
+execution continues where the call was made. So for each call we must remember the
+\emph{return address}: the location in the caller to go back to.
+
+\begin{remark}
+The return address is not the same as the \code{return} statement. \code{return} produces a
+value for the caller; the return address says \emph{where} in the caller to resume. Even
+\code{main} has a return address (back into the operating system).
+\end{remark}
+
+Calls are nested: \code{main} calls \code{f}, which calls \code{g}, \dots, and they return in the
+reverse order. So the history of calls is a \emph{stack} (LIFO), called the \emph{call stack}. It
+is the same idea as the stack ADT: a call pushes, a return pops.
+
+\subsection{Stack frames}
+
+Each function call pushes a \emph{stack frame} (activation record) containing:
+\begin{itemize}
+  \item the argument values (parameters),
+  \item the local variables,
+  \item the return address.
+\end{itemize}
+Each call gets a new frame, whether it is a call to a different function or a recursive call to
+the same function.
+
+\begin{important}[Pass by value]
+C makes a \textbf{copy} of each argument value and stores the copy in the new stack frame. This
+is called \emph{pass by value}. Changing a parameter inside a function does not change the
+caller's variable. (Unit~06 shows how to emulate \emph{pass by reference} with pointers.)
+\end{important}
+
+\begin{example}
+\begin{lstlisting}[style=c]
+int fact(int n) {
+  if (n <= 1) return 1;
+  return n * fact(n - 1);   // fact:7
+}
+
+int main(void) {
+  int r = fact(3);          // main:11
+  printf("%d\n", r);
+}
+\end{lstlisting}
+When \code{fact(1)} is executing, the call stack looks like this (top of the stack drawn at the
+top):
+\begin{center}
+\begin{tikzpicture}[fr/.style={draw,minimum width=5cm,align=left,text width=4.8cm,inner sep=4pt}]
+  \node[fr] (f1) {\textbf{fact}\\ n: 1\\ return address: fact:7};
+  \node[fr,below=0pt of f1] (f2) {\textbf{fact}\\ n: 2\\ return address: fact:7};
+  \node[fr,below=0pt of f2] (f3) {\textbf{fact}\\ n: 3\\ return address: main:11};
+  \node[fr,below=0pt of f3] (m) {\textbf{main}\\ r: ???\\ return address: OS};
+\end{tikzpicture}
+\end{center}
+\end{example}
+
+\subsection{The stack section}
+
+The call stack is stored in the stack section of memory. Each frame uses memory, so very deep
+recursion (or very large local variables) can exhaust it: a \textbf{stack overflow}, which usually
+crashes the program with a segmentation fault. The stack section in Seashell is relatively small
+(a few megabytes), so recursion depth of around a million is already a problem.
+
+\section{The Model}
+
+At any moment, the state of a running C program is:
+\begin{enumerate}
+  \item the \emph{current program location} (which statement is being executed), and
+  \item the current contents of memory.
+\end{enumerate}
+
+\paragraph{Calling a function.}
+\begin{enumerate}
+  \item A stack frame is created and pushed; argument values are copied into it.
+  \item The current program location is stored in the frame as the return address.
+  \item The program location jumps to the start of the function.
+\end{enumerate}
+Local variables are added to the frame as their definitions are reached.
+
+\paragraph{Returning.}
+\begin{enumerate}
+  \item The return value (if any) is noted.
+  \item The program location is changed back to the frame's return address.
+  \item The stack frame is popped (its memory is no longer valid).
+\end{enumerate}
+
+\section{Control Flow Statements}
+
+\subsection{\code{if}}
+\begin{lstlisting}[style=c]
+if (condition) {
+  // block
+}
+
+if (condition) {
+  // block
+} else {
+  // block
+}
+
+if (c1) {
+  // block
+} else if (c2) {
+  // block
+} else {
+  // block
+}
+\end{lstlisting}
+Braces may be omitted for a single statement, but that is error-prone (``dangling else''); CS 136
+style always uses braces.
+
+\subsection{Looping}
+
+With mutation we can repeat a block until some state changes, which replaces most uses of
+recursion.
+
+\paragraph{\code{while}.}
+\begin{lstlisting}[style=c]
+// sum_first(n) produces 1 + ... + n
+int sum_first(int n) {
+  int sum = 0;
+  int i = 1;
+  while (i <= n) {
+    sum += i;
+    ++i;
+  }
+  return sum;
+}
+\end{lstlisting}
+The condition is checked before each iteration; if it is false initially the body never runs.
+A common bug is forgetting to update the loop variable, giving an infinite loop.
+
+\paragraph{\code{do ... while}.} The body runs at least once, and the condition is checked
+after each iteration:
+\begin{lstlisting}[style=c]
+do {
+  // body
+} while (condition);
+\end{lstlisting}
+
+\paragraph{\code{for}.} The most common loop combines initialization, condition and update:
+\begin{lstlisting}[style=c]
+for (setup; condition; update) {
+  body;
+}
+// is equivalent to
+setup;
+while (condition) {
+  body;
+  update;
+}
+\end{lstlisting}
+\begin{lstlisting}[style=c]
+int sum = 0;
+for (int i = 1; i <= n; ++i) {   // i is local to the loop (C99)
+  sum += i;
+}
+\end{lstlisting}
+
+\paragraph{Nested loops.}
+\begin{lstlisting}[style=c]
+// print_triangle(n) prints a right triangle of stars with n rows
+// effects: produces output
+void print_triangle(int n) {
+  for (int row = 1; row <= n; ++row) {
+    for (int col = 0; col < row; ++col) {
+      printf("*");
+    }
+    printf("\n");
+  }
+}
+\end{lstlisting}
+
+\paragraph{\code{break} and \code{continue}.} \code{break} exits the innermost loop immediately;
+\code{continue} skips the rest of the current iteration and goes to the next one (in a
+\code{for} loop, the update still runs).
+\begin{lstlisting}[style=c]
+// is_prime(n) determines if n is prime
+bool is_prime(int n) {
+  if (n < 2) return false;
+  for (int d = 2; d * d <= n; ++d) {
+    if (n % d == 0) {
+      return false;          // return also exits the loop
+    }
+  }
+  return true;
+}
+\end{lstlisting}
+
+\subsection{Recursion vs.\ iteration}
+
+Accumulative recursion translates directly into a loop: the accumulators become variables that
+are mutated each iteration. A loop uses a single stack frame, so it cannot overflow the stack.
+
+\section{Summary}
+\begin{itemize}
+  \item Memory is an array of bytes with addresses; \code{sizeof} gives sizes in bytes.
+  \item \code{int} has a limited range (\code{INT\_MIN} to \code{INT\_MAX}); signed overflow is
+    undefined behaviour. \code{char} is a 1-byte integer holding an ASCII code.
+  \item Five sections: code, read-only data, global data, heap, stack. Bad access causes a
+    segmentation fault.
+  \item Each call pushes a stack frame (arguments, locals, return address); arguments are passed
+    by value. Too many frames cause a stack overflow.
+  \item \code{if}, \code{while}, \code{do}--\code{while}, \code{for}, \code{break},
+    \code{continue}.
+\end{itemize}

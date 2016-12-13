@@ -1,0 +1,324 @@
+\chapter{Abstract Data Types in C}
+
+\textbf{Readings:} CP:AMA 19.3--19.5.
+
+In Unit~03 we introduced ADTs as collections described only by their operations. Now that we
+have opaque structures, dynamic memory and linked data, we can implement them properly in C and
+compare implementations by efficiency.
+
+\section{Designing an ADT}
+
+Designing an ADT means deciding:
+\begin{enumerate}
+  \item \textbf{The operations} and their exact behaviour (documented in the \code{.h} file).
+  \item \textbf{Error handling:} what happens on invalid use? Either make it a precondition
+    (``requires: stack is not empty'', checked with \code{assert}) or report it (return a
+    \code{bool}, return \code{NULL}, a special value).
+  \item \textbf{Memory ownership:} who allocates and frees what? Does the ADT store a
+    \emph{copy} of the client's data (e.g.\ duplicate a string) or just the pointer it was
+    given? Who frees items when the ADT is destroyed?
+  \item \textbf{The implementation}: the data structure and the \emph{invariants} it maintains
+    (e.g.\ ``the array is sorted'', ``\code{len <= maxlen}'', ``BST ordering holds''), chosen for
+    the efficiency the clients need.
+\end{enumerate}
+
+\begin{important}[Invariants]
+A \emph{representation invariant} is a property of the internal data that every interface
+function may assume on entry and must restore before returning. Because the structure is
+opaque, only the module's own functions can break an invariant --- this is exactly why
+information hiding gives \emph{security}.
+\end{important}
+
+\section{The Dictionary ADT}
+
+\subsection{Interface}
+
+We implement a dictionary from \code{int} keys to string values. The dictionary stores its own
+copies of the strings.
+\begin{lstlisting}[style=c]
+// dictionary.h: a dictionary ADT (int keys -> string values)
+#include <stdbool.h>
+
+struct dictionary;
+
+// dict_create() creates a new, empty dictionary
+// effects: allocates memory (client must call dict_destroy)
+struct dictionary *dict_create(void);
+
+// dict_destroy(d) frees all memory used by d (including stored strings)
+void dict_destroy(struct dictionary *d);
+
+// dict_insert(key, val, d) adds key -> val to d; if key is already
+//   present, its value is replaced. d stores a copy of val.
+// effects: modifies d
+// time: O(h + m), h is the height of the tree, m is the length of val
+void dict_insert(int key, const char *val, struct dictionary *d);
+
+// dict_lookup(key, d) produces the value for key, or NULL if not present
+//   the produced string must not be modified or freed by the client
+// time: O(h)
+const char *dict_lookup(int key, const struct dictionary *d);
+
+// dict_remove(key, d) removes key from d (no effect if not present)
+// effects: modifies d
+// time: O(h)
+void dict_remove(int key, struct dictionary *d);
+\end{lstlisting}
+
+\subsection{Implementation with a BST}
+
+\begin{lstlisting}[style=c]
+// dictionary.c
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+#include "dictionary.h"
+
+struct bstnode {
+  int key;
+  char *val;                     // owned by the dictionary
+  struct bstnode *left;
+  struct bstnode *right;
+};
+
+struct dictionary {
+  struct bstnode *root;
+};
+
+// my_strdup(s) produces a new heap copy of s
+static char *my_strdup(const char *s) {
+  char *copy = malloc((strlen(s) + 1) * sizeof(char));   // +1 for '\0'
+  strcpy(copy, s);
+  return copy;
+}
+
+struct dictionary *dict_create(void) {
+  struct dictionary *d = malloc(sizeof(struct dictionary));
+  d->root = NULL;
+  return d;
+}
+
+static void free_node(struct bstnode *node) {
+  if (node) {
+    free_node(node->left);
+    free_node(node->right);
+    free(node->val);
+    free(node);
+  }
+}
+
+void dict_destroy(struct dictionary *d) {
+  assert(d);
+  free_node(d->root);
+  free(d);
+}
+
+static struct bstnode *insert_node(int key, const char *val,
+                                   struct bstnode *node) {
+  if (node == NULL) {
+    struct bstnode *leaf = malloc(sizeof(struct bstnode));
+    leaf->key = key;
+    leaf->val = my_strdup(val);
+    leaf->left = NULL;
+    leaf->right = NULL;
+    return leaf;
+  }
+  if (key < node->key) {
+    node->left = insert_node(key, val, node->left);
+  } else if (key > node->key) {
+    node->right = insert_node(key, val, node->right);
+  } else {                                    // replace existing value
+    free(node->val);
+    node->val = my_strdup(val);
+  }
+  return node;
+}
+
+void dict_insert(int key, const char *val, struct dictionary *d) {
+  assert(d && val);
+  d->root = insert_node(key, val, d->root);
+}
+
+const char *dict_lookup(int key, const struct dictionary *d) {
+  assert(d);
+  const struct bstnode *node = d->root;
+  while (node) {
+    if (key == node->key) return node->val;
+    node = (key < node->key) ? node->left : node->right;
+  }
+  return NULL;
+}
+\end{lstlisting}
+
+\subsection{Removing from a BST}
+
+Removing a node has three cases:
+\begin{enumerate}
+  \item \textbf{No children:} just free it (the parent's pointer becomes \code{NULL}).
+  \item \textbf{One child:} replace the node with its child.
+  \item \textbf{Two children:} find the \emph{successor} (the smallest key in the right
+    subtree, i.e.\ the leftmost node there), copy its key and value into the node, and then
+    remove the successor from the right subtree (it has no left child, so that is case 1 or 2).
+\end{enumerate}
+\begin{lstlisting}[style=c]
+// remove_node(key, node) removes key from the subtree rooted at node
+//   and produces the new root of that subtree
+static struct bstnode *remove_node(int key, struct bstnode *node) {
+  if (node == NULL) return NULL;            // key not found
+  if (key < node->key) {
+    node->left = remove_node(key, node->left);
+  } else if (key > node->key) {
+    node->right = remove_node(key, node->right);
+  } else if (node->left == NULL || node->right == NULL) {
+    struct bstnode *child = node->left ? node->left : node->right;
+    free(node->val);
+    free(node);
+    return child;                           // cases 1 and 2
+  } else {
+    struct bstnode *succ = node->right;     // case 3
+    while (succ->left) {
+      succ = succ->left;
+    }
+    free(node->val);
+    node->key = succ->key;
+    node->val = my_strdup(succ->val);
+    node->right = remove_node(succ->key, node->right);
+  }
+  return node;
+}
+
+void dict_remove(int key, struct dictionary *d) {
+  assert(d);
+  d->root = remove_node(key, d->root);
+}
+\end{lstlisting}
+\begin{aside}
+Instead of copying the successor's string and then freeing the original, we could move the
+pointer over and arrange for the recursive call not to free it. The version above is simpler to
+reason about.
+\end{aside}
+
+\subsection{Comparing dictionary implementations}
+
+\begin{center}
+\begin{tabular}{lccc}
+  \toprule
+  Implementation & lookup & insert & remove \\
+  \midrule
+  unsorted array / linked list & $\bigO(n)$ & $\bigO(n)$\textsuperscript{*} & $\bigO(n)$ \\
+  sorted array & $\bigO(\log n)$ & $\bigO(n)$ & $\bigO(n)$ \\
+  BST (worst case) & $\bigO(n)$ & $\bigO(n)$ & $\bigO(n)$ \\
+  balanced BST (AVL, CS 240) & $\bigO(\log n)$ & $\bigO(\log n)$ & $\bigO(\log n)$ \\
+  hash table (CS 240) & $\bigO(1)$ average & $\bigO(1)$ average & $\bigO(1)$ average \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\textsuperscript{*}$\bigO(1)$ if duplicates are not checked (but then insert must search to
+replace a value).
+
+The point of the ADT is that a client of \code{dictionary.h} does not change at all if we swap
+one implementation for another.
+
+\section{Stack, Queue and Sequence Implementations}
+
+\subsection{Stack}
+
+Both a dynamic array (Unit~10) and a linked list (push/pop at the front) give $\bigO(1)$
+operations (amortized for the array). The array version has better memory locality; the list
+version never needs to copy.
+
+\subsection{Queue}
+
+A linked list with front and back pointers (Unit~11) gives $\bigO(1)$ add-back and
+remove-front. An array-based queue would need $\bigO(n)$ to remove from the front by shifting,
+unless we use a \emph{circular buffer}:
+\begin{lstlisting}[style=c]
+struct queue {
+  int *data;
+  int maxlen;
+  int front;     // index of the front item
+  int len;       // number of items
+};
+
+// time: O(1) amortized
+void queue_add_back(int item, struct queue *q) {
+  if (q->len == q->maxlen) {
+    int *new_data = malloc(2 * q->maxlen * sizeof(int));
+    for (int i = 0; i < q->len; ++i) {        // unwrap into the new array
+      new_data[i] = q->data[(q->front + i) % q->maxlen];
+    }
+    free(q->data);
+    q->data = new_data;
+    q->front = 0;
+    q->maxlen *= 2;
+  }
+  q->data[(q->front + q->len) % q->maxlen] = item;
+  ++q->len;
+}
+
+// requires: q is not empty
+// time: O(1)
+int queue_remove_front(struct queue *q) {
+  assert(q->len > 0);
+  int item = q->data[q->front];
+  q->front = (q->front + 1) % q->maxlen;
+  --q->len;
+  return item;
+}
+\end{lstlisting}
+The indices ``wrap around'' using \code{\%}, so the items occupy a contiguous range modulo the
+capacity.
+
+\subsection{Sequence}
+
+\begin{center}
+\begin{tabular}{lccc}
+  \toprule
+  Implementation & item\_at & insert\_at / remove\_at & length \\
+  \midrule
+  dynamic array & $\bigO(1)$ & $\bigO(n)$ & $\bigO(1)$ \\
+  linked list (with length) & $\bigO(i)$ & $\bigO(i)$ & $\bigO(1)$ \\
+  balanced tree with subtree sizes & $\bigO(\log n)$ & $\bigO(\log n)$ & $\bigO(1)$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+No implementation is best for every operation; the right choice depends on which operations the
+client uses most.
+
+\section{Set ADT}
+
+A \emph{set} stores unique items with operations \code{member}, \code{add}, \code{remove}, and
+often \code{union}, \code{intersection}, \code{size}. It is essentially a dictionary with keys but
+no values, so the same implementations apply. With sorted arrays or sorted lists, union and
+intersection can be done in $\bigO(n + m)$ by a merge-like simultaneous walk.
+
+\section{Iterating Over an ADT}
+
+Clients often need to visit every item, but they cannot access the internal structure. Common
+solutions:
+\begin{itemize}
+  \item an interface function that produces a new array of all items (in order), which the client
+    must free;
+  \item a ``map''-style function that applies a client's function pointer to every item;
+  \item an iterator interface (\code{first}, \code{next}, \code{done}), as in C++ (CS 246).
+\end{itemize}
+\begin{lstlisting}[style=c]
+// dict_keys(d, len) produces a new array of the keys of d in increasing
+//   order and stores the number of keys in *len
+// effects: allocates memory (caller must free), modifies *len
+// time: O(n)
+int *dict_keys(const struct dictionary *d, int *len);
+\end{lstlisting}
+
+\section{Summary}
+\begin{itemize}
+  \item ADT design: operations, error handling (requires vs.\ return codes), memory ownership,
+    and implementation invariants.
+  \item Dictionary via BST: lookup/insert/remove are $\bigO(h)$; removal with two children uses
+    the successor.
+  \item Compare implementations in a table; choose based on which operations matter.
+  \item Queues can use a linked list or a circular array; sequences trade indexing against
+    insertion.
+  \item Clients can iterate through an exported array, a map with function pointers, or an
+    iterator.
+\end{itemize}
