@@ -1,0 +1,239 @@
+\chapter{GCD, the Euclidean Algorithm and Unique Factorization}
+
+\section{Greatest common divisor}
+
+\begin{definition}
+Let $a,b \in \Z$, not both zero. The \emph{greatest common divisor} $\gcd(a,b)$ is the largest
+integer $d$ with $d \mid a$ and $d \mid b$. We set $\gcd(0,0) = 0$.
+\end{definition}
+
+Since $1$ is always a common divisor and (by BBD) every common divisor is at most
+$\max(\abs a,\abs b)$, the gcd exists and is positive when $a,b$ are not both $0$.
+Simple facts: $\gcd(a,b) = \gcd(b,a) = \gcd(\abs a,\abs b)$, $\gcd(a,0) = \abs a$, and
+$\gcd(a,1) = 1$.
+
+\begin{proposition}[GCD With Remainders, GCDWR]
+If $a = qb + r$ for integers $a,b,q,r$, then $\gcd(a,b) = \gcd(b,r)$.
+\end{proposition}
+\begin{proof}
+If $d$ divides $a$ and $b$, then by DIC $d \mid a - qb = r$. If $d$ divides $b$ and $r$, then
+$d \mid qb + r = a$. So $a,b$ and $b,r$ have exactly the same common divisors, hence the same
+greatest one.
+\end{proof}
+
+\section{The Euclidean algorithm}
+
+Applying GCDWR repeatedly with the division algorithm shrinks the numbers until a remainder
+is $0$; the last non-zero remainder is the gcd.
+
+\begin{example}
+Compute $\gcd(1386, 322)$.
+\begin{align*}
+1386 &= 4\cdot 322 + 98\\
+322 &= 3 \cdot 98 + 28\\
+98 &= 3\cdot 28 + 14\\
+28 &= 2\cdot 14 + 0.
+\end{align*}
+So $\gcd(1386,322) = \gcd(322,98) = \gcd(98,28) = \gcd(28,14) = \gcd(14,0) = 14$.
+\end{example}
+
+The remainders strictly decrease and are non-negative, so the algorithm terminates.
+
+\section{Bezout's lemma and the extended Euclidean algorithm}
+
+\begin{theorem}[Bezout's Lemma / EEA]
+For all $a,b \in \Z$ there exist integers $x,y$ with $ax + by = \gcd(a,b)$.
+\end{theorem}
+
+The \emph{extended Euclidean algorithm} finds such $x,y$. We maintain rows $(x_i, y_i, r_i)$
+with the invariant
+\[ a x_i + b y_i = r_i. \]
+Start with rows $(1, 0, a)$ and $(0, 1, b)$. Given two consecutive rows, let
+$q_{i} = \floor{r_{i-2}/r_{i-1}}$ and set
+\[ \text{row}_i = \text{row}_{i-2} - q_i\cdot \text{row}_{i-1}. \]
+The invariant is preserved because it is linear. Stop when $r = 0$; the previous row gives the
+gcd and the coefficients. (The $r$ column is exactly the Euclidean algorithm.)
+
+\begin{example}[EEA for $a = 1386$, $b = 322$]
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+$x$ & $y$ & $r$ & $q$ \\
+\midrule
+$1$ & $0$ & $1386$ & \\
+$0$ & $1$ & $322$ & \\
+$1$ & $-4$ & $98$ & $4$\\
+$-3$ & $13$ & $28$ & $3$\\
+$10$ & $-43$ & $14$ & $3$\\
+$-23$ & $99$ & $0$ & $2$\\
+\bottomrule
+\end{tabular}
+\end{center}
+For instance the fourth row is $(0,1,322) - 3(1,-4,98) = (-3, 13, 28)$. So
+$\gcd(1386,322) = 14$ and
+\[ 1386(10) + 322(-43) = 13860 - 13846 = 14. \]
+(The last row gives $1386(-23) + 322(99) = 0$, which is useful later for generating all
+solutions.)
+\end{example}
+
+\begin{example}[EEA for $a = 506$, $b = 391$]
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+$x$ & $y$ & $r$ & $q$ \\
+\midrule
+$1$ & $0$ & $506$ & \\
+$0$ & $1$ & $391$ & \\
+$1$ & $-1$ & $115$ & $1$\\
+$-3$ & $4$ & $46$ & $3$\\
+$7$ & $-9$ & $23$ & $2$\\
+$-17$ & $22$ & $0$ & $2$\\
+\bottomrule
+\end{tabular}
+\end{center}
+$\gcd(506,391) = 23$ and $506(7) + 391(-9) = 3542 - 3519 = 23$.
+\end{example}
+
+\begin{important}[Back-substitution]
+Instead of the table, one can run the Euclidean algorithm and substitute backwards:
+$14 = 98 - 3\cdot 28 = 98 - 3(322 - 3\cdot 98) = 10\cdot 98 - 3\cdot 322
+= 10(1386 - 4\cdot 322) - 3\cdot 322 = 10\cdot 1386 - 43\cdot 322$. Same answer; the table is
+less error-prone.
+\end{important}
+
+\begin{theorem}[GCD Characterization Theorem, GCDCT]
+Let $a,b \in \Z$ and $d \geq 0$. If $d \mid a$, $d \mid b$, and $d = ax + by$ for some integers
+$x,y$, then $d = \gcd(a,b)$.
+\end{theorem}
+\begin{proof}
+Let $g = \gcd(a,b)$. By DIC, $g \mid ax + by = d$, so (if $d > 0$) $g \le d$ by BBD. But $d$
+is a common divisor, so $d \le g$. Hence $d = g$. (If $d = 0$ then $a = b = 0$.)
+\end{proof}
+
+\begin{important}[Bezout does not go backwards]
+$ax + by = d$ alone does not make $d$ the gcd: $6\cdot 1 + 4 \cdot 1 = 10$ but
+$\gcd(6,4) = 2$. You also need $d$ to be a common divisor. What \emph{is} true is that the
+set of integer combinations $\{ax + by\}$ is exactly the set of multiples of $\gcd(a,b)$.
+\end{important}
+
+\begin{corollary}[Common Divisor Divides GCD, CDDG]
+If $c \mid a$ and $c \mid b$ then $c \mid \gcd(a,b)$.
+\end{corollary}
+\begin{proof}
+Write $\gcd(a,b) = ax + by$ and apply DIC.
+\end{proof}
+
+\section{Coprimeness}
+
+\begin{definition}
+$a$ and $b$ are \emph{coprime} (relatively prime) if $\gcd(a,b) = 1$.
+\end{definition}
+
+\begin{theorem}[Coprimeness Characterization Theorem, CCT]
+$\gcd(a,b) = 1$ if and only if there exist integers $x,y$ with $ax + by = 1$.
+\end{theorem}
+\begin{proof}
+($\Rightarrow$) Bezout. ($\Leftarrow$) $1$ divides $a$ and $b$, so by GCDCT $1 = \gcd(a,b)$.
+\end{proof}
+
+\begin{proposition}[Division by GCD, DB GCD]
+If $d = \gcd(a,b) \ne 0$, then $\gcd(a/d,\, b/d) = 1$.
+\end{proposition}
+\begin{proof}
+From $ax + by = d$, divide by $d$: $(a/d)x + (b/d)y = 1$. Apply CCT.
+\end{proof}
+
+\begin{proposition}[Coprimeness and Divisibility, CAD]
+If $c \mid ab$ and $\gcd(a,c) = 1$, then $c \mid b$.
+\end{proposition}
+\begin{proof}
+Write $ax + cy = 1$. Multiply by $b$: $abx + cby = b$. Now $c \mid ab$ and $c \mid c$, so by
+DIC $c \mid abx + cby = b$.
+\end{proof}
+
+\begin{example}
+Prove that for any integer $n$, $\gcd(5n+3,\, 3n+2) = 1$: $3(5n+3) - 5(3n+2) = -1$, so
+$(5n+3)(-3) + (3n+2)(5) = 1$, and CCT applies.
+\end{example}
+
+\section{Primes and Euclid's lemma}
+
+\begin{theorem}[Euclid's Lemma / Primes and Divisibility, PAD]
+If $p$ is prime and $p \mid ab$, then $p \mid a$ or $p \mid b$.
+\end{theorem}
+\begin{proof}
+Suppose $p \nmid a$. The only positive divisors of $p$ are $1$ and $p$, and $p \nmid a$, so
+$\gcd(p,a) = 1$. By CAD, $p \mid b$.
+\end{proof}
+
+By induction, if $p \mid a_1a_2\cdots a_n$ then $p \mid a_i$ for some $i$.
+
+\begin{example}
+$\sqrt p$ is irrational for every prime $p$: if $p q^2 = m^2$ with $\gcd(m,q) = 1$, then
+$p \mid m^2$ so $p \mid m$ (PAD); write $m = pk$, so $q^2 = pk^2$ and $p \mid q$, contradicting
+$\gcd(m,q) = 1$.
+\end{example}
+
+\section{Unique factorization}
+
+\begin{theorem}[Unique Factorization Theorem, UFT]
+Every integer $n > 1$ can be written as a product of primes, and this factorization is
+unique up to the order of the factors.
+\end{theorem}
+\begin{proof}
+Existence was proved by strong induction in Chapter 4. For uniqueness, suppose
+$n = p_1p_2\cdots p_k = q_1q_2 \cdots q_\ell$ with all $p_i,q_j$ prime; induct on $k$. Since
+$p_1 \mid q_1\cdots q_\ell$, PAD gives $p_1 \mid q_j$ for some $j$, and since $q_j$ is prime,
+$p_1 = q_j$. Cancel it from both sides and apply the inductive hypothesis to the shorter
+product. (If $k = 1$, $n = p_1$ is prime, which forces $\ell = 1$.)
+\end{proof}
+
+We often write the \emph{prime factorization} as $n = p_1^{\alpha_1}p_2^{\alpha_2}\cdots
+p_k^{\alpha_k}$ with distinct primes and $\alpha_i \geq 1$; allowing $\alpha_i = 0$ lets us
+write two numbers over the same list of primes.
+
+\begin{proposition}[Divisors from Prime Factorization]
+If $n = p_1^{\alpha_1}\cdots p_k^{\alpha_k}$, then the positive divisors of $n$ are exactly the
+numbers $p_1^{\beta_1}\cdots p_k^{\beta_k}$ with $0 \le \beta_i \le \alpha_i$. So $n$ has
+$(\alpha_1 + 1)\cdots(\alpha_k + 1)$ positive divisors.
+\end{proposition}
+
+\begin{theorem}[GCD from Prime Factorization, GCDPF]
+If $a = \prod p_i^{\alpha_i}$ and $b = \prod p_i^{\beta_i}$ (with $\alpha_i,\beta_i \ge 0$),
+then
+\[ \gcd(a,b) = \prod p_i^{\min(\alpha_i,\beta_i)}, \qquad
+   \lcm(a,b) = \prod p_i^{\max(\alpha_i,\beta_i)}. \]
+In particular $\gcd(a,b)\lcm(a,b) = ab$ for positive $a,b$.
+\end{theorem}
+
+\begin{example}
+$1386 = 2\cdot 3^2 \cdot 7 \cdot 11$ and $322 = 2 \cdot 7 \cdot 23$. Then
+$\gcd = 2\cdot 7 = 14$ (agreeing with the Euclidean algorithm) and
+$\lcm = 2\cdot 3^2\cdot 7\cdot 11\cdot 23 = 31878 = 1386\cdot 322/14$.
+$1386$ has $(1+1)(2+1)(1+1)(1+1) = 24$ positive divisors.
+\end{example}
+
+\begin{aside}
+Factoring large numbers is believed to be hard, while the Euclidean algorithm is very fast
+(the number of steps is at most about five times the number of decimal digits). That contrast
+is the basis of RSA (Chapter 10).
+\end{aside}
+
+\section{Common pitfalls}
+\begin{itemize}
+  \item Concluding $d = \gcd(a,b)$ from $ax + by = d$ alone (GCDCT needs $d$ to be a common
+        divisor too).
+  \item Arithmetic slips in the EEA table; always verify $ax + by = d$ at the end.
+  \item Using PAD for a non-prime: $4 \mid 2\cdot 6$ but $4\nmid 2$, $4 \nmid 6$.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item GCDWR: $\gcd(a,b) = \gcd(b,r)$; iterating gives the Euclidean algorithm.
+  \item EEA: rows $(x,y,r)$ with $ax + by = r$; produces Bezout coefficients.
+  \item GCDCT: a non-negative common divisor that is an integer combination is the gcd.
+        CCT: $\gcd(a,b) = 1 \iff ax+by = 1$ is solvable.
+  \item CAD: $c\mid ab$, $\gcd(a,c) = 1 \Rightarrow c \mid b$. PAD (Euclid's lemma): $p \mid ab
+        \Rightarrow p\mid a$ or $p \mid b$.
+  \item UFT: unique prime factorization; gcd/lcm via min/max of exponents.
+\end{itemize}

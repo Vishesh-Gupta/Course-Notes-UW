@@ -1,0 +1,190 @@
+\chapter[Fermat's Little Theorem and CRT]{Fermat's Little Theorem and the Chinese Remainder Theorem}
+
+\section{Fermat's Little Theorem}
+
+\begin{theorem}[Fermat's Little Theorem, FLT]
+If $p$ is prime and $p \nmid a$, then
+\[ a^{p-1} \equiv 1 \Mod p. \]
+\end{theorem}
+
+\begin{proof}
+Consider the $p - 1$ numbers $a, 2a, 3a, \dots, (p-1)a$. None is $\equiv 0 \Mod p$ (PAD, since
+$p \nmid a$ and $p \nmid i$). They are pairwise incongruent: if $ia \equiv ja$ then $i \equiv j$
+by CD since $\gcd(a,p) = 1$, and $1 \le i,j \le p-1$ forces $i = j$. So, modulo $p$, they are
+a rearrangement of $1, 2, \dots, p-1$. Multiplying all of them,
+\[ a^{p-1}(p-1)! \equiv (p-1)! \Mod p. \]
+Since $\gcd((p-1)!, p) = 1$, we may cancel (CD) to get $a^{p-1} \equiv 1 \Mod p$.
+\end{proof}
+
+\begin{corollary}
+For every prime $p$ and every integer $a$, $a^p \equiv a \Mod p$. (If $p \mid a$ both sides are
+$0$; otherwise multiply FLT by $a$.)
+\end{corollary}
+
+\begin{important}[Reducing exponents]
+If $p \nmid a$ and $k \equiv r \Mod{p-1}$, then $a^k \equiv a^r \Mod p$. So exponents may be
+reduced \emph{modulo $p-1$}, not modulo $p$. Also $a^{p-2}$ is an inverse of $a$ modulo $p$.
+\end{important}
+
+\begin{example}
+Remainder of $2^{1000}$ divided by $13$: by FLT $2^{12} \equiv 1$. Since
+$1000 = 12\cdot 83 + 4$, $2^{1000} = (2^{12})^{83}\cdot 2^4 \equiv 16 \equiv 3 \Mod{13}$.
+\end{example}
+
+\begin{example}
+Remainder of $3^{2025}$ divided by $31$: $3^{30}\equiv 1$ and $2025 = 30\cdot 67 + 15$, so
+$3^{2025} \equiv 3^{15}$. Now $3^3 = 27 \equiv -4$, so
+$3^{15} \equiv (-4)^5 = -1024$. Since $1024 = 33 \cdot 31 + 1$, $-1024 \equiv -1 \equiv 30$.
+The remainder is $30$.
+\end{example}
+
+\begin{example}
+Solve $x^{39} \equiv 3 \Mod{13}$. Clearly $13 \nmid x$. By FLT $x^{12} \equiv 1$, so
+$x^{39} = (x^{12})^3 x^3 \equiv x^3$. Now test cubes mod $13$: $1,8,1,12,8,8,5,5,1,12,5,12$
+for $x = 1,\dots,12$. None is $3$, so there is no solution.
+\end{example}
+
+\begin{example}[FLT as a compositeness test]
+If $a^{n-1}\not\equiv 1 \Mod n$ for some $a$ with $\gcd(a,n) = 1$, then $n$ is composite. E.g.
+$2^{14} = 16384 = 1092\cdot 15 + 4$, so $2^{14} \equiv 4 \not\equiv 1 \Mod{15}$ and $15$ is not
+prime. (The converse of FLT fails: $341 = 11\cdot 31$ satisfies $2^{340} \equiv 1 \Mod{341}$.)
+\end{example}
+
+\begin{aside}
+FLT generalizes to Euler's theorem: if $\gcd(a,n) = 1$ then $a^{\varphi(n)} \equiv 1 \Mod n$,
+where $\varphi(n)$ counts $1 \le k \le n$ with $\gcd(k,n) = 1$. For $n = pq$ with distinct primes,
+$\varphi(n) = (p-1)(q-1)$, the number used in RSA.
+\end{aside}
+
+\section{The Chinese Remainder Theorem}
+
+\begin{theorem}[Chinese Remainder Theorem, CRT]
+Let $m_1, m_2 \in \N$ with $\gcd(m_1,m_2) = 1$. For any integers $a_1,a_2$, the system
+\[ x \equiv a_1 \Mod{m_1}, \qquad x \equiv a_2 \Mod{m_2} \]
+has a solution, and if $x_0$ is one solution, the complete solution is
+$x \equiv x_0 \Mod{m_1m_2}$.
+\end{theorem}
+
+\begin{proof}
+\emph{Existence:} solutions of the first congruence are $x = a_1 + m_1k$. Substituting into the
+second, we need $m_1 k \equiv a_2 - a_1 \Mod{m_2}$, which is solvable by LCT because
+$\gcd(m_1,m_2) = 1$.
+
+\emph{Uniqueness:} if $x_0$ and $x$ are solutions then $m_1 \mid x - x_0$ and $m_2 \mid x - x_0$.
+Write $x - x_0 = m_1 t$; then $m_2 \mid m_1 t$ and by CAD $m_2 \mid t$, so $m_1m_2 \mid x - x_0$.
+Conversely anything $\equiv x_0 \Mod{m_1m_2}$ is clearly a solution.
+\end{proof}
+
+By induction, the theorem extends to any number of pairwise coprime moduli
+$m_1,\dots,m_k$: the system has a unique solution modulo $m_1m_2\cdots m_k$ (Generalized CRT).
+
+\subsection{Method 1: substitution}
+
+\begin{example}
+Solve $x\equiv 2 \Mod 3$, $x \equiv 3 \Mod 5$, $x \equiv 2\Mod 7$.
+
+From the first, $x = 2 + 3k$. Then $2 + 3k \equiv 3 \Mod 5$, so $3k \equiv 1$; since
+$3\cdot 2 = 6 \equiv 1$, $k \equiv 2 \Mod 5$, i.e.\ $k = 2 + 5j$ and $x = 8 + 15j$.
+Then $8 + 15j \equiv 2 \Mod 7$; as $8 \equiv 1$ and $15 \equiv 1$, this is $1 + j \equiv 2$, so
+$j \equiv 1 \Mod 7$, $j = 1 + 7t$, and $x = 23 + 105t$.
+
+Answer: $x \equiv 23 \Mod{105}$. Check: $23 = 7\cdot 3 + 2 = 4\cdot 5 + 3 = 3\cdot 7 + 2$.
+\end{example}
+
+\subsection{Method 2: the constructive formula}
+
+Let $M = m_1\cdots m_k$ and $M_i = M/m_i$. Since $\gcd(M_i, m_i) = 1$, let $y_i$ be an inverse
+of $M_i$ modulo $m_i$. Then
+\[ x \equiv a_1M_1y_1 + a_2M_2y_2 + \cdots + a_kM_ky_k \Mod M \]
+works, because modulo $m_i$ every term except the $i$-th vanishes, and the $i$-th is
+$a_i M_iy_i \equiv a_i$.
+
+\begin{example}
+Same system: $M = 105$; $M_1 = 35 \equiv 2 \Mod 3$, inverse $y_1 = 2$; $M_2 = 21 \equiv 1
+\Mod 5$, $y_2 = 1$; $M_3 = 15 \equiv 1 \Mod 7$, $y_3 = 1$. Then
+\[ x \equiv 2\cdot 35\cdot 2 + 3\cdot 21\cdot 1 + 2\cdot 15\cdot 1 = 140 + 63 + 30 = 233
+\equiv 23 \Mod{105}. \]
+\end{example}
+
+\begin{example}
+Solve $x \equiv 3 \Mod 4$, $x \equiv 5 \Mod 9$, $x\equiv 11 \Mod{25}$ (pairwise coprime).
+
+Start with the largest modulus: $x = 11 + 25k$. Mod $9$: $11 \equiv 2$, $25 \equiv 7$, so
+$2 + 7k \equiv 5$, i.e.\ $7k \equiv 3 \Mod 9$. Since $7\cdot 4 = 28 \equiv 1$, $k \equiv 12 \equiv 3
+\Mod 9$. So $k = 3 + 9j$ and $x = 86 + 225j$. Mod $4$: $86 \equiv 2$, $225\equiv 1$, so
+$2 + j \equiv 3$, $j \equiv 1 \Mod 4$, giving $x = 311 + 900t$.
+
+Answer: $x \equiv 311 \Mod{900}$. Check: $311 = 77\cdot 4 + 3 = 34\cdot 9 + 5 = 12\cdot 25 + 11$.
+\end{example}
+
+\subsection{Non-coprime moduli}
+
+If the moduli are not coprime, the system may have no solution or a solution modulo
+$\lcm(m_1,m_2)$. Substitution still works.
+
+\begin{example}
+$x \equiv 3 \Mod 6$, $x\equiv 5 \Mod 8$: $x = 3 + 6k$, need $6k \equiv 2 \Mod 8$. $\gcd(6,8) = 2
+\mid 2$, so divide: $3k \equiv 1 \Mod 4$, $k \equiv 3 \Mod 4$. Then $x = 21 + 24t$, i.e.\
+$x\equiv 21 \Mod{24}$ ($24 = \lcm(6,8)$).
+
+$x\equiv 1 \Mod 6$, $x \equiv 2 \Mod 4$ has no solution: the first forces $x$ odd and the second
+forces $x$ even.
+\end{example}
+
+\section{Splitting the modulus}
+
+\begin{theorem}[Splitting Modulus Theorem, SMT]
+If $\gcd(m_1,m_2) = 1$, then
+\[ a \equiv b \Mod{m_1m_2} \iff a \equiv b \Mod{m_1} \text{ and } a \equiv b \Mod{m_2}. \]
+\end{theorem}
+\begin{proof}
+($\Rightarrow$) by TD. ($\Leftarrow$) $m_1 \mid a - b$ and $m_2 \mid a - b$ with coprime moduli, so
+$m_1m_2 \mid a - b$ (as in the uniqueness part of CRT).
+\end{proof}
+
+This lets us solve a hard congruence modulo a composite number by solving it modulo each
+prime-power factor and recombining with CRT.
+
+\begin{example}
+Solve $x^2 \equiv 4 \Mod{35}$. By SMT this is equivalent to $x^2 \equiv 4 \Mod 5$ and
+$x^2 \equiv 4 \Mod 7$. Modulo a prime $p$, $x^2 \equiv 4 \iff p \mid (x-2)(x+2) \iff
+x \equiv \pm 2$ (PAD). So $x \equiv 2$ or $3 \Mod 5$ and $x \equiv 2$ or $5 \Mod 7$. Four
+CRT systems:
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+mod $5$ & mod $7$ & mod $35$\\
+\midrule
+$2$ & $2$ & $2$\\
+$2$ & $5$ & $12$\\
+$3$ & $2$ & $23$\\
+$3$ & $5$ & $33$\\
+\bottomrule
+\end{tabular}
+\end{center}
+So $x \equiv 2, 12, 23, 33 \Mod{35}$. Check: $12^2 = 144 = 4\cdot 35 + 4$ and
+$23^2 = 529 = 15\cdot 35 + 4$. A quadratic can have more than two roots modulo a composite!
+\end{example}
+
+\begin{example}
+Find $5^{100} \bmod 77$. By FLT, $5^{10}\equiv 1 \Mod{11}$, so $5^{100} \equiv 1 \Mod{11}$; and
+$5^6 \equiv 1 \Mod 7$, $100 = 6\cdot 16 + 4$, so $5^{100} \equiv 5^4 = 625 \equiv 625 - 623 = 2
+\Mod 7$. Solve $x \equiv 1 \Mod {11}$, $x \equiv 2 \Mod 7$: $x = 1 + 11k$, $1 + 4k \equiv 2$,
+$4k \equiv 1$, $k \equiv 2 \Mod 7$. So $x = 23$, and $5^{100} \equiv 23 \Mod{77}$.
+\end{example}
+
+\section{Common pitfalls}
+\begin{itemize}
+  \item Reducing exponents mod $p$ instead of mod $p-1$, or applying FLT when $p \mid a$.
+  \item Applying CRT's ``unique mod $m_1m_2$'' conclusion to non-coprime moduli.
+  \item Forgetting to check the final answer in every congruence.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item FLT: $p$ prime, $p \nmid a \Rightarrow a^{p-1} \equiv 1 \Mod p$; always $a^p \equiv a$.
+  \item CRT: coprime moduli $\Rightarrow$ unique solution modulo the product. Solve by
+        substitution or by $x = \sum a_iM_iy_i$.
+  \item SMT: a congruence mod $m_1m_2$ (coprime) is the pair of congruences mod $m_1$ and
+        mod $m_2$; combine solutions with CRT.
+\end{itemize}
