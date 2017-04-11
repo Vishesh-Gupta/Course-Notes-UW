@@ -1,0 +1,196 @@
+\chapter{The Multi-Cycle Datapath}
+
+The single-cycle processor wastes time because every instruction takes as
+long as the slowest. The multi-cycle approach breaks each instruction into
+steps, each taking one \emph{short} clock cycle; different instructions use
+different numbers of cycles.
+
+\section{Key Ideas}
+
+\begin{itemize}
+  \item Choose the clock period to fit the slowest \emph{step} (roughly one
+    major unit: a memory access, a register file access, or an ALU
+    operation), not the slowest instruction.
+  \item A functional unit can be reused in different cycles of the same
+    instruction. So we need only \textbf{one memory} (for both instructions
+    and data) and \textbf{one ALU} (it also computes $PC+4$ and the branch
+    target).
+  \item Values produced in one cycle and needed in a later one must be
+    saved in new \textbf{internal registers} at the end of the cycle:
+    \begin{itemize}
+      \item \textbf{IR} (instruction register) and \textbf{MDR} (memory data register),
+      \item \textbf{A} and \textbf{B} (register file outputs),
+      \item \textbf{ALUOut} (ALU result).
+    \end{itemize}
+  \item Extra muxes: the memory address comes from PC or ALUOut
+    (\code{IorD}); ALU input A is PC or register A (\code{ALUSrcA}); ALU
+    input B is register B, 4, the sign-extended immediate, or the shifted
+    immediate (\code{ALUSrcB}, 2 bits); the new PC comes from ALU, ALUOut or
+    the jump address (\code{PCSource}).
+  \item Control becomes a \textbf{finite state machine}.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[thick, >=Stealth, font=\small,
+  blk/.style={draw, minimum height=1.4cm, minimum width=1.2cm, align=center},
+  reg/.style={draw, fill=gray!20, minimum height=1cm, minimum width=0.45cm, font=\scriptsize}]
+  \node[blk, minimum width=0.6cm] (pc) at (0,0) {PC};
+  \node[blk, minimum height=2cm] (mem) at (1.8,0) {Memory};
+  \node[reg] (ir) at (3.4,0.5) {IR};
+  \node[reg] (mdr) at (3.4,-0.8) {MDR};
+  \node[blk, minimum height=2cm] (rf) at (5.2,0) {Regs};
+  \node[reg] (a) at (6.6,0.5) {A};
+  \node[reg] (b) at (6.6,-0.5) {B};
+  \node[draw, minimum height=1.6cm, minimum width=0.9cm] (alu) at (8.2,0) {ALU};
+  \node[reg, minimum width=0.9cm] (ao) at (9.8,0) {ALUOut};
+  \draw[->] (pc) -- (mem);
+  \draw[->] ($(mem.east)+(0,0.5)$) -- (ir);
+  \draw[->] ($(mem.east)+(0,-0.8)$) -- (mdr);
+  \draw[->] (ir) -- ($(rf.west)+(0,0.5)$);
+  \draw[->] (mdr) -- ($(rf.west)+(0,-0.8)$);
+  \draw[->] ($(rf.east)+(0,0.5)$) -- (a);
+  \draw[->] ($(rf.east)+(0,-0.5)$) -- (b);
+  \draw[->] (a) -- ($(alu.west)+(0,0.5)$);
+  \draw[->] (b) -- ($(alu.west)+(0,-0.5)$);
+  \draw[->] (alu) -- (ao);
+  \draw[->] (ao.east) -- ++(0.4,0) |- ++(0,-1.8) -| (mem.south);
+\end{tikzpicture}
+\caption{Sketch of the multi-cycle datapath: one memory, one ALU, and
+internal registers (shaded) between the stages. Muxes are omitted.}
+\end{figure}
+
+\section{The Five Steps}
+
+\begin{center}
+\begin{tabular}{p{2.2cm}p{3.1cm}p{3.1cm}p{2.6cm}p{2.2cm}}
+\toprule
+Step & R-type & \code{lw}/\code{sw} & \code{beq} & \code{j} \\
+\midrule
+1. Fetch & \multicolumn{4}{p{11cm}}{IR $\gets$ Mem[PC]; PC $\gets$ PC + 4} \\
+2. Decode & \multicolumn{4}{p{11cm}}{A $\gets$ Reg[rs]; B $\gets$ Reg[rt];
+  ALUOut $\gets$ PC + (signext(imm) $\ll$ 2)} \\
+3. Execute & ALUOut $\gets$ A op B & ALUOut $\gets$ A + signext(imm) &
+  if (A == B) PC $\gets$ ALUOut & PC $\gets$ \{PC[31:28], addr, 00\} \\
+4. Memory / R-completion & Reg[rd] $\gets$ ALUOut &
+  \code{lw}: MDR $\gets$ Mem[ALUOut]; \code{sw}: Mem[ALUOut] $\gets$ B & & \\
+5. Write-back & & \code{lw}: Reg[rt] $\gets$ MDR & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Cycle counts: \code{lw} 5, \code{sw} 4, R-type 4, \code{beq} 3, \code{j} 3.
+
+\begin{remark}
+In the decode step we compute the branch target \emph{speculatively}: the
+ALU is idle anyway, and we do not yet know whether the instruction is a
+branch. If it is not, the result is simply ignored. This is an early
+example of doing work optimistically.
+\end{remark}
+
+\section{Control as an FSM}
+
+The control unit is a Moore FSM whose states correspond to the steps above.
+States 0 (fetch) and 1 (decode) are shared by all instructions; from state 1
+the next state depends on the opcode:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[->, >=Stealth, thick, node distance=1.6cm and 2.2cm,
+  every state/.style={minimum size=1cm, font=\scriptsize, align=center}]
+  \node[state, initial] (s0) {0\\Fetch};
+  \node[state, right=of s0] (s1) {1\\Decode};
+  \node[state, below left=of s1] (s2) {2\\MemAddr};
+  \node[state, below=of s1] (s6) {6\\Exec};
+  \node[state, below right=of s1] (s8) {8\\Branch};
+  \node[state, right=of s8] (s9) {9\\Jump};
+  \node[state, below left=of s2] (s3) {3\\MemRd};
+  \node[state, below=of s2] (s5) {5\\MemWr};
+  \node[state, below=of s3] (s4) {4\\WB};
+  \node[state, below=of s6] (s7) {7\\R-done};
+  \path (s0) edge (s1)
+        (s1) edge node[left, font=\scriptsize]{lw/sw} (s2)
+        (s1) edge node[right, font=\scriptsize]{R} (s6)
+        (s1) edge node[right, font=\scriptsize]{beq} (s8)
+        (s1) edge[bend left] node[above, font=\scriptsize]{j} (s9)
+        (s2) edge node[left, font=\scriptsize]{lw} (s3)
+        (s2) edge node[right, font=\scriptsize]{sw} (s5)
+        (s3) edge (s4)
+        (s6) edge (s7);
+\end{tikzpicture}
+\caption{Multi-cycle control FSM. States 4, 5, 7, 8 and 9 all return to
+state 0 (arrows omitted).}
+\end{figure}
+
+\begin{center}
+\begin{tabular}{cp{13cm}}
+\toprule
+State & Asserted signals (main ones) \\
+\midrule
+0 & MemRead, IRWrite, IorD=0, ALUSrcA=0, ALUSrcB=01, ALUOp=00, PCWrite, PCSource=00 \\
+1 & ALUSrcA=0, ALUSrcB=11, ALUOp=00 \\
+2 & ALUSrcA=1, ALUSrcB=10, ALUOp=00 \\
+3 & MemRead, IorD=1 \\
+4 & RegWrite, MemtoReg=1, RegDst=0 \\
+5 & MemWrite, IorD=1 \\
+6 & ALUSrcA=1, ALUSrcB=00, ALUOp=10 \\
+7 & RegWrite, MemtoReg=0, RegDst=1 \\
+8 & ALUSrcA=1, ALUSrcB=00, ALUOp=01, PCWriteCond, PCSource=01 \\
+9 & PCWrite, PCSource=10 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The PC is written when $\code{PCWrite} + (\code{PCWriteCond} \cdot
+\code{Zero})$.
+
+\paragraph{Implementing the FSM.} Either as hardwired logic (a state
+register plus combinational next-state/output logic, e.g.\ a PLA or ROM),
+or by \textbf{microprogramming}: each state is a microinstruction stored in
+a control ROM, and a micro-PC sequences through them with dispatch tables
+for opcode-based branching. Microprogramming was popular for complex CISC
+instruction sets.
+
+\section{Performance Comparison}
+
+\begin{example}
+Instruction mix: 25\% \code{lw}, 10\% \code{sw}, 45\% R-type, 15\% \code{beq},
+5\% \code{j}. CPI $= 0.25(5) + 0.10(4) + 0.45(4) + 0.15(3) + 0.05(3)
+= 1.25 + 0.4 + 1.8 + 0.45 + 0.15 = 4.05$.
+
+If the multi-cycle clock is 200\,ps (one memory access) and the
+single-cycle clock is 800\,ps:
+\begin{itemize}
+  \item single-cycle: $1 \times 800 = 800$\,ps per instruction;
+  \item multi-cycle: $4.05 \times 200 = 810$\,ps per instruction.
+\end{itemize}
+Not a win here! The multi-cycle design pays overhead (register setup,
+uneven step lengths). Its real advantages are the hardware savings and the
+ability to have instructions of very different lengths (e.g.\ floating
+point divide) without slowing everything else.
+\end{example}
+
+\begin{important}[Exam tip]
+To compare designs, always compute time per instruction (or total time) =
+CPI $\times$ cycle time, never CPI alone or clock rate alone.
+\end{important}
+
+\section{Exceptions (brief)}
+
+An \textbf{exception} (internal, e.g.\ overflow or undefined opcode) or
+\textbf{interrupt} (external, e.g.\ I/O) transfers control to the OS. MIPS
+saves the faulting PC in the \textbf{EPC} register, records the cause in
+the \textbf{Cause} register and jumps to a fixed handler address
+(0x80000180). In the multi-cycle FSM this adds states that set EPC, Cause
+and the PC.
+
+\section*{Summary}
+\begin{itemize}
+  \item Multi-cycle: short clock (one major unit per cycle), one memory, one
+    ALU, internal registers IR, MDR, A, B, ALUOut.
+  \item Steps: fetch, decode/register fetch, execute, memory, write-back;
+    \code{lw} 5 cycles, R-type and \code{sw} 4, \code{beq} and \code{j} 3.
+  \item Control is an FSM (hardwired or microprogrammed).
+  \item Average CPI $> 1$; whether it beats single-cycle depends on the mix
+    and the overhead. Pipelining is the real improvement.
+\end{itemize}

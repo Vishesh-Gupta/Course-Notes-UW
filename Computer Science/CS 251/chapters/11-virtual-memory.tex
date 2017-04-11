@@ -1,0 +1,180 @@
+\chapter{Virtual Memory}
+
+Virtual memory treats main memory as a ``cache'' for secondary storage
+(disk/SSD). Each program sees its own large, private \textbf{virtual address
+space}; hardware and the operating system translate virtual addresses to
+\textbf{physical addresses}.
+
+\section{Why Virtual Memory?}
+
+\begin{itemize}
+  \item \textbf{Protection and isolation}: a process cannot read or corrupt
+    another process's memory.
+  \item \textbf{Sharing}: several programs share physical memory safely;
+    shared libraries can be mapped into many address spaces.
+  \item \textbf{Illusion of large memory}: programs can be larger than
+    physical memory; unused parts stay on disk.
+  \item \textbf{Relocation}: a program can be loaded anywhere in physical
+    memory without changing its addresses.
+\end{itemize}
+
+\section{Pages and Address Translation}
+
+Memory is divided into fixed-size \textbf{pages} (typically 4\,KB). The
+virtual address is split into a \textbf{virtual page number (VPN)} and a
+\textbf{page offset}; translation replaces the VPN by a \textbf{physical
+page number (PPN)} and keeps the offset.
+
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+Virtual page number & Page offset \\
+\hline
+\end{tabular}
+\quad$\longrightarrow$\quad
+\begin{tabular}{|c|c|}
+\hline
+Physical page number & Page offset \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Cache term & VM term \\
+\midrule
+block & page \\
+miss & page fault \\
+index/tag lookup & page table lookup \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Page Tables}
+
+\begin{definition}
+A \textbf{page table} is an array in memory, indexed by VPN, whose entries
+(PTEs) contain a \textbf{valid} bit, the PPN (or the disk location if not
+resident), and status bits: \textbf{dirty}, \textbf{reference} (used),
+and \textbf{protection} (read/write/execute, user/kernel). Each process
+has its own page table; the hardware \textbf{page table register} points to
+the current one.
+\end{definition}
+
+\begin{example}[Page table size]
+32-bit virtual addresses, 4\,KB pages, 4-byte PTEs. Offset = 12 bits,
+VPN = 20 bits, so $2^{20}$ entries $\times$ 4\,B = 4\,MB per process. For
+64-bit addresses this is far too big, so real systems use
+\textbf{multi-level (hierarchical) page tables}, where only the parts of the
+table actually in use are allocated, or inverted/hashed page tables.
+\end{example}
+
+\section{Page Faults}
+
+If the PTE is invalid, a \textbf{page fault} exception occurs and the OS:
+\begin{enumerate}
+  \item finds the page on disk;
+  \item chooses a physical page to replace (approximating LRU using
+    reference bits, e.g.\ the clock algorithm); if the victim is dirty,
+    writes it back to disk;
+  \item reads the needed page into memory and updates the page table;
+  \item restarts the faulting instruction.
+\end{enumerate}
+
+\begin{important}[Design consequences of huge miss penalties]
+A page fault costs millions of cycles, so:
+\begin{itemize}
+  \item pages are large (amortize the disk access);
+  \item placement is \textbf{fully associative} (any virtual page in any
+    physical page) to minimize the miss rate;
+  \item misses are handled in \emph{software} (clever algorithms are worth it);
+  \item always \textbf{write-back}, never write-through.
+\end{itemize}
+\end{important}
+
+\section{The TLB}
+
+Without help, every memory access would need an extra memory access to read
+the PTE, doubling the access time. The \textbf{translation lookaside
+buffer (TLB)} is a small cache of recent translations (typically 16--512
+entries, often fully associative). Each entry holds a tag (VPN), PPN, and
+valid, dirty, reference and protection bits.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[thick, >=Stealth, font=\small, node distance=1.1cm and 1.6cm,
+  box/.style={draw, rounded corners, minimum height=0.8cm, align=center}]
+  \node[box] (va) {Virtual address};
+  \node[box, right=of va] (tlb) {TLB};
+  \node[box, below=of tlb] (pt) {Page table\\(memory)};
+  \node[box, right=of tlb] (pa) {Physical address};
+  \node[box, right=of pa] (c) {Cache /\\memory};
+  \node[box, below=of pt] (os) {OS: page fault\\handler (disk)};
+  \draw[->] (va) -- (tlb);
+  \draw[->] (tlb) -- node[above, font=\scriptsize]{hit} (pa);
+  \draw[->] (tlb) -- node[left, font=\scriptsize]{miss} (pt);
+  \draw[->] (pt.east) -| node[pos=0.25, below, font=\scriptsize]{valid: refill TLB} (pa.south);
+  \draw[->] (pt) -- node[left, font=\scriptsize]{invalid} (os);
+  \draw[->] (pa) -- (c);
+\end{tikzpicture}
+\caption{Translation flow.}
+\end{figure}
+
+Possible outcomes of an access:
+\begin{center}
+\begin{tabular}{cccl}
+\toprule
+TLB & Page table & Cache & Possible? \\
+\midrule
+hit & hit & hit/miss & yes (best case: hit/hit/hit) \\
+miss & hit & hit/miss & yes: refill TLB from page table \\
+miss & miss & miss & yes: page fault \\
+hit & miss & -- & no: TLB only caches valid translations \\
+miss & miss & hit & no: data not in memory cannot be in the cache \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+TLB misses can be handled in hardware (a page table walker, as in x86) or in
+software (an exception handler, as in MIPS).
+
+\section{Caches and Virtual Memory Together}
+
+\begin{itemize}
+  \item \textbf{Physically addressed cache}: translate first, then access the
+    cache. Simple but the TLB is on the critical path.
+  \item \textbf{Virtually indexed, physically tagged (VIPT)}: index the cache
+    with page-offset bits (which do not change under translation) while the
+    TLB translates in parallel; compare the physical tag afterwards. This
+    works when index + offset bits fit in the page offset.
+  \item Virtually addressed caches avoid translation but suffer from aliasing
+    (two virtual addresses for the same physical data) and must be flushed
+    or tagged with process IDs on context switch.
+\end{itemize}
+
+\begin{example}[Address breakdown]
+32-bit virtual addresses, 30-bit physical addresses, 8\,KB pages. Offset =
+13 bits; VPN = 19 bits; PPN = 17 bits. A 4-entry fully associative TLB stores
+a 19-bit tag and a 17-bit PPN per entry (plus status bits).
+\end{example}
+
+\section{Protection}
+
+The OS (running in kernel/supervisor mode) is the only one allowed to modify
+page tables and the page table register. User programs enter the kernel via
+\textbf{system calls} (\code{syscall} on MIPS), which switch modes. On a
+context switch the OS changes the page table register and invalidates (or
+tags with an address-space ID) the TLB.
+
+\section*{Summary}
+\begin{itemize}
+  \item VM gives each process a private address space: protection, sharing,
+    relocation, and the illusion of more memory.
+  \item Virtual address = VPN | offset; page table maps VPN $\to$ PPN with
+    valid, dirty, reference and protection bits.
+  \item Page faults are very expensive: large pages, fully associative
+    placement, LRU approximation, write-back, handled by the OS.
+  \item The TLB caches translations; know which TLB/page table/cache
+    combinations are possible.
+\end{itemize}

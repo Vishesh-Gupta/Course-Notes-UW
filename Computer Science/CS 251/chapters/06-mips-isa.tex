@@ -1,0 +1,249 @@
+\chapter{The MIPS Instruction Set in Depth}
+
+With the five-instruction subset understood, we now look at the full MIPS
+ISA: register conventions, the three instruction formats, addressing modes,
+control flow and procedure calls.
+
+\section{Design Principles}
+
+Patterson and Hennessy summarize MIPS with four principles:
+\begin{enumerate}
+  \item \textbf{Simplicity favours regularity}: all instructions are 32 bits,
+    few formats, fields in the same place.
+  \item \textbf{Smaller is faster}: only 32 registers.
+  \item \textbf{Make the common case fast}: immediates for small constants,
+    PC-relative branches.
+  \item \textbf{Good design demands good compromises}: three formats instead
+    of one, to fit large constants and addresses.
+\end{enumerate}
+
+\section{Registers and Conventions}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Number & Name & Use \\
+\midrule
+0 & \code{\$zero} & constant 0 \\
+1 & \code{\$at} & reserved for the assembler \\
+2--3 & \code{\$v0}--\code{\$v1} & return values \\
+4--7 & \code{\$a0}--\code{\$a3} & arguments \\
+8--15, 24--25 & \code{\$t0}--\code{\$t9} & temporaries (caller-saved) \\
+16--23 & \code{\$s0}--\code{\$s7} & saved (callee-saved) \\
+26--27 & \code{\$k0}--\code{\$k1} & reserved for the OS kernel \\
+28 & \code{\$gp} & global pointer \\
+29 & \code{\$sp} & stack pointer \\
+30 & \code{\$fp} & frame pointer \\
+31 & \code{\$ra} & return address \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Instruction Formats}
+
+\begin{center}
+\begin{tabular}{l|c|c|c|c|c|c|}
+\multicolumn{1}{c}{} & \multicolumn{1}{c}{31--26} & \multicolumn{1}{c}{25--21}
+  & \multicolumn{1}{c}{20--16} & \multicolumn{1}{c}{15--11}
+  & \multicolumn{1}{c}{10--6} & \multicolumn{1}{c}{5--0} \\
+\cline{2-7}
+R & op & rs & rt & rd & shamt & funct \\
+\cline{2-7}
+I & op & rs & rt & \multicolumn{3}{c|}{immediate (16)} \\
+\cline{2-7}
+J & op & \multicolumn{5}{c|}{address (26)} \\
+\cline{2-7}
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+  \item \textbf{R-format}: op = 0; the ALU operation is chosen by
+    \code{funct}. \code{rs}, \code{rt} are sources, \code{rd} destination,
+    \code{shamt} the shift amount for \code{sll/srl/sra}.
+  \item \textbf{I-format}: arithmetic with immediates, loads/stores,
+    branches. \code{rt} is the destination for \code{addi} and \code{lw},
+    and a source for \code{sw} and \code{beq}.
+  \item \textbf{J-format}: \code{j} and \code{jal}.
+\end{itemize}
+
+\subsection{Common instructions}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Category & Instructions & Notes \\
+\midrule
+Arithmetic & \code{add, addu, sub, subu, addi, addiu} & \code{u}: no overflow trap \\
+Multiply/divide & \code{mult, multu, div, divu, mfhi, mflo} & HI/LO registers \\
+Logical & \code{and, or, xor, nor, andi, ori, xori} & immediates zero-extended \\
+Shifts & \code{sll, srl, sra, sllv, srlv, srav} & \\
+Constants & \code{lui} & load upper 16 bits \\
+Compare & \code{slt, sltu, slti, sltiu} & set to 1 if less than \\
+Memory & \code{lw, sw, lb, lbu, sb, lh, lhu, sh} & \\
+Branch & \code{beq, bne} & PC-relative \\
+Jump & \code{j, jal, jr, jalr} & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Large constants}
+
+A 16-bit immediate cannot hold a 32-bit constant. Use \code{lui} to load the
+upper half and \code{ori} to fill in the lower half:
+\begin{lstlisting}[style=mips]
+lui $t0, 0x1234        # $t0 = 0x12340000
+ori $t0, $t0, 0x5678   # $t0 = 0x12345678
+\end{lstlisting}
+The pseudo-instruction \code{li \$t0, 0x12345678} expands to exactly this
+(using \code{\$at} where necessary). Other pseudo-instructions: \code{move},
+\code{blt}, \code{bgt}, \code{la}.
+
+\section{Addressing Modes}
+
+\begin{enumerate}
+  \item \textbf{Register}: operand in a register (\code{add}).
+  \item \textbf{Immediate}: operand in the instruction (\code{addi}).
+  \item \textbf{Base/displacement}: memory at register + offset (\code{lw}).
+  \item \textbf{PC-relative}: branch target $= PC + 4 + (\text{sign-ext}(imm) \ll 2)$.
+    Reach: $\pm 2^{15}$ instructions.
+  \item \textbf{Pseudo-direct}: jump target
+    $= (PC+4)[31{:}28] \,\|\, \text{address} \,\|\, 00$. The 26-bit field
+    plus two implied zero bits covers 256\,MB within the current region.
+\end{enumerate}
+
+\begin{example}[Encoding a branch]
+At address 0x00400010: \code{beq \$t0, \$t1, L} where \code{L} is at
+0x00400024. Offset $= (0x24 - 0x14)/4 = 4$. Encoding: op 4, rs 8, rt 9,
+imm 4: \code{000100 01000 01001 0000000000000100} = \code{0x11090004}.
+\end{example}
+
+\begin{example}[Encoding a jump]
+\code{j 0x00400040}: address field $=$ 0x00400040 $\gg 2$ $=$ 0x0100010.
+Encoding: \code{000010} followed by 26 bits of \code{0x0100010}, giving
+\code{0x08100010}.
+\end{example}
+
+\section{Control Flow}
+
+\begin{example}[If-then-else]
+\lstinline[style=c]|if (i == j) f = g + h; else f = g - h;| with
+$f..j$ in \code{\$s0..\$s4}:
+\begin{lstlisting}[style=mips]
+      bne  $s3, $s4, Else    # branch on the opposite condition
+      add  $s0, $s1, $s2
+      j    Exit
+Else: sub  $s0, $s1, $s2
+Exit:
+\end{lstlisting}
+\end{example}
+
+\begin{example}[Less-than branch]
+\lstinline[style=c]|if (a < b) goto L;| with \code{a, b} in \code{\$s0, \$s1}:
+\begin{lstlisting}[style=mips]
+slt $t0, $s0, $s1    # $t0 = (a < b)
+bne $t0, $zero, L
+\end{lstlisting}
+MIPS has no \code{blt} in hardware: comparison with \code{slt} plus
+\code{beq}/\code{bne} against zero keeps the branch hardware simple.
+\end{example}
+
+\begin{example}[While loop over an array]
+\lstinline[style=c]|while (save[i] == k) i += 1;| with \code{i} in
+\code{\$s3}, \code{k} in \code{\$s5}, base of \code{save} in \code{\$s6}:
+\begin{lstlisting}[style=mips]
+Loop: sll  $t1, $s3, 2       # t1 = 4*i
+      add  $t1, $t1, $s6     # t1 = &save[i]
+      lw   $t0, 0($t1)
+      bne  $t0, $s5, Exit
+      addi $s3, $s3, 1
+      j    Loop
+Exit:
+\end{lstlisting}
+\end{example}
+
+\section{Procedures}
+
+Steps of a procedure call:
+\begin{enumerate}
+  \item Caller puts arguments in \code{\$a0}--\code{\$a3} (extra on the stack).
+  \item \code{jal Proc}: saves $PC + 4$ in \code{\$ra} and jumps.
+  \item Callee allocates a stack frame, saves registers it must preserve,
+    does its work, puts results in \code{\$v0}/\code{\$v1}.
+  \item Callee restores registers, frees the frame, \code{jr \$ra}.
+\end{enumerate}
+
+\subsection{The stack}
+
+The stack lives at the top of memory and grows \emph{downward}. \code{\$sp}
+points to the top (last used word). Push: decrement \code{\$sp}, then store.
+Pop: load, then increment.
+
+\begin{important}[Calling convention]
+\begin{itemize}
+  \item \textbf{Callee-saved}: \code{\$s0}--\code{\$s7}, \code{\$sp},
+    \code{\$fp}, \code{\$ra} (the callee must restore them if it changes
+    them; a non-leaf procedure must save \code{\$ra} since its own
+    \code{jal} overwrites it).
+  \item \textbf{Caller-saved}: \code{\$t0}--\code{\$t9}, \code{\$a0}--\code{\$a3},
+    \code{\$v0}--\code{\$v1} (the callee may destroy them; the caller saves
+    any it needs after the call).
+\end{itemize}
+\end{important}
+
+\begin{example}[Recursive factorial]
+\begin{lstlisting}[style=mips]
+fact: addi $sp, $sp, -8      # make room for 2 words
+      sw   $ra, 4($sp)       # save return address
+      sw   $a0, 0($sp)       # save n
+      slti $t0, $a0, 1       # n < 1 ?
+      beq  $t0, $zero, L1
+      addi $v0, $zero, 1     # base case: return 1
+      addi $sp, $sp, 8       # pop (nothing changed)
+      jr   $ra
+L1:   addi $a0, $a0, -1
+      jal  fact              # v0 = fact(n-1)
+      lw   $a0, 0($sp)       # restore n
+      lw   $ra, 4($sp)       # restore return address
+      addi $sp, $sp, 8
+      mul  $v0, $a0, $v0     # n * fact(n-1)
+      jr   $ra
+\end{lstlisting}
+(\code{mul} is a pseudo-instruction for \code{mult} + \code{mflo}.)
+\end{example}
+
+\subsection{Memory layout}
+
+From low to high addresses: reserved, \textbf{text} (code, starting at
+0x00400000), \textbf{static data} (globals, accessed via \code{\$gp}),
+\textbf{heap} (dynamic, grows up), and the \textbf{stack} (grows down from
+0x7FFFFFFC). Heap and stack grow toward each other.
+
+\section{From Source to Execution}
+
+Compiler (C $\to$ assembly) $\to$ assembler (assembly $\to$ object file;
+expands pseudo-instructions, builds symbol and relocation tables)
+$\to$ linker (combines object files, resolves labels, fixes absolute
+addresses) $\to$ loader (copies the executable into memory, sets up stack
+and registers, jumps to the start).
+
+\section{RISC vs CISC}
+
+MIPS is RISC: fixed-length instructions, load/store, many registers, simple
+addressing. CISC ISAs (x86) have variable-length instructions, memory
+operands in arithmetic instructions and complex addressing. RISC makes the
+hardware simpler and pipelining easier; modern x86 chips internally
+translate instructions into RISC-like micro-operations.
+
+\section*{Summary}
+\begin{itemize}
+  \item 32 registers with naming/usage conventions; \code{\$zero} is
+    hardwired.
+  \item R/I/J formats; opcode in bits 31--26; R-type uses \code{funct}.
+  \item Five addressing modes; branches are PC-relative (word offset from
+    $PC+4$); jumps are pseudo-direct.
+  \item \code{lui}/\code{ori} build 32-bit constants; \code{slt} + branch
+    builds comparisons.
+  \item Procedures: \code{jal}/\code{jr \$ra}, arguments in
+    \code{\$a}, results in \code{\$v}, stack grows down, callee saves
+    \code{\$s} and \code{\$ra}.
+\end{itemize}

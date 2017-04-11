@@ -1,0 +1,203 @@
+\chapter{ARM: 32-bit and ARMv8}
+
+ARM (originally Acorn RISC Machine, later Advanced RISC Machines) is the
+most widely shipped ISA in the world: nearly every phone and tablet, and
+many embedded systems and laptops, use it. Like MIPS it is a RISC
+load/store architecture, so almost everything we learned carries over; the
+differences are instructive.
+
+\section{ARM 32-bit (ARMv7)}
+
+\subsection{Registers}
+
+\begin{itemize}
+  \item 16 registers \code{r0}--\code{r15}, each 32 bits:
+    \code{r13} = \code{sp} (stack pointer), \code{r14} = \code{lr} (link
+    register, holds return address), \code{r15} = \code{pc}
+    (the program counter is a visible general register!).
+  \item No hardwired zero register.
+  \item Calling convention: arguments/results in \code{r0}--\code{r3},
+    callee-saved \code{r4}--\code{r11}.
+  \item A \textbf{current program status register (CPSR)} holds the
+    condition flags \textbf{N} (negative), \textbf{Z} (zero), \textbf{C}
+    (carry), \textbf{V} (overflow).
+\end{itemize}
+
+\subsection{Condition codes and conditional execution}
+
+Instead of MIPS's compare-and-branch (\code{beq}, \code{slt}), ARM sets
+condition flags with \code{CMP} (or any instruction with the \code{S}
+suffix, e.g.\ \code{ADDS}) and then branches on them. Moreover, almost
+\emph{every} 32-bit ARM instruction has a 4-bit condition field
+(bits 31--28): it executes only if the condition holds.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Suffix & Meaning & Flags \\
+\midrule
+EQ / NE & equal / not equal & Z=1 / Z=0 \\
+LT / GE & signed less / greater-or-equal & N$\ne$V / N=V \\
+GT / LE & signed greater / less-or-equal & Z=0 and N=V / Z=1 or N$\ne$V \\
+LO / HS & unsigned lower / higher-or-same & C=0 / C=1 \\
+AL & always & -- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{example}[Conditional execution avoids branches]
+\lstinline[style=c]|if (a == b) c = a + b; else c = a - b;| with
+\code{a, b, c} in \code{r0, r1, r2}:
+\begin{lstlisting}[style=arm]
+CMP   r0, r1
+ADDEQ r2, r0, r1     ; executes only if Z = 1
+SUBNE r2, r0, r1     ; executes only if Z = 0
+\end{lstlisting}
+No branches means no control hazards for short if/else bodies. MIPS needs
+a branch and a jump for the same code.
+\end{example}
+
+\subsection{Flexible second operand}
+
+The second source operand of a data-processing instruction can be a
+register shifted or rotated by a constant or by another register, for free:
+\begin{lstlisting}[style=arm]
+ADD r0, r1, r2, LSL #2   ; r0 = r1 + (r2 << 2)
+\end{lstlisting}
+Immediates are 12 bits: an 8-bit value rotated right by an even amount
+(so a constant such as \code{0xFF000000} fits, but not every 16-bit value).
+
+\subsection{Addressing modes}
+
+ARM has richer memory addressing than MIPS:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Mode & Example / meaning \\
+\midrule
+Immediate offset & \code{LDR r0, [r1, \#8]} : r0 = M[r1+8] \\
+Register offset & \code{LDR r0, [r1, r2]} : r0 = M[r1+r2] \\
+Scaled register & \code{LDR r0, [r1, r2, LSL \#2]} : r0 = M[r1+4r2] \\
+Pre-indexed (write-back) & \code{LDR r0, [r1, \#4]!} : r1 += 4; r0 = M[r1] \\
+Post-indexed & \code{LDR r0, [r1], \#4} : r0 = M[r1]; r1 += 4 \\
+PC-relative & \code{LDR r0, label} \\
+\bottomrule
+\end{tabular}
+\end{center}
+Auto-increment addressing makes array loops shorter. \code{LDM}/\code{STM}
+(load/store multiple) save or restore a list of registers in one instruction,
+convenient for procedure entry and exit:
+\begin{lstlisting}[style=arm]
+PUSH {r4-r6, lr}     ; = STMDB sp!, {r4-r6, lr}
+...
+POP  {r4-r6, pc}     ; restore and return in one instruction
+\end{lstlisting}
+
+\subsection{Procedures}
+
+\code{BL label} (branch and link) stores the return address in \code{lr},
+like MIPS \code{jal}; return with \code{BX lr} or \code{MOV pc, lr}.
+
+\begin{example}[Array sum in ARM]
+\begin{lstlisting}[style=arm]
+; r0 = address of array, r1 = n; result in r2
+      MOV  r2, #0
+loop: CMP  r1, #0
+      BEQ  done
+      LDR  r3, [r0], #4    ; r3 = *p; p += 4 (post-index)
+      ADD  r2, r2, r3
+      SUBS r1, r1, #1      ; also sets flags
+      B    loop
+done:
+\end{lstlisting}
+\end{example}
+
+\subsection{Thumb}
+\textbf{Thumb} is a 16-bit compressed encoding of common instructions for
+better code density (Thumb-2 mixes 16- and 32-bit instructions). MIPS has a
+similar extension (MIPS16).
+
+\section{Comparison: MIPS vs ARM 32-bit}
+
+\begin{center}
+\begin{tabular}{p{4cm}p{5cm}p{5cm}}
+\toprule
+& MIPS & ARMv7 \\
+\midrule
+Instruction size & 32 bits & 32 bits (16 in Thumb) \\
+Registers & 32, \code{\$zero} hardwired & 16, PC is \code{r15} \\
+Conditional branches & compare registers (\code{beq}, \code{bne}, \code{slt}) & condition codes (NZCV) set by \code{CMP} \\
+Conditional execution & no & nearly every instruction \\
+Immediates & 16 bits & 12 bits (8-bit rotated) \\
+Addressing modes & base + offset only & many, incl. auto-increment, scaled \\
+Load/store multiple & no & yes \\
+Shifts & separate instructions & folded into the second operand \\
+Memory & aligned, big-endian (configurable) & usually little-endian \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{ARMv8 (AArch64)}
+
+ARMv8 (2011) introduced a 64-bit execution state, \textbf{AArch64}, with a
+new instruction set (A64) that is in many ways \emph{closer to MIPS}:
+
+\begin{itemize}
+  \item 31 general-purpose 64-bit registers \code{X0}--\code{X30}
+    (\code{W0}--\code{W30} name the low 32 bits); register 31 acts as the
+    zero register \code{XZR} or the stack pointer \code{SP} depending on
+    context. \code{X30} is the link register.
+  \item The PC is \emph{no longer} a general register.
+  \item Conditional execution of arbitrary instructions was \emph{dropped}
+    (it complicated out-of-order implementations); only a few conditional
+    instructions remain (\code{CSEL}, conditional select).
+  \item Compare-and-branch instructions \code{CBZ}/\code{CBNZ} (branch if
+    register is zero/nonzero), similar to MIPS \code{beq \$r, \$zero}.
+  \item Load/store multiple dropped, replaced by load/store pair
+    (\code{LDP}/\code{STP}).
+  \item Still fixed 32-bit instructions; still a load/store architecture.
+\end{itemize}
+
+\begin{example}[ARMv8 procedure skeleton]
+\begin{lstlisting}[style=arm]
+func: STP  X29, X30, [SP, #-16]!   ; push frame pointer and link register
+      MOV  X29, SP
+      ADD  X0, X0, X1              ; compute result in X0
+      LDP  X29, X30, [SP], #16     ; pop
+      RET                          ; return via X30
+\end{lstlisting}
+\end{example}
+
+\begin{important}[Big lesson]
+ARMv8 shows the industry converging on MIPS-like RISC principles: lots of
+registers, a zero register, simple fixed-length encodings, compare-and-branch.
+Features that once saved instructions (conditional execution, PC as a
+general register, load-multiple) became obstacles to deep pipelining and
+out-of-order execution.
+\end{important}
+
+\section{Fallacies and Pitfalls (course themes)}
+
+\begin{itemize}
+  \item \emph{Fallacy}: more powerful instructions mean higher performance.
+    Complex instructions are hard to pipeline.
+  \item \emph{Fallacy}: clock rate (or MIPS rating) alone measures
+    performance. Use IC $\times$ CPI $\times$ cycle time.
+  \item \emph{Pitfall}: Amdahl's law: improving one part of a task by a
+    factor $s$ gives overall speedup
+    $\dfrac{1}{(1 - f) + f/s}$, where $f$ is the fraction affected.
+\end{itemize}
+
+\section*{Summary}
+\begin{itemize}
+  \item ARMv7: 16 registers (PC visible), NZCV condition flags, conditional
+    execution of almost every instruction, flexible shifted operands, rich
+    addressing modes, load/store multiple, Thumb.
+  \item MIPS: 32 registers, \code{\$zero}, compare-in-branch, minimal
+    addressing.
+  \item ARMv8/AArch64: 31 64-bit registers + zero register, no general
+    conditional execution, PC not a GPR, \code{CBZ}/\code{CBNZ},
+    \code{LDP}/\code{STP}: closer to MIPS.
+  \item All are RISC load/store ISAs with fixed 32-bit instructions, so the
+    datapath and pipelining ideas of this course apply directly.
+\end{itemize}
