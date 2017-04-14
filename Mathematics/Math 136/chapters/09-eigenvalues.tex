@@ -1,0 +1,173 @@
+\chapter{Eigenvalues and Eigenvectors}
+
+\section{Definitions}
+
+Many linear operators act very simply in certain directions: a projection fixes its line and kills
+the orthogonal line; a reflection fixes its line and flips the orthogonal one. Such special directions are
+eigenvectors.
+
+\begin{definition}
+Let $A$ be $n\times n$. A scalar $\lambda$ is an \emph{eigenvalue} of $A$ if there is a \emph{non-zero}
+vector $\vec v$ with $A\vec v=\lambda\vec v$; such a $\vec v$ is an \emph{eigenvector} of $A$ corresponding
+to $\lambda$. The same terms apply to a linear operator $L$ via its standard matrix.
+\end{definition}
+
+\begin{important}[Pitfall]
+$\vec 0$ is never an eigenvector (since $A\vec 0=\lambda\vec 0$ for every $\lambda$), but $0$ \emph{can} be
+an eigenvalue: $0$ is an eigenvalue of $A$ iff $\Null(A)\ne\{\vec0\}$ iff $A$ is not invertible.
+\end{important}
+
+\begin{example}
+For $\proj_{\vec d}$ on $\R^2$: $\vec d$ is an eigenvector with eigenvalue $1$, and any non-zero vector
+orthogonal to $\vec d$ is an eigenvector with eigenvalue $0$. For $\refl_{\vec d}$ the eigenvalues are $1$
+and $-1$. A rotation $R_\theta$ with $0<\theta<\pi$ has no real eigenvectors at all: no non-zero vector
+keeps its direction.
+\end{example}
+
+\section{The characteristic polynomial}
+
+$A\vec v=\lambda\vec v$ with $\vec v\ne\vec0$ means $(A-\lambda I)\vec v=\vec0$ has a non-trivial solution,
+i.e.\ $A-\lambda I$ is not invertible, i.e.\ $\det(A-\lambda I)=0$.
+
+\begin{definition}
+The \emph{characteristic polynomial} of $A$ is $C(\lambda)=\det(A-\lambda I)$, a polynomial of degree $n$
+in $\lambda$ (with leading coefficient $(-1)^n$).
+\end{definition}
+
+\begin{theorem}
+$\lambda$ is an eigenvalue of $A$ iff $C(\lambda)=0$. The eigenvectors for $\lambda$ are the non-zero
+vectors of $\Null(A-\lambda I)$.
+\end{theorem}
+
+\begin{definition}[Eigenspace, multiplicities]
+For an eigenvalue $\lambda$, the \emph{eigenspace} is $E_\lambda=\Null(A-\lambda I)$, a subspace of
+$\R^n$. The \emph{algebraic multiplicity} $a_\lambda$ is the multiplicity of $\lambda$ as a root of $C$;
+the \emph{geometric multiplicity} is $g_\lambda=\dim E_\lambda$.
+\end{definition}
+
+\begin{important}[Algorithm]
+(1) Compute $C(\lambda)=\det(A-\lambda I)$ and factor it. (2) For each root $\lambda$, row reduce
+$A-\lambda I$ and find a basis of its null space. (Since $\lambda$ is a root, $A-\lambda I$ \emph{must}
+have a non-trivial null space; if your row reduction gives only $\vec 0$, you made an arithmetic error.)
+\end{important}
+
+\begin{example}
+Let $A=\begin{bmatrix}4&1\\2&3\end{bmatrix}$.
+$C(\lambda)=\begin{vmatrix}4-\lambda&1\\2&3-\lambda\end{vmatrix}=(4-\lambda)(3-\lambda)-2
+=\lambda^2-7\lambda+10=(\lambda-2)(\lambda-5)$.
+\begin{itemize}
+  \item $\lambda=2$: $A-2I=\begin{bmatrix}2&1\\2&1\end{bmatrix}\xrightarrow{R_2-R_1}\begin{bmatrix}2&1\\0&0\end{bmatrix}
+        \xrightarrow{\frac12R_1}\begin{bmatrix}1&\frac12\\0&0\end{bmatrix}$, so $x_1=-\frac12t$; taking $t=-2$,
+        $E_2=\Span\{(1,-2)\}$.
+  \item $\lambda=5$: $A-5I=\begin{bmatrix}-1&1\\2&-2\end{bmatrix}\xrightarrow{R_2+2R_1}\begin{bmatrix}-1&1\\0&0\end{bmatrix}
+        \xrightarrow{-R_1}\begin{bmatrix}1&-1\\0&0\end{bmatrix}$, so $E_5=\Span\{(1,1)\}$.
+\end{itemize}
+Check: $A(1,-2)=(4-2,2-6)=(2,-4)=2(1,-2)$ and $A(1,1)=(5,5)=5(1,1)$. Here $a_\lambda=g_\lambda=1$ for both.
+\end{example}
+
+\begin{example}[Repeated eigenvalue]
+Let $A=\begin{bmatrix}0&1&1\\1&0&1\\1&1&0\end{bmatrix}$. Expanding along the first row,
+\[
+C(\lambda)=\begin{vmatrix}-\lambda&1&1\\1&-\lambda&1\\1&1&-\lambda\end{vmatrix}
+=-\lambda(\lambda^2-1)-1(-\lambda-1)+1(1+\lambda)
+=-\lambda^3+3\lambda+2=-(\lambda+1)^2(\lambda-2).
+\]
+(Check: $(\lambda+1)^2(\lambda-2)=(\lambda^2+2\lambda+1)(\lambda-2)=\lambda^3-3\lambda-2$.)
+\begin{itemize}
+  \item $\lambda=-1$ ($a_{-1}=2$):
+  $A+I=\begin{bmatrix}1&1&1\\1&1&1\\1&1&1\end{bmatrix}\xrightarrow{\substack{R_2-R_1\\R_3-R_1}}\begin{bmatrix}1&1&1\\0&0&0\\0&0&0\end{bmatrix}$.
+  With $x_2=s$, $x_3=t$: $E_{-1}=\Span\{(-1,1,0),(-1,0,1)\}$, so $g_{-1}=2$.
+  \item $\lambda=2$ ($a_2=1$):
+  \[
+  \begin{bmatrix}-2&1&1\\1&-2&1\\1&1&-2\end{bmatrix}
+  \xrightarrow{R_1\leftrightarrow R_2}
+  \begin{bmatrix}1&-2&1\\-2&1&1\\1&1&-2\end{bmatrix}
+  \xrightarrow{\substack{R_2+2R_1\\R_3-R_1}}
+  \begin{bmatrix}1&-2&1\\0&-3&3\\0&3&-3\end{bmatrix}
+  \]
+  \[
+  \xrightarrow{\substack{R_3+R_2\\-\frac13R_2}}
+  \begin{bmatrix}1&-2&1\\0&1&-1\\0&0&0\end{bmatrix}
+  \xrightarrow{R_1+2R_2}
+  \begin{bmatrix}1&0&-1\\0&1&-1\\0&0&0\end{bmatrix},
+  \]
+  so $E_2=\Span\{(1,1,1)\}$, $g_2=1$. Check: $A(1,1,1)=(2,2,2)$.
+\end{itemize}
+\end{example}
+
+\begin{example}[Geometric multiplicity smaller than algebraic]
+$A=\begin{bmatrix}2&1\\0&2\end{bmatrix}$ has $C(\lambda)=(2-\lambda)^2$, so $\lambda=2$ with $a_2=2$. But
+$A-2I=\begin{bmatrix}0&1\\0&0\end{bmatrix}$ has rank $1$, so $E_2=\Span\{(1,0)\}$ and $g_2=1<2$.
+\end{example}
+
+\begin{example}[No real eigenvalues]
+$[R_{\pi/2}]=\begin{bmatrix}0&-1\\1&0\end{bmatrix}$ has $C(\lambda)=\lambda^2+1$, with no real roots. Over
+$\C$ it has eigenvalues $\pm i$. (In Math 136 we mostly work over $\R$; complex eigenvalues are
+treated in Math 235.)
+\end{example}
+
+\section{Properties}
+
+\begin{theorem}
+If $A$ is upper or lower triangular, its eigenvalues are its diagonal entries (with multiplicity).
+\end{theorem}
+\begin{proof}
+$A-\lambda I$ is triangular, so $C(\lambda)=(a_{11}-\lambda)\cdots(a_{nn}-\lambda)$.
+\end{proof}
+
+\begin{theorem}
+For every eigenvalue $\lambda$, $1\le g_\lambda\le a_\lambda$.
+\end{theorem}
+\begin{proof}[Proof sketch]
+$g_\lambda\ge1$ since an eigenvalue has an eigenvector. For the upper bound, extend a basis
+$\{\vec v_1,\dots,\vec v_g\}$ of $E_\lambda$ to a basis of $\R^n$ and let $P$ have these as columns. Then
+$P^{-1}AP=\begin{bmatrix}\lambda I_g & B\\ O & D\end{bmatrix}$, which has characteristic polynomial
+$(\lambda-t)^g\det(D-tI)$ (in variable $t$). Similar matrices share characteristic polynomials (Chapter 10), so
+$(\lambda-t)^g$ divides $C(t)$.
+\end{proof}
+
+\begin{theorem}
+If $\lambda_1,\dots,\lambda_n$ are the eigenvalues of $A$ listed with algebraic multiplicity (over $\C$), then
+\[
+  \lambda_1+\dots+\lambda_n=\tr A \quad(\text{sum of diagonal entries}),\qquad
+  \lambda_1\cdots\lambda_n=\det A .
+\]
+\end{theorem}
+\begin{proof}[Proof sketch]
+$C(\lambda)=(-1)^n(\lambda-\lambda_1)\cdots(\lambda-\lambda_n)$. Setting $\lambda=0$ gives
+$\det A=C(0)=\lambda_1\cdots\lambda_n$. Comparing coefficients of $\lambda^{n-1}$ (only the product of the diagonal
+entries contributes) gives the trace statement.
+\end{proof}
+
+Check on the examples: $2+5=7=4+3$ and $2\cdot5=10=12-2$; and $-1-1+2=0=\tr A$,
+$(-1)(-1)(2)=2=\det A$ for the $3\times3$ example.
+
+\begin{theorem}
+If $\vec v$ is an eigenvector of $A$ for $\lambda$, then $\vec v$ is an eigenvector of $A^k$ for $\lambda^k$, and
+(if $A$ is invertible) of $A^{-1}$ for $\lambda^{-1}$.
+\end{theorem}
+\begin{proof}
+$A^2\vec v=A(\lambda\vec v)=\lambda^2\vec v$, and induct. If $A$ is invertible then $\lambda\ne0$, and applying
+$A^{-1}$ to $A\vec v=\lambda\vec v$ gives $\vec v=\lambda A^{-1}\vec v$.
+\end{proof}
+
+\begin{theorem}
+Eigenvectors corresponding to distinct eigenvalues are linearly independent. More generally, if
+$\lambda_1,\dots,\lambda_k$ are distinct and $B_i$ is a basis of $E_{\lambda_i}$, then $B_1\cup\dots\cup B_k$ is
+linearly independent.
+\end{theorem}
+\begin{proof}[Proof (first statement)]
+Suppose not, and let $\{\vec v_1,\dots,\vec v_m\}$ be a shortest dependent list of such eigenvectors, so
+$c_1\vec v_1+\dots+c_m\vec v_m=\vec0$ with all $c_i\neq0$ (by minimality). Apply $A-\lambda_mI$:
+$c_1(\lambda_1-\lambda_m)\vec v_1+\dots+c_{m-1}(\lambda_{m-1}-\lambda_m)\vec v_{m-1}=\vec0$, a shorter non-trivial
+relation (the coefficients are non-zero because the $\lambda_i$ are distinct). Contradiction.
+\end{proof}
+
+\section*{Summary}
+\begin{itemize}
+  \item $A\vec v=\lambda\vec v$, $\vec v\ne\vec 0$. Eigenvalues are roots of $C(\lambda)=\det(A-\lambda I)$;
+        eigenspaces are $E_\lambda=\Null(A-\lambda I)$.
+  \item $1\le g_\lambda\le a_\lambda$; the sum of eigenvalues is the trace and the product is the determinant.
+  \item Triangular matrices: eigenvalues on the diagonal. $0$ is an eigenvalue iff $A$ is singular.
+  \item Eigenvectors from distinct eigenvalues are linearly independent.
+\end{itemize}

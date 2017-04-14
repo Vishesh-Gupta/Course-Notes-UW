@@ -1,0 +1,143 @@
+\chapter{Diagonalization}
+
+\section{Similar matrices}
+
+\begin{definition}
+$n\times n$ matrices $A$ and $B$ are \emph{similar} if there is an invertible $P$ with $P^{-1}AP=B$.
+\end{definition}
+
+Similarity is an equivalence relation (reflexive with $P=I$; symmetric with $P^{-1}$; transitive since
+$(PQ)^{-1}A(PQ)=Q^{-1}(P^{-1}AP)Q$). In Chapter 12 we will see that similar matrices represent the same
+linear operator in different bases, which explains why they share so much.
+
+\begin{theorem}
+If $A$ and $B$ are similar, then they have the same characteristic polynomial, hence the same eigenvalues
+with the same algebraic multiplicities, and the same determinant, trace and rank.
+\end{theorem}
+\begin{proof}
+$\det(B-\lambda I)=\det(P^{-1}AP-\lambda P^{-1}P)=\det\big(P^{-1}(A-\lambda I)P\big)
+=\det(P^{-1})\det(A-\lambda I)\det P=\det(A-\lambda I)$. Determinant and trace are (up to sign) coefficients of
+the characteristic polynomial. For rank, multiplying by invertible matrices does not change the null space
+dimension: $B\vec x=\vec 0\iff A(P\vec x)=\vec0$, so $\Null B=P^{-1}\Null A$.
+\end{proof}
+
+\begin{important}[Pitfall]
+The converse fails: $I$ and $\begin{bmatrix}1&1\\0&1\end{bmatrix}$ have the same characteristic polynomial
+$(1-\lambda)^2$ but are not similar (the only matrix similar to $I$ is $P^{-1}IP=I$).
+\end{important}
+
+\section{The Diagonalization Theorem}
+
+\begin{definition}
+$A$ is \emph{diagonalizable} if it is similar to a diagonal matrix $D$: $P^{-1}AP=D$. We say $P$
+\emph{diagonalizes} $A$.
+\end{definition}
+
+\begin{theorem}[Diagonalization Theorem]
+An $n\times n$ matrix $A$ is diagonalizable (over $\R$) if and only if there is a basis of $\R^n$ consisting
+of eigenvectors of $A$. In that case, if $\{\vec v_1,\dots,\vec v_n\}$ is such a basis with
+$A\vec v_i=\lambda_i\vec v_i$, then
+\[
+  P=[\vec v_1\ \cdots\ \vec v_n],\qquad P^{-1}AP=D=\diag(\lambda_1,\dots,\lambda_n).
+\]
+\end{theorem}
+\begin{proof}
+$P^{-1}AP=D$ iff $AP=PD$ (with $P$ invertible). Column-by-column, $AP=[A\vec v_1\cdots A\vec v_n]$ and
+$PD=[\lambda_1\vec v_1\cdots\lambda_n\vec v_n]$. So $AP=PD$ iff each $\vec v_i$ satisfies
+$A\vec v_i=\lambda_i\vec v_i$; and $P$ is invertible iff its columns form a basis of $\R^n$ (Invertible Matrix
+Theorem). Since basis vectors are non-zero, they are eigenvectors.
+\end{proof}
+
+\begin{theorem}[Multiplicity test]
+$A$ is diagonalizable over $\R$ if and only if all roots of $C(\lambda)$ are real and $g_\lambda=a_\lambda$ for
+every eigenvalue $\lambda$. In particular, an $n\times n$ matrix with $n$ distinct real eigenvalues is
+diagonalizable.
+\end{theorem}
+\begin{proof}
+Combining bases of the eigenspaces gives a linearly independent set (Chapter 9) with $\sum g_\lambda$ vectors.
+Since $g_\lambda\le a_\lambda$ and $\sum a_\lambda\le n$ (with equality iff all roots are real), we get $n$ vectors
+exactly when all roots are real and $g_\lambda=a_\lambda$ for all $\lambda$. Conversely, any eigenbasis contains at
+most $g_\lambda$ vectors from each $E_\lambda$.
+\end{proof}
+
+\begin{important}[Algorithm]
+\begin{enumerate}
+  \item Find and factor $C(\lambda)$. If some root is non-real, $A$ is not diagonalizable over $\R$.
+  \item For each eigenvalue find a basis of $E_\lambda$. If some $g_\lambda<a_\lambda$, stop: not diagonalizable.
+  \item Put the eigenvectors as the columns of $P$ and the corresponding eigenvalues, \emph{in the same order},
+        on the diagonal of $D$.
+\end{enumerate}
+\end{important}
+
+\begin{example}
+For $A=\begin{bmatrix}4&1\\2&3\end{bmatrix}$ (Chapter 9) we found $E_2=\Span\{(1,-2)\}$ and $E_5=\Span\{(1,1)\}$.
+So
+\[
+  P=\begin{bmatrix}1&1\\-2&1\end{bmatrix},\quad D=\begin{bmatrix}2&0\\0&5\end{bmatrix},\quad
+  P^{-1}=\frac13\begin{bmatrix}1&-1\\2&1\end{bmatrix}.
+\]
+Check $AP=\begin{bmatrix}4-2&4+1\\2-6&2+3\end{bmatrix}=\begin{bmatrix}2&5\\-4&5\end{bmatrix}$ and
+$PD=\begin{bmatrix}2&5\\-4&5\end{bmatrix}$. Equal, so $P^{-1}AP=D$.
+\end{example}
+
+\begin{example}
+For $A=\begin{bmatrix}0&1&1\\1&0&1\\1&1&0\end{bmatrix}$ we found $a_{-1}=g_{-1}=2$ and $a_2=g_2=1$, so $A$ is
+diagonalizable with
+\[
+  P=\begin{bmatrix}-1&-1&1\\1&0&1\\0&1&1\end{bmatrix},\qquad D=\begin{bmatrix}-1&0&0\\0&-1&0\\0&0&2\end{bmatrix}.
+\]
+(Check one column: $A(-1,0,1)=(1,0,-1)=-1\cdot(-1,0,1)$.)
+\end{example}
+
+\begin{example}[Not diagonalizable]
+$A=\begin{bmatrix}3&1&0\\0&3&0\\0&0&5\end{bmatrix}$ is upper triangular, so its eigenvalues are $3$ ($a_3=2$) and
+$5$ ($a_5=1$). $A-3I=\begin{bmatrix}0&1&0\\0&0&0\\0&0&2\end{bmatrix}$ has rank $2$, so
+$g_3=3-2=1<2$. Not diagonalizable.
+\end{example}
+
+\section{Powers of matrices}
+
+If $A=PDP^{-1}$, then $A^k=(PDP^{-1})(PDP^{-1})\cdots(PDP^{-1})=PD^kP^{-1}$ because the inner
+$P^{-1}P$ factors cancel; and $D^k$ is computed entrywise on the diagonal.
+
+\begin{example}
+For $A=\begin{bmatrix}4&1\\2&3\end{bmatrix}$:
+\[
+A^k=PD^kP^{-1}=\begin{bmatrix}1&1\\-2&1\end{bmatrix}\begin{bmatrix}2^k&0\\0&5^k\end{bmatrix}\frac13\begin{bmatrix}1&-1\\2&1\end{bmatrix}
+=\frac13\begin{bmatrix}2^k&5^k\\-2^{k+1}&5^k\end{bmatrix}\begin{bmatrix}1&-1\\2&1\end{bmatrix}
+\]
+\[
+=\frac13\begin{bmatrix}2^k+2\cdot5^k & 5^k-2^k\\ 2\cdot5^k-2^{k+1} & 5^k+2^{k+1}\end{bmatrix}.
+\]
+Check $k=1$: $\frac13\begin{bmatrix}2+10&5-2\\10-4&5+4\end{bmatrix}=\begin{bmatrix}4&1\\2&3\end{bmatrix}$. Check $k=0$:
+$\frac13\begin{bmatrix}3&0\\0&3\end{bmatrix}=I$.
+\end{example}
+
+\begin{example}[A Markov chain]
+Each year $10\%$ of city residents move to the suburbs and $20\%$ of suburban residents move to the city.
+If $\vec x_k=(c_k,s_k)$ are the population fractions in year $k$, then $\vec x_{k+1}=T\vec x_k$ with
+$T=\begin{bmatrix}0.9&0.2\\0.1&0.8\end{bmatrix}$. Its characteristic polynomial is
+$(0.9-\lambda)(0.8-\lambda)-0.02=\lambda^2-1.7\lambda+0.7=(\lambda-1)(\lambda-0.7)$.
+Eigenvectors: $T-I=\begin{bmatrix}-0.1&0.2\\0.1&-0.2\end{bmatrix}$ gives $(2,1)$; $T-0.7I=\begin{bmatrix}0.2&0.2\\0.1&0.1\end{bmatrix}$
+gives $(1,-1)$. Writing $\vec x_0=a(2,1)+b(1,-1)$,
+\[
+  \vec x_k=T^k\vec x_0=a(2,1)+b(0.7)^k(1,-1)\longrightarrow a(2,1).
+\]
+Since $c_k+s_k=1$ always, and the $(1,-1)$ term contributes $0$ to the sum, $3a=1$; the long-run state is
+$\left(\frac23,\frac13\right)$ regardless of the starting distribution.
+\end{example}
+
+\begin{aside}
+Diagonalization is also used to solve linear recurrences: the Fibonacci numbers satisfy
+$\begin{bmatrix}F_{k+1}\\F_k\end{bmatrix}=\begin{bmatrix}1&1\\1&0\end{bmatrix}\begin{bmatrix}F_k\\F_{k-1}\end{bmatrix}$, and diagonalizing
+this matrix (eigenvalues $\frac{1\pm\sqrt5}{2}$) gives Binet's closed formula.
+\end{aside}
+
+\section*{Summary}
+\begin{itemize}
+  \item Similar matrices ($B=P^{-1}AP$) share characteristic polynomial, eigenvalues, determinant, trace, rank.
+  \item $A$ is diagonalizable iff $\R^n$ has a basis of eigenvectors iff all eigenvalues are real with
+        $g_\lambda=a_\lambda$. Distinct eigenvalues suffice.
+  \item $P=[\text{eigenvectors}]$, $D=\diag(\text{eigenvalues in the same order})$, $AP=PD$.
+  \item $A^k=PD^kP^{-1}$.
+\end{itemize}
