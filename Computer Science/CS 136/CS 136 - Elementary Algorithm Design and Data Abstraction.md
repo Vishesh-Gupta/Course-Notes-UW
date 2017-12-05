@@ -205,13 +205,7 @@ Good style to store each module is to store it in a seperate file.
 **Terminology**
 Client that requires a function that requires a function that a module provides.
 
------------------------------------                                    ---------------------------
-|CLIENT                           | ------------------------->| MODULE               |
-|                                        | requires                  |                                |
-|                                        |                                  |   functions            |
-|                                        |               <------         |                                |
-|                                        |               provides   |                                |
-----------------------------------                                     ----------------------------
+
 
 **NOTE**: The module dependancy graph cannot have any cycles
 
@@ -247,7 +241,168 @@ Example: fun number module
 (fun? 4011)       ;#f
 ```
 
-## Unit 04: Imperative C
+**Scope **
+*Local: *Identifiers are only visible inside of the local region (or the function body)) where it is defined. 
+*Global: *Identifiers are developed at the top level, and are visible to all code following the definition
+
+`provide` introduces new_level of scope to the variables or functions in racket.
+
+global identifiers acan have a program scope or a module scope.
+
+**Module scope**
+Identifiers are only visible inside of the module they are defined in.
+
+**Program Scope**
+Identifiers are visible outside of the module they are defined in.
+
+**Module Interface**
+It is the list off functions that the module provides.
+
+**Interface Documentation**
+Overall description of the module
+List of functionsit provides
+The contract and purpose for each provided
+
+Example: Sum Module
+```haskell
+;;As module for summing numbers
+
+(provide sum0first sum-squares)
+
+;;Design Recipe for sum-first & sum-sqaures
+
+;;;;IMPLEMENTATION;;;;;;
+
+(define (sum-first n)
+        (/ (* n (+ n 1)) 2)
+        
+(define (sum-squares n)
+        (/ (* n (+ n 1) (- (* 2 n) 1)) 6)
+        
+(define (private-helper p )
+        ... )
+```
+
+**Testing**
+Good practice to create a testing client
+
+`(require "sum.rkt")`
+`(= (sum-first 1) 1)`
+
+All tests should produce `#t`
+
+**Designing modules**
+Modules usually have a behaviour with respect to the program. We call these Cohesion and Coupling
+**GOAL: **High Cohesion and Low Coupling
+
+**High Cohesion**
+It means all of the program modules and interface function are related and are working towards a "common goal".
+
+**Low Coupling**
+It means there is  a little interaction between the modules. It is completely imp[ossible to remove the coupling but it should be minimal
+ 
+**Information Hiding**
+Security: It is important as we may want to prevent the client from tampering with data used in the module
+Flexibility
+By hiding the implementation details from the cloent, we gain flexibility for change in implementation in the future.
+ 
+ 
+**Data Structures & Abstract Data Types (ADTs)**
+Three implementations with thtree different data structures.
+1. A teo element list
+1. A structure with one field
+1. A structure with two fields
+
+The above module is an implementation of ADT
+
+Formally an ADT is a mathematical model for storing and accessing data operations
+
+**Data Structure Vs ADTs**
+With a data structure, you know how the data is structured and you can access the data directly in any manner you desire.
+
+In an ADT, tou do not know how the data structre is implemented and you can only access the data thriugh interface functions (operations ) provided by the ADT
+
+**Colletion ADT**
+It is an ADT designed to story any arbitrary number of item. They have a well defined operation
+
+We have already dealt with the dictionary which is one of the ADTs we will be revisiting in this section.
+
+
+**Dictionary (Revisited)**
+The dictionary ADT, also kknown as a map, association array or symbol table is acollection of pairs and keys. For those who have seen or programmed in `JavaScript` will know that JSON values are a dictionary.
+
+Typical operations of Dictionary ADT
+1. Lookup
+1. Insert
+1. Remove
+
+Dictionary can be implemented as an association list.
+Alternatively y a Binary Search Tree (which all of you did in CS 135 and we will implement them in Unit 12 again)
+
+**More collection ADTs**
+1. Stack
+1. Queue
+1. Sequence
+
+**STACK ADT**
+It is anADT of items 'stacked' one of top of the other. Items are pushed and popped off the stack. Also known as a LIFO(Last In First Out) system. For eg. Imaging a stack of the plates, you can only remove items from the top and insert on the top.
+
+USED: They are often used in browser histories ad text editors.
+
+Typical Stack Operations are 
+1. Push: Adds an item
+1. Pop: Removes an item
+1. Top: Returnas the top item
+1. is_empty: Determines if the stack is empty
+
+**STACK ADT Vs RACKET LIST**
+They have a very close relation in terms of operations.
+
+The one significant difference is only the top item is accessible in a STACK ADT whereas with list data structure every element is accessible.
+
+**QUEUE ADT**
+A queue is where items are aded to the back and removed from the front. A queue is hence a FIFO (First in First out) system. For eg. Consider standing in a queue at your favourite McDonalds and then the person at the front orders and leaves but you join in at the last. So that is FIFO.
+
+Typical Queue ADT operations
+1. Add-back: Adds an item at the back of the list
+1. Remove-front: Remove the item from the front of the queue.
+1. Front: Returns the front item
+1. is_empty: Checks if the queue is empty or not.
+
+**SEQUENC ADT**
+It is a  useful ADT swhen you want to be able to retrieve, insert and delete at any posiiton in a sequence of items.
+
+Typical Sequence ADT operations
+1. item-at: Returns the item at a given position
+1. insert-at: Inserts the item at a given position
+1. remove-at: Removes the item at a given position
+1. Length: returns the number of items in a sequence
+
+## Unit 04: Introduction to Imperative C
+**Functional Vs. Imperative Programming**
+
+The functional prgramming paradigm is to only constant values that never change.
+
+begin: It ignores all the expressions except the last one.
+
+**Side Effects**
+
+A program/expression does more than effect on a produced value. It also changes the state of the program.
+
+An expression statement is an expression followed by a semicolon `;`
+
+**State**
+The biggest difference between imperative and functgional paradigms is the existence of side-effects.
+
+The state refers to the value of some data at the moment in time.
+
+**Mutation**
+When the value of the variable is changed 
+
+**Mutable Variables**
+The `const` keyword is required explicitly to define a constant. Without it a variable is mutable.
+
+
 ## Unit 05: The C Model
 
 ## Unit 06: Introduction to Pointers
