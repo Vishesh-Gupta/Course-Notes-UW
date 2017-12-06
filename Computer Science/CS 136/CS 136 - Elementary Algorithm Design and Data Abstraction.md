@@ -726,6 +726,55 @@ For eacah string literal, a null terminator const char array is created in the r
 **Arrays Vs Pointers**
 An array is similar to pointer but still is different.
 ## Unit 09: Efficiency
+**Algorithms**
+An algorithm is a step by step description of how to solve a problem
+
+**Efficiency**
+Most common method of efficiency is `time efficiency`. How long it takes an algorithm to slve a problem. Another common method is `space efficiency`.
+
+**Running Time**
+To quantify efficiency we are interested in measuring the running time of an algorithm.
+
+Typically we measure the number of elementary operations required to solve the problem.
+
+The running time of an implementation is a function of n and is written in terms of T(n) where n has different meaning for each implementation but is consistent for a specific functions.
+Use of other letters like m and k are very common.
+
+**Worst-Case Running Time**
+Typically we are most concerned about the worst case tunning time as we need to know the worst time it can take to do these many operations. It is a measure of being conservative towards the time our function works.
+
+**Big-O Notation**
+In practice, we are interested in the order of a runnning time. For eg. we have `17n + 1` and `8n+7` then both of them are order n and are represented as `O(n)`.
+
+The order is also mentioned as "growth rate".
+
+There are multiple runnning times which are possible and some of them are as follows which we will conside in this course.
+
+`O(1)` `O(logn)` `O(n)` `O(nlogn)` `O(n^2)` `O(n^3)` `O(2^n)` 
+
+**Contract Update**
+Now we also make note of our efficiency in our contract
+For eg. 
+```c
+//time: O(n), where n is len of an array
+```
+
+**C running times (sTrings and I/O)**
+All the functions in String.h are O(n). where n is the len of the string. For strcmp, n is the len of the smallest string.
+
+Stdio.h functions `printf` and  `scanf` are O(1) except when wotking with strings which are O(n) again.
+
+**Racket Running times**
+O(1): cons, cons?, empty, empty? rest, first, second.
+
+O(n): length, last, reverse, append
+
+Abstract list function:  They are O(n) for straightforward O(1) function.
+
+Racket's sort is O(nlogn) 
+
+
+
 ## Unit 10: Dynamic Memory & ADTs in C
 ## Unit 11: Linked Data
 ## Unit 12: Abstract Data Types
