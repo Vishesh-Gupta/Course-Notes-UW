@@ -594,7 +594,19 @@ The arrow is **arrow operator **which combinese indirection and selection operat
 Opaque structures are structures which have not been defined but declared.  The programmer will now change it per they want to implement it. 
 
 ## Unit 07: I/O & Testing
+**Input and Output (I/O)**
+Programs may interact with humans by recieving or by displaying data. It can also interact with non-human enitties, such as file storage or even a difference computer, e.g. Website
 
+**Output**
+We have already printf with placeholder, `%c`, `%d`, `%f`, `%zd`, `%p`. 
+
+**Debugging Output**
+Tracing is checking an intermediate value by a flag.
+
+**C input: scanf**
+`Scanf` is used to read in inputs. It requires a pointer to the varaible to store the value read in from input.
+
+NOTE: End-of-file(EOF) is the input to the seashell. We can also press `CTRL+D`
 
 ## Unit 08: Arrays and Strings
 ## Unit 09: Efficiency
