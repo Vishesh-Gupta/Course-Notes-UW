@@ -609,6 +609,56 @@ Tracing is checking an intermediate value by a flag.
 NOTE: End-of-file(EOF) is the input to the seashell. We can also press `CTRL+D`
 
 ## Unit 08: Arrays and Strings
+**Arrays**
+An array is a data structure that contains a fixed number of elements that all have the same type.
+
+**Array Initialization**
+Arrays can be only initialized with braces `{}`
+
+**Array Size**
+Let an array be of n elemets then size of the array is `n * (type of every element)` and the length is the n elements.
+
+**Pointer Arithematic**
+*Rules*
+1. *When adding an integer i to a pointer p, the address computed by p+i in C is given in normal arithematic by `p+(i*sizeof *p)*`
+1. *Subtracting an integer from a pointer `(p - i) `works in the same way.*
+1. *Mutable pointers can be incremented (or decremented). `++p` is equivalent to `p = p + 1`.*
+1. You cannot add two pointers.
+1. You can subtract a pointer q from another pointer p if the pointers are the same type (point to the same type). The value of (p-q) in C is given in “normal” arithmetic by: `(p − q)/sizeof(p)`. In other words, if `p = q + i` then `i = p - q`.
+1. Pointers (of the same type) can be compared with the comparison operators: <, <=, ==, !=, >=, > (e.g., if (p < q) ...).
+
+**Pointer Arithematic**
+Address of the first element is `(&a[0])`. By pointer arithematic, addres of second element is (a+1) and referenced as *(a++)
+
+**Array Map**
+Mapping of a function over an entire array indivisually over every element is termed as mapping. In relation to CS 135, we can say the `abstract list function - map` is the same as mapping a function on array just that it is not a list now.
+
+Let us now change a bit of the pace and see a few sorting methods.
+
+**Selection Sort**
+In selection sort, the smallest element is selected to be the first element in the new sorted sequence, and then the next smallest element is selected to be the second element, and so on.
+
+```c
+void selection_sort(int a[], int len) {
+    for (int i=0; i < len - 1; ++i) {
+        int pos = i;
+        for (int j = i + 1; j < len; ++j) {
+            if (a[j] < a[pos]) {
+                pos = j;
+            }
+        }
+    swap(&a[i], &a[pos]); // see Section 05
+    }
+}
+
+// Notes:
+// i: loops from 0 ... len-2 and represents the
+// "next" element to be replaced
+// j: loops from i+1 ... len-1 and is "searching"
+// for the next smallest element
+// pos: position of the "next smallest"
+```
+
 ## Unit 09: Efficiency
 ## Unit 10: Dynamic Memory & ADTs in C
 ## Unit 11: Linked Data
