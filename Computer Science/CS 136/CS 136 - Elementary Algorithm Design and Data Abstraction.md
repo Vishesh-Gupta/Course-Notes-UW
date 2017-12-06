@@ -659,6 +659,72 @@ void selection_sort(int a[], int len) {
 // pos: position of the "next smallest"
 ```
 
+**Quik Sort**
+
+**Binary Search**
+
+**Multi-Dimensional Array**
+
+**Fixed Length Arrays**
+```c
+struct stack {
+    int len;
+    int maxlen;int data[100];
+}
+
+void stack_init(struct stack *s) {
+    assert(s);
+    s->len = 0;
+    s->maxlen = 100;
+}
+
+bool stack_is_empty(const struct stack *s) {
+    assert(s);
+    return s->len == 0;
+}
+
+int stack_top(const struct stack *s) {
+    assert(s);
+    assert(s->len > 0);
+    return s->data[s->len-1];
+}
+
+//note: stack_pop returns an element poped
+int stack_pop(struct stack *s) {
+    assert(s);
+    assert(s->len > 0);
+    --s->len;
+    return s->data;
+}
+
+int stack_push(struct stack *s, int item){
+    assert(s);
+    assert(s->len < s->maxlen);
+    s->data[s->len] = item;
+    ++s->len;
+}
+```
+
+**Strings**
+in C we do not have a built in string type. Strings are implemented as an array of characters and terminated by null character `'\0'`
+
+**String I/O**
+The placeholder for `strings` is `%s`
+
+Entering a long command causes C to write characters beyond the length of the command array and entually overwrites the memory.  Let us imagine an example of a bank, you had a balance at the end of the memory and the account balance of someone went above the number of characters our system type can hold so your balance may change. It may be for good or bad but still it is not practical in real world and should not happen.
+
+**String Functions**
+In this course we only deal witht the following string functions
+1. strcmp - It is used to compare the strings and takes in two strings  and returns -1 if the first string is preceeded by the second one, returns 1 if the second string is preceeded by first string and 0 if they both are equal.
+1. strcpy - It is used to copy a string to a source fromdource to destination
+1. strcat - It is used to concatinate strings.
+All these functions are in the `string.h` header file
+
+String Literal Storage
+For eacah string literal, a null terminator const char array is created in the read-only data section. The read-only section is hence also called the `literal pool`.
+
+**Arrays Vs Pointers**
+An array is similar to pointer but still is different.
 ## Unit 09: Efficiency
 ## Unit 10: Dynamic Memory & ADTs in C
 ## Unit 11: Linked Data
