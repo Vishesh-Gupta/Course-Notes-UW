@@ -152,23 +152,6 @@ int main (void) {
 The comparison operators are `>, <, <=, >=`.
 
 **Conditionals: **There is no direct C equivalent of cond racket expression but we can use if...else
-```c
-if (condition) {
-    //code...block
-}
-
-if (condition) {
-    //code...block
-} else {
-    //code...block
-}
-
-if (condition) {
-    //code...block
-} else if (condition) {
-    //code ... block
-}
-```
 
 **NOTE: ** Recurrsions behave the same way as in Racket. We also have a conditionals operator in C which is unlike to if statement.
 
@@ -235,7 +218,7 @@ Example: fun number module
 `provide` special form makes `fun?` function available to clients
 
 ```haskell
-//client.rkt
+;;client.rkt
 (require fun.rkt)
 (fun? 4010)       ;#t
 (fun? 4011)       ;#f
@@ -403,7 +386,140 @@ When the value of the variable is changed
 The `const` keyword is required explicitly to define a constant. Without it a variable is mutable.
 
 
-## Unit 05: The C Model
+## Unit 05: The C Model: Memory & Control Flow
+**Models of Computing**
+In CS 135, we remodelled the computational behaviour of Racket with substitutions
+
+In this course, we model the behaviour of C with memory and control flow
+
+**Memory Review**
+A bit of storage has only two possible states: 0 or 1, that is binary.
+
+A byte is 8 bits of storage.  Each byte in memory is one of the possible 256states  possible.
+
+**Accessing Memory**
+To access a byte in memory you have to go its position which is know as address of the memory in storage.
+
+**Sizeof**
+The space required by every variable depends on its type.
+We can use a built-in function called `sizeof ()` to find the size of a type.
+
+The placeholder for `sizeof` is `%zd`. The type of sizeof is size_t
+
+**Integer Limits**
+In C, integers are limited to a certain range which can be used. The limits are defined in the header file called limits and is included as follows:  `#include <limits.h>`
+The maximum value can be used by `INT_MAX (2147483648)` and the minimum value can be used by `INT_MIN (-2147483648)`. The values are signed values that means it stores the sign for negative values in 1 byte and the value so these are the values. We do not need to memorize these values.
+
+**Overflow**
+If we try to represent values outside the range of the integer limits, we get overflow which is defined as undefined behaviour in the world of computers.
+
+**Char Type**
+Char is the the type we usde to work with one character. IT only takes 1 byte in the memory.
+
+**American Standard Code for Information Interchange (ASCII)**
+It is the system of interchange we use for converting values from integer to char. For eg. `A` is `65` in integer. we can work with character A in two following ways
+
+```c
+char val = 'A';    //This is the value of A in characters
+int val = 65;      //This is the value of A in integers
+//Many problems in assignment are solved using one of these approaches so always keep them in mind
+```
+
+The placeholder for `char` type is `%c`
+
+**Sections of Memory**
+In CS 135, the memory has been divided in 5 different sections.
+
+*Low*
+`           CODE          `
+`READ-ONLY DATA`
+`    GLOBAL DATA  `
+`            HEAP          `
+`           STACK          `
+*High*
+
+Sections are combined into the memory which are recognized by the hardware.
+
+When one tries to access a memory out of the current segement, a segmentation fault occurs
+
+**The CODE Section**
+Source Code: The code written in ASCII characters that are human readable.
+
+Machine Code: The code that is converted from source code to another form that is machine readable.
+**NOTE: You will work with this in CS 241 which is for CS Majors.**
+
+The machine code is then places in the section of memory where it can be executed.
+
+Conversion of the source code to machine code is called **Compiling**
+
+**The READ-ONLY & GLOBAL DATA Section**
+The location of variable depends on how it ahs been defined. If it has been defined as a global variable it is put under global data section, whereas once defined as a constant it is moved into read-only data section.
+
+**Control Flow**
+
+We use control flow models to model how programs are executed.
+
+**Return Address**
+For each function call we need to remember where the function call was made and then we jump back when th function is over.
+Note: This is different from the `return ` statement in a function. The return statement return the final value to responsing to the data type of the function, where as every function when called has a return address. So the return address of main is `OS`
+
+**Call Stack**
+The history of every call from the main function is maintained as a stack. This is adifferent stack from the STACK ADT but then the implementation follows a very similar approach. A function call is pushed to the call stack and then popped when returning back to the main function.
+
+**Stack Frames**
+Enteries from the function are pushed to the call stack as frames called Stack Frames. Each function makes a stack frame. It does not matter if it is recursion or na new function
+
+Stack frames store the argument values, local variables and return address.
+
+**NOTE: C makes a copy of each argument value and places the copy in the stack frame. This is called passed by value conversion.** **We will learn another way of passing values called pass by reference but in the next section.**
+
+**Recursion in C**
+Each recursion in C is a new stack as mentioned before. 
+
+**Stack Section (From the memory)**
+The call stack is stored in this section. If the stack grows too large then we can get stack overflow errors.
+
+**Model**
+At any point a program is in a specific state, which is a combination of The current program location, and the current contents of the memory.
+
+**Calling a function**
+Calling is a control flow: 
+Whena  function is called,
+a stack frame is first created and pushed with copy of arguments to the stack, then the current program position is noted and then noted as the return addres and then the initialization occurs.
+
+**Return**
+Whena  function returns, the current program location is changed back to the return address. the stack frame is returned. 
+
+**if Statement**
+```c
+Syntax: 
+if (condition) {
+    //code...block
+}
+
+if (condition) {
+    //code...block
+} else {
+    //code...block
+}
+
+if (condition) {
+    //code...block
+} else if (condition) {
+    //code ... block
+}
+```
+
+**Looping**
+With mitation, we can control the flow
+
+We have different loops and concepts to take care about.
+1. While Loop
+1. do...While loop
+1. for loop
+1. nested loops
+
+break and continue
 
 ## Unit 06: Introduction to Pointers
 **Readings: CP: AMA 11, 17.7**
