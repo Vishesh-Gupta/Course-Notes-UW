@@ -524,18 +524,78 @@ break and continue
 ## Unit 06: Introduction to Pointers
 **Readings: CP: AMA 11, 17.7**
 
-Pointer is a type used for storing an address
+**Address  Operator**
+The address operator produces the sarting of where the value of an identifier is stored in memory.
 
-It is defined by using a star (*) befire theidentifier and it is part of the declaration not the indentifier itself
+The `printf` placeholder to display an address (in hex) is `%p`
+
+**Pointers**
+Type for storing an address is called pointer. Defined by placingg a star`*` before the identifier name.
 
 ```c
 int i = 5;
 int *p = &i;   /// p "points at" i
 ```
 
-The type of a ointer is "int pointer" also written as "int *".
+The type of a pointer is "int pointer" also written as "int *".
+
+
+**Sizeof Pointer**
+In a k-bit system for type values, pointers are k-bit. For seashell, it is `8-bit`.
+
+**Indirection Operator**
+The operator is `*`star, also known as dereference operator, and is the inverse of the address operator.
+
+**The NULL pointer**
+`NULL` pointer is a special pointer that points to nothing. 
+
+NOTE: If you derefrence a NULL pointer your programm will likely crash and show a segmentation fault as the error.
+
+**Function Pointers**
+Function pointers are first class values in C, which means these are values as pointers which point to a function and we can then pass a function to a function as a parameter.
+
+**Pointer Assignment**
+```c
+int i = 5;
+int j = 6;
+int* p = &i;
+int* q = &j;
+p = q
+
+//In the above few lines you just changed what p points to. Now it points to what q points at so when you print p it will now print 6.
+
+int i = 5;
+int j = 6;
+int* p = &i;
+int* q = &j;
+*p = *q
+
+//This is known as Aliasing
+
+//Now in this program we changed the value of what p pointed at, now this means i = 6 now. Think and understand
+```
+It is really important to understand what just happened in the past code. IT is what sets your abse for the rest of the course.
+
+**Mutation and Parameters**
+In C, we can emulate pass by reference by address and then change the values of types without making copy which takes more space than the pass by reference method
+
+**Returning more than one value**
+In C we can also emulate this but since the function only returns one value of a variable then we just return one value and change the value of one variable with pass by reference.
+
+**Passing Structures**
+Large structures if passed by value can cause stack overflow as it copies the whole structure and then make a local copy. To avoid this we use pointers.
+
+So when we send a structure by pointer we only send a pointer which is always lesser than the actual size. In Seashell, it will always be 8 bytes. Imagine a structure with 100 bytes vs 8 bytes as a parameter.
+
+To access, the fields in the structure we can use `(*struct_name).field` or `struct_name->field`
+The arrow is **arrow operator **which combinese indirection and selection operator.
+
+**Opaque Structures in C**
+Opaque structures are structures which have not been defined but declared.  The programmer will now change it per they want to implement it. 
 
 ## Unit 07: I/O & Testing
+
+
 ## Unit 08: Arrays and Strings
 ## Unit 09: Efficiency
 ## Unit 10: Dynamic Memory & ADTs in C
