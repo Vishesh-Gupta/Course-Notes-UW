@@ -1,0 +1,196 @@
+\chapter{Soundness and Completeness of Propositional Logic}\label{ch:soundcomplete}
+
+We now have two notions of consequence: $\Sigma\models\varphi$ (semantic, via truth
+valuations) and $\Sigma\vdash\varphi$ (syntactic, via natural deduction). This chapter
+proves they coincide.
+
+\begin{important}[The two theorems]
+\begin{description}
+  \item[Soundness:] if $\Sigma\vdash\varphi$ then $\Sigma\models\varphi$.
+        (\emph{Everything provable is true}: the rules never lead us astray.)
+  \item[Completeness:] if $\Sigma\models\varphi$ then $\Sigma\vdash\varphi$.
+        (\emph{Everything true is provable}: the rules are strong enough.)
+\end{description}
+\end{important}
+
+\section{Why we care}
+
+\begin{itemize}
+  \item Soundness gives a way to show something is \emph{not} provable: if we find a
+        valuation making $\Sigma$ true and $\varphi$ false, then $\Sigma\not\models\varphi$,
+        so $\Sigma\nvdash\varphi$. Proving non-provability directly (``no proof
+        exists'') would otherwise be very hard.
+  \item Completeness says that whenever a truth table confirms an entailment, a formal
+        proof exists, so we may search for one with confidence.
+\end{itemize}
+
+\section{Soundness}
+
+\begin{theorem}[Soundness]
+If $\varphi_1,\dots,\varphi_n\vdash\psi$ is valid (has a natural deduction proof) then
+$\varphi_1,\dots,\varphi_n\models\psi$.
+\end{theorem}
+
+\begin{proof}
+We prove a stronger statement by (strong) induction on the line number $k$ of a proof:
+
+\emph{$M(k)$: if the formula on line $k$ is $\chi$, and $\alpha_1,\dots,\alpha_m$ are the
+assumptions of the boxes open at line $k$, then
+$\varphi_1,\dots,\varphi_n,\alpha_1,\dots,\alpha_m\models\chi$.}
+
+Applying $M(k)$ to the last line (where no boxes are open) gives the theorem. Assume
+$M(j)$ for all $j<k$ and consider the justification of line $k$.
+\begin{itemize}
+  \item \emph{Premise}: $\chi=\varphi_i$, and trivially $\varphi_1,\dots,\varphi_n\models\varphi_i$.
+  \item \emph{Assumption}: $\chi=\alpha_m$ is itself one of the open assumptions, so the
+        entailment is trivial.
+  \item \emph{$\land i$} from lines $j_1,j_2<k$ with $\chi=\chi_1\land\chi_2$: lines $j_1,j_2$
+        are visible from $k$, so their open assumptions are among those at $k$. By IH any
+        valuation satisfying the premises and open assumptions makes $\chi_1$ and
+        $\chi_2$ true, hence $\chi$ true. (Monotonicity handles the extra assumptions.)
+  \item \emph{$\to e$} from $\chi_1$ and $\chi_1\to\chi$: any valuation making both true
+        makes $\chi$ true.
+  \item \emph{$\to i$} with $\chi=\chi_1\to\chi_2$ from the box $i$--$j$: by IH applied to
+        line $j$, $\varphi$'s, $\alpha$'s, $\chi_1\models\chi_2$. By the semantic
+        deduction theorem, $\varphi$'s, $\alpha$'s $\models\chi_1\to\chi_2$.
+  \item \emph{$\neg i$} from a box $\chi_1\ \dots\ \bot$: by IH the premises, open
+        assumptions and $\chi_1$ entail $\bot$, i.e.\ no valuation satisfies them all; so
+        every valuation satisfying the premises and open assumptions makes $\chi_1$ false,
+        and $\neg\chi_1$ true.
+  \item \emph{$\lor e$}: let $t$ satisfy the premises and open assumptions. By IH
+        $(\chi_1\lor\chi_2)^t=\TT$. If $\chi_1^t=\TT$, the IH on the last line of the first
+        box gives $\chi^t=\TT$; otherwise $\chi_2^t=\TT$ and the second box gives it.
+  \item The remaining rules ($\land e$, $\lor i$, $\neg e$, $\bot e$, $\neg\neg e$) are
+        similar: in each case the conclusion is true under every valuation that makes
+        the cited lines true. ($\bot e$ holds vacuously: no valuation makes $\bot$ true.)
+\end{itemize}
+\end{proof}
+
+\begin{example}[Using soundness]
+Is $p\to q\vdash q\to p$ valid? Take $t(p)=\FF$, $t(q)=\TT$: then $(p\to q)^t=\TT$ but
+$(q\to p)^t=\FF$. So $p\to q\not\models q\to p$, and by soundness there is no proof.
+\end{example}
+
+\section{Completeness}
+
+We follow the three-step proof from Huth and Ryan for finite premise sets, then outline
+the general (maximal consistent set) proof.
+
+\subsection*{Step 1: reduce to theorems}
+If $\varphi_1,\dots,\varphi_n\models\psi$, then
+\[
+  \models \varphi_1\to(\varphi_2\to(\dots(\varphi_n\to\psi)\dots)).
+\]
+(If a valuation makes this false, it makes all $\varphi_i$ true and $\psi$ false.)
+
+\subsection*{Step 2: every tautology is a theorem}
+\begin{lemma}[Kalm\'ar]
+Let $\varphi$ have atoms $p_1,\dots,p_n$, and let $t$ be a valuation. Define
+$\hat p_i = p_i$ if $t(p_i)=\TT$ and $\hat p_i=\neg p_i$ otherwise. Then
+\[
+  \hat p_1,\dots,\hat p_n\vdash\varphi \text{ if } \varphi^t=\TT,\qquad
+  \hat p_1,\dots,\hat p_n\vdash\neg\varphi \text{ if } \varphi^t=\FF.
+\]
+\end{lemma}
+\begin{proof}[Proof sketch]
+Structural induction on $\varphi$. Base: $\varphi=p_i$, and $\hat p_i$ is a premise. Step
+$\neg\varphi_1$: if $\varphi_1^t=\TT$ then $(\neg\varphi_1)^t=\FF$ and we need
+$\neg\neg\varphi_1$, obtained from $\varphi_1$ by $\neg\neg i$; otherwise IH gives
+$\neg\varphi_1$ directly. Step $\varphi_1\to\varphi_2$: three cases. If $\varphi_2^t=\TT$,
+derive $\varphi_2$ by IH and then $\varphi_1\to\varphi_2$ by $\to i$ (with a box that just
+copies $\varphi_2$). If $\varphi_1^t=\FF$, derive $\neg\varphi_1$, then inside a box assume
+$\varphi_1$, get $\bot$, then $\varphi_2$ by $\bot e$. If $\varphi_1^t=\TT,\varphi_2^t=\FF$,
+derive $\varphi_1$ and $\neg\varphi_2$ and then $\neg(\varphi_1\to\varphi_2)$ (assume the
+implication, apply $\to e$, get $\bot$). The other connectives are similar.
+\end{proof}
+
+Now suppose $\models\eta$ with atoms $p_1,\dots,p_n$. By the lemma, for each of the
+$2^n$ valuations, $\hat p_1,\dots,\hat p_n\vdash\eta$. Use LEM on $p_1$:
+$p_1\lor\neg p_1$, and apply $\lor e$. In each case, use LEM on $p_2$, and so on. At the
+leaves of this nested case analysis all of $\hat p_1,\dots,\hat p_n$ are available, and we
+plug in the proof from the lemma. Altogether $\vdash\eta$.
+
+\subsection*{Step 3: put the premises back}
+From $\vdash\varphi_1\to(\dots\to\psi)$, add premises $\varphi_1,\dots,\varphi_n$ and use
+$\to e$ $n$ times to obtain $\varphi_1,\dots,\varphi_n\vdash\psi$. \qed
+
+\subsection{The general completeness theorem}
+
+For possibly infinite $\Sigma$ we use consistency.
+
+\begin{definition}
+$\Sigma$ is \emph{consistent} if there is no $\varphi$ with $\Sigma\vdash\varphi$ and
+$\Sigma\vdash\neg\varphi$ (equivalently, $\Sigma\nvdash\bot$). $\Sigma$ is
+\emph{maximal consistent} if it is consistent and for every formula $\varphi$, either
+$\varphi\in\Sigma$ or $\neg\varphi\in\Sigma$.
+\end{definition}
+
+\begin{lemma}
+$\Sigma\nvdash\varphi$ iff $\Sigma\cup\{\neg\varphi\}$ is consistent.
+\end{lemma}
+
+\begin{theorem}[Lindenbaum's lemma]
+Every consistent set extends to a maximal consistent set.
+\end{theorem}
+\begin{proof}[Sketch]
+Enumerate all formulas $\varphi_1,\varphi_2,\dots$ (possible because $\Prop$ is countable).
+Let $\Sigma_0=\Sigma$ and $\Sigma_{k+1}=\Sigma_k\cup\{\varphi_{k+1}\}$ if that is
+consistent, else $\Sigma_k\cup\{\neg\varphi_{k+1}\}$. One shows each $\Sigma_k$ is
+consistent, and so is $\Sigma^*=\bigcup_k\Sigma_k$ because proofs are finite.
+\end{proof}
+
+\begin{theorem}
+Every consistent set is satisfiable.
+\end{theorem}
+\begin{proof}[Sketch]
+Extend to a maximal consistent $\Sigma^*$ and define $t(p)=\TT$ iff $p\in\Sigma^*$. By
+structural induction, $\varphi^t=\TT$ iff $\varphi\in\Sigma^*$ for every formula $\varphi$
+(e.g.\ $(\neg\varphi)\in\Sigma^*$ iff $\varphi\notin\Sigma^*$ by maximality and
+consistency). So $t$ satisfies $\Sigma\subseteq\Sigma^*$.
+\end{proof}
+
+\begin{corollary}[Completeness]
+If $\Sigma\models\varphi$ then $\Sigma\vdash\varphi$.
+\end{corollary}
+\begin{proof}
+If $\Sigma\nvdash\varphi$, then $\Sigma\cup\{\neg\varphi\}$ is consistent, hence satisfiable;
+a valuation satisfying it shows $\Sigma\not\models\varphi$.
+\end{proof}
+
+\section{Compactness}
+
+\begin{theorem}[Compactness]
+A set $\Sigma$ of formulas is satisfiable iff every finite subset of $\Sigma$ is
+satisfiable. Equivalently, $\Sigma\models\varphi$ iff $\Sigma_0\models\varphi$ for some
+finite $\Sigma_0\subseteq\Sigma$.
+\end{theorem}
+\begin{proof}
+If every finite subset is satisfiable, then (by soundness) every finite subset is
+consistent. Since a derivation of $\bot$ uses only finitely many premises, $\Sigma$ is
+consistent, and by the theorem above, satisfiable.
+\end{proof}
+
+Compactness is a purely semantic fact proved here through the proof system: a nice
+illustration of why soundness and completeness are useful together.
+
+\section{Decidability}
+
+For finite $\Sigma$, $\Sigma\models\varphi$ is \emph{decidable}: check all $2^n$ rows of the
+truth table. By completeness, provability $\Sigma\vdash\varphi$ is therefore decidable too.
+A polynomial-time algorithm for tautology checking exists iff P $=$ NP, which is
+open (SAT is NP-complete; TAUT is co-NP-complete).
+We will see in Chapter~\ref{ch:undecidability} that the analogous problem for predicate
+logic is undecidable.
+
+\section*{Summary}
+\begin{itemize}
+  \item Soundness ($\vdash\Rightarrow\models$): induction on proof lines, checking each
+        rule preserves truth relative to the premises and open assumptions.
+  \item Use soundness plus a counterexample valuation to show a sequent has no proof.
+  \item Completeness ($\models\Rightarrow\vdash$): finite case via Kalm\'ar's lemma and
+        LEM case splits; general case via consistent $\Rightarrow$ maximal consistent
+        $\Rightarrow$ satisfiable.
+  \item Compactness: satisfiable iff every finite subset is satisfiable.
+  \item Propositional validity is decidable (by truth tables), though possibly
+        exponentially expensive.
+\end{itemize}

@@ -1,0 +1,222 @@
+\chapter{Predicate Logic: Syntax}\label{ch:predsyntax}
+
+\section{Why propositional logic is not enough}
+
+Consider the argument:
+\begin{quote}
+Every student in CS 245 is clever. Alice is a student in CS 245. Therefore Alice is clever.
+\end{quote}
+In propositional logic these are three unrelated atoms $p,q,r$, and $\{p,q\}\not\models r$.
+The validity depends on the internal structure of the sentences: individuals (Alice),
+properties (``is clever''), and quantifiers (``every''). First-order predicate logic adds
+exactly these:
+\[
+  \forall x\,(S(x)\to C(x)),\ S(a)\ \models\ C(a).
+\]
+
+\section{The language}
+
+A first-order language $\mathcal{L}$ consists of logical symbols, common to all
+languages, and non-logical symbols, which depend on the application.
+
+\paragraph{Logical symbols.}
+\begin{itemize}
+  \item connectives $\neg,\land,\lor,\to,\leftrightarrow$ and parentheses, comma;
+  \item quantifiers $\forall$ (for all) and $\exists$ (there exists);
+  \item an infinite supply of \emph{variables} $x,y,z,u,v,x_1,\dots$;
+  \item (optionally) the equality symbol $=$.
+\end{itemize}
+
+\paragraph{Non-logical symbols (the signature).}
+\begin{itemize}
+  \item \emph{constant symbols} $a,b,c,\dots$ (names for individuals);
+  \item \emph{function symbols} $f,g,h,\dots$, each with an arity $n\ge1$;
+  \item \emph{predicate (relation) symbols} $P,Q,R,\dots$, each with an arity $n\ge 0$.
+        A $0$-ary predicate is a propositional atom.
+\end{itemize}
+(Constants can be viewed as $0$-ary function symbols.)
+
+\begin{example}[Language of arithmetic]
+Constant $0$; unary function $s$ (successor); binary functions $+$ and $\cdot$ (written
+infix); binary predicate $<$; and equality.
+\end{example}
+
+\section{Terms}
+
+Terms denote individuals.
+\begin{definition}[Term]
+The set of terms is the smallest set such that
+\begin{enumerate}
+  \item every variable and every constant symbol is a term;
+  \item if $f$ is an $n$-ary function symbol and $t_1,\dots,t_n$ are terms, then
+        $f(t_1,\dots,t_n)$ is a term.
+\end{enumerate}
+A term with no variables is a \emph{closed} (ground) term.
+\end{definition}
+
+\begin{example}
+In arithmetic, $0$, $x$, $s(s(0))$, $(x+s(0))\cdot y$ are terms. $s(0)<x$ is \emph{not} a
+term (it is a formula), and neither is $s$ alone.
+\end{example}
+
+\section{Formulas}
+
+\begin{definition}[Atomic formula]
+If $P$ is an $n$-ary predicate symbol and $t_1,\dots,t_n$ are terms, then
+$P(t_1,\dots,t_n)$ is an atomic formula. If $=$ is present, $t_1 = t_2$ is also an atomic
+formula.
+\end{definition}
+
+\begin{definition}[Formula]
+The set of formulas of $\mathcal{L}$ is the smallest set such that
+\begin{enumerate}
+  \item every atomic formula is a formula;
+  \item if $\varphi,\psi$ are formulas then so are $(\neg\varphi)$ and $(\varphi\star\psi)$
+        for $\star\in\{\land,\lor,\to,\leftrightarrow\}$;
+  \item if $\varphi$ is a formula and $x$ a variable, then $(\forall x\,\varphi)$ and
+        $(\exists x\,\varphi)$ are formulas.
+\end{enumerate}
+\end{definition}
+
+Quantifiers bind as tightly as $\neg$: $\forall x\,P(x)\to Q(x)$ means
+$(\forall x\,P(x))\to Q(x)$. Use parentheses when the scope should extend further.
+
+As in the propositional case, unique readability holds and we can draw parse trees:
+quantifier nodes $\forall x$ and $\exists x$ have one child, predicate nodes have their
+argument terms as children.
+
+\begin{important}[Terms vs.\ formulas]
+Terms (built from variables, constants, functions) denote \emph{objects}; formulas (built
+from predicates, connectives, quantifiers) denote \emph{truth values}. You cannot apply a
+function to a formula or a connective to a term: $f(P(x))$ and $\neg x$ are not
+well-formed.
+\end{important}
+
+\section{Translating English}
+
+\begin{itemize}
+  \item ``All $A$s are $B$s'': $\forall x\,(A(x)\to B(x))$ \quad(\emph{not} $\land$).
+  \item ``Some $A$ is a $B$'': $\exists x\,(A(x)\land B(x))$ \quad(\emph{not} $\to$).
+  \item ``No $A$ is a $B$'': $\forall x\,(A(x)\to\neg B(x))$, or
+        $\neg\exists x\,(A(x)\land B(x))$.
+  \item ``Not all $A$s are $B$s'': $\exists x\,(A(x)\land\neg B(x))$.
+  \item ``There is exactly one $x$ with $P$'':
+        $\exists x\,(P(x)\land\forall y\,(P(y)\to y=x))$.
+  \item ``There are at least two'': $\exists x\,\exists y\,(\neg(x=y)\land P(x)\land P(y))$.
+\end{itemize}
+
+\begin{important}[Pitfall: $\land$ vs.\ $\to$ with quantifiers]
+$\forall x\,(S(x)\land C(x))$ says \emph{everything} is a clever student.
+$\exists x\,(S(x)\to C(x))$ is true as soon as there is any non-student, so it says
+almost nothing. Pair $\forall$ with $\to$ and $\exists$ with $\land$.
+\end{important}
+
+\begin{example}[Order of quantifiers]
+With $L(x,y)$ meaning ``$x$ loves $y$'':
+\begin{itemize}
+  \item $\forall x\,\exists y\,L(x,y)$: everybody loves somebody (possibly different
+        people);
+  \item $\exists y\,\forall x\,L(x,y)$: there is one person whom everybody loves.
+\end{itemize}
+The second implies the first but not conversely.
+\end{example}
+
+\begin{example}
+``Every natural number has a larger prime'':
+$\forall x\,\exists y\,(x<y\land \mathit{Prime}(y))$, where $\mathit{Prime}(y)$ could
+itself be defined as
+$s(0)<y\land\forall u\,\forall v\,(u\cdot v=y\to(u=s(0)\lor v=s(0)))$.
+\end{example}
+
+\section{Free and bound variables}
+
+\begin{definition}[Scope, free and bound occurrences]
+In $\forall x\,\varphi$ or $\exists x\,\varphi$, the formula $\varphi$ is the \emph{scope}
+of the quantifier. An occurrence of $x$ is \emph{bound} if it lies within the scope of a
+quantifier $\forall x$ or $\exists x$ (or is the $x$ right after the quantifier);
+otherwise it is \emph{free}.
+\end{definition}
+
+The set of free variables is defined recursively:
+\begin{align*}
+  FV(P(t_1,\dots,t_n)) &= \mathrm{vars}(t_1)\cup\dots\cup\mathrm{vars}(t_n),\\
+  FV(\neg\varphi) &= FV(\varphi),\qquad FV(\varphi\star\psi)=FV(\varphi)\cup FV(\psi),\\
+  FV(\forall x\,\varphi) &= FV(\exists x\,\varphi) = FV(\varphi)\setminus\{x\}.
+\end{align*}
+
+\begin{definition}[Sentence]
+A formula with no free variables is a \emph{sentence} (closed formula). Only sentences have
+a truth value once an interpretation is fixed; a formula with free variables also needs
+values for those variables.
+\end{definition}
+
+\begin{example}
+In $\forall x\,(P(x,y)\to\exists y\,Q(y,x))\land R(x)$:
+\begin{itemize}
+  \item the $x$ in $P(x,y)$ and in $Q(y,x)$ are bound by $\forall x$;
+  \item the $y$ in $P(x,y)$ is \emph{free}; the $y$ in $Q(y,x)$ is bound by $\exists y$;
+  \item the $x$ in $R(x)$ is free (outside the scope of $\forall x$).
+\end{itemize}
+So $FV = \{x,y\}$. The same variable can occur both free and bound in one formula.
+\end{example}
+
+Bound variables are ``dummy'' names: $\forall x\,P(x)$ and $\forall y\,P(y)$ say the same
+thing (they are \emph{alpha-equivalent}), just as $\sum_i a_i = \sum_j a_j$.
+
+\section{Substitution}
+
+\begin{definition}[Substitution]
+$\varphi[t/x]$ denotes the result of replacing every \emph{free} occurrence of $x$ in
+$\varphi$ by the term $t$. Formally, on terms $x[t/x]=t$, $y[t/x]=y$ for $y\ne x$, and
+$f(t_1,\dots)[t/x]=f(t_1[t/x],\dots)$; on formulas it passes through connectives, and
+\[
+  (\forall y\,\varphi)[t/x] =
+  \begin{cases}
+   \forall y\,\varphi & \text{if } y=x \ (\text{$x$ is not free}),\\
+   \forall y\,(\varphi[t/x]) & \text{if } y\ne x,
+  \end{cases}
+\]
+and similarly for $\exists$.
+\end{definition}
+
+\begin{definition}[Free for]
+A term $t$ is \emph{free for} $x$ in $\varphi$ if no free occurrence of $x$ in $\varphi$ lies
+within the scope of a quantifier $\forall y$ or $\exists y$ for some variable $y$ occurring
+in $t$. In words: substituting $t$ does not cause any variable of $t$ to be
+\emph{captured}.
+\end{definition}
+
+\begin{example}[Variable capture]
+Let $\varphi = \exists y\,(x<y)$ (``something is bigger than $x$''; true in $\N$ for every
+$x$). Then
+\begin{itemize}
+  \item $\varphi[s(z)/x]=\exists y\,(s(z)<y)$: fine, $s(z)$ is free for $x$.
+  \item $\varphi[y/x]=\exists y\,(y<y)$: wrong! The $y$ got captured, and the meaning
+        changed to ``something is bigger than itself'' (false). $y$ is not free for $x$.
+\end{itemize}
+The fix is to rename the bound variable first: $\exists y\,(x<y)\equiv\exists w\,(x<w)$, so
+$\varphi[y/x]$ should be taken as $\exists w\,(y<w)$.
+\end{example}
+
+\begin{important}[Substitution rules of thumb]
+\begin{itemize}
+  \item Only \emph{free} occurrences are replaced.
+  \item Before substituting $t$ for $x$, rename any bound variables of $\varphi$ that occur
+        in $t$ and whose quantifiers have free $x$ in their scope.
+  \item Every rule in Chapter~\ref{ch:preddeduction} that substitutes ($\forall e$,
+        $\exists i$) requires $t$ to be free for $x$.
+\end{itemize}
+\end{important}
+
+\section*{Summary}
+\begin{itemize}
+  \item A first-order language has constants, function symbols and predicate symbols,
+        plus variables, connectives, quantifiers and possibly $=$.
+  \item Terms denote objects; atomic formulas apply predicates to terms; formulas close
+        under connectives and quantifiers.
+  \item Translate ``all $A$ are $B$'' with $\forall$ and $\to$; ``some $A$ is $B$'' with
+        $\exists$ and $\land$; quantifier order matters.
+  \item Free vs.\ bound occurrences; sentences have no free variables.
+  \item $\varphi[t/x]$ replaces free $x$ by $t$; it is only safe when $t$ is free for $x$
+        (no capture); rename bound variables otherwise.
+\end{itemize}
