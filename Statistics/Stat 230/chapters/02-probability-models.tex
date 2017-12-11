@@ -1,0 +1,204 @@
+\chapter{Probability Models and Rules}
+
+\section{The axioms of probability}
+
+Chapter 1 assigned probabilities to outcomes of a discrete sample space. To handle all
+sample spaces (including continuous ones) uniformly, we take the following properties as
+axioms and derive everything else from them.
+
+\begin{definition}[Probability model]
+A \emph{probability model} consists of a sample space $S$, a collection of events
+(subsets of $S$), and a function $P$ assigning a real number $P(A)$ to each event, such
+that
+\begin{enumerate}
+  \item[\textbf{A1.}] $P(S) = 1$;
+  \item[\textbf{A2.}] $P(A) \ge 0$ for every event $A$;
+  \item[\textbf{A3.}] (countable additivity) if $A_1, A_2, \dots$ are pairwise mutually
+        exclusive, then
+        \[
+          P\Big(\bigcup_{i=1}^\infty A_i\Big) = \sum_{i=1}^\infty P(A_i).
+        \]
+\end{enumerate}
+\end{definition}
+
+Taking $A_{k+1} = A_{k+2} = \dots = \emptyset$ in A3 (once we know $P(\emptyset)=0$, see
+below) gives \emph{finite additivity}: for pairwise disjoint $A_1,\dots,A_k$,
+$P(A_1 \cup \dots \cup A_k) = P(A_1) + \dots + P(A_k)$.
+
+\begin{remark}
+The discrete assignment of Chapter 1 ($P(A) = \sum_{a\in A} P(a)$) satisfies all three
+axioms, so it is a special case of this definition.
+\end{remark}
+
+\section{Consequences of the axioms}
+
+\begin{theorem}[Basic rules]
+For any events $A$, $B$:
+\begin{enumerate}
+  \item $P(\emptyset) = 0$.
+  \item (Complement rule) $P(\bar A) = 1 - P(A)$.
+  \item If $A \subseteq B$ then $P(A) \le P(B)$.
+  \item $0 \le P(A) \le 1$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+(1) Apply A3 to $A_1 = A_2 = \dots = \emptyset$ (pairwise disjoint): $P(\emptyset) =
+\sum_{i} P(\emptyset)$, which forces $P(\emptyset) = 0$ since $P(\emptyset)$ is a finite
+non-negative number.
+
+(2) $A$ and $\bar A$ are disjoint with union $S$, so $1 = P(S) = P(A) + P(\bar A)$.
+
+(3) Write $B = A \cup (B\cap \bar A)$, a disjoint union. Then
+$P(B) = P(A) + P(B \cap \bar A) \ge P(A)$ by A2.
+
+(4) $P(A)\ge 0$ is A2, and $A \subseteq S$ gives $P(A) \le P(S) = 1$ by (3).
+\end{proof}
+
+The complement rule is one of the most useful tools in the course: when ``at least one''
+appears, compute the probability of ``none'' instead.
+
+\begin{example}[At least one six]
+Roll a fair die four times. The outcomes (ordered $4$-tuples) are $6^4$ equally likely
+possibilities, of which $5^4$ contain no six. Hence
+\[
+  P(\text{at least one six}) = 1 - \frac{5^4}{6^4} = 1 - \frac{625}{1296} = \frac{671}{1296}
+  \approx 0.5177.
+\]
+By contrast, for $24$ rolls of a pair of dice, $P(\text{at least one double six}) =
+1 - (35/36)^{24} \approx 0.4914$. (This comparison is the famous Chevalier de M\'er\'e
+problem: he noticed by experience that the second bet was slightly unfavourable.)
+\end{example}
+
+\section{Inclusion--exclusion}
+
+\begin{theorem}[Inclusion--exclusion for two events]
+For any events $A$ and $B$,
+\[
+  P(A \cup B) = P(A) + P(B) - P(A\cap B).
+\]
+\end{theorem}
+
+\begin{proof}
+$A \cup B$ is the disjoint union of $A$ and $\bar A \cap B$, so
+$P(A\cup B) = P(A) + P(\bar A\cap B)$. Also $B$ is the disjoint union of $A\cap B$ and
+$\bar A \cap B$, so $P(\bar A\cap B) = P(B) - P(A\cap B)$. Substitute.
+\end{proof}
+
+Intuitively, adding $P(A)$ and $P(B)$ counts the overlap $A\cap B$ twice, so we subtract
+it once.
+
+\begin{theorem}[Inclusion--exclusion for three events]
+\[
+  P(A\cup B\cup C) = P(A)+P(B)+P(C) - P(AB) - P(AC) - P(BC) + P(ABC).
+\]
+More generally, for $A_1,\dots,A_n$,
+\[
+  P\Big(\bigcup_{i=1}^n A_i\Big) = \sum_i P(A_i) - \sum_{i<j} P(A_iA_j)
+  + \sum_{i<j<k} P(A_iA_jA_k) - \dots + (-1)^{n+1} P(A_1A_2\cdots A_n).
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Apply the two-event rule to $A \cup (B \cup C)$, then use the distributive law
+$A\cap(B\cup C) = AB \cup AC$ and apply the two-event rule again; the general case follows
+by induction on $n$.
+\end{proof}
+
+\begin{example}[Two courses]
+At a university, $60\%$ of students have taken Stat 230, $50\%$ have taken Math 239 and
+$30\%$ have taken both. Let $A$ and $B$ be the corresponding events for a random student.
+\begin{itemize}
+  \item $P(\text{at least one}) = P(A\cup B) = 0.6 + 0.5 - 0.3 = 0.8$.
+  \item $P(\text{neither}) = P(\bar A \bar B) = 1 - P(A\cup B) = 0.2$ (De Morgan).
+  \item $P(\text{exactly one}) = P(A\cup B) - P(AB) = 0.8 - 0.3 = 0.5$.
+  \item $P(\text{Stat 230 only}) = P(A\bar B) = P(A) - P(AB) = 0.3$.
+\end{itemize}
+\end{example}
+
+\begin{example}[Three events]
+A number is chosen uniformly at random from $\{1,2,\dots,100\}$. What is the probability it
+is divisible by $2$, $3$ or $5$? Let $A_d$ be ``divisible by $d$''; then
+$P(A_d) = \floor{100/d}/100$, and $A_2 \cap A_3 = A_6$ etc.
+\[
+  P(A_2\cup A_3\cup A_5) = \frac{50 + 33 + 20 - 16 - 10 - 6 + 3}{100} = \frac{74}{100} = 0.74.
+\]
+\end{example}
+
+\begin{example}[Cards]
+Draw one card from a standard $52$-card deck. Then
+\[
+  P(\text{heart or king}) = \frac{13}{52} + \frac{4}{52} - \frac{1}{52} = \frac{16}{52}
+  = \frac{4}{13},
+\]
+where the $1/52$ removes the king of hearts, which was counted twice.
+\end{example}
+
+\section{Equally likely outcomes}
+
+\begin{theorem}
+If $S$ is finite and its $N$ outcomes are equally likely, then $P(a) = 1/N$ for each
+outcome and
+\[
+  P(A) = \frac{|A|}{|S|}
+\]
+for every event $A$.
+\end{theorem}
+
+\begin{proof}
+By finite additivity, $1 = P(S) = \sum_{a\in S} P(a) = N\cdot p$ where $p$ is the common
+value, so $p = 1/N$; then $P(A) = \sum_{a\in A} 1/N = |A|/N$.
+\end{proof}
+
+So computing probabilities in equally likely models reduces to \emph{counting} the
+outcomes of $A$ and $S$, which is the subject of Chapter 3. The key modelling decision is
+to choose $S$ so that its outcomes really are equally likely (for example, ordered pairs
+rather than sums for two dice).
+
+\begin{example}[Three coins]
+Toss three fair coins. Using the equally likely sample space
+\[
+  S = \{HHH,HHT,HTH,THH,HTT,THT,TTH,TTT\},
+\]
+\[
+  P(\text{exactly two heads}) = \frac{|\{HHT,HTH,THH\}|}{8} = \frac38.
+\]
+If we had instead used $S' = \{0,1,2,3\}$ heads and wrongly treated it as equally likely,
+we would get $1/4$, which is incorrect.
+\end{example}
+
+\subsection{Odds}
+
+Probabilities are sometimes quoted as odds.
+
+\begin{definition}[Odds]
+The \emph{odds in favour} of an event $A$ are $P(A) : P(\bar A)$, i.e.\ the ratio
+$P(A)/(1-P(A))$. The odds against $A$ are the reciprocal.
+\end{definition}
+
+\begin{example}
+If the odds in favour of $A$ are $3:2$, then $P(A)/(1-P(A)) = 3/2$, so $P(A) = 3/5$. In
+general, odds of $a : b$ correspond to $P(A) = a/(a+b)$.
+\end{example}
+
+\section{Common pitfalls}
+
+\begin{itemize}
+  \item $P(A\cup B) = P(A) + P(B)$ only when $A$ and $B$ are mutually exclusive. Adding
+        without subtracting the overlap can produce ``probabilities'' larger than $1$.
+  \item ``Mutually exclusive'' is not the same as ``independent'' (Chapter 4). In fact two
+        disjoint events with positive probabilities are never independent.
+  \item The complement of ``at least one'' is ``none'', not ``at most one''.
+\end{itemize}
+
+\section{Summary}
+
+\begin{itemize}
+  \item Axioms: $P(S)=1$, $P(A)\ge0$, and countable additivity over disjoint events.
+  \item Derived rules: $P(\emptyset)=0$, $P(\bar A) = 1 - P(A)$, monotonicity,
+        $0\le P(A) \le 1$.
+  \item Inclusion--exclusion: $P(A\cup B) = P(A)+P(B)-P(AB)$; for three events add back
+        the triple intersection.
+  \item With $N$ equally likely outcomes, $P(A) = |A|/N$, so probability becomes counting.
+  \item Odds $a:b$ in favour mean $P(A) = a/(a+b)$.
+\end{itemize}

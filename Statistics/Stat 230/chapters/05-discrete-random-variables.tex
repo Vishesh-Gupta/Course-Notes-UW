@@ -1,0 +1,342 @@
+\chapter{Discrete Random Variables}
+
+\section{Random variables}
+
+Usually we care about a numerical summary of an outcome rather than the outcome itself:
+the number of heads, the sum of dice, the number of defectives in a sample.
+
+\begin{definition}[Random variable]
+A \emph{random variable} (r.v.) is a function $X : S \to \R$ that assigns a real number to
+each outcome. Its \emph{range} is the set of values it can take. $X$ is \emph{discrete} if
+its range is finite or countably infinite, and \emph{continuous} if its range is an
+interval (Chapter 7).
+\end{definition}
+
+We write $\{X = x\}$ for the event $\{a\in S : X(a) = x\}$, and similarly
+$\{X \le x\}$. Capital letters denote random variables and lower-case letters denote the
+values they take.
+
+\begin{definition}[Probability function]
+The \emph{probability function} (p.f.) or \emph{probability mass function} (pmf) of a
+discrete r.v.\ $X$ is
+\[
+  f(x) = P(X = x), \qquad x \in \text{range}(X).
+\]
+It satisfies $0 \le f(x) \le 1$ and $\sum_{x} f(x) = 1$. The set of pairs $(x, f(x))$ is
+called the \emph{probability distribution} of $X$.
+\end{definition}
+
+\begin{definition}[Cumulative distribution function]
+The \emph{cumulative distribution function} (c.d.f.) of $X$ is
+\[
+  F(x) = P(X \le x) = \sum_{t \le x} f(t), \qquad x\in\R.
+\]
+\end{definition}
+
+\begin{theorem}[Properties of a c.d.f.]
+\begin{enumerate}
+  \item $F$ is non-decreasing.
+  \item $0 \le F(x) \le 1$, with $\lim_{x\to-\infty}F(x) = 0$ and
+        $\lim_{x\to\infty} F(x) = 1$.
+  \item For a discrete r.v.\ with integer values, $F$ is a step function with jumps of
+        size $f(x)$ at each $x$ in the range, and $f(x) = F(x) - F(x-1)$.
+  \item $P(a < X \le b) = F(b) - F(a)$.
+\end{enumerate}
+\end{theorem}
+
+\begin{example}[Sum of two dice]
+Let $X$ be the sum of two fair dice. Counting ordered pairs,
+\[
+  f(x) = \frac{6 - \abs{x-7}}{36}, \qquad x = 2,3,\dots,12.
+\]
+So $f(7) = 6/36$, $f(4) = 3/36$, and $F(4) = f(2) + f(3) + f(4) = (1+2+3)/36 = 1/6$.
+\end{example}
+
+\section{Discrete uniform distribution}
+
+\begin{definition}[Discrete uniform]
+$X$ has a \emph{discrete uniform} distribution on $\{a, a+1, \dots, b\}$ if each value is
+equally likely:
+\[
+  f(x) = \frac{1}{b-a+1}, \qquad x = a, a+1, \dots, b.
+\]
+\end{definition}
+
+\begin{example}
+The face of a fair die is uniform on $\{1,\dots,6\}$, with $F(x) = \floor{x}/6$ for
+$1 \le x < 6$.
+\end{example}
+
+\section{Hypergeometric distribution}
+
+\textbf{Setup.} A collection of $N$ objects contains $r$ ``successes'' and $N-r$
+``failures''. We draw $n$ objects \emph{without replacement}. Let $X$ be the number of
+successes drawn.
+
+\begin{theorem}[Hypergeometric p.f.]
+\[
+  f(x) = \frac{\binom{r}{x}\binom{N-r}{n-x}}{\binom{N}{n}},
+  \qquad \max(0, n-(N-r)) \le x \le \min(r, n).
+\]
+We write $X \sim \Hyp(N, r, n)$.
+\end{theorem}
+
+\begin{proof}
+All $\binom Nn$ subsets of size $n$ are equally likely; those with exactly $x$ successes
+are formed by choosing $x$ of the $r$ successes and $n-x$ of the $N-r$ failures. The
+probabilities sum to $1$ by Vandermonde's identity.
+\end{proof}
+
+\begin{example}[Quality control]
+A box of $20$ fuses has $5$ defective. If $5$ fuses are tested, find the probability that
+exactly $2$ are defective. Here $N=20$, $r=5$, $n=5$:
+\[
+  P(X=2) = \frac{\binom52\binom{15}3}{\binom{20}5} = \frac{10\cdot 455}{15\,504}
+  = \frac{4550}{15\,504} \approx 0.2935.
+\]
+\end{example}
+
+\section{Binomial distribution}
+
+\begin{definition}[Bernoulli trials]
+A sequence of \emph{Bernoulli trials} is a sequence of experiments, each with two
+outcomes (``success'' $S$, ``failure'' $F$), which are independent and have the same
+success probability $p$.
+\end{definition}
+
+\textbf{Setup.} Perform $n$ Bernoulli trials with success probability $p$; let $X$ be the
+number of successes.
+
+\begin{theorem}[Binomial p.f.]
+\[
+  f(x) = \binom nx p^x (1-p)^{n-x}, \qquad x = 0,1,\dots,n.
+\]
+We write $X\sim\Bin(n,p)$.
+\end{theorem}
+
+\begin{proof}
+Any particular sequence with $x$ successes and $n-x$ failures has probability
+$p^x(1-p)^{n-x}$ by independence, and there are $\binom nx$ such sequences (choose the
+positions of the successes). By the binomial theorem,
+$\sum_x f(x) = (p + (1-p))^n = 1$.
+\end{proof}
+
+\begin{example}
+A multiple-choice quiz has $10$ questions, and a student answers each correctly with
+probability $0.3$, independently. Let $X\sim\Bin(10, 0.3)$.
+\[
+  P(X = 3) = \binom{10}{3}(0.3)^3(0.7)^7 = 120 \cdot 0.027 \cdot 0.0823543 \approx 0.2668.
+\]
+\[
+  P(X \le 2) = (0.7)^{10} + 10(0.3)(0.7)^9 + 45(0.3)^2(0.7)^8
+  \approx 0.0282 + 0.1211 + 0.2335 = 0.3828.
+\]
+\end{example}
+
+\subsection{Binomial approximation to the hypergeometric}
+
+If $N$ is large compared with $n$, drawing without replacement is almost the same as
+drawing with replacement, since removing a few objects barely changes the proportion of
+successes.
+
+\begin{theorem}
+If $N\to\infty$ and $r\to\infty$ with $r/N \to p$ and $n$ fixed, then
+\[
+  \frac{\binom{r}{x}\binom{N-r}{n-x}}{\binom{N}{n}} \to \binom{n}{x}p^x(1-p)^{n-x}.
+\]
+So $\Hyp(N,r,n) \approx \Bin(n, r/N)$ when $N$ is large relative to $n$ (a common rule of
+thumb is $n/N < 0.05$, or at least $n \le N/10$).
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Write the hypergeometric probability as
+$\binom nx \dfrac{r^{(x)}(N-r)^{(n-x)}}{N^{(n)}}$. Each of the $n$ factors of the
+numerator over the corresponding factor of $N^{(n)}$ tends to $p$ or $1-p$.
+\end{proof}
+
+\begin{example}
+A lot of $1000$ items contains $200$ defectives; $10$ are sampled without replacement.
+Exactly: $P(X=2) = \binom{200}{2}\binom{800}{8}/\binom{1000}{10} \approx 0.3035$.
+Approximation with $\Bin(10, 0.2)$: $\binom{10}2(0.2)^2(0.8)^8 \approx 0.3020$.
+\end{example}
+
+\section{Negative binomial distribution}
+
+\textbf{Setup.} Perform Bernoulli trials with success probability $p$ until the $k$th
+success. Let $X$ be the number of \emph{failures} before the $k$th success. (This is the
+Stat 230 convention; some books count total trials, $X+k$.)
+
+\begin{theorem}[Negative binomial p.f.]
+\[
+  f(x) = \binom{x+k-1}{x} p^k (1-p)^x, \qquad x = 0,1,2,\dots
+\]
+We write $X\sim\NB(k,p)$.
+\end{theorem}
+
+\begin{proof}
+$X = x$ means that trial $x+k$ is a success and among the first $x+k-1$ trials there are
+exactly $k-1$ successes and $x$ failures. The first part has probability $p$; the second
+is a binomial probability $\binom{x+k-1}{x}p^{k-1}(1-p)^x$.
+\end{proof}
+
+\begin{important}[Binomial vs.\ negative binomial]
+Binomial: the number of \emph{trials} $n$ is fixed and the number of successes is random.
+Negative binomial: the number of \emph{successes} $k$ is fixed and the number of trials
+(failures) is random.
+\end{important}
+
+\begin{example}
+A fair coin is tossed until the third head. The probability that exactly $2$ tails occur
+before the third head is
+\[
+  P(X=2) = \binom{4}{2}(0.5)^3(0.5)^2 = \frac{6}{32} = 0.1875.
+\]
+\end{example}
+
+\section{Geometric distribution}
+
+The case $k=1$ of the negative binomial: $X$ is the number of failures before the first
+success.
+
+\begin{theorem}[Geometric p.f.]
+\[
+  f(x) = p(1-p)^x,\qquad x = 0,1,2,\dots; \qquad P(X \ge x) = (1-p)^x.
+\]
+We write $X\sim\Geo(p)$.
+\end{theorem}
+
+\begin{proof}
+$X\ge x$ iff the first $x$ trials are all failures, which has probability $(1-p)^x$.
+\end{proof}
+
+\begin{example}
+Each lottery ticket wins a free ticket with probability $0.2$. Let $X$ be the number of
+losing tickets before the first winner. Then $P(X = 3) = 0.2(0.8)^3 = 0.1024$, and
+$P(X\ge 4) = 0.8^4 = 0.4096$.
+\end{example}
+
+The geometric distribution is \emph{memoryless}:
+$P(X \ge s+t \given X\ge s) = (1-p)^{s+t}/(1-p)^s = (1-p)^t = P(X\ge t)$. Past failures do
+not make a success ``due''.
+
+\section{Poisson distribution}
+
+\begin{definition}[Poisson distribution]
+$X$ has a \emph{Poisson distribution} with parameter $\mu > 0$, written $X\sim\Poi(\mu)$, if
+\[
+  f(x) = \frac{e^{-\mu}\mu^x}{x!}, \qquad x = 0,1,2,\dots
+\]
+\end{definition}
+
+The probabilities sum to $1$ because $\sum_{x\ge0}\mu^x/x! = e^{\mu}$.
+
+\subsection{Poisson as a limit of the binomial}
+
+\begin{theorem}[Poisson approximation to the binomial]
+If $n\to\infty$ and $p\to0$ with $np = \mu$ fixed, then
+\[
+  \binom nx p^x (1-p)^{n-x} \to \frac{e^{-\mu}\mu^x}{x!}.
+\]
+\end{theorem}
+
+\begin{proof}
+Substitute $p = \mu/n$:
+\[
+  \binom nx p^x(1-p)^{n-x} = \frac{\mu^x}{x!}\cdot\frac{n^{(x)}}{n^x}\cdot
+  \left(1-\frac{\mu}{n}\right)^n\cdot\left(1-\frac{\mu}{n}\right)^{-x}.
+\]
+As $n\to\infty$: $n^{(x)}/n^x = \prod_{i=0}^{x-1}(1 - i/n) \to 1$,
+$(1-\mu/n)^n \to e^{-\mu}$, and $(1-\mu/n)^{-x} \to 1$.
+\end{proof}
+
+So $\Bin(n,p)\approx\Poi(np)$ when $n$ is large and $p$ is small (rule of thumb: $n\ge
+20$ with $p\le 0.05$, or $n \ge 100$ with $np \le 10$). If $p$ is close to $1$, apply the
+approximation to the failures instead.
+
+\begin{example}
+$1\%$ of items are defective, and $200$ are inspected. Exactly,
+\[
+  P(X=3) = \binom{200}{3}(0.01)^3(0.99)^{197} \approx 0.1814.
+\] With $\mu = 200(0.01) = 2$,
+the Poisson approximation gives $e^{-2}2^3/3! = \tfrac{8}{6}e^{-2} \approx 0.1804$.
+\end{example}
+
+\subsection{The Poisson process}
+
+Poisson distributions also arise directly when events occur randomly in time (or space).
+
+\begin{definition}[Poisson process]
+Events occurring over time form a \emph{Poisson process} with rate $\lambda$ if
+\begin{enumerate}
+  \item \textbf{Independence:} the numbers of events in non-overlapping intervals are
+        independent;
+  \item \textbf{Individuality:} events occur singly; $P(\text{2 or more events in }
+        (t, t+\Delta t)) = o(\Delta t)$ as $\Delta t\to0$;
+  \item \textbf{Homogeneity:} $P(\text{exactly one event in } (t, t+\Delta t)) =
+        \lambda\Delta t + o(\Delta t)$, the same for all $t$.
+\end{enumerate}
+\end{definition}
+
+\begin{theorem}
+In a Poisson process with rate $\lambda$, the number of events $X$ in an interval of length
+$t$ has distribution $\Poi(\lambda t)$:
+\[
+  P(X = x) = \frac{e^{-\lambda t}(\lambda t)^x}{x!}, \qquad x = 0,1,2,\dots
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Split $[0,t]$ into $n$ tiny subintervals of length $t/n$. By the conditions, each contains
+one event with probability about $\lambda t/n$ and more than one with negligible
+probability, independently. So the count is approximately $\Bin(n, \lambda t/n)$, which
+tends to $\Poi(\lambda t)$ by the previous theorem. (A rigorous proof sets up differential
+equations for $f_t(x) = P(x \text{ events in } [0,t])$:
+$f_t'(x) = \lambda f_t(x-1) - \lambda f_t(x)$, and checks the Poisson solution.)
+\end{proof}
+
+\begin{example}[Calls to a help desk]
+Calls arrive according to a Poisson process at a rate of $6$ per hour.
+\begin{itemize}
+  \item In a $20$-minute period, $\mu = 6\cdot\frac13 = 2$. So
+        $P(\text{no calls}) = e^{-2} \approx 0.1353$ and
+        $P(\text{at least 2}) = 1 - e^{-2}(1 + 2) = 1 - 3e^{-2} \approx 0.5940$.
+  \item In a $30$-minute period, $\mu = 3$, so $P(X = 2) = e^{-3}3^2/2! \approx 0.2240$
+        and $P(X \ge 3) = 1 - e^{-3}(1 + 3 + 4.5) \approx 0.5768$.
+\end{itemize}
+\end{example}
+
+\begin{important}[Matching the units]
+Always convert the rate $\lambda$ and the interval length $t$ to the same units before
+computing $\mu = \lambda t$. The same ideas apply in space (e.g.\ flaws per metre of
+wire, trees per hectare), with $t$ replaced by length, area or volume.
+\end{important}
+
+\section{Choosing the right model}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Situation & Model \\
+\midrule
+$n$ draws without replacement, count successes & $\Hyp(N,r,n)$ \\
+$n$ independent trials, count successes & $\Bin(n,p)$ \\
+Failures before the $k$th success & $\NB(k,p)$ \\
+Failures before the first success & $\Geo(p)$ \\
+Count of random events in a time/space interval & $\Poi(\lambda t)$ \\
+All values in $\{a,\dots,b\}$ equally likely & discrete uniform \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Summary}
+
+\begin{itemize}
+  \item A random variable is a function on $S$; a discrete r.v.\ is described by its p.f.\
+        $f(x) = P(X=x)$ or c.d.f.\ $F(x) = P(X\le x)$, with $f(x) = F(x) - F(x-1)$.
+  \item Hypergeometric $\approx$ binomial when the population is large relative to the
+        sample.
+  \item Binomial $\approx$ Poisson when $n$ is large and $p$ small, with $\mu = np$.
+  \item In a Poisson process with rate $\lambda$, counts in time $t$ are $\Poi(\lambda t)$.
+  \item Geometric (and negative binomial) count failures before success(es); the geometric
+        is memoryless.
+\end{itemize}
