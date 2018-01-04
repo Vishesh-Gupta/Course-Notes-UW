@@ -67,9 +67,9 @@ https://github.com/vishesh-gupta/course-notes-uw/computer-science/CS-251/process
 Let us now look at some operation
 
 0   `add $3 $2 $1 `
-4   `sub                 `
-8   `sub                 `
-12 `sub                 `
+4   `sub `
+8   `sub `
+12  `sub `
 
 
 32 bits of data
