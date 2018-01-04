@@ -34,7 +34,7 @@ Instructions are set of operations that the processor follows. Examples of opera
 **Designing**
 Hardware is based on certain principles. 
 
-https://github.com/vishesh-gupta/course-notes-uw/computer-science/CS 251/Computer Organization - Big.png Picture.png
+https://github.com/Vishesh-Gupta/Course-Notes-UW/blob/master/Computer%20Science/CS%20251/Computer%20Organization%20-%20Big%20Picture.png
 
 Data Path  is a piece of hardware that comes together to execute an instruction.
 
