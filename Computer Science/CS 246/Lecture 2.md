@@ -29,9 +29,9 @@ Behind the scenes:
 Each linux process has three streams associated with it.
 
 **Process (ls / cat / c / c++):**
-stdin (Input Stream) |  (Standard Output) | Standard Error
-Default: Keyboard  |  Default: Screen | Default: Screen
-Use input redirection to change to a file | Use output redirection to change | Use error redirection (`2>`)
+|stdin (Input Stream) | Standard Output) | Standard Error|
+| Default: Keyboard   |  Default: Screen | Default: Screen |
+| Use input redirection to change to a file | Use output redirection to change | Use error redirection (`2>`) |
 |Uses Bufferring|Not Buffered
 
 **Buffer: Writing in Block is faster (CS 350)**
@@ -63,5 +63,27 @@ rm -rf *
 Single quotes/ Double quotes suppress globbing patterns
 
 We can send the output (stdout) to the input of another program.
-    - Use a linx Pipe
+    - Use a linux Pipe
     cmd1 | cmd 2
+    
+Eg. How many words occur in the fiest 20 lines of sample.txt?
+    wc -w
+    head -20 sample.txt
+         or 
+    head -20 sample.txt | wc - w
+
+Eg. Suppose files words*.txt contain lists of words one per line? Print a duplicate free of list of words in all files.
+
+Uniq - 
+
+cat words*.txt | sort | uniq
+
+Use $(cmd) to embed a command within another command
+echo "Today is $(date)"
+SIDE Note: Single Quotes suppress the embedded commands
+
+Without double quotes each string is an argument
+
+**Command: egrep pattern file(s) **
+ -returns lines that contain a string that matches the given pattern
+
