@@ -87,4 +87,25 @@ It is a text file containing a sequence of commands which can be executed as a p
 First line should be
 #!/bin/bash -  Hash Bang line <- Shebang line. It just tells that the script is a bash script
 
+-give a script x permission
+-Run script using ./<script>
 
+**Arguments to a script**
+./script arg1 arg2 ...
+     $0          $1        $2
+ 
+ eg. Is a given word a valid word in the dictionary?
+ 
+ #!/bin/bash
+ egrep "^$1$" /usr/share/dict/words
+ 
+ eg. A good password is not in the dictionary. Is a given word a good password?
+ 
+ #!/bin/bash
+ egerp "^$1$" /usr/share/dict/words >  /dev/null
+ 
+ **Status Quote**
+ 
+ 
+ NOTE: To throw away the output we send the output to /dev/null
+               
