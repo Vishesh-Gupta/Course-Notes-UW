@@ -51,4 +51,17 @@ number of links to the file
 
 r - read
 w - write
-x - execute 
+x - execute -> means can we run this file as a prog
+                    -> permission to enter (cd)
+                    
+Only the owner can change file permissions.
+
+Change file permissions  - chmod (pronounced as shamod)  mode  file(s)
+mode is made of three things. 
+ownership class (*u*ser *g*roup *o*ther *a*ll) operator (+ - =) permissions (rwx)
+
+chmod a+r final.pdf give all read permission
+g - rw    remove read and write from the group
+o=rx set others to read/execute
+
+
