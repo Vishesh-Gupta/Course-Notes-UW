@@ -64,4 +64,27 @@ chmod a+r final.pdf give all read permission
 g - rw    remove read and write from the group
 o=rx set others to read/execute
 
+**Shell Variables**
+x = 1 variables store strings
+echo $x
+When you write to a variable we dont' use a $ but when we read we use a $.
+Recommended approach is ${x}  - GOOD TO USE CURLY BRACES AROUND VARIABLE NAMES
+You are allowed operations on the variables
+
+Single quotes suppress variabels to expand two values
+
+These values stay in the memory for a current session. To setup for always then we need to set it up in bash profile
+
+`echo ${PATH}`    a bunch of paths seperated by colon. It helps linux or shell to search for commands
+Update Path Variable
+
+PATH=mypath:${PATH}
+PATH=${PATH}:mypath
+
+**Shell Script**
+It is a text file containing a sequence of commands which can be executed as a program.
+
+First line should be
+#!/bin/bash -  Hash Bang line <- Shebang line. It just tells that the script is a bash script
+
 
