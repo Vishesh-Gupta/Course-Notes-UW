@@ -1,4 +1,6 @@
-**Course Outline**
+# Course Outline
+## January 4, 2018
+
 
 `Instructor: Nomair Naeem`
 
@@ -7,7 +9,6 @@
 `Email: nanaeem@uwaterloo.ca`
 
 `OH 9:30  am to 11am Thursdays`
-
 
 **About the Instructor**
 Nomair Naeem is a CS advisor and instructor. Has literally begged to change being the instructor.
