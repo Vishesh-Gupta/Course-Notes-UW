@@ -53,7 +53,9 @@ In most Linux system, there is a location /usr/share/dict/words is an example of
 
 `ls: lists all the non-hidden files`
     `ls -a is a list command with the argument(options or flag) which displays all the files`
+    
 `pwd (Present Working Directory): What is the current directory`
+
 `cd <path>: Stands for Change directory`
     `cd /Users/nanaeem/cs246/a/`
 
