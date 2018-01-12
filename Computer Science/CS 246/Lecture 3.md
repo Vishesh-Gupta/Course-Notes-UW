@@ -45,6 +45,7 @@ owner
 number of links to the file
 - if ordinary file, d if directory
 |--- | --- | --- |
+|----|-----|----|
 | rwx |r_x | r__ |
 |user | group | other |
 |permissions for the owner| users in the same group as rhe file| all other users|
@@ -66,9 +67,13 @@ o=rx set others to read/execute
 
 **Shell Variables**
 x = 1 variables store strings
+
 echo $x
+
 When you write to a variable we dont' use a $ but when we read we use a $.
+
 Recommended approach is ${x}  - GOOD TO USE CURLY BRACES AROUND VARIABLE NAMES
+
 You are allowed operations on the variables
 
 Single quotes suppress variabels to expand two values
@@ -92,20 +97,30 @@ First line should be
 
 **Arguments to a script**
 ./script arg1 arg2 ...
-     $0          $1        $2
+       $0    $1      $2
  
  eg. Is a given word a valid word in the dictionary?
  
  #!/bin/bash
  egrep "^$1$" /usr/share/dict/words
  
+ **Status Quote**
+ Linux commands set a status code ($?) 
+ 0 - success
+ non-zero -failure
+ 
+ NOTE: To throw away the output we send the output to /dev/null
+ 
+ **Evaluate conditions**
+ Use the test program.
+ Test Program is called [ ]
+ 
  eg. A good password is not in the dictionary. Is a given word a good password?
  
  #!/bin/bash
  egerp "^$1$" /usr/share/dict/words >  /dev/null
+ [$? -eq 0]
  
- **Status Quote**
+ # to represent comments
+ [ -e  basic ] checks for file name basic exists or not.
  
- 
- NOTE: To throw away the output we send the output to /dev/null
-               

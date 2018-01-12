@@ -29,10 +29,12 @@ Behind the scenes:
 Each linux process has three streams associated with it.
 
 **Process (ls / cat / c / c++):**
+
 |stdin (Input Stream) | Standard Output) | Standard Error|
+|-----------------------------|---------------------------|-----------------------|
 | Default: Keyboard   |  Default: Screen | Default: Screen |
 | Use input redirection to change to a file | Use output redirection to change | Use error redirection (`2>`) |
-|Uses Bufferring|Not Buffered
+||Uses Bufferring|Not Buffered|
 
 **Buffer: Writing in Block is faster (CS 350)**
 
@@ -87,3 +89,9 @@ Without double quotes each string is an argument
 **Command: egrep pattern file(s) **
  -returns lines that contain a string that matches the given pattern
 
+egrep cs246 index.shtml | wc -l
+
+egrep "cs246|cs246" index.shtml | wc -l
+
+"cs246|CS246"
+-use double quotes when using characters with special meanings.

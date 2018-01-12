@@ -48,7 +48,9 @@ In most Linux system, there is a location /usr/share/dict/words is an example of
 ***An absolute path ***is a path which begins at the root directory. 
 
 **Linux Commands:**
+
 `clear: clears the screen`
+
 `ls: lists all the non-hidden files`
     `ls -a is a list command with the argument(options or flag) which displays all the files`
 `pwd (Present Working Directory): What is the current directory`
