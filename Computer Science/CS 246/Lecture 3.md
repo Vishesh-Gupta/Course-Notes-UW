@@ -113,10 +113,10 @@ It just tells that the script is a bash script
 $0    $1      $2
  
 Eg. Is a given word a valid word in the dictionary?
-<bash>
+```bash
 #!/bin/bash
 egrep "^$1$" /usr/share/dict/words
-</bash>
+```
 
 **Status Quote**
 
@@ -132,11 +132,11 @@ Test Program is called [ ]
 
 eg. A good password is not in the dictionary. Is a given word a good password?
  
-<bash>
+```bash
 #!/bin/bash
 egerp "^$1$" /usr/share/dict/words >  /dev/null
 [$? -eq 0]
-</bash>
+```
  
 # to represent comments
 
