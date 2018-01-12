@@ -79,7 +79,7 @@ x = 1 variables store strings
 
 echo $x
 
-When you write to a variable we dont' use a $ but when we read we use a $.
+When you write to a variable we dont' use a $ - symbol but when we read we use a $ - symmbol.
 
 Recommended approach is ${x}  - GOOD TO USE CURLY BRACES AROUND VARIABLE NAMES
 
@@ -96,40 +96,48 @@ PATH=mypath:${PATH}
 PATH=${PATH}:mypath
 
 **Shell Script**
+
 It is a text file containing a sequence of commands which can be executed as a program.
 
-First line should be
-#!/bin/bash -  Hash Bang line <- Shebang line. It just tells that the script is a bash script
+First line should be `#!/bin/bash` -  Hash Bang line <- Shebang line.
 
--give a script x permission
+It just tells that the script is a bash script
+
+-Give a script Executable(x) permission using chmod command
 -Run script using ./<script>
 
 **Arguments to a script**
+
 ./script arg1 arg2 ...
-       $0    $1      $2
+
+$0    $1      $2
  
- eg. Is a given word a valid word in the dictionary?
+Eg. Is a given word a valid word in the dictionary?
+<bash>
+#!/bin/bash
+egrep "^$1$" /usr/share/dict/words
+</bash>
+
+**Status Quote**
+
+Linux commands set a status code ($?) 
+0 - success
+non-zero -failure
  
- #!/bin/bash
- egrep "^$1$" /usr/share/dict/words
+NOTE: To throw away the output we send the output to /dev/null
+
+**Evaluate conditions**
+Use the test program.
+Test Program is called [ ]
+
+eg. A good password is not in the dictionary. Is a given word a good password?
  
- **Status Quote**
- Linux commands set a status code ($?) 
- 0 - success
- non-zero -failure
+<bash>
+#!/bin/bash
+egerp "^$1$" /usr/share/dict/words >  /dev/null
+[$? -eq 0]
+</bash>
  
- NOTE: To throw away the output we send the output to /dev/null
- 
- **Evaluate conditions**
- Use the test program.
- Test Program is called [ ]
- 
- eg. A good password is not in the dictionary. Is a given word a good password?
- 
- #!/bin/bash
- egerp "^$1$" /usr/share/dict/words >  /dev/null
- [$? -eq 0]
- 
- # to represent comments
- [ -e  basic ] checks for file name basic exists or not.
- 
+# to represent comments
+
+[ -e  basic ] checks for file name basic exists or not.
