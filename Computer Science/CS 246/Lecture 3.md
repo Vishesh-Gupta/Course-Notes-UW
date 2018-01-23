@@ -10,19 +10,28 @@ it is not the same as "(c|C)(s|S)246" which can also be written as "[cC][sS]246"
 
 **Regular Expressions**
 *[abc] *     - one character from this set (a | b | c)
+
 *[^abc]*    -  one character not from this set
+
 *?*             - 0 or 1 occurences of the preceeding expression.
     eg. "cs ?246" matches "cs246" and "cs 246"
            (cs)?246 just shows cs246 or 246.
+
 ***            - 0 or more of the preceeding expressions
+
 *+*            - 1 or more of the preceeding expressions
+
 *.*             -  match any one character
+
 *.**           - match any number of any characters
+
 To escape the meaning of a special symbol use *\* - eg. \. ->matches a .
+
 To force the regular expression to match starting at the start of the line use *^*
+
 To match till the end of the line use the *$* symbol.
 eg. "^cs246" - lines starting with cs246
-"^cs246$" - lines only containing cs246
+      "^cs246$" - lines only containing cs246
 
 **Eg. Print all words from /usr/share/dict/words that start with an e and have a lenth of 5?**
 *Ans. egrep "^e....$"    /usr/share/dict/words*
@@ -97,7 +106,7 @@ First line should be
 
 **Arguments to a script**
 ./script arg1 arg2 ...
-       $0    $1      $2
+       $0    $1    $2
  
  eg. Is a given word a valid word in the dictionary?
  
@@ -121,6 +130,6 @@ First line should be
  egerp "^$1$" /usr/share/dict/words >  /dev/null
  [$? -eq 0]
  
- # to represent comments
+ "#" to represent comments
  [ -e  basic ] checks for file name basic exists or not.
  
