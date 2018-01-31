@@ -10,19 +10,38 @@ it is not the same as "(c|C)(s|S)246" which can also be written as "[cC][sS]246"
 
 **Regular Expressions**
 *[abc] *     - one character from this set (a | b | c)
+
 *[^abc]*    -  one character not from this set
+
 *?*             - 0 or 1 occurences of the preceeding expression.
+<<<<<<< HEAD
     eg. "cs ?246" matches "cs246" and "cs 246"
            (cs)?246 just shows cs246 or 246.
+
+=======
+eg. "cs ?246" matches "cs246" and "cs 246"
+    (cs)?246 just shows cs246 or 246.
+        
+>>>>>>> 21d3df85d1912972c1feed5256386294f018ebf8
 ***            - 0 or more of the preceeding expressions
+
 *+*            - 1 or more of the preceeding expressions
+
+<<<<<<< HEAD
 *.*             -  match any one character
+=======
+*.*            -  match any one character
+>>>>>>> 21d3df85d1912972c1feed5256386294f018ebf8
+
 *.**           - match any number of any characters
+
 To escape the meaning of a special symbol use *\* - eg. \. ->matches a .
+
 To force the regular expression to match starting at the start of the line use *^*
+
 To match till the end of the line use the *$* symbol.
 eg. "^cs246" - lines starting with cs246
-"^cs246$" - lines only containing cs246
+      "^cs246$" - lines only containing cs246
 
 **Eg. Print all words from /usr/share/dict/words that start with an e and have a lenth of 5?**
 *Ans. egrep "^e....$"    /usr/share/dict/words*
@@ -70,7 +89,7 @@ x = 1 variables store strings
 
 echo $x
 
-When you write to a variable we dont' use a $ but when we read we use a $.
+When you write to a variable we dont' use a $ - symbol but when we read we use a $ - symmbol.
 
 Recommended approach is ${x}  - GOOD TO USE CURLY BRACES AROUND VARIABLE NAMES
 
@@ -87,17 +106,21 @@ PATH=mypath:${PATH}
 PATH=${PATH}:mypath
 
 **Shell Script**
+
 It is a text file containing a sequence of commands which can be executed as a program.
 
-First line should be
-#!/bin/bash -  Hash Bang line <- Shebang line. It just tells that the script is a bash script
+First line should be `#!/bin/bash` -  Hash Bang line <- Shebang line.
 
--give a script x permission
+It just tells that the script is a bash script
+
+-Give a script Executable(x) permission using chmod command
 -Run script using ./<script>
 
 **Arguments to a script**
+
 ./script arg1 arg2 ...
-       $0    $1      $2
+<<<<<<< HEAD
+       $0    $1    $2
  
  eg. Is a given word a valid word in the dictionary?
  
@@ -110,17 +133,43 @@ First line should be
  non-zero -failure
  
  NOTE: To throw away the output we send the output to /dev/null
+=======
+
+$0    $1      $2
+>>>>>>> 21d3df85d1912972c1feed5256386294f018ebf8
  
- **Evaluate conditions**
- Use the test program.
- Test Program is called [ ]
+Eg. Is a given word a valid word in the dictionary?
+```bash
+#!/bin/bash
+egrep "^$1$" /usr/share/dict/words
+```
+
+**Status Quote**
+
+Linux commands set a status code ($?) 
+0 - success
+non-zero -failure
  
- eg. A good password is not in the dictionary. Is a given word a good password?
+NOTE: To throw away the output we send the output to /dev/null
+
+**Evaluate conditions**
+Use the test program.
+Test Program is called [ ]
+
+eg. A good password is not in the dictionary. Is a given word a good password?
  
- #!/bin/bash
- egerp "^$1$" /usr/share/dict/words >  /dev/null
- [$? -eq 0]
+```bash
+#!/bin/bash
+egerp "^$1$" /usr/share/dict/words >  /dev/null
+[$? -eq 0]
+```
  
- # to represent comments
+<<<<<<< HEAD
+ "#" to represent comments
  [ -e  basic ] checks for file name basic exists or not.
  
+=======
+# to represent comments
+
+[ -e  basic ] checks for file name basic exists or not.
+>>>>>>> 21d3df85d1912972c1feed5256386294f018ebf8

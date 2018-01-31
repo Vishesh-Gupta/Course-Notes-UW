@@ -3,8 +3,11 @@
 
 **cat** - concatenation
       - display the contents of a file      
+
 **Ctrl + C **- Kill a program
+
 **Ctrl + D** - Send end of file (EOF) signal
+
 **Output Redirection: **
 Direct the output produced by a program to a file.
 Syntax: Command arg1 arg2 ... `>`  filename
@@ -46,9 +49,13 @@ cmd < in 1> out 2> &1
 
 **Wildcards (*)**
 1. *****
+
 ls *.txt
+
 *.txt is a globbing pattern
+
 List all the files but end with .txt
+
 The shell intercepts this pattern
 - finds the files that match the pattern.
 - places these file names where the globbing pattern was
@@ -56,10 +63,13 @@ ls sameple.txt sample2.txt
 - We can use globbing patterns with other commands
 
 cat *.txt
+
 echo *.txt
+
 rm *.txt
 
 rm -rf *.cc
+
 rm -rf *
 
 Single quotes/ Double quotes suppress globbing patterns
@@ -76,12 +86,14 @@ Eg. How many words occur in the fiest 20 lines of sample.txt?
 
 Eg. Suppose files words*.txt contain lists of words one per line? Print a duplicate free of list of words in all files.
 
-Uniq - 
+Uniq - This gives out all non-duplicate values as the output from the file sent in. 
 
 cat words*.txt | sort | uniq
 
 Use $(cmd) to embed a command within another command
+```bash
 echo "Today is $(date)"
+```
 SIDE Note: Single Quotes suppress the embedded commands
 
 Without double quotes each string is an argument
@@ -89,9 +101,11 @@ Without double quotes each string is an argument
 **Command: egrep pattern file(s) **
  -returns lines that contain a string that matches the given pattern
 
+```bash
 egrep cs246 index.shtml | wc -l
 
 egrep "cs246|cs246" index.shtml | wc -l
+```
 
 "cs246|CS246"
 -use double quotes when using characters with special meanings.
