@@ -43,3 +43,17 @@ An instance of a class is called an ovhect e.g. a value of type student is a Stu
 A function inside a class is a `member function` or `method`.
 
 A method can only be called sign an object of class. A method has access to the fields od the ovject on which the method was called.
+
+All methods have a hidden parameter -> name is "this", which points to the object on which the method was called.
+
+billy.grade() inside grade this == &billy
+
+I like to use `this` when I need to use `this` - Nomair Naeem.
+
+this is a contant pointer
+
+<b>Initializing objects </b>
+Student billy{80, 50, 75} where these values need to be compile time constants.
+
+In C++, you can write special methods called constructors to initialize objects.
+
