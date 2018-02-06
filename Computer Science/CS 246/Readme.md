@@ -13,4 +13,4 @@ Welcome to my notes for CS 246. The notes will be posted after every class once 
 9.  [Lecture 7](https://github.com/Vishesh-Gupta/Course-Notes-UW/blob/master/Computer%20Science/CS%20246/Lecture%207.md)
 10. [Lecture 8](https://github.com/Vishesh-Gupta/Course-Notes-UW/blob/master/Computer%20Science/CS%20246/Lecture%208.md)
 11. [Lecture 9](https://github.com/Vishesh-Gupta/Course-Notes-UW/blob/master/Computer%20Science/CS%20246/Lecture%209.md)
-12. [Lecture 10](https://github.com/Vishesh-Gupta/Course-Notes-UW/blob/master/Computer%20Science/CS%20246/Lecture%210.md)
+12. [Lecture 10](https://github.com/Vishesh-Gupta/Course-Notes-UW/blob/master/Computer%20Science/CS%20246/Lecture%2010.md)
