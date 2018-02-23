@@ -2,7 +2,7 @@
 January 30, 2018
 # Preprocessor, Seperate Compilations
 
-**Last Time: **
+Last Time:
 ```cpp
 #include <>
 ```
@@ -53,8 +53,8 @@ g++ -DVAR=VALUE <file.cc>
 #define VAR
     - value is an empty string
     
-#ifdef - if this variable been defined VAR
-#ifndef - if this variable has 
+#ifdef - if this variable been defined 
+#ifndef - if this variable has not been defined  
 
 preprocess/debug.cc
 
@@ -68,12 +68,14 @@ One common way to divide your code into header (.h) file - type definitions, for
 ```
 
 **How to compile**
+
 1.
 ```bash
 g++ *.cc
 #only works if  all files in pwd are part of the project
 ```
 NOTE: .h files are meant to be included **NEVER **compiled 
+
 2. List all the files
 ```cpp
 g++ vec.cc main.cc
@@ -95,18 +97,19 @@ g++ main.o vec.o
 ```
 
 -c produces .o files (object files)
-    -contain compiled binary code
-    -also contain what is needed
-    -To merge run  g++ <all your files>
+    - contain compiled binary code
+    - also contain what is needed
+    - To merge run  g++ all your files
     
-**NOTE: -o <filename> outputs the executable with the filename**
+**NOTE: -o filename outputs the executable with the filename**
 
 The Problem: keeping track of which file(s) need to be recompiled.
     -Tool: Make
     
 Create a Makefile
-    -contains the layout of your program
-    -conatins dependencies between files
+    - contains the layout of your program
+    - conatins dependencies between files
+
 myprog depends on main. and vec.o
 vec.o depends on vec.cc & vec.h
 main.o depends on main.cc & vec.h
@@ -133,7 +136,7 @@ Now timestamp on vec.o is newer than myprog
     =>recompile myprog
 
 The clean target enables you to delete all binaries to start fresh.
-    .phony tells make that "clean" is ont a file
+    .phony tells make that "clean" is not a file
 
 NOTE: make/example2 => use arguments to generalize the makefile
 
@@ -142,7 +145,7 @@ For a rule of the form
 x.o: x.cc a.h b.h
 ```
     
-We can leave ut the compile command make wil infer
+We can leave out the compile command make will infer
 ```makefile
 ${CXX}, ${CXXFLAGS}, -c x.c
 ```
