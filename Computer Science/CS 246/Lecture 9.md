@@ -12,7 +12,7 @@ Last Time:
 #lecture/seperate/example3
 
 lectures/seperate/example4 includes Include Guard
-
+```
 
 1. All .h files should have an include guard
 2. Never compile .h files
@@ -21,7 +21,7 @@ lectures/seperate/example4 includes Include Guard
 Never put "using namespace std;" in header files.
 In a header, file refer to std::string, std::istream & std::ostream etc. with their full names.
 
-<b>C++ Classes</b>
+**C++ Classes**
 Big OO Inovation: we can put functions inside a struct 
 
 ```cpp
@@ -44,11 +44,11 @@ float Student::grade(){
 float Student::grade(){  
   return this->assns*0.4 + this->mt*0.2 + this->final*0.4;
 }
-```
+
 
 Student billy{80, 50, 75};
 cout<<billy.grade()<<endl;
-
+```
 
 :: is called the **scope resolution operator**.
 
