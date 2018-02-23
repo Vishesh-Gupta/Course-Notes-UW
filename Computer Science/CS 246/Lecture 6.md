@@ -26,10 +26,10 @@ int main() {
 ```
 
 file is opened during intialization
+
 Q. When is it closed?
 
-Ans. We will look into it 5 weeks from now approximately
-closed when the filestream variable goes out of scope, that means the function is done in this case.
+Ans. We will look into it 5 weeks from now approximately. It is closed when the filestream variable goes out of scope, that means the function is done in this case.
 
 C++ parameters for appending are available and other properties
 
@@ -113,7 +113,7 @@ foo("World");
 
 Q. Can functions have the same name?
 
-Ans.NO in C, but YES in C++ and it is known as **Function Overloading** or **Overloading**
+Ans. NO in C, but YES in C++ and it is known as **Function Overloading** or **Overloading**
 
 **Function Overloading**
 C++ allows writing functions with the same name as long as the number and types of parameters have some difference. Cant just be different return types
@@ -128,7 +128,8 @@ bool neg(bool b){
 }
 ```
 
-Can I implement void foo(int x){}?
+Q. Can I implement void foo(int x){}?
+
 Ans. Suppose you are allowed to do this then foo(10) is considered an ambiguos grammar.
 
 ```cpp
@@ -208,23 +209,24 @@ int * const p = x;
 *p = 5 or z = 5 //(NOT *Z = 5)
 ```
 
-A L-Value reference is like a constant tr with automatic dereferencing
+A L-Value reference is like a constant ptr with automatic dereferencing
 At x =10
 z points to x.
 p points to 10
 
-To reead more about it read about Aliision (I suppose thats what he called it)
-If you take the address of z, upi get the adress of x. Z itself has no identity, and is only a name for x.
+To read more about it read about Alission (I suppose thats what he called it)
+If you take the address of z, you get the address of x. Z itself has no identity, and is only a name for x.
 
 **Restrictions on referencing **
-References must be initialized. You cannot say int &z; 
-Refernences must be initialized to a lvalue.
+
+References must be initialized. You cannot say int &z;.References must be initialized to a lvalue.
     - a lvalue represents a storage location (on address)
         int &z = x;
         int &z = y+y; // the expression does not have an address.
-Cannot create ptrs to references
-Cannot create a reference to a reference.
-Cannot create an array of references.
+
+    - Cannot create ptrs to references
+    - Cannot create a reference to a reference.
+    - Cannot create an array of references.
 
 ```cpp
 void inc(int &n) {
