@@ -29,7 +29,7 @@ To avoid the copy, in C we would pass a pointer to b
 ```cpp
 void g(reallyBig &rb){}          //rb is another name for b
 g(b);                            //avoids the copy
-void h(const reallyBig &rb){}    //avid the copy
+void h(const reallyBig &rb){}    //avoids the copy
 h(b);                            //rb cannot change the values within b
 ```
 rb is a const reference (Technically it is not a correct term), whereas the correct way of reading is rb is a reference to a const.
@@ -49,6 +49,7 @@ bar(y+y);
 C++ allows initialization of a reference to const from a value that is not an lvalue.
 
 **Dynamic Memory Allocation (Heap Allocation)**
+
 In C, 
 ```c
 int *p = malloc(...);
@@ -83,7 +84,7 @@ Node *np = new Node;
 
 When n and np go out of scope, the memory for these is reclaimed. The heap value continues to live on.
 
-Forgetting to deallocate heap memory causes **memory leaks. **Memory leaks are bad and earns you 0 marks on marmoset  if you leak 1 byte of memory.
+Forgetting to deallocate heap memory causes **memory leaks. **Memory leaks are bad and earns you 0 marks on marmoset if you leak even 1 byte of memory.
 
 
 **Allocating heap arrays**
@@ -97,7 +98,7 @@ delete [] narr;            //why we need [] is talked about in last week of CS 2
 
 **Returning Values**
 ```cpp
-Node getMeANode(){
+Node getMeANode() {
     Node n;
     return n;
 }
@@ -115,7 +116,7 @@ Node *getMeANode(){
 */
 ------- DONT DO IT -----
 ```
-The pointer is called a dangling pointer becuase the pointer is pointing to memory no longer yours to access.
+The pointer is called a **dangling pointer** becuase the pointer is pointing to memory no longer yours to access.
 
 Never return a pointer or a reference to a stack allocated memory (*). Will talk more in detail.
 
@@ -129,7 +130,7 @@ Node *getMeANode() {
 
 
 **Operator Overloading**
-C++ allpws giving meaning to C++ operators for types we have created.
+C++ allows giving meaning to C++ operators for types we have created.
 
 ```cpp
 struct Vec {
@@ -186,6 +187,7 @@ std::istream &operator>>(std::istream &in, Grade &y){
 ```
 
 **The Preprocessor**
+
 A program that runs before the compiler actually sees your code.
     - Changes your code
     
@@ -200,6 +202,7 @@ g++ -E -P file.cc
 ```
 
 **Define Directive**
+
 `#define VAR VALUE`
 
 Searches and replaces VAR with VALUE
