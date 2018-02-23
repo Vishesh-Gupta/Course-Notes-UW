@@ -28,8 +28,9 @@ When you include iostream you are importing 3 global variables
 std::cout      (type ostream)
 - used to write to std out
 - use the "output operator": << eg. `cout << "Bla"` 
- std::cin        (type istream)
--  used to read fro std input
+
+std::cin       (type istream)
+-  used to read from std input
 - use the input operator: >> eg. `cin>>x;`
 
 std::cerr    (type ostream)
@@ -53,13 +54,14 @@ The input read at the start and ends at the first whitespace. Std input ignores 
 If the first read fails then subsequent read fails too
 
 CTRL + D is EOF
+
 CTRL + C is Kill Process
 
 
 cin>>x>>y  is waiting to read in two ints, ignoring whitespace
 - if a read fails, the program keeps going with alll subsequent reads automatically failing.
-- after a read we should check whether it succeeded
-- after a read the expression `cin.fail()` will be true if the read failed.
+- after a read we, should check whether it succeeded
+- after a read the, expression `cin.fail()` will be true if the read failed.
 - if a read fails because of EOF, then the expressions `cin.fail()` & `cin.eof()` are both true.
 
 eg. Read all ints from stdin & echo them to stdout one per line. Stop if read fails.
@@ -82,7 +84,7 @@ int main() {
 C++ defines an automatic conversion between istream (e.g. cin) & bool and will convert it to boolean.
 cin is true if the last read did not fail.
 
-In C, `int a = 21;` , we can write a>>3; This is called Right bit shift. Ai represented in binary in memory and then we say move the bits three times to the right whereas << is the left bit shift.
+In C, `int a = 21;` , we can write a>>3; This is called Right bit shift. A is represented in binary in memory and then we say move the bits three times to the right whereas << is the left bit shift.
 
 cin>>i;
 
@@ -119,9 +121,12 @@ Cascading
 
 Lookup how you can ignore all of hello in one go.
 
-We have a string type in C++ (What no clappings, you do not feel the power of string type - Nomair)
+We have a string type in C++.
+
+(What no clappings, you do not feel the power of string type - Nomair)
 
 **C++ Strings**
+
 In C, strings were simulated using null terminated character arrays .
 - error prone
 - memory management
@@ -133,12 +138,12 @@ C Strings are automatically converted to c++ strings but reverse is not true..
 
 Lookup std::string for more information.
 
-Function | C | C++
-equality  | strcmp | ==
-inequality| strcmp | !=, <, >
-length | strlen | str.length()
-concatenation | strcat(s1,s2) | +
-Individual elements | s[0],... | s[0], ...
+| Function | C | C++ |
+| equality  | strcmp | == |
+| inequality| strcmp | !=, <, > |
+| length | strlen | str.length() |
+| concatenation | strcat(s1,s2) | + |
+| Individual elements | s[0],... | s[0], ... |
 
 
 ```cpp
@@ -153,8 +158,11 @@ int main () {
 ```
   
 **Format Specifiers**
+
 %d - int
+
 %s - char *
+
 %x - int in hexadecimal
   
 In C++, we can use I/O Manipulators to do the same.
@@ -163,10 +171,11 @@ eg.
 int i = 95
 cout<<i; //prints 95 in decimal
 cout<<hex<<i; //prints 95 in hex
-cout<<dec<<;
+cout<<dec<<i;
 ```
 
 Side Effect: The internal stage is changed
+
 We call hex, dec a sticky manipulator
 
 Lookup more of these in iomanip header file
@@ -179,7 +188,10 @@ getline(cin, s) // read into s everything untill a newline is encountered
 The stream abstraction can be used to read write from other sources of data. 
 
 #include <fstream>
+
 if stream - input file stream
+
 of stream - output file stream
+
 Absolutely no difference
 

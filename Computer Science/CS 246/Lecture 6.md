@@ -25,15 +25,18 @@ int main() {
 }
 ```
 
-file is opened during intiialization
-when is it closed? We will look into it 5 weeks from ow approximately
-closed when the filestream variable goes out of scope, that means the function is done in this case.
+file is opened during intialization
+
+Q. When is it closed?
+
+Ans. We will look into it 5 weeks from now approximately. It is closed when the filestream variable goes out of scope, that means the function is done in this case.
 
 C++ parameters for appending are available and other properties
 
 Anything that we can do with an istream(ostream) variable  (cin) we can do with an ifstream(ofstream) variable.
 
- Another interesting thing is to attach streams to strigns to read/write
+Another interesting thing is to attach streams to strings to read/write
+
 ```cpp
 #include <sstream>
 ```
@@ -70,7 +73,7 @@ This is a preferred way of doing so.
 
 Compare readInts5.cc vs. readIntsSS.cc
 
-(Not for marks:)Homeowork: Run the two programs and give the input hello123abc45
+(Not for marks:)Homework: Run the two programs and give the input hello123abc45
 
 **Default Arguments in functions (C++)**
 ```cpp
@@ -88,7 +91,7 @@ printFile("other.txt"); //works if we want to call another file
 printFile();            //will automatically take in default arguments
 ```
 
-Default args. must a;ways appear at last/
+Default args. must always appear at last
 ```cpp
 void test(int x =5, string str){} //is a mistake and will not compile. 
 ```
@@ -105,13 +108,15 @@ foo(10);
 foo();
 //All the above three are legal 
 foo("World");
-//The last one doesn't wokr either
+//The last one doesn't work either
 ```
 
-Can functions have the same name? NO in C, but YES in C++ and it is known as **Function Overloading **or **Overloading**
+Q. Can functions have the same name?
+
+Ans. NO in C, but YES in C++ and it is known as **Function Overloading** or **Overloading**
 
 **Function Overloading**
-C++ allows writing functions with the same name as long as the number and types of parameters have some difference. Cant just be different return types)
+C++ allows writing functions with the same name as long as the number and types of parameters have some difference. Cant just be different return types
 
 ```cpp
 int neg(int x){
@@ -123,7 +128,8 @@ bool neg(bool b){
 }
 ```
 
-Can I implement void foo(int x){}?
+Q. Can I implement void foo(int x){}?
+
 Ans. Suppose you are allowed to do this then foo(10) is considered an ambiguos grammar.
 
 ```cpp
@@ -145,7 +151,7 @@ So start from right and move left.
 int n = 5;
 const int *p = &n;
 p=&x; //is perfectly fine
-*p = 10; //illegla
+*p = 10; //illegal
 n = 10
 
 int * const p = &n;
@@ -203,23 +209,24 @@ int * const p = x;
 *p = 5 or z = 5 //(NOT *Z = 5)
 ```
 
-A L-Value reference is like a constant tr with automatic dereferencing
+A L-Value reference is like a constant ptr with automatic dereferencing
 At x =10
 z points to x.
 p points to 10
 
-To reead more about it read about Aliision (I suppose thats what he called it)
-If you take the address of z, upi get the adress of x. Z itself has no identity, and is only a name for x.
+To read more about it read about Alission (I suppose thats what he called it)
+If you take the address of z, you get the address of x. Z itself has no identity, and is only a name for x.
 
 **Restrictions on referencing **
-References must be initialized. You cannot say int &z; 
-Refernences must be initialized to a lvalue.
+
+References must be initialized. You cannot say int &z;.References must be initialized to a lvalue.
     - a lvalue represents a storage location (on address)
         int &z = x;
         int &z = y+y; // the expression does not have an address.
-Cannot create ptrs to references
-Cannot create a reference to a reference.
-Cannot create an array of references.
+
+    - Cannot create ptrs to references
+    - Cannot create a reference to a reference.
+    - Cannot create an array of references.
 
 ```cpp
 void inc(int &n) {
