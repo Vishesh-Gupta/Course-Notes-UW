@@ -6,7 +6,7 @@ February 01, 2018
 
 Last Time: 
 
-**Seperate Compiations**
+**Seperate Compilations**
 
 ```bash
 #lecture/seperate/example3
@@ -44,6 +44,7 @@ float Student::grade(){
 float Student::grade(){  
   return this->assns*0.4 + this->mt*0.2 + this->final*0.4;
 }
+```
 
 Student billy{80, 50, 75};
 cout<<billy.grade()<<endl;
