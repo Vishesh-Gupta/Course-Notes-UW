@@ -25,15 +25,18 @@ int main() {
 }
 ```
 
-file is opened during intiialization
-when is it closed? We will look into it 5 weeks from ow approximately
+file is opened during intialization
+Q. When is it closed?
+
+Ans. We will look into it 5 weeks from now approximately
 closed when the filestream variable goes out of scope, that means the function is done in this case.
 
 C++ parameters for appending are available and other properties
 
 Anything that we can do with an istream(ostream) variable  (cin) we can do with an ifstream(ofstream) variable.
 
- Another interesting thing is to attach streams to strigns to read/write
+Another interesting thing is to attach streams to strings to read/write
+
 ```cpp
 #include <sstream>
 ```
@@ -70,7 +73,7 @@ This is a preferred way of doing so.
 
 Compare readInts5.cc vs. readIntsSS.cc
 
-(Not for marks:)Homeowork: Run the two programs and give the input hello123abc45
+(Not for marks:)Homework: Run the two programs and give the input hello123abc45
 
 **Default Arguments in functions (C++)**
 ```cpp
@@ -88,7 +91,7 @@ printFile("other.txt"); //works if we want to call another file
 printFile();            //will automatically take in default arguments
 ```
 
-Default args. must a;ways appear at last/
+Default args. must always appear at last
 ```cpp
 void test(int x =5, string str){} //is a mistake and will not compile. 
 ```
@@ -105,13 +108,15 @@ foo(10);
 foo();
 //All the above three are legal 
 foo("World");
-//The last one doesn't wokr either
+//The last one doesn't work either
 ```
 
-Can functions have the same name? NO in C, but YES in C++ and it is known as **Function Overloading **or **Overloading**
+Q. Can functions have the same name?
+
+Ans.NO in C, but YES in C++ and it is known as **Function Overloading** or **Overloading**
 
 **Function Overloading**
-C++ allows writing functions with the same name as long as the number and types of parameters have some difference. Cant just be different return types)
+C++ allows writing functions with the same name as long as the number and types of parameters have some difference. Cant just be different return types
 
 ```cpp
 int neg(int x){
@@ -145,7 +150,7 @@ So start from right and move left.
 int n = 5;
 const int *p = &n;
 p=&x; //is perfectly fine
-*p = 10; //illegla
+*p = 10; //illegal
 n = 10
 
 int * const p = &n;
