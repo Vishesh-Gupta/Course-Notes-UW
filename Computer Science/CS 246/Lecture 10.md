@@ -24,7 +24,7 @@ Where the int outside of {} is the field and the snippet inside the {} is value.
 Student billy{80, 50, 75};
 Student bobby{billy}; //or Student bobby = billy;
 ```
-Objects are copied by callung the Copy Constructor
+Objects are copied by calling the Copy Constructor
 
 You get a copy ctor for free.
 
@@ -89,9 +89,9 @@ Node::Node(const Node &other) : data{other.data}, next{other.next ? new Node{oth
 ```
 
 A copy ctor is used 
-    1. to create a copy of an object
-    2. when passing an argument by value
-    3. when returning by value
+1. to create a copy of an object
+2. when passing an argument by value    
+3. when returning by value
     
 #2 says when passing an argument by value, the parameter of the copy ctor must be passed by reference
 
