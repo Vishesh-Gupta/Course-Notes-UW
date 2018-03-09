@@ -119,7 +119,7 @@ To disable automatic conversions, use the keyword explicit.
 
 ```cpp
 struct Node {
-    explicit Node(itn data);
+    explicit Node(int data);
 }
 
 Node n = 4;
