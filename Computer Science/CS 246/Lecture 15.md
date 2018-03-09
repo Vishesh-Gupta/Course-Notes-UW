@@ -165,3 +165,5 @@ class Z : public Y {}     //won't compile
 {C++ gotta love it}
 
 final and override at certain places are keywords
+
+![Virtual Class UML](/L15-2.mdj)
