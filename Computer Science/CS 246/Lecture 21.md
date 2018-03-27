@@ -87,6 +87,56 @@ The unique_ptr object can be treated exactly like the ptr to the heap object.
 #include <memory>
 
 void f() {
-	std::unique_ptr<MyClass> p{new MyClass};	//auto p = std::make_unique<MyClass>(<args to my class ctor(if any)>); (Recommended) 
+	std::unique_ptr<MyClass> p{new MyClass};  //auto p = std::make_unique<MyClass>(<args to my class ctor(if any)>); (Recommended) 
+	MyClass mc;
+	g();
 }
 ```
+
+```cpp
+unique_ptr<c> p{new c}; //auto p = std::make_unique<c>();
+unique_ptr<c> q = p;	//copy ctor
+```
+
+Copying operations are disabled for unique_ptr. Move still works (Stealing still is acceptable in C++ society).
+
+```cpp
+template <typename T> class unique_ptr {
+		T *ptr;
+	public:
+		unique_ptr(T *p) : ptr{p} {};
+		~unique_ptr() {
+			delete ptr;
+		}
+		unique_ptr(const unique_ptr<T> &other) = delete;	//copy ctor
+		unique_ptr<T> &operator=(const unique_ptr<T> &other) = delete;	//copy assignment operator
+		unique_ptr<T>(const unique_ptr<T> &&other) : ptr{other.ptr} {
+			other.ptr = nullptr;
+		}			//move operator
+		unique_ptr<T> &operator=(const unique_ptr<T> &&other) :  {
+			using std::swap;
+			swap(ptr, other.ptr);
+			return *this;
+		}
+
+}
+T &operator*() {return *ptr;}
+T *operator->() {return ptr;}
+```
+
+```cpp
+	std::shared_ptr
+	void f() {
+		auto p1 = make_shared<c>();
+		if() {
+			auto p2 = p1;	//copy ctor, both p1 and p2 are point to same heap object. Sharing it
+			...
+		}//p2 goes out of scope, dtor p2 runs
+		...
+		...
+	}//p1 goes out of scope, dtor p1 runs, heap obj deallocated
+```	
+
+shared pointers use reference counting to keep track of how many ptrs point to the same object.
+
+
