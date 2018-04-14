@@ -1,0 +1,224 @@
+\chapter{Lecture 13: Iterator Pattern, Friends and Static Members}
+\begin{center}
+\textit{February 15, 2018}
+\end{center}
+
+The encapsulated \code{List} has $\Theta(n^2)$ traversal time. We want to bring it
+back down to $\Theta(n)$ without exposing the Node class.
+
+\section{Design Patterns}
+\begin{definition}
+A \textbf{design pattern} is a commonly occurring, well-tested solution to a
+recurring design problem: ``if you have \emph{this} situation, then \emph{this}
+technique may help''.
+\end{definition}
+
+\section{The Iterator Pattern}
+We need to keep track of how much of the list we have already traversed,
+without exposing Nodes. Create an \code{Iterator} class, which is given access
+to the nodes. It
+\begin{itemize}
+  \item keeps track of where we are in the traversal, and
+  \item acts like a pointer into the list.
+\end{itemize}
+
+Inspiration --- walking an array with a pointer:
+\begin{lstlisting}[style=cpp]
+for (int *p = array; p != array + arraySize; ++p) {
+    ... *p ...
+}
+\end{lstlisting}
+So the iterator should support \code{!=}, unary prefix \code{++}, and unary
+\code{*}. We also need a way to create an iterator at the start, and a way to
+tell that we have reached the end.
+
+\begin{lstlisting}[style=cpp]
+class List {
+    struct Node;
+    Node *theList = nullptr;
+  public:
+    class Iterator {
+        Node *curr;
+      public:
+        explicit Iterator(Node *curr) : curr{curr} {}
+        int &operator*() const { return curr->data; }
+        Iterator &operator++() {          // prefix ++
+            curr = curr->next;
+            return *this;
+        }
+        bool operator!=(const Iterator &other) const {
+            return curr != other.curr;
+        }
+    };  // end of Iterator
+
+    Iterator begin() { return Iterator{theList}; }
+    Iterator end() { return Iterator{nullptr}; }
+    void addToFront(int n);
+    ...
+};  // end of List
+\end{lstlisting}
+(The methods of \code{Iterator} touch \code{curr->data}, so in practice they
+are defined in \code{list.cc}, after \code{List::Node} is defined.)
+
+\begin{lstlisting}[style=cpp]
+List l;
+l.addToFront(1);
+l.addToFront(2);
+l.addToFront(3);
+for (List::Iterator it = l.begin(); it != l.end(); ++it) {
+    cout << *it << endl;     // prints 3, 2, 1 -- in Theta(n) total
+}
+\end{lstlisting}
+
+\subsection{\code{auto}}
+As of C++11, \code{auto x = y;} declares \code{x} with the same type as
+\code{y} (automatic type deduction). So the loop header can be
+\code{for (auto it = l.begin(); it != l.end(); ++it)}.
+
+\subsection{Range-Based For Loops}
+C++11 has built-in support for the Iterator pattern:
+\begin{lstlisting}[style=cpp]
+for (auto n : l) {        // n is a copy of each element (type of *it)
+    cout << n << endl;
+}
+for (auto &n : l) {       // n is a reference: we can modify the list
+    n += 1;
+}
+\end{lstlisting}
+This works for any class \code{C} such that
+\begin{enumerate}
+  \item \code{C} has methods \code{begin()} and \code{end()} that return objects
+        of some class \code{D}, and
+  \item \code{D} has \code{operator*}, prefix \code{operator++} and
+        \code{operator!=}.
+\end{enumerate}
+The range-based for loop is just syntactic sugar for the explicit loop above;
+it makes the programmer's job easier.
+
+\section{Friends}
+We want client code to get iterators only through \code{begin()} and
+\code{end()} (otherwise a client could do \code{List::Iterator\{nullptr\}} or
+worse). So the Iterator ctor should be private. But then \code{List} itself
+could not call it either.
+
+The \code{Iterator} class can grant its private members to \code{List} by
+declaring \code{List} a \textbf{friend}:
+\begin{lstlisting}[style=cpp]
+class List {
+    struct Node;
+    Node *theList = nullptr;
+  public:
+    class Iterator {
+        Node *curr;
+        explicit Iterator(Node *curr) : curr{curr} {}  // now private
+      public:
+        int &operator*() const;     // by reference: clients can read/write
+        Iterator &operator++();     // returns Iterator&: ++ is an update
+        bool operator!=(const Iterator &other) const;
+        friend class List;          // List may call the private ctor
+    };
+    Iterator begin() { return Iterator{theList}; }
+    Iterator end() { return Iterator{nullptr}; }
+    ...
+};
+\end{lstlisting}
+
+\begin{important}[Friendship]
+Friendship breaks encapsulation: a friend can touch all private members. Have
+as few friends as possible.
+\end{important}
+
+\section{Accessors and Mutators}
+\begin{important}[Advice]
+Keep fields private.
+\end{important}
+To provide controlled read/write access, use \textbf{accessors} (getters) and
+\textbf{mutators} (setters). A mutator can enforce invariants.
+\begin{lstlisting}[style=cpp]
+class Vec {
+    int x, y;
+  public:
+    int getX() const { return x; }
+    int getY() const { return y; }
+    void setX(int v) { x = v; }
+    void setY(int v) { y = v; }
+};
+\end{lstlisting}
+
+\subsection{I/O Operators and Friends}
+I/O operators are standalone functions, so they can't see private fields. If
+there are no suitable accessors, we can make the function a friend:
+\begin{lstlisting}[style=cpp]
+class Vec {
+    int x, y;
+  public:
+    ...
+    friend std::ostream &operator<<(std::ostream &out, const Vec &v);
+};
+
+std::ostream &operator<<(std::ostream &out, const Vec &v) {
+    out << v.x << " " << v.y;
+    return out;
+}
+\end{lstlisting}
+Note that this does \emph{not} make \code{operator<<} a method; it is still a
+standalone function, just one with access to Vec's privates.
+
+\section{Static Fields and Static Methods}
+\begin{definition}
+A \textbf{static field} is associated with the class itself, not with
+individual objects. Think of it as a per-class global variable: there is exactly
+one copy, shared by all objects.
+\end{definition}
+\begin{lstlisting}[style=cpp]
+// student.h
+struct Student {
+    static int objCount;
+    int assns, mt, final;
+    Student(int assns, int mt, int final)
+        : assns{assns}, mt{mt}, final{final} {
+        ++objCount;
+    }
+};
+\end{lstlisting}
+\begin{important}[C++ rule]
+A static field must be \emph{defined} outside the class, in exactly one
+\code{.cc} file:
+\begin{lstlisting}[style=cpp]
+// student.cc
+int Student::objCount = 0;
+\end{lstlisting}
+\end{important}
+
+\subsection{Static Member Functions}
+\begin{itemize}
+  \item A static member function is associated with the class, not an object.
+  \item It does not need an object to be called on, and so it has no
+        \code{this} pointer.
+  \item Consequently it can only access static fields and call other static
+        member functions.
+\end{itemize}
+\begin{lstlisting}[style=cpp]
+struct Student {
+    static int objCount;
+    static void printObjCount() {
+        cout << objCount << endl;
+    }
+    ...
+};
+
+Student billy{60, 70, 80}, bobby{70, 80, 90};
+Student::printObjCount();   // outputs 2
+\end{lstlisting}
+
+\section*{Summary}
+\begin{itemize}
+  \item A design pattern is a reusable solution to a common design problem.
+  \item Iterator: a nested class that remembers a position and offers
+        \code{*}, \code{++}, \code{!=}; \code{begin()}/\code{end()} create
+        them; range-based for uses exactly this protocol.
+  \item \code{friend} grants access to private members; use sparingly.
+  \item Keep fields private; use accessors/mutators.
+  \item Static fields/methods belong to the class; define static fields in a
+        \code{.cc} file; static methods have no \code{this}.
+\end{itemize}

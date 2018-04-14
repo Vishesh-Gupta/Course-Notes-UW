@@ -1,0 +1,252 @@
+\chapter{Lecture 20: Visitor Continued, Compilation Dependencies and Pimpl}
+\begin{center}
+\textit{March 20, 2018}
+\end{center}
+
+\begin{aside}
+The original notes for this lecture are missing; this chapter reconstructs it
+from the course order (Visitor in Lecture 19, exception safety in Lecture 21)
+and the standard CS 246 sequence of that term.
+\end{aside}
+
+\section{Visitor Recap}
+Last time: double dispatch.
+\begin{lstlisting}[style=cpp]
+e->strike(*w);
+// 1. virtual Enemy::strike   -> chooses on the enemy's run-time type
+// 2. w.useOn(*this)          -> overload chosen by the static type of *this
+// 3. virtual Weapon::useOn   -> chooses on the weapon's run-time type
+\end{lstlisting}
+
+\section{Visitor, Second Use: Adding Operations to a Hierarchy}
+The Visitor pattern can also be used to add functionality to an existing class
+hierarchy \emph{without} adding new virtual methods to every class.
+
+Suppose we want to do something with our Book hierarchy that its designers did
+not anticipate --- e.g.\ build a catalogue: count Books by author, Texts by
+topic, Comics by hero. Each new operation would normally mean a new virtual
+method in \code{Book}, \code{Text} and \code{Comic}. Instead, add a single
+\code{accept} method once, and let \emph{visitors} supply the operations:
+\begin{lstlisting}[style=cpp]
+class BookVisitor {
+  public:
+    virtual void visit(Book &b) = 0;
+    virtual void visit(Text &t) = 0;
+    virtual void visit(Comic &c) = 0;
+    virtual ~BookVisitor() {}
+};
+
+class Book {
+  public:
+    virtual void accept(BookVisitor &v) { v.visit(*this); }
+    virtual ~Book() {}
+    ...
+};
+class Text : public Book {
+  public:
+    void accept(BookVisitor &v) override { v.visit(*this); }
+    ...
+};
+class Comic : public Book {
+  public:
+    void accept(BookVisitor &v) override { v.visit(*this); }
+    ...
+};
+\end{lstlisting}
+(\code{accept} plays the role of \code{strike}; \code{visit} plays the role of
+\code{useOn}.)
+
+A visitor that builds the catalogue:
+\begin{lstlisting}[style=cpp]
+class Catalogue : public BookVisitor {
+    std::map<std::string, int> theCatalogue;
+  public:
+    std::map<std::string, int> getCatalogue() const { return theCatalogue; }
+    void visit(Book &b) override { ++theCatalogue[b.getAuthor()]; }
+    void visit(Text &t) override { ++theCatalogue[t.getTopic()]; }
+    void visit(Comic &c) override { ++theCatalogue[c.getHero()]; }
+};
+
+std::vector<Book*> collection{...};
+Catalogue cat;
+for (auto b : collection) b->accept(cat);
+for (auto &p : cat.getCatalogue())
+    std::cout << p.first << ": " << p.second << std::endl;
+\end{lstlisting}
+Recall that \code{m[key]} inserts \code{0} for a missing key, so
+\code{++theCatalogue[...]} counts correctly from zero.
+
+Any further operation (e.g.\ total pages per category, printing a report) is
+just another \code{BookVisitor} subclass; \code{Book}, \code{Text} and
+\code{Comic} are untouched.
+
+\begin{important}[Trade-off of Visitor]
+Visitor makes it easy to add new \emph{operations}, but hard to add new
+\emph{classes} to the visited hierarchy: a new Book subclass requires a new
+\code{visit} overload in \code{BookVisitor} and in every visitor.
+\end{important}
+
+\section{Compilation Dependencies}
+Visitor creates a lot of mutual dependencies: \code{book.h} mentions
+\code{BookVisitor}, and \code{bookvisitor.h} mentions \code{Book}, \code{Text}
+and \code{Comic}. If each header \code{\#include}s the other we get an include
+cycle, and the include guards cause one of the files to see an undefined class.
+
+\paragraph{Q.} When do we need \code{\#include "a.h"}, and when does a
+\textbf{forward declaration} \code{class A;} suffice?
+
+The compiler needs the full definition of a class when it needs to know the
+class's \emph{size} or its \emph{members}:
+\begin{lstlisting}[style=cpp]
+// a.h
+class A { ... };
+
+// b.h
+#include "a.h"
+class B : public A { ... };      // inheritance: needs A's size and members
+
+// c.h
+#include "a.h"
+class C {
+    A myA;                       // a field of type A: needs A's size
+};
+
+// d.h
+class A;                         // forward declaration is enough
+class D {
+    A *myAp;                     // pointers all have the same size
+};
+
+// e.h
+class A;
+class E {
+    A f(A x);                    // only a declaration: no size needed yet
+};
+\end{lstlisting}
+In the implementation files, D and E will need the full definition of A
+(\code{d.cc} dereferences the pointer; \code{e.cc} actually passes and returns
+A's), so \code{d.cc} and \code{e.cc} \code{\#include "a.h"}.
+
+\begin{important}[Advice]
+Do not \code{\#include} a header when a forward declaration suffices. Prefer
+forward declarations in headers and includes in \code{.cc} files.
+\end{important}
+Why bother?
+\begin{itemize}
+  \item it breaks include cycles;
+  \item it reduces compilation dependencies: if \code{a.h} changes, only files
+        that really include it are recompiled (\code{make} with \code{-MMD}
+        follows the includes). Large projects can take hours to build, so this
+        matters.
+\end{itemize}
+
+\section{The Pimpl Idiom}
+Even a private field creates a compilation dependency:
+\begin{lstlisting}[style=cpp]
+// window.h
+#include <X11/Xlib.h>
+class XWindow {
+    Display *d;
+    Window w;
+    int s;
+    GC gc;
+    unsigned long colours[10];
+  public:
+    ...
+};
+\end{lstlisting}
+Every client that includes \code{window.h} also includes the whole X11 header,
+and must be recompiled whenever a \emph{private} field of \code{XWindow} is added
+or changed --- even though clients can't use those fields.
+
+\begin{definition}
+\textbf{Pimpl} (``pointer to implementation''): move all private fields into a
+separate implementation struct, defined only in the \code{.cc} file, and store
+only a pointer to it in the class.
+\end{definition}
+
+\begin{lstlisting}[style=cpp]
+// window.h
+struct XWindowImpl;              // forward declaration only
+class XWindow {
+    XWindowImpl *pImpl;
+  public:
+    XWindow();
+    ~XWindow();
+    ...                          // no change to the public interface
+};
+
+// windowimpl.h
+#include <X11/Xlib.h>
+struct XWindowImpl {
+    Display *d;
+    Window w;
+    int s;
+    GC gc;
+    unsigned long colours[10];
+};
+
+// window.cc
+#include "window.h"
+#include "windowimpl.h"
+XWindow::XWindow() : pImpl{new XWindowImpl} { ... }
+XWindow::~XWindow() { delete pImpl; }
+// other methods use pImpl->d, pImpl->w, ... instead of d, w, ...
+\end{lstlisting}
+Now clients include only \code{window.h}, which does not include X11. If the
+implementation struct changes, only \code{window.cc} is recompiled; clients just
+re-link. (Since the class now owns heap memory, the Rule of Five applies; with a
+smart pointer from Lecture~21, \code{std::unique\_ptr<XWindowImpl>}, most of it
+is automatic.)
+
+\section{The Bridge Pattern}
+Taking Pimpl further: if there are several possible window implementations
+(X11, a Windows API, a test stub), make the implementation struct a
+\emph{polymorphic class hierarchy}:
+\begin{lstlisting}[style=cpp]
+class WindowImpl {               // abstract implementation interface
+  public:
+    virtual void drawPixel(int x, int y, int colour) = 0;
+    virtual ~WindowImpl() {}
+};
+class XWindowImpl : public WindowImpl { ... };
+class MSWindowImpl : public WindowImpl { ... };
+
+class Window {                   // abstraction
+    WindowImpl *pImpl;           // chosen at construction time
+  public:
+    void fillRectangle(int x, int y, int w, int h, int colour);  // uses pImpl
+};
+\end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[cls/.style={draw, minimum width=22mm, minimum height=8mm,
+  font=\small}]
+\node[cls] (w) {Window};
+\node[cls, right=30mm of w] (wi) {\textit{WindowImpl}};
+\node[cls, below left=12mm and -8mm of wi] (x) {XWindowImpl};
+\node[cls, below right=12mm and -8mm of wi] (m) {MSWindowImpl};
+\draw[-{Diamond[fill=black,length=4mm,width=2.5mm]}] (wi) -- (w);
+\draw[-{Triangle[open,length=3mm,width=3mm]}] (x.north) -- (wi.south west);
+\draw[-{Triangle[open,length=3mm,width=3mm]}] (m.north) -- (wi.south east);
+\end{tikzpicture}
+\end{center}
+
+\begin{definition}
+\textbf{Bridge pattern}: separate an abstraction from its implementation so the
+two can vary independently --- new kinds of windows (subclassing
+\code{Window}) and new platforms (subclassing \code{WindowImpl}) can each be
+added without touching the other hierarchy.
+\end{definition}
+
+\section*{Summary}
+\begin{itemize}
+  \item Visitor also adds operations to a hierarchy: one \code{accept} per class,
+        one visitor class per operation. Easy to add operations, hard to add
+        classes.
+  \item Include a header only when you need a class's size or members; otherwise
+        forward-declare. This breaks cycles and speeds up rebuilds.
+  \item Pimpl hides private fields behind a pointer to an implementation struct,
+        so clients don't recompile when the implementation changes.
+  \item Bridge: Pimpl with a polymorphic implementation hierarchy.
+\end{itemize}

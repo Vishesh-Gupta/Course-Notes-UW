@@ -1,0 +1,253 @@
+\chapter{Lecture 16: Abstract Classes, Templates, Vectors and Exceptions}
+\begin{center}
+\textit{March 6, 2018}
+\end{center}
+
+\section{Pure Virtual Methods and Abstract Classes}
+\begin{lstlisting}[style=cpp]
+class Student {
+    ...
+  public:
+    virtual int fees() const = 0;    // pure virtual method
+    virtual ~Student() {}
+};
+
+class Regular : public Student {
+  public:
+    int fees() const override { ... }  // regular fees
+};
+
+class CoOp : public Student {
+  public:
+    int fees() const override { ... }  // co-op fees
+};
+\end{lstlisting}
+What should \code{Student::fees} do? There's no sensible answer: every student
+is either regular or co-op. So we don't implement it.
+
+\begin{definition}
+A \textbf{pure virtual method} (declared with \code{= 0}) is a method that need
+not have an implementation in its class. A class with at least one pure virtual
+method is an \textbf{abstract class}, and cannot be instantiated. A class that
+is not abstract is \textbf{concrete}.
+\end{definition}
+\begin{lstlisting}[style=cpp]
+Student s;                    // won't compile: Student is abstract
+Student *sp = new CoOp{...};  // fine
+\end{lstlisting}
+A subclass inherits all members, including pure virtual methods; so a subclass
+must implement \emph{all} inherited pure virtual methods to be concrete,
+otherwise it is abstract too.
+
+Uses of abstract classes:
+\begin{itemize}
+  \item organize subclasses;
+  \item hold the fields and methods common to all subclasses;
+  \item serve as the type of pointers/references, so polymorphism works: a
+        \code{Student*} points to either a Regular or a CoOp student (never to
+        a plain Student, since none can exist).
+\end{itemize}
+
+\subsection*{UML}
+In UML, virtual and pure virtual methods are written in \emph{italics}, and so
+are the names of abstract classes. Static members are \underline{underlined}.
+(Tools: StarUML, OmniGraffle, \dots)
+
+\section{Templates}
+\begin{lstlisting}[style=cpp]
+class Stack {
+    int size, cap;
+    int *contents;
+  public:
+    Stack();
+    void push(int x);
+    void pop();
+    int top() const;
+    ~Stack();
+};
+\end{lstlisting}
+This works only for \code{int}s. A stack of \code{string}s or of
+\code{Expression*}s would be the same code with a different type.
+
+\begin{definition}
+A \textbf{template class} is a class parameterized on one or more types.
+\end{definition}
+\begin{lstlisting}[style=cpp]
+template <typename T> class Stack {
+    int size, cap;
+    T *contents;
+  public:
+    Stack();
+    void push(T x);
+    void pop();
+    T top() const;
+    ~Stack();
+};
+
+Stack<int> sInts;           // template instantiation with T = int
+sInts.push(1);
+int x = sInts.top();
+
+Stack<Expression*> sExpr;
+sExpr.push(new BinExp{...});
+\end{lstlisting}
+The compiler takes the template and generates (stamps out) a separate copy of
+the class for each type it is used with, substituting the type for \code{T}.
+Because of this, the full template implementation must be visible where it is
+used: templates are written entirely in the header file.
+
+\subsection{A Template List with an Iterator}
+\begin{lstlisting}[style=cpp]
+template <typename T> class List {
+    struct Node {
+        T data;
+        Node *next;
+        Node(const T &data, Node *next) : data{data}, next{next} {}
+        ~Node() { delete next; }
+    };
+    Node *theList = nullptr;
+  public:
+    class Iterator {
+        Node *curr;
+        explicit Iterator(Node *curr) : curr{curr} {}
+      public:
+        T &operator*() const { return curr->data; }
+        Iterator &operator++() { curr = curr->next; return *this; }
+        bool operator!=(const Iterator &other) const {
+            return curr != other.curr;
+        }
+        friend class List<T>;
+    };
+    Iterator begin() { return Iterator{theList}; }
+    Iterator end() { return Iterator{nullptr}; }
+    void addToFront(const T &n) { theList = new Node{n, theList}; }
+    T &ith(int i);
+    ~List() { delete theList; }
+};
+\end{lstlisting}
+\begin{lstlisting}[style=cpp]
+List<int> l1;
+l1.addToFront(1);
+
+List<List<int>> l2;     // a list of lists of ints
+l2.addToFront(l1);      // (needs a correct copy ctor for List!)
+
+for (auto &m : l2) {
+    for (auto n : m) cout << n << endl;
+}
+\end{lstlisting}
+
+\section{The STL: Dynamic-Length Arrays}
+The \textbf{Standard Template Library} provides many template classes. The most
+useful is \code{std::vector}:
+\begin{itemize}
+  \item guaranteed to be implemented as an array (elements are contiguous);
+  \item automatically resizes as needed.
+\end{itemize}
+\begin{lstlisting}[style=cpp]
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> v{4, 5};   // [4, 5]; v is on the stack, its array on the heap
+    v.emplace_back(6);     // [4, 5, 6]
+    v.push_back(7);        // [4, 5, 6, 7]
+    vector<int> w(4, 5);   // round brackets: 4 elements, each 5: [5, 5, 5, 5]
+}
+\end{lstlisting}
+Note the difference between \code{\{4, 5\}} (the elements) and \code{(4, 5)}
+(count and value).
+
+Ways to loop over a vector:
+\begin{lstlisting}[style=cpp]
+for (size_t i = 0; i < v.size(); ++i) cout << v[i] << endl;  // operator[]
+
+for (vector<int>::iterator it = v.begin(); it != v.end(); ++it)
+    cout << *it << endl;
+
+for (auto n : v) cout << n << endl;
+
+for (vector<int>::reverse_iterator it = v.rbegin(); it != v.rend(); ++it)
+    cout << *it << endl;                     // backwards
+for (auto it = v.rbegin(); it != v.rend(); ++it) ...
+\end{lstlisting}
+Highly recommended: read the reference for \code{vector}.
+
+\begin{lstlisting}[style=cpp]
+v.pop_back();             // remove the last element
+v.erase(v.begin());       // remove the first element: O(n)
+v.erase(v.end() - 1);     // remove the last element
+\end{lstlisting}
+The STL makes heavy use of iterators. \code{vector::erase} takes an iterator,
+and returns an iterator to the element after the one just erased (iterators to
+erased or later elements are invalidated).
+
+\begin{important}[Assignment 4]
+A4 prohibits heap arrays (\code{new Abc[n]}): use \code{vector} instead. A vector
+manages its own memory, so classes using it need no Big Five.
+\end{important}
+
+\subsection{Checked and Unchecked Access}
+\code{v[i]} accesses the $i$th element \emph{unchecked}: the program does not
+check whether \code{i} is in bounds, and an out-of-bounds access is undefined
+behaviour. \code{v.at(i)} is \emph{checked} access (Java does checked access by
+default).
+
+\paragraph{Q.} What happens if the argument to \code{at} is out of range?
+
+\paragraph{A.} An exception is thrown (raised).
+
+\section{C++ Exceptions}
+\begin{lstlisting}[style=cpp]
+// client code
+vector<int> v;
+v.at(5);     // vector::at detects the error -- but it is the client
+             // who knows how to deal with it
+\end{lstlisting}
+
+\paragraph{Q.} How should \code{vector::at} report the error to the client?
+
+In C:
+\begin{itemize}
+  \item return an error value (e.g.\ $-1$) --- but every \code{int} might be a
+        legitimate element;
+  \item set a global error variable, e.g.\ \code{errno}.
+\end{itemize}
+Both are bad:
+\begin{itemize}
+  \item awkward to code with \code{if} statements after every call;
+  \item programmers are lazy, so errors go undetected.
+\end{itemize}
+\begin{quote}
+\textit{``You are to stop being lazy right off the bat.''}
+\end{quote}
+
+In C++, when an error condition occurs, the function \textbf{throws an
+exception}. Control immediately leaves the function and goes back up the call
+chain looking for a \emph{handler}. If nobody handles it, the program
+terminates. So the error can't be silently ignored.
+
+\begin{lstlisting}[style=cpp]
+#include <stdexcept>
+vector<int> v;
+try {
+    cout << v.at(10000) << endl;   // throws std::out_of_range
+    cout << "never printed" << endl;
+} catch (out_of_range &r) {
+    cerr << "Range error: " << r.what() << endl;
+}
+\end{lstlisting}
+\code{what()} returns a string describing the error. The details follow next
+lecture.
+
+\section*{Summary}
+\begin{itemize}
+  \item Pure virtual (\code{= 0}) methods make a class abstract; subclasses must
+        implement them all to be concrete.
+  \item Templates parameterize classes on types; they live in headers.
+  \item \code{std::vector}: a self-resizing array; iterate with indices,
+        iterators, range-for or reverse iterators; \code{erase} takes iterators.
+  \item \code{v[i]} is unchecked; \code{v.at(i)} throws \code{out\_of\_range}.
+  \item Exceptions replace error codes: they can't be ignored, and are caught
+        with \code{try}/\code{catch}.
+\end{itemize}

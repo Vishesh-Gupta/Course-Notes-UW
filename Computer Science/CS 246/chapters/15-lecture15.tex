@@ -1,0 +1,211 @@
+\chapter{Lecture 15: Method Overriding, Virtual Methods and Polymorphism}
+\begin{center}
+\textit{March 1, 2018}
+\end{center}
+
+\section{Overriding}
+We want to decide whether a book is heavy: a Book is heavy if it has more than
+200 pages, a Text if more than 500, a Comic if more than 30.
+
+\begin{lstlisting}[style=cpp]
+class Book {
+    ...
+    int numPages;
+  public:
+    int getNumPages() const { return numPages; }
+    bool isHeavy() const { return numPages > 200; }
+};
+
+class Comic : public Book {
+    ...
+  public:
+    bool isHeavy() const { return getNumPages() > 30; }   // overriding
+};
+// Text is similar, with 500.
+
+Book b{"title", "author", 50};
+cout << b.isHeavy();     // Book::isHeavy: false
+
+Comic c{"title", "author", 40, "hero"};
+cout << c.isHeavy();     // Comic::isHeavy: true
+
+Book b1 = Comic{"title", "author", 40, "hero"};   // compiles!
+cout << b1.isHeavy();    // Book::isHeavy runs: false
+\end{lstlisting}
+
+\begin{definition}
+\textbf{Method overriding}: a subclass replacing the implementation of an
+inherited method. (Not to be confused with \emph{overloading}: same name,
+different parameter lists.)
+\end{definition}
+
+\section{Object Slicing}
+In \code{Book b1 = Comic\{...\};}, \code{b1} is a Book: there is only enough
+space for a Book's fields. The Comic is copied using Book's copy ctor, and the
+\code{hero} field is chopped off. This is called \textbf{object slicing}
+(another professor calls it \emph{object coercion}). So \code{b1} really is a
+Book, and \code{Book::isHeavy} runs.
+
+Slicing does not occur if a subclass object is pointed to by a superclass
+pointer (or reference):
+\begin{lstlisting}[style=cpp]
+Comic c{"title", "author", 40, "hero"};
+Comic *cp{&c};
+cout << cp->isHeavy();   // Comic::isHeavy: true
+Book *bp{&c};            // fine: a Comic is-a Book
+cout << bp->isHeavy();   // Book::isHeavy runs: false!
+\end{lstlisting}
+The Comic object only acts like a Comic when a Comic pointer points to it. For
+non-virtual methods, the compiler looks at the \emph{declared} type of the
+pointer and decides at compile time which method to run.
+
+But most of the time this is not what we want:
+\begin{lstlisting}[style=cpp]
+Book *myCollection[100];
+...
+for (int i = 0; i < 100; ++i) {
+    cout << myCollection[i]->isHeavy() << endl;   // always Book::isHeavy
+}
+\end{lstlisting}
+We want the ``most specific'' \code{isHeavy} to run for each book.
+
+\section{Virtual Methods}
+\begin{lstlisting}[style=cpp]
+class Book {
+    ...
+  public:
+    virtual bool isHeavy() const { return numPages > 200; }
+};
+
+class Comic : public Book {        // same for Text
+    ...
+  public:
+    bool isHeavy() const override { return getNumPages() > 30; }
+};
+\end{lstlisting}
+The keyword \code{override} is optional, but recommended: if you make a mistake
+in the signature (e.g.\ forget the \code{const}), the method would silently be a
+new, unrelated method; with \code{override} it won't compile.
+
+\begin{lstlisting}[style=cpp]
+Comic c{"title", "author", 40, "hero"};
+Comic *cp{&c};
+Book *bp{&c};
+Book &rb{c};
+cout << cp->isHeavy();   // Comic::isHeavy
+cout << bp->isHeavy();   // Comic::isHeavy
+cout << rb.isHeavy();    // Comic::isHeavy
+\end{lstlisting}
+
+\begin{definition}
+For a \textbf{virtual} method, the method to call is chosen while the program
+is running, based on the \emph{run-time type} of the object, not the declared
+type of the pointer/reference. This is \textbf{dynamic dispatch}.
+\end{definition}
+\begin{itemize}
+  \item Dynamic dispatch has a (small) run-time cost (see the chapter on
+        vtables).
+  \item C++'s default is \textbf{static dispatch} (non-virtual): you don't pay
+        for what you don't use.
+\end{itemize}
+
+The run-time type is genuinely not known at compile time:
+\begin{lstlisting}[style=cpp]
+Book *bp;
+if (userSaysComic) bp = &c; else bp = &t;
+cout << bp->isHeavy();   // decided at run time
+
+Book *myBooks[100];      // store Books, Comics and Texts
+for (int i = 0; i < 100; ++i) {
+    cout << myBooks[i]->isHeavy() << endl;   // the right one for each
+}
+\end{lstlisting}
+\code{myBooks} is called a \emph{polymorphic array}.
+
+\begin{definition}
+\textbf{Polymorphism} (``many forms''): the ability of one variable/container to
+accommodate objects of multiple types.
+\end{definition}
+We have used it all along: in
+\begin{lstlisting}[style=cpp]
+ostream &operator<<(ostream &out, const Vec &v);
+\end{lstlisting}
+\code{out} is a polymorphic parameter: we can pass \code{cout}, an
+\code{ofstream}, or an \code{ostringstream}.
+\begin{lstlisting}[style=cpp]
+Vec v{1, 2};
+cout << v;
+ofstream file{"vec.txt"};
+file << v;               // same operator<<
+\end{lstlisting}
+
+\section{Destructors Revisited}
+Object destruction is the reverse of object construction. When a subclass
+object is destroyed:
+\begin{enumerate}
+  \item the subclass dtor body runs;
+  \item fields of the subclass that are objects are destroyed;
+  \item the superclass part is destroyed (the superclass dtor is called
+        automatically);
+  \item the space is released.
+\end{enumerate}
+
+\begin{lstlisting}[style=cpp]
+// c++/inheritance/example5
+class X {
+    int *x;
+  public:
+    X(int n) : x{new int[n]} {}
+    ~X() { delete [] x; }
+};
+
+class Y : public X {
+    int *y;
+  public:
+    Y(int n, int m) : X{n}, y{new int[m]} {}
+    ~Y() { delete [] y; }      // X's dtor is called automatically after
+};
+
+Y myY{10, 20};          // fine: ~Y then ~X at end of scope
+X *myX = new Y{10, 20}; // fine: a Y is-a X
+delete myX;             // calls ~X() only!
+\end{lstlisting}
+The dtor is non-virtual, so \code{delete myX} uses the declared type: only
+\code{\textasciitilde X} runs, and \code{y}'s array is leaked. Fix: make the base
+class dtor virtual (which makes all subclass dtors virtual too):
+\begin{lstlisting}[style=cpp]
+class X {
+    ...
+  public:
+    virtual ~X() { delete [] x; }
+};
+\end{lstlisting}
+
+\begin{important}[Rule]
+Always make the base class dtor virtual, even if its body is empty, if the
+class might ever have subclasses.
+\end{important}
+
+If a class should never be subclassed, declare it \code{final}:
+\begin{lstlisting}[style=cpp]
+class Y final : public X { ... };   // Y can't be subclassed
+class Z : public Y { ... };         // won't compile
+\end{lstlisting}
+\begin{quote}
+\textit{\{C++: gotta love it.\}} \code{final} and \code{override} are only
+keywords in these particular positions; you can still name a variable
+\code{override}.
+\end{quote}
+
+\section*{Summary}
+\begin{itemize}
+  \item Overriding replaces an inherited method's implementation.
+  \item Assigning a subclass object to a superclass \emph{object} slices it;
+        pointers and references don't slice.
+  \item Non-virtual methods use static dispatch (declared type); virtual methods
+        use dynamic dispatch (run-time type). Mark overrides with
+        \code{override}.
+  \item Polymorphism: one pointer/reference type, many object types.
+  \item Base class dtors must be virtual; use \code{final} to forbid
+        subclassing.
+\end{itemize}

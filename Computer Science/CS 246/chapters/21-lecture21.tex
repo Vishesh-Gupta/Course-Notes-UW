@@ -1,0 +1,205 @@
+\chapter{Lecture 21: Exception Safety, RAII and Smart Pointers}
+\begin{center}
+\textit{March 22, 2018}
+\end{center}
+
+\section{The Problem}
+\begin{lstlisting}[style=cpp]
+void f() {
+    MyClass *p = new MyClass;
+    MyClass mc;
+    g();
+    delete p;
+}
+\end{lstlisting}
+Suppose \code{g} itself does not leak memory. Still, if \code{g} throws an
+exception, \code{delete p} is never executed: \code{f} leaks memory.
+
+We want to write \textbf{exception-safe} code. (This does \emph{not} mean ``code
+that doesn't use exceptions''.) Exceptions are meant to be recovered from, so an
+exception should not leave behind
+\begin{itemize}
+  \item memory leaks,
+  \item dangling pointers,
+  \item broken class invariants.
+\end{itemize}
+
+\begin{important}[C++ guarantee]
+During stack unwinding, all stack-allocated objects are destroyed: their
+destructors run and their memory is reclaimed. Nothing is promised about heap
+memory.
+\end{important}
+So in \code{f}, \code{mc} is cleaned up, but the object \code{p} points to leaks.
+A pointer is just a value: destroying \code{p} does not (and should not, on its
+own) call \code{delete} on it.
+
+\section{Refactoring by Hand}
+\begin{lstlisting}[style=cpp]
+void f() {
+    MyClass *p = new MyClass;
+    try {
+        MyClass mc;
+        g();
+    } catch (...) {
+        delete p;
+        throw;          // re-throw: we only cleaned up
+    }
+    delete p;
+}
+\end{lstlisting}
+This is tedious and error-prone (note the duplicated cleanup, and imagine five
+pointers). We would like the ability to run some code no matter whether an
+exception occurred:
+\begin{itemize}
+  \item Java has \code{finally};
+  \item Scheme has \code{dynamic-wind}.
+\end{itemize}
+C++ has neither --- and doesn't need one, because of the guarantee above: the
+only code guaranteed to run during unwinding is the destructors of stack
+objects. So:
+\begin{enumerate}
+  \item maximize your use of the stack;
+  \item but what if you really do need the heap?
+\end{enumerate}
+
+\section{RAII}
+\begin{definition}
+\textbf{RAII} --- \emph{Resource Acquisition Is Initialization} (a C++ idiom
+named by Bjarne Stroustrup): every resource should be wrapped inside a
+stack-allocated object whose destructor's job is to release the resource.
+\end{definition}
+We have been using it since the second C++ lecture:
+\begin{lstlisting}[style=cpp]
+{
+    ifstream f{"hello.txt"};   // file is opened (acquired) at initialization
+    ...
+}                              // f's dtor runs: the file is closed (released)
+\end{lstlisting}
+The file is closed whether the block ends normally or by an exception.
+
+Heap memory is a resource! Idea: wrap the heap object inside a stack object,
+whose destructor deletes the heap object.
+
+\section{\code{std::unique\_ptr}}
+The standard library (\code{<memory>}) provides the template class
+\code{std::unique\_ptr<T>}:
+\begin{itemize}
+  \item its ctor takes a \code{T*};
+  \item its dtor calls \code{delete} on that pointer;
+  \item it overloads \code{*} and \code{->}, so it can be used exactly like
+        the raw pointer to the heap object.
+\end{itemize}
+\begin{lstlisting}[style=cpp]
+#include <memory>
+
+void f() {
+    std::unique_ptr<MyClass> p{new MyClass};
+    MyClass mc;
+    g();
+}   // no leak, whether or not g throws
+\end{lstlisting}
+Better: use \code{std::make\_unique}, which allocates the object and passes its
+arguments to the \code{MyClass} ctor:
+\begin{lstlisting}[style=cpp]
+auto p = std::make_unique<MyClass>(/* args to MyClass ctor, if any */);
+\end{lstlisting}
+
+What about copying?
+\begin{lstlisting}[style=cpp]
+unique_ptr<C> p{new C};      // or: auto p = make_unique<C>();
+unique_ptr<C> q = p;         // won't compile
+\end{lstlisting}
+If both \code{p} and \code{q} pointed to the object, it would be deleted twice.
+So copying is disabled for \code{unique\_ptr}; moving still works (stealing is
+still acceptable in C++ society):
+\begin{lstlisting}[style=cpp]
+unique_ptr<C> q = std::move(p);   // q owns the object; p is now null
+\end{lstlisting}
+
+\subsection{A Basic Implementation}
+\begin{lstlisting}[style=cpp]
+template <typename T> class unique_ptr {
+    T *ptr;
+  public:
+    explicit unique_ptr(T *p) : ptr{p} {}
+    ~unique_ptr() { delete ptr; }
+
+    unique_ptr(const unique_ptr &other) = delete;              // no copy ctor
+    unique_ptr &operator=(const unique_ptr &other) = delete;   // no copy assign
+
+    unique_ptr(unique_ptr &&other) : ptr{other.ptr} {          // move ctor
+        other.ptr = nullptr;
+    }
+    unique_ptr &operator=(unique_ptr &&other) {                // move assign
+        using std::swap;
+        swap(ptr, other.ptr);
+        return *this;
+    }
+
+    T &operator*() const { return *ptr; }
+    T *operator->() const { return ptr; }
+    T *get() const { return ptr; }
+};
+\end{lstlisting}
+\code{= delete} explicitly removes a function the compiler would otherwise
+provide for free. (Note the move operations take \code{unique\_ptr\&\&}, not
+\code{const unique\_ptr\&\&}: we must modify \code{other} to steal from it.)
+
+\subsection{Ownership}
+With smart pointers, the type of a pointer documents ownership:
+\begin{itemize}
+  \item \code{unique\_ptr<T>}: \textbf{owns} the object (responsible for deleting
+        it). Composition (owns-a) relationships use \code{unique\_ptr} fields ---
+        and then the class needs no hand-written destructor.
+  \item raw pointer \code{T*}: \textbf{does not own}, just observes.
+        Aggregation (has-a) relationships use raw pointers (or references). Get
+        one from a \code{unique\_ptr} with \code{p.get()}.
+  \item Never call \code{delete} on a raw pointer in a program that uses smart
+        pointers for ownership.
+\end{itemize}
+
+\section{\code{std::shared\_ptr}}
+Sometimes there is no single owner: several objects legitimately share one heap
+object, and it should be deleted when the \emph{last} of them is done with it.
+\begin{lstlisting}[style=cpp]
+void f() {
+    auto p1 = std::make_shared<C>();
+    if (...) {
+        auto p2 = p1;   // copy ctor: p1 and p2 point to the same heap object
+        ...
+    }                   // p2 goes out of scope: dtor runs, object NOT deleted
+    ...
+}                       // p1 goes out of scope: dtor runs, object deleted
+\end{lstlisting}
+Shared pointers use \textbf{reference counting}: a counter (stored on the heap
+next to the object) records how many \code{shared\_ptr}s point to the same
+object. Copying increments the count; destroying (or reassigning) a
+\code{shared\_ptr} decrements it; when the count reaches 0 the object is deleted.
+
+\begin{important}[Caveats]
+\begin{itemize}
+  \item Reference counting costs time and space; prefer \code{unique\_ptr} unless
+        ownership really is shared.
+  \item \textbf{Cycles}: if A holds a \code{shared\_ptr} to B and B holds a
+        \code{shared\_ptr} to A, neither count ever reaches 0 and both leak.
+        Break cycles by making one direction a non-owning pointer (raw pointer or
+        \code{std::weak\_ptr}, which observes without contributing to the count).
+  \item Never create two separate \code{shared\_ptr}s from the same raw pointer
+        (\code{shared\_ptr<C> a\{p\}, b\{p\};}): they keep separate counts and
+        both delete \code{p}. Use \code{make\_shared}, and copy the
+        \code{shared\_ptr} itself.
+\end{itemize}
+\end{important}
+
+\section*{Summary}
+\begin{itemize}
+  \item Exception safety: no leaks, dangling pointers or broken invariants when
+        an exception passes through.
+  \item C++ only guarantees that stack objects are destroyed during unwinding,
+        so wrap every resource in a stack object (RAII).
+  \item \code{unique\_ptr}: sole owner, move-only; create with
+        \code{make\_unique}.
+  \item \code{shared\_ptr}: shared ownership via reference counting; create with
+        \code{make\_shared}; beware cycles.
+  \item Raw pointers are for non-owning access.
+\end{itemize}

@@ -1,0 +1,242 @@
+\chapter{Lecture 7: Pass by Reference, Dynamic Memory, Operator Overloading}
+\begin{center}
+\textit{January 25, 2018}
+\end{center}
+
+\section{Recap: How \code{cin >> x} Works}
+\begin{lstlisting}[style=cpp]
+void inc(int &n) { n += 1; }
+int x = 5;
+inc(x);
+cout << x << endl;   // prints 6
+\end{lstlisting}
+\code{cin >> x} is really the function call \code{operator>>(cin, x)}, where
+\begin{lstlisting}[style=cpp]
+std::istream &operator>>(std::istream &in, int &data);
+\end{lstlisting}
+Both parameters are references: \code{data} so that the read can change
+\code{x}, and \code{in} because streams cannot be copied (and so that we return
+the same stream, enabling cascading).
+
+\section{Pass by Value vs.\ Pass by Reference}
+\begin{lstlisting}[style=cpp]
+struct ReallyBig { /* lots of fields */ };
+
+void f(ReallyBig rb) { ... }
+ReallyBig b;
+f(b);       // a copy of b is created for f: expensive
+\end{lstlisting}
+To avoid the copy, in C we would pass a pointer to \code{b}. That works in C++
+too, but references are nicer:
+\begin{lstlisting}[style=cpp]
+void g(ReallyBig &rb) { ... }        // rb is another name for b
+g(b);                                // no copy; but g could change b
+
+void h(const ReallyBig &rb) { ... }  // no copy, and
+h(b);                                // h cannot change b
+\end{lstlisting}
+People often call \code{rb} a ``const reference''. Technically the correct
+reading is that \code{rb} is a \emph{reference to const} (a reference itself can
+never be re-bound anyway).
+
+\begin{important}[Advice]
+Whenever possible, prefer to pass by reference to const for anything bigger
+than an \code{int}, unless the function needs to change the argument (pass by
+reference) or needs its own copy anyway (pass by value).
+\end{important}
+
+Another benefit of passing by reference to const:
+\begin{lstlisting}[style=cpp]
+void foo(int &x) { ... }
+foo(5);      // illegal: if foo did x = 10, that would mean 5 = 10
+foo(y + y);  // illegal: y + y is not an lvalue
+
+void bar(const int &x) { ... }
+bar(5);      // OK
+bar(y + y);  // OK
+\end{lstlisting}
+C++ allows a reference to const to be initialized from a value that is not an
+lvalue: the compiler creates a temporary to hold the value and binds the
+reference to it. Since \code{bar} promises not to change \code{x}, nobody can
+notice.
+
+\section{Dynamic Memory Allocation (Heap Allocation)}
+In C:
+\begin{lstlisting}[style=c]
+int *p = malloc(n * sizeof(int));
+...
+free(p);
+\end{lstlisting}
+This works in C++, but in CS 246 we do not use it. In C++ we use \code{new} and
+\code{delete}. \code{new} is type-aware: it knows the size of the type, and (as
+we'll see) it calls the constructor.
+\begin{lstlisting}[style=cpp]
+struct Node {
+    int data;
+    Node *next;
+};
+
+Node *np = new Node;   // no need to say how much space is needed
+...
+delete np;             // free memory you heap-allocated earlier
+\end{lstlisting}
+It is always safe to \code{delete nullptr} (it does nothing).
+
+\begin{lstlisting}[style=cpp]
+Node n;
+Node *np = new Node;
+\end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, minimum width=16mm, minimum height=7mm}]
+\node[font=\bfseries] at (0,1.2) {Stack};
+\node[font=\bfseries] at (5,1.2) {Heap};
+\node[box] (n) at (0,0.3) {\code{n}: Node};
+\node[box] (np) at (0,-0.6) {\code{np}};
+\node[box] (h) at (5,-0.6) {Node};
+\draw[-{Stealth}] (np.east) -- (h.west);
+\end{tikzpicture}
+\end{center}
+When \code{n} and \code{np} go out of scope, their stack memory is reclaimed.
+The heap Node continues to live on.
+
+\begin{important}[Memory leaks]
+Forgetting to deallocate heap memory causes a \textbf{memory leak}. Memory leaks
+are bad, and Marmoset tests run under \code{valgrind}: leaking even one byte gives
+you 0 on that test.
+\end{important}
+
+\subsection{Heap Arrays}
+\begin{lstlisting}[style=cpp]
+Node *narr = new Node[10];
+...
+delete [] narr;   // arrays must be freed with delete []
+\end{lstlisting}
+Memory allocated with \code{new} must be freed with \code{delete}; memory
+allocated with \code{new []} must be freed with \code{delete []}. Mixing them is
+undefined behaviour. (Why \code{[]} is needed is discussed at the end of CS 241:
+the runtime has to know how many destructors to run.)
+
+\section{Returning Values}
+\begin{lstlisting}[style=cpp]
+Node getMeANode() {
+    Node n;
+    return n;
+}
+\end{lstlisting}
+This returns by value, so (in principle) \code{n} is copied into the caller.
+That can be expensive --- we come back to this later in the course (move
+semantics and copy elision).
+
+\begin{lstlisting}[style=cpp]
+// ------- DON'T DO THIS -------
+Node *getMeANode() {
+    Node n;
+    return &n;     // n dies when the function returns!
+}
+\end{lstlisting}
+The returned pointer is a \textbf{dangling pointer}: it points to memory that is
+no longer yours to access.
+
+\begin{important}[Rule]
+Never return a pointer or a reference to stack-allocated (local) memory.
+\end{important}
+
+Returning a pointer to heap memory is fine (but now the caller is responsible for
+deleting it):
+\begin{lstlisting}[style=cpp]
+Node *getMeANode() {
+    Node *np = new Node;
+    return np;
+}
+\end{lstlisting}
+
+\section{Operator Overloading}
+C++ lets us give meaning to C++ operators for types we create.
+\begin{lstlisting}[style=cpp]
+struct Vec {
+    int x, y;
+};
+\end{lstlisting}
+In C we would write a function \code{Vec add(Vec v1, Vec v2);}. In C++:
+\begin{lstlisting}[style=cpp]
+Vec operator+(const Vec &v1, const Vec &v2) {
+    Vec v{v1.x + v2.x, v1.y + v2.y};
+    return v;
+}
+
+Vec operator*(const Vec &v, int k) {
+    return {v.x * k, v.y * k};   // the compiler knows to build a Vec
+}
+
+Vec operator*(int k, const Vec &v) {
+    return v * k;                // so k * v also works
+}
+
+Vec v1{1, 2}, v2{3, 4};
+Vec v3 = v1 + v2 * 2;            // {7, 10}: usual precedence applies
+\end{lstlisting}
+Each ordering of operands needs its own function: \code{v * k} and \code{k * v}
+are different calls.
+
+\subsection{Overloading the I/O Operators}
+\begin{lstlisting}[style=cpp]
+struct Grade {
+    int theGrade;
+};
+
+std::ostream &operator<<(std::ostream &out, const Grade &g) {
+    out << g.theGrade << '%';
+    return out;
+}
+
+std::istream &operator>>(std::istream &in, Grade &g) {
+    in >> g.theGrade;
+    if (g.theGrade < 0) g.theGrade = 0;
+    else if (g.theGrade > 100) g.theGrade = 100;
+    return in;
+}
+
+Grade g;
+cin >> g;               // reads an int, clamped to [0, 100]
+cout << g << endl;      // e.g. 85%
+\end{lstlisting}
+Returning the stream by reference is what makes \code{cout << g << endl} work.
+
+\section{The Preprocessor}
+The preprocessor is a program that runs \emph{before} the compiler sees your
+code; it transforms your source text. Lines starting with \code{\#} are
+\textbf{preprocessor directives}.
+\begin{itemize}
+  \item \code{\#include <file>}: copy and paste the contents of the header right
+        here. Angle brackets are for standard library headers.
+  \item \code{\#include "file.h"}: same, for your own headers (searched for in
+        the current directory first).
+\end{itemize}
+To see the output of the preprocessor:
+\begin{lstlisting}[style=bash]
+g++ -E -P file.cc
+\end{lstlisting}
+
+\subsection{The Define Directive}
+\code{\#define VAR VALUE} creates a preprocessor variable; afterwards every
+occurrence of the token \code{VAR} is replaced by \code{VALUE}.
+\begin{lstlisting}[style=cpp]
+#define MAX 10
+...
+int array[MAX];   // the compiler sees: int array[10];
+\end{lstlisting}
+In C++ a \code{const int MAX = 10;} is usually preferable (it has a type and
+obeys scope). More uses of \code{\#define} next lecture.
+
+\section*{Summary}
+\begin{itemize}
+  \item Pass anything bigger than an \code{int} by reference to const; a
+        reference to const can bind to temporaries.
+  \item \code{new}/\code{delete} and \code{new[]}/\code{delete[]}; leaks are
+        failures in this course.
+  \item Never return pointers/references to locals.
+  \item Overload operators by writing \code{operator+}, \code{operator<<}, etc.;
+        I/O operators take and return the stream by reference.
+  \item The preprocessor handles \code{\#include} and \code{\#define} before
+        compilation.
+\end{itemize}

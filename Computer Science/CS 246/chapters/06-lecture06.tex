@@ -1,0 +1,295 @@
+\chapter{Lecture 6: File and String Streams, Overloading, References}
+\begin{center}
+\textit{January 23, 2018}
+\end{center}
+
+\section{File Streams}
+The stream abstraction can be used on other sources of data:
+\begin{lstlisting}[style=cpp]
+#include <fstream>
+// std::ifstream -- read from a file
+// std::ofstream -- write to a file
+\end{lstlisting}
+
+\begin{lstlisting}[style=cpp]
+// io/readFile.cc
+#include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
+
+int main() {
+    ifstream filestream{"myfile.txt"};   // "myfile.txt" is a path
+    string s;
+    while (filestream >> s) {
+        cout << s << endl;
+    }
+}
+\end{lstlisting}
+The file is opened when \code{filestream} is initialized.
+
+\paragraph{Q.} When is it closed?
+
+\paragraph{A.} We'll look at this in detail about five weeks from now: it is
+closed when the \code{filestream} variable goes out of scope (here, when
+\code{main} returns). No explicit \code{close} needed.
+
+Constructor parameters exist for appending, binary mode and so on. The key point:
+
+\begin{important}[Streams are interchangeable]
+Anything we can do with an \code{istream} (\code{ostream}) variable such as
+\code{cin} (\code{cout}), we can do with an \code{ifstream} (\code{ofstream})
+variable.
+\end{important}
+
+\section{String Streams}
+We can also attach streams to strings, to read from or write to them:
+\begin{lstlisting}[style=cpp]
+#include <sstream>
+// std::istringstream -- read from a string
+// std::ostringstream -- write to a string
+\end{lstlisting}
+
+Building a string with output operations:
+\begin{lstlisting}[style=cpp]
+int low = 1, high = 100;
+ostringstream ss;
+ss << "Enter a value between " << low << " and " << high;
+string s = ss.str();     // extract the accumulated string
+\end{lstlisting}
+
+Converting a string to a number, safely:
+\begin{lstlisting}[style=cpp]
+// io/getNum.cc
+#include <iostream>
+#include <sstream>
+#include <string>
+using namespace std;
+
+int main() {
+    int n;
+    while (true) {
+        cout << "Enter a number" << endl;
+        string s;
+        cin >> s;                 // always succeeds (other than at EOF)
+        istringstream ss{s};
+        if (ss >> n) break;
+    }
+    cout << "You entered " << n << endl;
+}
+\end{lstlisting}
+Benefits:
+\begin{itemize}
+  \item Anything the user types can be read into a string, so the read from
+        \code{cin} only fails at EOF. (Exercise: as written, this loops forever
+        if the user gives up and sends EOF; add a check.)
+  \item If the read from \code{ss} fails, we don't need \code{clear} and
+        \code{ignore}: we just make a fresh \code{istringstream} next time around.
+\end{itemize}
+This is often the preferred way to parse input.
+
+\begin{lstlisting}[style=cpp]
+// readIntsSS.cc: echo all ints, skipping non-ints
+int main() {
+    string s;
+    while (cin >> s) {
+        istringstream ss{s};
+        int n;
+        if (ss >> n) cout << n << endl;
+    }
+}
+\end{lstlisting}
+
+\begin{aside}
+\textbf{Homework (not for marks):} compare \code{readInts5.cc} (the
+\code{clear}/\code{ignore} version from last lecture) with \code{readIntsSS.cc}
+on the input \code{hello123abc45}. The first skips one character at a time, so it
+eventually reads \code{123} and \code{45}. The second reads the whole word
+\code{hello123abc45} as one string; \code{ss >> n} fails at \code{h}, so
+nothing is printed. (On \code{123abc} the second version prints \code{123}.)
+\end{aside}
+
+\section{Default Arguments}
+\begin{lstlisting}[style=cpp]
+void printFile(string name = "myfile.txt") {
+    ifstream filestream{name};
+    string s;
+    while (filestream >> s) cout << s << endl;
+}
+
+printFile("other.txt");   // prints other.txt
+printFile();              // uses the default argument: myfile.txt
+\end{lstlisting}
+
+Default arguments must always appear last:
+\begin{lstlisting}[style=cpp]
+void test(int x = 5, string str) {}          // error: won't compile
+void foo(int x = 5, string str = "Hello") {} // OK
+\end{lstlisting}
+When you call a function and omit arguments, you can only omit the last one (or
+the last $n$):
+\begin{lstlisting}[style=cpp]
+foo(10, "World");   // OK
+foo(10);            // OK, str = "Hello"
+foo();              // OK, x = 5, str = "Hello"
+foo("World");       // error: can't skip x
+\end{lstlisting}
+The default is filled in by the \emph{caller} at compile time, which is why it
+belongs in the declaration (the header), not the definition.
+
+\section{Function Overloading}
+\paragraph{Q.} Can two functions have the same name?
+
+\paragraph{A.} Not in C, but yes in C++. This is \textbf{function overloading}.
+
+C++ allows functions with the same name as long as the number or types of
+parameters differ. Differing only in return type is not enough.
+\begin{lstlisting}[style=cpp]
+int neg(int x)   { return -x; }
+bool neg(bool b) { return !b; }
+\end{lstlisting}
+The compiler picks the version based on the argument types, at compile time.
+
+\paragraph{Q.} Given \code{foo(int x = 5, string str = "Hello")} above, could we
+also implement \code{void foo(int x)}?
+
+\paragraph{A.} Declaring it is legal, but then the call \code{foo(10)} is
+\emph{ambiguous} (both versions match equally well), so it won't compile. Default
+arguments and overloading must not overlap.
+
+\subsection{Operators Are Functions}
+\begin{lstlisting}[style=cpp]
+int a = 21, b = 3;
+a >> b;    // legal: bit shift
+cin >> x;  // legal: read
+\end{lstlisting}
+C++ implements operators as functions. The expression \code{cin >> x} is a call
+to a function named \code{operator>>}, overloaded on the types of its operands.
+
+\section{Pointers and const}
+\begin{quote}
+\textit{``Now we have a big NOTE in my NOTES.''} --- Nomair Naeem
+\end{quote}
+Read declarations from right to left:
+\begin{lstlisting}[style=cpp]
+int n = 5, x = 7;
+
+const int *p = &n;     // p is a pointer to a const int
+p = &x;                // fine: p itself can change
+*p = 10;               // illegal: can't change the int through p
+n = 10;                // fine: n itself isn't const
+
+int * const q = &n;    // q is a const pointer to an int
+q = &x;                // illegal: q can't be re-pointed
+*q = 10;               // fine
+\end{lstlisting}
+
+\section{Structures in C++}
+\begin{lstlisting}[style=cpp]
+struct Node {
+    int data;
+    Node *next;        // no need to write "struct Node *next"
+};                     // don't forget the semicolon!
+
+Node n = {3, nullptr}; // no "struct" here either
+\end{lstlisting}
+Do not use \code{NULL} or \code{0} for pointers in C++: C++11 introduced the
+keyword \code{nullptr}.
+\begin{quote}
+\textit{``Use \code{nullptr}, as I sometimes tend to go back to old habits.''}
+--- Nomair Naeem
+\end{quote}
+
+\section{Parameter Passing}
+\begin{lstlisting}[style=cpp]
+void inc(int n) { n += 1; }
+
+int x = 5;
+inc(x);
+cout << x << endl;   // prints 5
+\end{lstlisting}
+In C and C++, arguments are passed by value by default: \code{inc} gets a copy.
+In C we would pass a pointer:
+\begin{lstlisting}[style=cpp]
+void inc(int *n) { *n += 1; }
+
+int x = 5;
+inc(&x);
+cout << x << endl;   // prints 6
+\end{lstlisting}
+This is why C needs \code{scanf("\%d", \&x)}. But in C++ we write
+\code{cin >> x}, not \code{cin >> \&x}. How does \code{cin} change \code{x}?
+
+\section{lvalue References}
+C++ has a \textbf{reference} type, written \code{\&}.
+\begin{lstlisting}[style=cpp]
+int x = 10;
+int &z = x;          // z is an lvalue reference to x
+int * const p = &x;  // z behaves much like this constant pointer...
+
+z = 5;               // ... with automatic dereferencing: same as *p = 5
+                     // (NOT *z = 5)
+\end{lstlisting}
+
+\begin{definition}
+An \textbf{lvalue reference} is like a constant pointer with automatic
+dereferencing. It is another name (an \emph{alias}) for the object it refers to.
+\end{definition}
+
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, minimum width=12mm, minimum height=7mm}]
+\node[box] (x) {10};
+\node[left=2mm of x] {\code{x}, \code{z}};
+\node[box, right=25mm of x] (p) {};
+\node[right=2mm of p] {\code{p}};
+\draw[-{Stealth}] (p.center) -- (x);
+\end{tikzpicture}
+\end{center}
+
+If you take the address of \code{z}, you get the address of \code{x}; if you ask
+for \code{sizeof(z)} you get \code{sizeof(int)}. \code{z} has no identity of its
+own; it is only a name for \code{x}. (This is called \emph{aliasing}.)
+
+\subsection{Restrictions on References}
+\begin{itemize}
+  \item References must be initialized: \code{int \&z;} is an error.
+  \item They must be initialized to an \textbf{lvalue}, i.e.\ something that
+        denotes a storage location (has an address):
+\begin{lstlisting}[style=cpp]
+int &z = x;      // OK
+int &w = y + y;  // error: y + y has no address
+int &v = 5;      // error
+\end{lstlisting}
+  \item Once initialized, a reference can never be made to refer to something
+        else.
+  \item You cannot create a pointer to a reference (\code{int \&*p} is illegal;
+        a reference to a pointer, \code{int *\&r = p;}, is fine).
+  \item You cannot create a reference to a reference.
+  \item You cannot create an array of references.
+\end{itemize}
+
+\subsection{Pass by Reference}
+\begin{lstlisting}[style=cpp]
+void inc(int &n) { n = n + 1; }   // no pointer syntax needed
+
+int x = 5;
+inc(x);
+cout << x << endl;   // prints 6
+\end{lstlisting}
+\code{n} is another name for \code{x}, so changing \code{n} changes \code{x}.
+This is how \code{cin >> x} works: \code{operator>>} takes \code{x} by
+reference.
+
+\section*{Summary}
+\begin{itemize}
+  \item \code{ifstream}/\code{ofstream} and \code{istringstream}/\code{ostringstream}
+        work exactly like \code{cin}/\code{cout}; files close automatically when
+        the stream goes out of scope.
+  \item Reading a string then parsing it with an \code{istringstream} is a
+        robust way to handle bad input.
+  \item Default arguments go last; overloading requires different parameter
+        lists; operators are functions named \code{operator<op>}.
+  \item Read \code{const} declarations right to left.
+  \item Use \code{nullptr}. A reference is an alias: a constant pointer with
+        automatic dereferencing, must be initialized to an lvalue.
+\end{itemize}

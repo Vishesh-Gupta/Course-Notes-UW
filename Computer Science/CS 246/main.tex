@@ -1,0 +1,46 @@
+\documentclass[11pt,oneside]{book}
+\input{../common/preamble}
+% Shorter, non-uppercase running heads so long chapter titles fit.
+\makeatletter
+\renewcommand{\chaptermark}[1]{\markright{\if@mainmatter\thechapter.\ \fi #1}}
+\makeatother
+\setlength{\emergencystretch}{3em}
+\title{CS 246 --- Object-Oriented Software Development}
+\author{Vishesh Gupta}
+\date{University of Waterloo \\ Winter 2018, Nomair Naeem}
+\begin{document}
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\include{chapters/00-course-outline}
+\include{chapters/01-lecture01}
+\include{chapters/t1-tutorial01}
+\include{chapters/t2-tutorial02}
+\include{chapters/02-lecture02}
+\include{chapters/03-lecture03}
+\include{chapters/04-lecture04}
+\include{chapters/05-lecture05}
+\include{chapters/06-lecture06}
+\include{chapters/07-lecture07}
+\include{chapters/08-lecture08}
+\include{chapters/09-lecture09}
+\include{chapters/10-lecture10}
+\include{chapters/11-lecture11}
+\include{chapters/12-lecture12}
+\include{chapters/13-lecture13}
+\include{chapters/14-lecture14}
+\include{chapters/15-lecture15}
+\include{chapters/16-lecture16}
+\include{chapters/17-lecture17}
+\include{chapters/18-lecture18}
+\include{chapters/19-lecture19}
+\include{chapters/20-lecture20}
+\include{chapters/21-lecture21}
+\include{chapters/22-exception-safety}
+\include{chapters/23-design-quality-mvc}
+\include{chapters/24-stl-algorithms}
+\include{chapters/25-casting}
+\include{chapters/26-vtables}
+\include{chapters/27-multiple-inheritance}
+\end{document}
