@@ -1,0 +1,104 @@
+% Shared preamble for the Computer Science course notes.
+% Each course has a main.tex that does \input{../common/preamble} and then
+% \include's one file per chapter/lecture from its chapters/ directory.
+%------------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usepackage[hidelinks]{hyperref}
+
+\usetikzlibrary{arrows.meta,positioning,shapes,calc,trees,automata}
+
+%------------------------------------------------------------------------------
+% Math shortcuts (same names as the Math 239 notes)
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\bigO}{\mathcal{O}}
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
+\newcommand{\code}[1]{\texttt{#1}}
+
+%------------------------------------------------------------------------------
+% Theorem-like environments (numbered per chapter)
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{example}[definition]{Example}
+\theoremstyle{plain}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+% Boxes: "important" for exam-relevant facts, "aside" for side comments.
+\newtcolorbox{important}[1][]{colback=blue!4,colframe=blue!50!black,
+  fonttitle=\bfseries,title={#1},boxrule=1pt}
+\newtcolorbox{aside}{colback=gray!5,colframe=gray!60,boxrule=0.4pt}
+
+%------------------------------------------------------------------------------
+% Code listings
+\definecolor{codebg}{gray}{0.96}
+\definecolor{codecomment}{rgb}{0.25,0.5,0.35}
+\definecolor{codekeyword}{rgb}{0.1,0.2,0.6}
+\definecolor{codestring}{rgb}{0.6,0.1,0.1}
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebg},
+  commentstyle=\color{codecomment}\itshape,
+  keywordstyle=\color{codekeyword}\bfseries,
+  stringstyle=\color{codestring},
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{gray!40},
+  tabsize=4,
+  upquote=true,
+  literate={~}{{\textasciitilde}}1
+}
+
+\lstdefinelanguage{Racket}{
+  morekeywords={define,lambda,cond,else,if,let,let*,letrec,local,struct,
+    define-struct,and,or,not,empty,cons,first,rest,list,check-expect,
+    require,provide,begin,set!,when,unless,quote},
+  sensitive=true,
+  morecomment=[l]{;},
+  morecomment=[s]{\#|}{|\#},
+  morestring=[b]",
+  alsoletter={-?!*>/+=<},
+}
+
+\lstdefinelanguage{MIPS}{
+  morekeywords={add,addi,addu,sub,subu,mult,multu,div,divu,mfhi,mflo,lis,
+    lw,sw,slt,sltu,beq,bne,jr,jalr,j,jal,and,or,xor,nor,sll,srl,lui,ori,word},
+  sensitive=false,
+  morecomment=[l]{;},
+  morecomment=[l]{\#},
+  alsoletter={.},
+}
+
+\lstdefinestyle{c}{language=C}
+\lstdefinestyle{cpp}{language=C++}
+\lstdefinestyle{racket}{language=Racket}
+\lstdefinestyle{bash}{language=bash}
+\lstdefinestyle{mips}{language=MIPS}
