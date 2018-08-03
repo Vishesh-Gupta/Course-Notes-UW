@@ -1,0 +1,271 @@
+\chapter{Estimation}
+
+\section{Estimators and sampling distributions}
+
+\begin{definition}[Estimate vs estimator]
+An \emph{estimate} $\thetahat = g(y_1,\dots,y_n)$ is a number computed from the observed
+data. The corresponding \emph{estimator} $\tilde\theta = g(Y_1,\dots,Y_n)$ is a random
+variable: the rule applied to data that \emph{could} be observed. The distribution of
+$\tilde\theta$ is its \emph{sampling distribution}.
+\end{definition}
+
+The sampling distribution tells us how much estimates vary from sample to sample, and so
+how much we can trust one estimate. Two desirable properties: $\tilde\theta$ is
+\emph{unbiased} if $\E(\tilde\theta) = \theta$, and its variance should be small.
+
+\begin{theorem}[Sampling distribution of the sample mean]
+If $Y_1,\dots,Y_n$ are independent with mean $\mu$ and standard deviation $\sigma$, then
+$\E(\Ybar) = \mu$ and $\sd(\Ybar) = \sigma/\sqrt n$. If the $Y_i$ are $\Gau(\mu,\sigma)$,
+then exactly $\Ybar\sim\Gau(\mu,\sigma/\sqrt n)$; otherwise, by the Central Limit Theorem,
+approximately so for large $n$.
+\end{theorem}
+
+\begin{theorem}
+$S^2 = \frac{1}{n-1}\sum (Y_i-\Ybar)^2$ is unbiased for $\sigma^2$.
+\end{theorem}
+\begin{proof}
+$\sum(Y_i-\Ybar)^2 = \sum Y_i^2 - n\Ybar^2$. Using $\E(Y_i^2) = \sigma^2+\mu^2$ and
+$\E(\Ybar^2) = \sigma^2/n + \mu^2$,
+$\E\sum(Y_i-\Ybar)^2 = n(\sigma^2+\mu^2) - (\sigma^2 + n\mu^2) = (n-1)\sigma^2$.
+\end{proof}
+
+\section{Interval estimation and coverage}
+
+A point estimate alone says nothing about precision. An \emph{interval estimate}
+$[L(y), U(y)]$ gives a range of plausible values.
+
+\begin{definition}[Coverage probability, confidence interval]
+For an interval estimator $[L(\mathbf Y), U(\mathbf Y)]$, the \emph{coverage probability}
+is $C(\theta) = \Prob\big(L(\mathbf Y)\le\theta\le U(\mathbf Y)\big)$. If $C(\theta) = p$
+for all $\theta$ (exactly or approximately), the observed interval $[L(y),U(y)]$ is a
+\emph{$100p\%$ confidence interval} for $\theta$.
+\end{definition}
+
+\begin{important}[Interpreting a confidence interval]
+A $95\%$ CI does \emph{not} mean ``there is a $95\%$ probability that $\theta$ is in
+$[L(y),U(y)]$''. Once computed, the interval either contains $\theta$ or it does not. The
+$95\%$ refers to the procedure: if we repeated the study many times and built an interval
+each time, about $95\%$ of those intervals would contain the true $\theta$.
+\end{important}
+
+\section{Pivotal quantities}
+
+\begin{definition}[Pivotal quantity]
+A \emph{pivotal quantity} $Q = Q(\mathbf Y;\theta)$ is a function of the data and $\theta$
+whose distribution is completely known (does not depend on $\theta$ or other unknown
+parameters). It is an \emph{asymptotic pivotal quantity} if this holds approximately for
+large $n$.
+\end{definition}
+
+\textbf{Recipe.} Find $a,b$ with $\Prob(a\le Q\le b) = p$, then rearrange the
+inequality $a\le Q(\mathbf Y;\theta)\le b$ into $L(\mathbf Y)\le\theta\le U(\mathbf Y)$ and
+plug in the data.
+
+\begin{example}[Gaussian mean, $\sigma$ known]
+If $Y_i\sim\Gau(\mu,\sigma)$ with $\sigma$ known, $Z = \frac{\Ybar-\mu}{\sigma/\sqrt n}\sim
+\Gau(0,1)$ is pivotal. From $\Prob(-1.96\le Z\le 1.96) = 0.95$:
+\[
+\ybar \pm 1.96\frac{\sigma}{\sqrt n}\quad\text{is a 95\% CI for } \mu.
+\]
+For the fill-weight data of Chapter 2 ($n=10$, $\ybar=12.52$), if $\sigma=0.6$ were known,
+the CI is $12.52\pm 1.96(0.6/\sqrt{10}) = 12.52 \pm 0.372 = [12.148,\ 12.892]$.
+\end{example}
+
+General form: \emph{estimate} $\pm$ (table value) $\times$ (standard error). Useful
+$\Gau(0,1)$ values: $\Prob(|Z|\le 1.645) = 0.90$, $\Prob(|Z|\le1.960)=0.95$,
+$\Prob(|Z|\le 2.576) = 0.99$.
+
+\section{Approximate confidence intervals via the CLT}
+
+\begin{theorem}[Approximate CIs for binomial and Poisson]
+\begin{enumerate}
+  \item If $Y\sim\Bin(n,\theta)$, then
+        \[ \frac{\tilde\theta-\theta}{\sqrt{\theta(1-\theta)/n}} \]
+        is approximately $\Gau(0,1)$, and so is the same quantity with $\theta$ replaced
+        by $\tilde\theta$ in the denominator. An approximate $95\%$ CI is
+        \[ \thetahat\pm 1.96\sqrt{\thetahat(1-\thetahat)/n}. \]
+  \item If $Y_1,\dots,Y_n$ are independent $\Poi(\theta)$, an approximate $95\%$ CI is
+        $\thetahat\pm 1.96\sqrt{\thetahat/n}$ with $\thetahat=\ybar$.
+\end{enumerate}
+\end{theorem}
+
+\begin{example}
+\begin{itemize}
+  \item Survey of Chapter 2 ($n=200$, $\thetahat=0.29$):
+        $\sqrt{0.29(0.71)/200} = 0.03209$, so the CI is $0.29\pm 0.0629 =
+        [0.227,\ 0.353]$.
+  \item Help-desk calls ($n=10$, $\thetahat=3.5$): $\sqrt{3.5/10} = 0.5916$, so the CI is
+        $3.5\pm1.160 = [2.340,\ 4.660]$. (With $n=10$, the approximation is rough.)
+\end{itemize}
+\end{example}
+
+\section{Likelihood intervals}
+
+\begin{definition}[Likelihood interval]
+A $100p\%$ \emph{likelihood interval} for $\theta$ is $\{\theta : R(\theta)\ge p\}$.
+Values with $R(\theta)\ge 0.5$ are very plausible, $0.1\le R<0.5$ plausible,
+$0.01\le R<0.1$ implausible, and $R<0.01$ very implausible.
+\end{definition}
+
+\begin{theorem}[Likelihood ratio statistic]
+Let $\Lambda(\theta) = -2\log\big(L(\theta)/L(\tilde\theta)\big)$ (with $\tilde\theta$ the
+ML estimator). Under regularity conditions, for large $n$, $\Lambda(\theta)$ is
+approximately $\chi^2(1)$ when $\theta$ is the true value. Hence it is an asymptotic
+pivotal quantity, and
+\[
+\Prob\big(R(\theta)\ge p\big) = \Prob\big(\Lambda(\theta)\le -2\log p\big)
+\approx \Prob\big(W \le -2\log p\big),\quad W\sim\chi^2(1).
+\]
+\end{theorem}
+
+Consequences (using $\Prob(W\le w) = \Prob(|Z|\le\sqrt w) = 2\Phi(\sqrt w)-1$):
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+likelihood interval & $-2\log p$ & approximate confidence \\
+\midrule
+$50\%$ & $1.386$ & $76\%$ \\
+$15\%$ & $3.794$ & $95\%$ \\
+$10\%$ & $4.605$ & $96.8\%$ \\
+$1\%$ & $9.210$ & $99.8\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Exactly, a $95\%$ CI corresponds to $p = e^{-3.841/2} = 0.1465$, so a \textbf{15\% likelihood
+interval is an approximate 95\% confidence interval}.
+
+\begin{example}[Comparing intervals]
+Solving $R(\theta)=0.15$ numerically:
+\begin{itemize}
+  \item survey: $15\%$ LI $\approx[0.230,\ 0.355]$ vs CLT interval $[0.227,\ 0.353]$;
+  \item help-desk calls: $15\%$ LI $\approx[2.466,\ 4.790]$ vs CLT interval
+        $[2.340,\ 4.660]$.
+\end{itemize}
+The likelihood interval is not symmetric about $\thetahat$: it follows the skewness of
+the likelihood, and is generally more accurate for small $n$ and parameters near a
+boundary (e.g.\ $\theta$ near $0$).
+\end{example}
+
+\section{The chi-squared and $t$ distributions}
+
+\begin{definition}[Chi-squared]
+$W\sim\chi^2(k)$ (\emph{$k$ degrees of freedom}) has p.d.f.\
+\[ f(w) = \frac{1}{2^{k/2}\Gamma(k/2)}w^{k/2-1}e^{-w/2},\qquad w>0. \]
+Then $\E(W)=k$,
+$\Var(W) = 2k$.
+\end{definition}
+
+\begin{theorem}
+\begin{enumerate}
+  \item If $Z\sim\Gau(0,1)$ then $Z^2\sim\chi^2(1)$.
+  \item If $W_1,\dots,W_m$ are independent with $W_i\sim\chi^2(k_i)$, then
+        $\sum W_i\sim\chi^2\big(\sum k_i\big)$. In particular, if $Z_1,\dots,Z_k$ are
+        independent $\Gau(0,1)$, $\sum Z_i^2 \sim\chi^2(k)$.
+  \item $\chi^2(2)$ is the exponential distribution with mean $2$. Hence if
+        $Y_i\sim\Expo(\theta)$ independent, $2\sum Y_i/\theta\sim\chi^2(2n)$.
+\end{enumerate}
+\end{theorem}
+
+\begin{definition}[Student $t$]
+If $Z\sim\Gau(0,1)$ and $W\sim\chi^2(k)$ are independent, then
+$T = \frac{Z}{\sqrt{W/k}}\sim t(k)$. The $t(k)$ density is symmetric about $0$, bell
+shaped, with heavier tails than $\Gau(0,1)$; as $k\to\infty$, $t(k)\to\Gau(0,1)$.
+\end{definition}
+
+\begin{theorem}[Gaussian sampling theory]
+If $Y_1,\dots,Y_n$ are independent $\Gau(\mu,\sigma)$, then $\Ybar$ and $S^2$ are independent,
+\[
+\frac{(n-1)S^2}{\sigma^2} = \frac{1}{\sigma^2}\sum(Y_i-\Ybar)^2 \sim \chi^2(n-1),
+\qquad
+T = \frac{\Ybar-\mu}{S/\sqrt n}\sim t(n-1).
+\]
+\end{theorem}
+\begin{proof}[Proof sketch]
+The independence and the $\chi^2(n-1)$ result are proved in Stat 330 (one degree of freedom
+is ``used up'' estimating $\mu$ by $\Ybar$). Then
+$T = \frac{(\Ybar-\mu)/(\sigma/\sqrt n)}{\sqrt{[(n-1)S^2/\sigma^2]/(n-1)}}$ is
+$\Gau(0,1)$ over $\sqrt{\chi^2(n-1)/(n-1)}$ with independent numerator and denominator.
+\end{proof}
+
+\section{Confidence intervals for Gaussian models}
+
+\begin{theorem}
+For a $\Gau(\mu,\sigma)$ sample with both parameters unknown:
+\begin{itemize}
+  \item a $100p\%$ CI for $\mu$ is $\ybar\pm a\,s/\sqrt n$ where $\Prob(T\le a) = (1+p)/2$,
+        $T\sim t(n-1)$;
+  \item a $100p\%$ CI for $\sigma^2$ is
+        $\left[\dfrac{(n-1)s^2}{b},\ \dfrac{(n-1)s^2}{a}\right]$ where $\Prob(W\le a) =
+        (1-p)/2$ and $\Prob(W\le b) = (1+p)/2$, $W\sim\chi^2(n-1)$; take square roots for
+        a CI for $\sigma$.
+\end{itemize}
+\end{theorem}
+
+\begin{example}[Fill weights]
+$n=10$, $\ybar = 12.52$, $(n-1)s^2 = S_{yy} = 3.456$, $s^2 = 0.384$, $s = 0.6197$.
+
+\textbf{Mean.} From $t$ tables, $\Prob(T\le 2.262) = 0.975$ for $T\sim t(9)$. Standard
+error $s/\sqrt{10} = 0.19596$, so the $95\%$ CI is
+\[
+12.52\pm 2.262(0.19596) = 12.52\pm 0.443 = [12.077,\ 12.963].
+\]
+\textbf{Variance.} For $W\sim\chi^2(9)$: $\Prob(W\le 2.700) = 0.025$,
+$\Prob(W\le19.023) = 0.975$. The $95\%$ CI for $\sigma^2$ is
+\[
+\left[\frac{3.456}{19.023},\ \frac{3.456}{2.700}\right] = [0.1817,\ 1.280],
+\]
+and for $\sigma$: $[0.426,\ 1.131]$. Note how wide it is: $10$ observations say little
+about variability. The interval is not symmetric about $s^2$.
+\end{example}
+
+\begin{example}[Exact CI for an exponential mean]
+For the $8$ component lifetimes of Chapter 2, $\sum y_i = 24$. Since $2\sum Y_i/\theta\sim
+\chi^2(16)$ with $\Prob(W\le 6.908) = 0.025$ and $\Prob(W\le 28.845) = 0.975$, from
+$6.908\le 48/\theta\le 28.845$ we get the $95\%$ CI
+\[
+\left[\frac{48}{28.845},\ \frac{48}{6.908}\right] = [1.664,\ 6.949]\ \text{years}.
+\]
+\end{example}
+
+\section{Choosing the sample size}
+
+To estimate a parameter with a $95\%$ CI of half-width (margin of error) at most $\ell$:
+
+\textbf{Binomial proportion.} Need $1.96\sqrt{\theta(1-\theta)/n}\le\ell$, i.e.\
+$n\ge (1.96/\ell)^2\,\theta(1-\theta)$. Since $\theta(1-\theta)\le 1/4$, the conservative
+choice is $n\ge (1.96/\ell)^2/4$.
+
+\begin{example}
+For a margin of $\ell=0.03$: $(1.96/0.03)^2 = 4268.4$, so the conservative $n$ is
+$4268.4/4 = 1067.1$, i.e.\ $n=1068$ (this is why national polls of about $1000$ people
+are quoted as ``accurate to within $3$ percentage points, 19 times out of 20''). If we
+believe $\theta\approx 0.29$, then $n\ge 4268.4(0.29)(0.71) = 878.9$, so $n=879$ suffices.
+\end{example}
+
+\textbf{Gaussian mean.} With a guess for $\sigma$, $n\ge(1.96\sigma/\ell)^2$. For
+$\sigma\approx0.6$ and $\ell=0.2$, $n\ge(5.88)^2 = 34.57$, so $n=35$. (Strictly, $s$ and
+$t$ replace $\sigma$ and $1.96$, but for planning this is fine.)
+
+\begin{important}[Common pitfalls]
+\begin{itemize}
+  \item Always round sample sizes \emph{up}.
+  \item Use $t(n-1)$, not $\Gau(0,1)$, when $\sigma$ is estimated by $s$ in a Gaussian
+        model (matters for small $n$).
+  \item The chi-squared CI for $\sigma^2$ uses \emph{both} tails with different table
+        values; it is not ``estimate $\pm$ something''.
+  \item Confidence statements quantify sample error only, not study or measurement error.
+\end{itemize}
+\end{important}
+
+\section*{Summary}
+\begin{itemize}
+  \item An estimator is random and has a sampling distribution; $\sd(\Ybar) = \sigma/\sqrt n$.
+  \item CIs come from (asymptotic) pivotal quantities; the confidence level is the long-run
+        coverage of the procedure.
+  \item $-2\log R(\theta)\approx\chi^2(1)$: a $15\%$ likelihood interval is an approximate
+        $95\%$ CI.
+  \item Gaussian: $\frac{\Ybar-\mu}{S/\sqrt n}\sim t(n-1)$, $\frac{(n-1)S^2}{\sigma^2}\sim
+        \chi^2(n-1)$. Exponential: $2\sum Y_i/\theta\sim\chi^2(2n)$.
+  \item Sample size for proportion: $n\ge(1.96/\ell)^2\theta(1-\theta)$, at most
+        $(1.96/\ell)^2/4$.
+\end{itemize}
