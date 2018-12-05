@@ -1,0 +1,250 @@
+\chapter{Priority Queues}
+
+\section{Abstract Data Types}
+
+\begin{definition}
+An \emph{abstract data type} (ADT) describes a collection of data and the
+operations on it, without saying how it is stored. A \emph{data structure} is a
+concrete implementation of an ADT.
+\end{definition}
+
+Familiar examples: a \emph{stack} (LIFO; \code{push}, \code{pop}) and a
+\emph{queue} (FIFO; \code{enqueue}, \code{dequeue}), both implementable with
+arrays or linked lists so that every operation is $\Theta(1)$ (amortized for a
+dynamic array).
+
+\section{The Priority Queue ADT}
+
+\begin{definition}
+A \emph{priority queue} stores items, each with a \emph{priority} (key), and
+supports
+\begin{itemize}
+  \item \code{insert(x)}: add item $x$ with its priority;
+  \item \code{deleteMax()}: remove and return an item of highest priority.
+\end{itemize}
+(A min-oriented priority queue uses \code{deleteMin} instead.) Optional extras:
+\code{size}, \code{isEmpty}, \code{getMax}.
+\end{definition}
+
+Stacks and queues are special cases (priority = insertion time, or its negative).
+
+\subsection{PQ-Sort}
+
+Any priority queue gives a sorting algorithm:
+\begin{lstlisting}
+PQ-Sort(A[0..n-1]):
+  PQ <- empty priority queue
+  for k <- 0 to n-1 do PQ.insert(A[k])
+  for k <- n-1 down to 0 do A[k] <- PQ.deleteMax()
+\end{lstlisting}
+The running time is $\bigO(n \cdot \text{insert} + n \cdot \text{deleteMax})$.
+
+\subsection{Simple Implementations}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Implementation & \code{insert} & \code{deleteMax} & PQ-Sort is\ldots\\
+\midrule
+Unsorted array/list & $\Theta(1)$ & $\Theta(n)$ & selection sort, $\Theta(n^2)$\\
+Sorted array/list & $\Theta(n)$ & $\Theta(1)$ & insertion sort, $\Theta(n^2)$\\
+Binary heap & $\Theta(\log n)$ & $\Theta(\log n)$ & heapsort, $\Theta(n\log n)$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Binary Heaps}
+
+\begin{definition}
+A (max-)\emph{heap} is a binary tree satisfying
+\begin{enumerate}
+  \item \textbf{Structural property:} every level is full except possibly the
+        last, which is filled from the left.
+  \item \textbf{Heap-order property:} for every node $v$ other than the root,
+        $\text{key}(\text{parent}(v)) \ge \text{key}(v)$.
+\end{enumerate}
+\end{definition}
+
+Consequently the maximum is at the root. The heap is \emph{not} sorted: siblings
+are in no particular order.
+
+\begin{lemma}
+A heap with $n$ nodes has height $\Theta(\log n)$.
+\end{lemma}
+\begin{proof}
+If the height is $h$, levels $0, \ldots, h-1$ are full, so
+$n \ge 2^h$; and the tree has at most $2^{h+1} - 1$ nodes. Thus
+$2^h \le n \le 2^{h+1} - 1$, so $h = \floor{\log_2 n}$.
+\end{proof}
+
+\subsection{Array Storage}
+
+Because of the structural property, store the nodes level by level, left to
+right, in an array $A[0..n-1]$. No pointers are needed:
+\begin{itemize}
+  \item root at $A[0]$;
+  \item children of $A[i]$ at $A[2i+1]$ and $A[2i+2]$;
+  \item parent of $A[i]$ ($i > 0$) at $A[\floor{(i-1)/2}]$;
+  \item the last node is $A[n-1]$.
+\end{itemize}
+
+\begin{example}
+The array $[50, 29, 34, 27, 15, 8, 10, 23, 26]$ is a heap: e.g.\ $A[1] = 29$ has
+children $A[3]=27$ and $A[4]=15$; $A[3]=27$ has children $23$ and $26$.
+
+\begin{center}
+\begin{tikzpicture}[level distance=1.1cm,
+  level 1/.style={sibling distance=4cm},
+  level 2/.style={sibling distance=2cm},
+  level 3/.style={sibling distance=1cm},
+  every node/.style={circle,draw,minimum size=7mm,inner sep=1pt}]
+\node {50}
+  child {node {29}
+    child {node {27} child {node {23}} child {node {26}}}
+    child {node {15}}}
+  child {node {34}
+    child {node {8}}
+    child {node {10}}};
+\end{tikzpicture}
+\end{center}
+\end{example}
+
+\subsection{Insertion: fix-up (bubble-up)}
+
+Place the new item in the next free spot (preserving structure), then swap it
+upward while it is larger than its parent.
+\begin{lstlisting}
+insert(x):
+  A[n] <- x; n <- n + 1
+  fix-up(A, n-1)
+
+fix-up(A, k):
+  while k > 0 and A[parent(k)] < A[k] do
+    swap A[k] and A[parent(k)]
+    k <- parent(k)
+\end{lstlisting}
+Each swap moves up a level, so the time is $\bigO(\text{height}) = \bigO(\log n)$.
+
+\subsection{deleteMax: fix-down (bubble-down)}
+
+Remove the root, move the last item to the root, then swap it down with its
+\emph{larger} child while it is smaller than that child.
+\begin{lstlisting}
+deleteMax():
+  max <- A[0]
+  swap A[0] and A[n-1]; n <- n - 1
+  fix-down(A, n, 0)
+  return max
+
+fix-down(A, n, k):
+  while k is not a leaf do       // 2k+1 < n
+    j <- 2k+1                    // left child
+    if j+1 < n and A[j+1] > A[j] then j <- j+1
+    if A[k] >= A[j] then break
+    swap A[k] and A[j]
+    k <- j
+\end{lstlisting}
+Again $\bigO(\log n)$.
+
+\begin{important}[Pitfall]
+In fix-down you must swap with the \emph{larger} child; swapping with the smaller
+one breaks heap order between the two children.
+\end{important}
+
+\begin{example}
+\code{deleteMax} on the heap above: return 50, move 26 to the root, giving
+\[[26, 29, 34, 27, 15, 8, 10, 23].\]
+The larger child of 26 is 34: swap, giving
+\[[34, 29, 26, 27, 15, 8, 10, 23].\]
+Now 26 at index 2 has children 8, 10: stop.
+\end{example}
+
+\section{Building a Heap: Heapify}
+
+Given $n$ items in an array, we want to make it a heap.
+
+\paragraph{Option 1 (top-down):} insert items one at a time with fix-up. Worst
+case $\Theta(n \log n)$ (e.g.\ sorted increasing input: every item bubbles to
+the root).
+
+\paragraph{Option 2 (bottom-up, Floyd):} treat the array as a tree and call
+fix-down on each internal node, from the last internal node back to the root.
+\begin{lstlisting}
+heapify(A, n):
+  for i <- parent(n-1) down to 0 do
+    fix-down(A, n, i)
+\end{lstlisting}
+When we fix-down at node $i$, both subtrees of $i$ are already heaps, so
+afterward the subtree at $i$ is a heap (by induction).
+
+\begin{theorem}
+Bottom-up heapify runs in $\Theta(n)$ time.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Let $h = \floor{\log n}$. A node at height $j$ (distance $j$ from the bottom)
+costs $\bigO(j)$ in fix-down, and there are at most $\ceil{n/2^{j+1}}$ nodes at
+height $j$. So the total is
+\[
+\sum_{j=0}^{h} \frac{n}{2^{j+1}} \cdot \bigO(j)
+= \bigO\!\left(n \sum_{j \ge 0} \frac{j}{2^{j}}\right) = \bigO(2n) = \bigO(n).
+\]
+Clearly $\Omega(n)$ since every item is touched.
+\end{proof}
+
+Intuition: most nodes are near the bottom, and those nodes only travel a short
+distance. In top-down insertion most nodes are near the bottom and travel a
+\emph{long} distance.
+
+\begin{example}
+Heapify $[3, 1, 6, 5, 2, 4]$. Internal nodes are indices $2, 1, 0$.
+\begin{itemize}
+  \item $i = 2$ (6): child 4; $6 \ge 4$, no change.
+  \item $i = 1$ (1): children 5, 2; swap with 5: $[3,5,6,1,2,4]$.
+  \item $i = 0$ (3): children 5, 6; swap with 6: $[6,5,3,1,2,4]$; then 3 at index
+        2 has child 4; swap: $[6,5,4,1,2,3]$.
+\end{itemize}
+\end{example}
+
+\section{HeapSort}
+
+\begin{lstlisting}
+HeapSort(A, n):
+  heapify(A, n)                 // Theta(n)
+  while n > 1 do
+    swap A[0] and A[n-1]        // move max to its final position
+    n <- n - 1
+    fix-down(A, n, 0)
+\end{lstlisting}
+\begin{itemize}
+  \item Time: $\Theta(n) + n \cdot \bigO(\log n) = \bigO(n \log n)$, and it is
+        $\Theta(n \log n)$ in the worst case.
+  \item Space: \emph{in place}, $\Theta(1)$ auxiliary space (the heap shrinks as
+        the sorted suffix grows).
+  \item Not stable.
+\end{itemize}
+
+\section{Other Heap Uses}
+
+\paragraph{Finding the $k$-th largest.} Heapify then $k$ deleteMax calls:
+$\bigO(n + k \log n)$. Alternatively keep a min-heap of size $k$ while scanning:
+$\bigO(n \log k)$. (Chapter 3 does this in $\Theta(n)$ expected time.)
+
+\paragraph{Merging $k$ sorted lists.} Keep the heads of the lists in a min-heap
+of size $k$; total $\bigO(n \log k)$.
+
+\begin{aside}
+Other PQ realisations exist (meldable heaps, binomial heaps) that also support
+efficient \code{merge}; a randomized meldable heap merges two heaps in expected
+$\bigO(\log n)$ by recursively merging into a randomly chosen subtree. Some terms
+covered these briefly as enrichment.
+\end{aside}
+
+\section{Summary}
+\begin{itemize}
+  \item Priority queue ADT: \code{insert}, \code{deleteMax}. Any PQ gives a sort.
+  \item A binary heap is a nearly complete binary tree with heap order, stored
+        in an array with index arithmetic.
+  \item \code{insert} (fix-up) and \code{deleteMax} (fix-down) take $\bigO(\log n)$.
+  \item Bottom-up heapify is $\Theta(n)$ because $\sum j/2^j$ converges.
+  \item HeapSort: $\Theta(n \log n)$ worst case, in place, not stable.
+\end{itemize}

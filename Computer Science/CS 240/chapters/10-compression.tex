@@ -1,0 +1,307 @@
+\chapter{Compression}
+
+\section{Encoding Basics}
+
+\begin{definition}
+We transform a \emph{source text} $S$ over alphabet $\Sigma_S$ into a \emph{coded
+text} $C$ over alphabet $\Sigma_C$ (usually $\{0,1\}$). \emph{Encoding} maps
+$S \mapsto C$; \emph{decoding} maps $C \mapsto S$. Compression is
+\emph{lossless} if $S$ is recovered exactly (all methods in this chapter).
+\end{definition}
+
+\begin{definition}
+The \emph{compression ratio} is $\dfrac{|C| \cdot \log|\Sigma_C|}{|S| \cdot
+\log|\Sigma_S|}$. Smaller is better.
+\end{definition}
+
+No lossless scheme can compress \emph{every} input: there are $2^n$ bit strings
+of length $n$ but only $2^n - 1$ shorter ones (pigeonhole). Compression exploits
+structure: skewed character frequencies (Huffman), long runs (RLE), repeated
+substrings (LZW), or rearrangements that create such structure (BWT, MTF).
+
+\subsection{Character Encodings}
+A \emph{fixed-length code} (like ASCII, 7 bits per character) is easy to decode.
+A \emph{variable-length code} gives frequent characters shorter codewords
+(e.g.\ Morse code). To decode unambiguously without separators, use a
+\emph{prefix-free} code: no codeword is a prefix of another. A prefix-free
+binary code corresponds to a binary \emph{trie} whose leaves are the characters;
+decoding walks the trie from the root, emitting a character at each leaf.
+
+\begin{lstlisting}
+prefix-free-decode(C, trie):
+  S <- empty; i <- 0
+  while i < |C| do
+    r <- trie.root
+    while r is not a leaf do
+      if i = |C| then return "invalid encoding"
+      r <- child of r labelled C[i]; i <- i + 1
+    append r's character to S
+  return S
+\end{lstlisting}
+
+\section{Huffman Coding}
+
+Given frequencies $f(c)$ of each character in $S$, the encoded length using trie
+$T$ is $\sum_c f(c) \cdot \text{depth}_T(c)$. Huffman's algorithm finds a trie
+minimising this.
+
+\begin{lstlisting}
+Huffman-encoding(S):
+  compute frequencies f(c) for each c in S
+  Q <- min-heap of single-node tries, keyed by frequency
+  while Q.size > 1 do
+    T1 <- Q.deleteMin(); T2 <- Q.deleteMin()
+    T <- new trie with children T1, T2, weight f(T1) + f(T2)
+    Q.insert(T)
+  T <- Q.deleteMin()
+  C <- encode S using the codewords from T
+  return C and T          // the trie must be sent too
+\end{lstlisting}
+
+\begin{example}
+$S = \texttt{LOSSLESS}$: $f(S) = 4$, $f(L) = 2$, $f(O) = 1$, $f(E) = 1$.
+Merge O and E (weight 2); merge L with that (weight 4); merge S with that
+(weight 8). One resulting code: S = \texttt{0}, L = \texttt{10}, O = \texttt{110},
+E = \texttt{111}. Encoded length: $4\cdot1 + 2\cdot2 + 1\cdot3 + 1\cdot3 = 14$ bits,
+versus 16 for a fixed 2-bit code.
+\end{example}
+
+\paragraph{Analysis.} With $|\Sigma_S| = \sigma$ distinct characters, building
+the trie costs $\bigO(\sigma \log \sigma)$, and encoding/decoding costs
+$\bigO(|S| + |C|)$ (plus $\bigO(|S|)$ to count frequencies).
+
+\begin{theorem}
+The Huffman trie minimises $\sum_c f(c)\,\text{depth}(c)$ among all prefix-free
+binary codes.
+\end{theorem}
+\begin{proof}[Proof sketch]
+By induction on $\sigma$. In some optimal trie, the two least frequent
+characters $x, y$ are siblings at maximum depth (exchange argument: swapping them
+with deepest siblings cannot increase cost). Replacing $x,y$ by a single
+character $z$ with $f(z) = f(x) + f(y)$ reduces the cost of every such trie by
+exactly $f(x) + f(y)$; by induction, Huffman is optimal for the reduced
+alphabet, so it is optimal for the original.
+\end{proof}
+
+Drawbacks: two passes over the text, the trie must be transmitted, and the
+result is not unique (ties). It is optimal only among codes that encode one
+character at a time.
+
+\section{Run-Length Encoding}
+
+Useful when the source has long runs of identical characters (e.g.\ bitmaps,
+fax). For a binary $S$: output the first bit, then the lengths of successive
+runs, each encoded with a prefix-free code for integers.
+
+\begin{definition}
+The \emph{Elias gamma code} of a positive integer $k$ is
+$\floor{\log_2 k}$ zeros followed by the binary representation of $k$
+(which has $\floor{\log_2 k} + 1$ bits). E.g.\ $1 \mapsto \texttt{1}$,
+$3 \mapsto \texttt{011}$, $5 \mapsto \texttt{00101}$, $10 \mapsto \texttt{0001010}$.
+\end{definition}
+
+\begin{lstlisting}
+RLE-encoding(S):            // S a bit string
+  C <- S[0]
+  i <- 0
+  while i < |S| do
+    k <- 1
+    while i + k < |S| and S[i+k] = S[i] do k <- k + 1
+    append Elias-gamma(k) to C
+    i <- i + k
+  return C
+\end{lstlisting}
+
+\begin{example}
+$S = \texttt{00000111000}$: first bit 0, runs 5, 3, 3, so
+$C = \texttt{0}\,\texttt{00101}\,\texttt{011}\,\texttt{011}$ (12 bits vs.\ 11 ---
+no gain here). For $S = 0^{100}$, $C$ is $1 + 13 = 14$ bits.
+\end{example}
+
+A run of length $k$ costs $2\floor{\log k} + 1$ bits, so RLE wins when runs are
+long ($k \ge 6$ or so) and can \emph{expand} text with short runs (runs of length
+2 or 4 cost 3 or 5 bits).
+
+\section{Lempel--Ziv--Welch (LZW)}
+
+Huffman and RLE ignore repeated \emph{substrings}. LZW is \emph{adaptive}: it
+builds a dictionary of substrings on the fly, and the decoder rebuilds the same
+dictionary, so nothing extra is transmitted.
+
+\paragraph{Encoding.} Start with a dictionary $D$ of all single characters
+(e.g.\ ASCII codes 0--127). Repeatedly find the longest prefix $w$ of the
+remaining text that is in $D$, output its code, and add $w$ followed by the next
+character to $D$ with the next unused code (128, 129, \ldots). The dictionary is
+stored as a trie, so finding $w$ is a walk down the trie.
+
+\begin{lstlisting}
+LZW-encode(S):
+  D <- trie with all ASCII chars (codes 0..127)
+  idx <- 128
+  while S is non-empty do
+    v <- root of D; K <- first char of S
+    while v has a child labelled K do
+      v <- that child; remove K from front of S
+      if S is empty then break
+      K <- first char of S
+    output code(v)
+    if S is non-empty then
+      add child of v labelled K with code idx
+      idx <- idx + 1
+\end{lstlisting}
+
+\paragraph{Decoding.} Read codes one by one, maintaining the same dictionary (as
+an array code $\to$ string). After decoding code $c$ to string $s$, add
+$s_{\text{prev}} + s[0]$ to the dictionary. Special case: the code may not yet be
+in the dictionary (it was created by the encoder in the immediately preceding
+step); then it must equal $s_{\text{prev}} + s_{\text{prev}}[0]$.
+
+\begin{lstlisting}
+LZW-decode(C):
+  D <- array with ASCII chars at codes 0..127; idx <- 128
+  code <- first code of C; s <- D[code]; output s
+  while there are more codes do
+    sprev <- s
+    code <- next code of C
+    if code < idx then s <- D[code]
+    else s <- sprev + sprev[0]           // the tricky case (code = idx)
+    output s
+    D[idx] <- sprev + s[0]; idx <- idx + 1
+\end{lstlisting}
+
+\begin{example}
+Encode $S = \texttt{ABABABA}$ (A = 65, B = 66):
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Longest match $w$ & Output & Added & Code\\
+\midrule
+A & 65 & AB & 128\\
+B & 66 & BA & 129\\
+AB & 128 & ABA & 130\\
+ABA & 130 & -- & --\\
+\bottomrule
+\end{tabular}
+\end{center}
+Output: 65, 66, 128, 130. Decoding: 65 $\to$ A; 66 $\to$ B (add AB = 128);
+128 $\to$ AB (add BA = 129); 130 is not yet known, so it is
+$\text{AB} + \text{A} = \text{ABA}$ (add ABA = 130). Result ABABABA.
+\end{example}
+
+Both directions run in $\bigO(|S|)$ time. In practice codes are fixed-width
+(e.g.\ 12 bits), and the dictionary is reset or frozen when full. LZW (and
+relatives LZ77/LZ78) underlie GIF, \texttt{compress}, and (via LZ77) \texttt{gzip}.
+
+\section{Move-To-Front Transform}
+
+Recall the MTF heuristic for self-organising lists (Chapter 5). As a transform:
+keep a list of the alphabet; for each character of $S$, output its current index
+in the list and move it to the front.
+
+\begin{lstlisting}
+MTF-encode(S):
+  L <- array of Sigma_S in a fixed order
+  for each c in S do
+    i <- index of c in L
+    output i
+    move c to the front of L (shifting L[0..i-1] right)
+\end{lstlisting}
+Decoding is symmetric: output $L[i]$, then move it to the front. Runs of the
+same character become runs of 0s, and recently used characters get small numbers;
+the output (over the alphabet $\{0, \ldots, \sigma - 1\}$) is then well suited to
+Huffman or RLE. MTF alone does not compress.
+
+\section{Burrows--Wheeler Transform}
+
+The BWT is a reversible permutation of the text that tends to group equal
+characters together, making it highly compressible by MTF + RLE/Huffman.
+
+\paragraph{Encoding.} Append the end-marker \$ (smallest character). Write down
+all $n$ cyclic shifts of $S$, sort them lexicographically, and output the
+\emph{last column}.
+
+\begin{example}
+$S = \texttt{banana\$}$. Sorted cyclic shifts:
+\begin{center}
+\texttt{
+\begin{tabular}{l}
+\$banan\textbf{a}\\
+a\$bana\textbf{n}\\
+ana\$ba\textbf{n}\\
+anana\$\textbf{b}\\
+banana\textbf{\$}\\
+na\$ban\textbf{a}\\
+nana\$b\textbf{a}
+\end{tabular}}
+\end{center}
+$C = \texttt{annb\$aa}$. Note the first column is the sorted text, and the
+cyclic shifts are in the same order as the suffix array $[6,5,3,1,0,4,2]$: the
+BWT is $C[j] = S[A^s[j] - 1]$ (cyclically). Computing it via a suffix array takes
+$\bigO(n \log n)$.
+\end{example}
+
+\paragraph{Why it helps.} Shifts starting with the same context (e.g.\
+\texttt{he\_}) are sorted together, and the character preceding a common context
+is often the same (e.g.\ \texttt{t} before \texttt{he\_}), so the last column
+has long runs.
+
+\paragraph{Decoding.} The first column is $C$ sorted. Each row is a cyclic shift,
+so the last character of a row precedes its first character in $S$. Key fact:
+the $i$-th occurrence of a character $c$ in the last column corresponds to the
+$i$-th occurrence of $c$ in the first column (they are the same text position).
+\begin{lstlisting}
+BWT-decode(C):
+  A <- array of pairs (C[i], i) for i = 0..n-1
+  stably sort A by character       // A[j] = (j-th char of first column,
+                                   //   row where that same occurrence sits in C)
+  j <- index with C[j] = $         // the row equal to S itself ends in $
+  S <- empty
+  repeat
+    (c, k) <- A[j]
+    append c to S
+    j <- k
+  until c = $
+  return S
+\end{lstlisting}
+In words: row $j$ of the sorted matrix starts with the character $A[j].c$; the
+row that starts at the next text position is the one whose \emph{last} character
+is this same occurrence, namely row $A[j].k$. Stability of the sort is exactly
+what matches the $i$-th $c$ of the first column with the $i$-th $c$ of the last
+column.
+
+\begin{example}
+Decode $C = \texttt{annb\$aa}$. Stably sorting the pairs gives
+\[
+A = [(\$,4), (a,0), (a,5), (a,6), (b,3), (n,1), (n,2)].
+\]
+$C[4] = \$$, so start with $j = 4$: $A[4] = (b,3)$ outputs \texttt{b}, go to 3;
+$A[3] = (a,6)$ outputs \texttt{a}; $A[6] = (n,2)$: \texttt{n}; $A[2] = (a,5)$:
+\texttt{a}; $A[5] = (n,1)$: \texttt{n}; $A[1] = (a,0)$: \texttt{a};
+$A[0] = (\$,4)$: \texttt{\$}, stop. Result: \texttt{banana\$}.
+\end{example}
+
+Decoding runs in $\bigO(n)$ time (counting sort for the stable sort). The
+\texttt{bzip2} pipeline is: BWT $\to$ MTF $\to$ RLE $\to$ Huffman.
+
+\section{Summary}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Method & Exploits & Notes\\
+\midrule
+Huffman & skewed char frequencies & optimal prefix code; 2 passes; send trie\\
+RLE & long runs & Elias gamma for run lengths; can expand\\
+LZW & repeated substrings & adaptive, 1 pass, dictionary not sent\\
+MTF & locality of characters & transform only; output has small numbers\\
+BWT & repeated contexts & transform only; reversible; groups chars\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+  \item Prefix-free codes are tries; decode by walking from the root.
+  \item Huffman builds the optimal trie greedily with a min-heap.
+  \item LZW's decoder rebuilds the dictionary, with one special case.
+  \item BWT sorts cyclic shifts and outputs the last column; decoding uses the
+        last-to-first correspondence of equal characters.
+\end{itemize}
