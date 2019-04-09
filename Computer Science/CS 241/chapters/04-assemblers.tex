@@ -1,0 +1,158 @@
+\chapter{Assemblers}
+
+\section{The job of an assembler}
+
+An \textbf{assembler} translates assembly language to machine code. Since assembly is (almost)
+one-to-one with machine code, the interesting parts are:
+\begin{enumerate}
+  \item \textbf{Analysis}: break the text into tokens, check each line is well formed, and
+        collect label definitions.
+  \item \textbf{Synthesis}: produce the 32-bit word for each instruction, resolving label
+        references.
+\end{enumerate}
+Output is binary written to standard output (four bytes per word, big-endian); errors are
+reported on standard error, and on any error no (partial) output should be considered valid.
+
+\section{Scanning the input}
+
+The course supplied a scanner (in C++ and Racket) that splits each line into tokens with
+kinds such as \code{ID}, \code{LABEL} (\code{foo:}), \code{REG} (\code{\$12}),
+\code{INT} (\code{-17}), \code{HEXINT} (\code{0x1f}), \code{COMMA}, \code{LPAREN},
+\code{RPAREN}, \code{DOTID} (\code{.word}) and \code{NEWLINE}. How scanners work in general is
+the subject of Chapter~7; here we simply consume the token stream.
+
+\section{The forward-reference problem}
+
+A label may be used before it is defined:
+\begin{lstlisting}[style=mips]
+    beq $1, $0, done     ; 'done' not seen yet!
+    add $3, $3, $1
+done:
+    jr $31
+\end{lstlisting}
+When we reach the \code{beq} we do not know \code{done}'s address. Two solutions:
+\begin{itemize}
+  \item \textbf{Two passes}: first pass computes all label addresses; second pass encodes.
+  \item \textbf{One pass with backpatching}: emit a placeholder and record the location; patch
+        it when the label is defined (requires buffering output).
+\end{itemize}
+CS 241 uses the two-pass approach.
+
+\section{Two-pass assembly}
+
+\subsection{Pass 1: analysis and the symbol table}
+Maintain a \emph{location counter} \code{PC}, starting at 0.
+\begin{lstlisting}[style=cpp]
+std::map<std::string, uint32_t> symtab;
+uint32_t pc = 0;
+for (auto &line : lines) {
+    size_t k = 0;
+    while (k < line.size() && line[k].kind == LABEL) {
+        std::string name = labelName(line[k]);      // strip ':'
+        if (symtab.count(name)) error("duplicate label " + name);
+        symtab[name] = pc;
+        ++k;
+    }
+    if (k < line.size()) {               // an instruction or .word
+        checkSyntax(line, k);            // operand kinds, counts, commas
+        pc += 4;
+    }
+}
+\end{lstlisting}
+Key points: a label alone on a line (or followed only by a comment) does not advance
+\code{PC}; labels mark the \emph{next} instruction even if that is several lines later.
+
+\subsection{Pass 2: synthesis}
+Walk the lines again with a fresh \code{PC}. For each instruction, look up the opcode/funct,
+check operand ranges, substitute labels, encode with shifts and masks, and write four bytes.
+
+\begin{lstlisting}[style=cpp]
+void outWord(uint32_t w) {
+    putchar((w >> 24) & 0xff);
+    putchar((w >> 16) & 0xff);
+    putchar((w >> 8) & 0xff);
+    putchar(w & 0xff);
+}
+// branch: label resolved relative to PC + 4
+int32_t off = ((int32_t)symtab.at(label) - (int32_t)(pc + 4)) / 4;
+if (off < -32768 || off > 32767) error("branch out of range");
+outWord((op << 26) | (s << 21) | (t << 16) | (off & 0xffff));
+\end{lstlisting}
+
+\begin{example}
+Addresses are shown in the comments; the arrows give the encoded values.
+\begin{lstlisting}[style=mips]
+main:  lis $2          ; 0x00
+       .word end       ; 0x04  -> 0x00000014
+loop:  beq $1, $0, end ; 0x08  -> offset (0x14 - 0x0c)/4 = 2
+       sub $1, $1, $2  ; 0x0c
+       beq $0, $0, loop; 0x10  -> offset (0x08 - 0x14)/4 = -3
+end:   jr $31          ; 0x14
+\end{lstlisting}
+Symbol table: \code{main}$\mapsto$\code{0x00}, \code{loop}$\mapsto$\code{0x08},
+\code{end}$\mapsto$\code{0x14}.
+\end{example}
+
+\section{Error checking}
+
+A good assembler rejects every malformed program. Typical checks:
+
+\begin{center}
+\begin{tabular}{lp{9cm}}
+\toprule
+category & examples \\
+\midrule
+syntax & wrong number of operands; missing commas/parentheses; unknown mnemonic; a
+         label after an instruction on the same line \\
+registers & register number outside $0$--$31$ \\
+immediates & \code{lw}/\code{sw}/\code{beq}/\code{bne} decimal immediate outside
+             $[-32768, 32767]$; hex immediate above \code{0xffff} \\
+\code{.word} & decimal outside $[-2^{31}, 2^{32}-1]$; hex above \code{0xffffffff} \\
+labels & duplicate definition; use of an undefined label; computed branch offset out of
+         16-bit range \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{important}[Ranges]
+A \code{.word} accepts any value that fits in 32 bits under \emph{either} interpretation,
+so $[-2^{31}, 2^{32}-1]$. A 16-bit immediate in decimal must be in $[-2^{15}, 2^{15}-1]$, but a
+hex immediate may be up to \code{0xffff} (it is just a bit pattern). Be careful to parse
+large integers into a 64-bit type before range checking, or overflow will hide errors.
+\end{important}
+
+Error output convention in CS 241: print a message containing \code{ERROR} to standard
+error and stop. A useful structure is to throw an exception from deep inside parsing and
+catch it in \code{main}.
+
+\section{Assembler design notes}
+
+\begin{itemize}
+  \item Represent each instruction format generically: a table maps mnemonic to
+        (format, opcode/funct, operand pattern), e.g.\ \code{add}$\mapsto$(R, 0x20, \code{reg,reg,reg}).
+        This avoids eighteen near-identical cases.
+  \item Pass 1 can store a parsed intermediate representation, so pass 2 need not re-check syntax.
+  \item Running time is $\Theta(n \log n)$ with a balanced-tree map, or expected $\Theta(n)$
+        with a hash table, for $n$ lines.
+  \item The symbol table is often printed to standard error for debugging (the assignment
+        asked for this).
+\end{itemize}
+
+\section{Beyond the CS 241 subset}
+
+Real assemblers also support \emph{pseudo-instructions} that expand into several real
+instructions (e.g.\ \code{li}, \code{move}, \code{blt}), directives for data and sections
+(\code{.data}, \code{.text}, \code{.ascii}), and expressions such as \code{label+8}. Pseudo
+instructions complicate pass 1 because one source line may produce a variable number of
+words.
+
+\section{Summary}
+\begin{itemize}
+  \item Forward references force either two passes or backpatching.
+  \item Pass 1: walk lines, record label $\mapsto$ address in the symbol table, check syntax,
+        advance PC by 4 per instruction or \code{.word}.
+  \item Pass 2: encode each instruction; branch offset $= (\mathit{label} - (\mathit{PC}+4))/4$;
+        \code{.word label} stores the absolute address.
+  \item Check everything: syntax, register numbers, immediate ranges (decimal vs.\ hex),
+        duplicate and undefined labels.
+\end{itemize}

@@ -1,0 +1,301 @@
+\chapter{Assembly Language Programming}
+
+\section{From machine code to assembly}
+
+Writing hex by hand is error-prone, and branch offsets must be recomputed every time code
+is inserted. \textbf{Assembly language} is a textual, one-to-one representation of machine
+code with two conveniences:
+\begin{itemize}
+  \item mnemonics and register names (\code{add \$3, \$1, \$2} instead of \code{0x00221820});
+  \item \textbf{labels}: symbolic names for addresses, computed by the assembler.
+\end{itemize}
+Comments start with \code{;}. Each line has the form
+\code{[labels:]* [instruction or .word]? [; comment]?}.
+
+\section{Labels}
+
+A label definition \code{name:} binds \code{name} to the address of the next instruction
+(or \code{.word}) in the file. Several labels may precede the same instruction. A label may be
+used:
+\begin{itemize}
+  \item in \code{beq}/\code{bne}, where the assembler computes the offset
+        $(\mathit{label} - (\mathit{PC}_{\text{branch}} + 4))/4$;
+  \item in \code{.word label}, which stores the label's \emph{absolute} address
+        (used with \code{lis} + \code{jalr} to call procedures).
+\end{itemize}
+
+\begin{example}[Sum loop with labels]
+The program from Chapter 2, now without hand-computed offsets:
+\begin{lstlisting}[style=mips]
+    lis $2
+    .word 13
+    lis $1
+    .word 1
+    add $3, $0, $0
+top:
+    add $3, $3, $2
+    sub $2, $2, $1
+    bne $2, $0, top
+    jr $31
+\end{lstlisting}
+\end{example}
+
+\section{Translating control structures}
+
+\subsection{If-then-else}
+For \code{if (a < b) S1 else S2} with $a$ in \code{\$1}, $b$ in \code{\$2}:
+\begin{lstlisting}[style=mips]
+    slt $5, $1, $2       ; $5 = a < b
+    beq $5, $0, else     ; false -> else
+    ; ... S1 ...
+    beq $0, $0, endif    ; unconditional jump
+else:
+    ; ... S2 ...
+endif:
+\end{lstlisting}
+\code{beq \$0, \$0, label} is the standard unconditional branch.
+
+\subsection{Comparisons}
+Only \code{slt}/\code{sltu} exist; derive the rest:
+\begin{itemize}
+  \item $a > b$: \code{slt \$5, \$2, \$1} (swap operands).
+  \item $a \ge b$: compute $a<b$ and invert. With \code{\$11} holding 1:
+        \code{slt \$5,\$1,\$2; sub \$5,\$11,\$5}.
+  \item $a \le b$: invert $b<a$.
+  \item $a = b$, $a\neq b$: use \code{beq}/\code{bne} directly, or
+        \code{slt}s: $(a<b) + (b<a)$ is $1$ iff $a\ne b$.
+\end{itemize}
+
+\subsection{Loops}
+A \code{while (cond) body} becomes a test at the top and a jump back at the bottom:
+\begin{lstlisting}[style=mips]
+loop:
+    ; compute cond into $5
+    beq $5, $0, done
+    ; ... body ...
+    beq $0, $0, loop
+done:
+\end{lstlisting}
+
+\section{Arrays}
+
+With \code{mips.array}, \code{\$1} is the array address and \code{\$2} its length.
+Element $i$ is at $\$1 + 4i$. Since \code{lw} takes only a constant offset, compute the
+address explicitly.
+
+\begin{example}[Maximum element of an array, result in \code{\$3}]
+Run with \code{mips.array} (assumes length $\ge 1$):
+\begin{lstlisting}[style=mips]
+    lis $4
+    .word 4            ; word size
+    lis $11
+    .word 1
+    lw  $3, 0($1)      ; max = a[0]
+    add $5, $1, $0     ; p = &a[0]
+    add $6, $2, $0     ; n remaining
+loop:
+    lw  $7, 0($5)      ; x = *p
+    slt $8, $3, $7     ; max < x ?
+    beq $8, $0, skip
+    add $3, $7, $0     ; max = x
+skip:
+    add $5, $5, $4     ; p++
+    sub $6, $6, $11    ; n--
+    bne $6, $0, loop
+    jr $31
+\end{lstlisting}
+Pointer increment (``walk a pointer'') is cheaper than recomputing $\$1 + 4i$ each time.
+To index directly: \code{mult \$i, \$4; mflo \$t; add \$t, \$t, \$1; lw \$x, 0(\$t)}.
+\end{example}
+
+\section{The stack}
+
+Registers are a shared global resource; procedures need private storage. The loader
+initialises \code{\$30} to the end of memory and we use it as a \textbf{stack pointer}. The
+stack grows \emph{downward}, and \code{\$30} points to the last-pushed word (the top).
+
+\begin{lstlisting}[style=mips]
+; push $5
+sw  $5, -4($30)
+sub $30, $30, $4      ; $4 = 4
+; pop into $5
+add $30, $30, $4
+lw  $5, -4($30)
+\end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[cell/.style={draw,minimum width=3cm,minimum height=0.6cm,font=\small}]
+  \node[cell] (a) at (0,0) {caller's data};
+  \node[cell,below=0pt of a] (b) {saved \code{\$31}};
+  \node[cell,below=0pt of b] (c) {saved \code{\$5}};
+  \node[cell,below=0pt of c,fill=gray!10] (d) {free};
+  \node[cell,below=0pt of d,fill=gray!10] (e) {free};
+  \draw[Stealth-] (c.east) -- ++(1.2,0) node[right]{\code{\$30}};
+  \node[left] at (a.north west) {\small high addresses};
+  \node[left] at (e.south west) {\small low addresses};
+  \draw[-Stealth] ($(a.west)+(-2.6,0)$) -- ($(e.west)+(-2.6,0)$) node[midway,left,font=\small]{grows};
+\end{tikzpicture}
+\end{center}
+
+\section{Procedures}
+
+A procedure is a labelled block of code that ends in \code{jr \$31}. To call it:
+\begin{lstlisting}[style=mips]
+    lis $5
+    .word proc       ; absolute address of proc
+    jalr $5          ; $31 = return address, jump to proc
+\end{lstlisting}
+
+\paragraph{The \code{\$31} problem.} \code{jalr} overwrites \code{\$31}, which our own
+program needs to return to the loader. So every caller (including \code{main}) must save
+\code{\$31} on the stack before \code{jalr} and restore it after:
+\begin{lstlisting}[style=mips]
+    sw   $31, -4($30)    ; push $31
+    lis  $31
+    .word 4
+    sub  $30, $30, $31
+    lis  $5
+    .word proc
+    jalr $5
+    lis  $31
+    .word 4
+    add  $30, $30, $31   ; pop $31
+    lw   $31, -4($30)
+\end{lstlisting}
+(Here \code{\$31} itself is reused as a temporary holding 4, since its real value is safely
+on the stack.)
+
+\subsection{Calling conventions}
+A \textbf{calling convention} is the contract between caller and callee. The convention we
+use in CS 241 assignments:
+\begin{itemize}
+  \item Arguments are passed in registers (documented per procedure) or on the stack.
+  \item The return value is placed in \code{\$3}.
+  \item \textbf{Callee-save}: the procedure must restore every register it modifies, except
+        its documented output(s). It pushes them at entry and pops them before \code{jr \$31}.
+  \item The caller saves \code{\$31} around \code{jalr}.
+\end{itemize}
+The alternative, \emph{caller-save}, makes the caller save any register it cares about
+before calling. Real ABIs mix the two (some registers callee-saved, some caller-saved).
+
+\begin{important}[Document your procedures]
+For each procedure write a header comment: what it does, which registers hold inputs,
+which hold outputs, and which (if any) are clobbered. Bugs in assembly are almost always
+convention violations: a forgotten restore, a stack pointer that is off by 4, or \code{\$31}
+not saved.
+\end{important}
+
+\begin{example}[Procedure: sum of 1..\code{\$1} in \code{\$3}]
+A callee-save procedure: it restores every register it uses except its output.
+\begin{lstlisting}[style=mips]
+; sum1toN: $3 = 1 + 2 + ... + $1 ($1 >= 1)
+; registers modified: $3 (output) -- $1, $2 preserved
+sum1toN:
+    sw  $1, -4($30)      ; save $1
+    sw  $2, -8($30)      ; save $2
+    lis $2
+    .word 8
+    sub $30, $30, $2     ; reserve 2 words
+    lis $2
+    .word 1
+    add $3, $0, $0
+sloop:
+    add $3, $3, $1
+    sub $1, $1, $2
+    bne $1, $0, sloop
+    lis $2
+    .word 8
+    add $30, $30, $2     ; release 2 words
+    lw  $1, -4($30)
+    lw  $2, -8($30)
+    jr  $31
+\end{lstlisting}
+\end{example}
+
+\section{Stack frames and recursion}
+
+Recursion works automatically once every procedure saves \code{\$31} and its registers on
+the stack: each activation gets its own region, its \textbf{stack frame} (activation record).
+A frame typically contains saved registers, the saved return address, and local variables.
+
+\begin{example}[Recursive factorial]
+Each activation pushes a three-word frame holding \code{\$1}, \code{\$2} and \code{\$31}.
+\begin{lstlisting}[style=mips]
+; fact: $3 = $1!   (uses $1 as input; preserves all but $3)
+fact:
+    sw  $1,  -4($30)
+    sw  $2,  -8($30)
+    sw  $31, -12($30)
+    lis $2
+    .word 12
+    sub $30, $30, $2     ; push frame of 3 words
+    lis $3
+    .word 1              ; base result
+    lis $2
+    .word 1
+    slt $2, $2, $1       ; $2 = (1 < n)
+    beq $2, $0, fdone    ; n <= 1 -> return 1
+    lis $2
+    .word 1
+    sub $1, $1, $2       ; n - 1
+    lis $2
+    .word fact
+    jalr $2              ; $3 = (n-1)!
+    lw  $1, 8($30)       ; reload original n from frame
+    mult $3, $1
+    mflo $3              ; $3 = n * (n-1)!
+fdone:
+    lis $2
+    .word 12
+    add $30, $30, $2     ; pop frame
+    lw  $1,  -4($30)
+    lw  $2,  -8($30)
+    lw  $31, -12($30)
+    jr  $31
+\end{lstlisting}
+After pushing, the saved $\$1$ is at offset 8 from the new \code{\$30} (frame is
+$\$30{+}0$: \code{\$31}, $\$30{+}4$: \code{\$2}, $\$30{+}8$: \code{\$1}).
+\end{example}
+
+\paragraph{Recursion depth.} Each call uses a fixed amount of stack, so depth $d$ uses
+$\Theta(d)$ stack words. Infinite recursion eventually runs \code{\$30} into the program or
+heap and crashes.
+
+\section{Input and output}
+
+\begin{example}[Echo standard input to standard output]
+Read bytes until EOF ($-1$), writing each one back out.
+\begin{lstlisting}[style=mips]
+    lis $1
+    .word 0xffff0004     ; input
+    lis $2
+    .word 0xffff000c     ; output
+    lis $4
+    .word -1             ; EOF marker
+loop:
+    lw  $3, 0($1)        ; read a byte
+    beq $3, $4, end
+    sw  $3, 0($2)        ; write it
+    beq $0, $0, loop
+end:
+    jr $31
+\end{lstlisting}
+\end{example}
+
+\paragraph{Printing a number.} To print a signed integer: print \code{-} and negate if
+negative; then repeatedly \code{div} by 10, pushing remainders (\code{mfhi}) on the stack
+until the quotient is 0; finally pop each digit, add 48, and store it to \code{0xffff000c}.
+Pitfalls: the number 0 must print one digit, and $-2^{31}$ cannot be negated (handle it via
+unsigned division or by working with negative remainders).
+
+\section{Summary}
+\begin{itemize}
+  \item Assembly = machine code with mnemonics, comments and labels; the assembler computes
+        branch offsets and label addresses.
+  \item \code{if}/\code{while} translate to \code{slt} + \code{beq}/\code{bne};
+        \code{beq \$0,\$0,L} is an unconditional jump.
+  \item The stack grows down from \code{\$30}; push = store then decrement, pop = increment then load.
+  \item Call with \code{lis}/\code{.word}/\code{jalr}; save \code{\$31} first. Return with \code{jr \$31}.
+  \item Calling convention: callee restores everything except outputs; results in \code{\$3}.
+  \item Recursion needs nothing extra: each activation's state lives in its own stack frame.
+\end{itemize}

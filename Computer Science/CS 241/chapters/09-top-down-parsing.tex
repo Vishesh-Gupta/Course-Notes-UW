@@ -1,0 +1,234 @@
+\chapter{Top-Down Parsing}
+
+\section{Idea}
+
+A \textbf{top-down} parser builds the parse tree from the root down, producing a
+\emph{leftmost derivation}. At every step it must decide which production to apply to the
+leftmost non-terminal. An LL(1) parser makes that decision by peeking at \emph{one} token of
+input. (``LL(1)'': read input \textbf{L}eft to right, produce a \textbf{L}eftmost derivation,
+\textbf{1} token of lookahead.)
+
+We augment every grammar with a new start production $S' \to\ \vdash S \dashv$, where
+$\vdash$ (BOF) and $\dashv$ (EOF) are new terminals surrounding the input. Then there is
+always a lookahead symbol, even at the end.
+
+\section{Stack-based top-down parsing}
+
+The parser keeps a stack of grammar symbols representing the part of the derivation not yet
+matched. Invariant: \emph{consumed input} $+$ \emph{stack (read top to bottom)} $=$ current
+sentential form of the leftmost derivation.
+
+\begin{lstlisting}[style=cpp]
+push S';                        // or push the right-hand side of S' in reverse
+for each token a in input (including BOF, EOF):
+    while top of stack is a non-terminal A:
+        if Predict[A][a] is empty: reject;
+        pop A; push the RHS of Predict[A][a] in reverse order;
+    if top of stack != a: reject;
+    pop;                        // match
+accept if stack is empty and input is exhausted;
+\end{lstlisting}
+
+Everything depends on the table $\mathrm{Predict}[A][a]$: the production to use when $A$ is on
+top of the stack and $a$ is the next input token. A grammar is \textbf{LL(1)} iff every entry
+contains at most one production.
+
+\section{Nullable, FIRST and FOLLOW}
+
+\begin{definition}
+For $\beta\in V^*$ and $A\in N$:
+\begin{itemize}
+  \item $\mathrm{Nullable}(\beta)$ is true iff $\beta \Rightarrow^* \varepsilon$.
+  \item $\mathrm{First}(\beta) = \{ a\in T : \beta \Rightarrow^* a\gamma \}$: terminals that can
+        begin a string derived from $\beta$.
+  \item $\mathrm{Follow}(A) = \{ b \in T : S' \Rightarrow^* \alpha A b \gamma\}$: terminals that
+        can appear immediately after $A$ in some sentential form.
+\end{itemize}
+\end{definition}
+
+\begin{definition}
+$\mathrm{Predict}(A, a) = \{A\to\beta : a\in\mathrm{First}(\beta)\} \cup
+\{A\to\beta : \mathrm{Nullable}(\beta) \text{ and } a \in \mathrm{Follow}(A)\}$.
+\end{definition}
+
+\subsection{Computing them (fixed-point iteration)}
+
+All three are computed by iterating until nothing changes.
+
+\begin{lstlisting}[style=cpp]
+// Nullable
+initialize Nullable[A] = false for all A
+repeat
+  for each A -> B1 ... Bk:
+    if k == 0 or all Bi are nullable non-terminals: Nullable[A] = true
+until no change
+
+// First (for non-terminals)
+initialize First[A] = {} for all A
+repeat
+  for each A -> B1 ... Bk:
+    for i = 1..k:
+      if Bi is a terminal: First[A] += {Bi}; break
+      First[A] += First[Bi]
+      if not Nullable[Bi]: break
+until no change
+
+// Follow
+initialize Follow[A] = {} for all A
+repeat
+  for each A -> B1 ... Bk:
+    for i = 1..k with Bi a non-terminal:
+      Follow[Bi] += First(B(i+1) ... Bk)
+      if Nullable(B(i+1) ... Bk): Follow[Bi] += Follow[A]
+until no change
+\end{lstlisting}
+
+For a sequence: $\mathrm{First}(X_1\dots X_k) = \mathrm{First}(X_1) \cup \mathrm{First}(X_2)$
+(if $X_1$ nullable) $\cup\ \dots$, stopping at the first non-nullable symbol; for a terminal
+$a$, $\mathrm{First}(a) = \{a\}$.
+
+\section{A worked example}
+
+The unambiguous expression grammar from Chapter 8 is left-recursive and therefore not LL(1)
+(see below). Here is an equivalent LL(1) version:
+\begin{center}
+\begin{tabular}{rl}
+0 & $S' \to\ \vdash E \dashv$ \\
+1 & $E \to T E'$ \\
+2 & $E' \to + T E'$ \\
+3 & $E' \to \varepsilon$ \\
+4 & $T \to F T'$ \\
+5 & $T' \to * F T'$ \\
+6 & $T' \to \varepsilon$ \\
+7 & $F \to ( E )$ \\
+8 & $F \to \mathtt{id}$
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+ & Nullable & First & Follow \\
+\midrule
+$E$  & no  & $\{(, \mathtt{id}\}$ & $\{), \dashv\}$ \\
+$E'$ & yes & $\{+\}$ & $\{), \dashv\}$ \\
+$T$  & no  & $\{(, \mathtt{id}\}$ & $\{+, ), \dashv\}$ \\
+$T'$ & yes & $\{*\}$ & $\{+, ), \dashv\}$ \\
+$F$  & no  & $\{(, \mathtt{id}\}$ & $\{*, +, ), \dashv\}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Predict table (entries are rule numbers; blank = error):
+\begin{center}
+\begin{tabular}{c|ccccccc}
+ & $\vdash$ & $\dashv$ & id & $+$ & $*$ & $($ & $)$ \\
+\hline
+$S'$ & 0 & & & & & & \\
+$E$  & & & 1 & & & 1 & \\
+$E'$ & & 3 & & 2 & & & 3 \\
+$T$  & & & 4 & & & 4 & \\
+$T'$ & & 6 & & 6 & 5 & & 6 \\
+$F$  & & & 8 & & & 7 & \\
+\end{tabular}
+\end{center}
+No entry has two rules, so the grammar is LL(1).
+
+\begin{example}[Parsing $\vdash \mathtt{id} + \mathtt{id} * \mathtt{id} \dashv$]
+Stack shown with top on the left.
+\begin{center}
+\small
+\begin{tabular}{rlll}
+\toprule
+step & stack & remaining input & action \\
+\midrule
+1 & $S'$ & $\vdash$ id + id * id $\dashv$ & expand 0 \\
+2 & $\vdash E \dashv$ & $\vdash$ id + id * id $\dashv$ & match $\vdash$ \\
+3 & $E \dashv$ & id + id * id $\dashv$ & expand 1 \\
+4 & $T E' \dashv$ & id + id * id $\dashv$ & expand 4 \\
+5 & $F T' E' \dashv$ & id + id * id $\dashv$ & expand 8 \\
+6 & id $T' E' \dashv$ & id + id * id $\dashv$ & match \\
+7 & $T' E' \dashv$ & + id * id $\dashv$ & expand 6 \\
+8 & $E' \dashv$ & + id * id $\dashv$ & expand 2 \\
+9 & $+ T E' \dashv$ & + id * id $\dashv$ & match \\
+10 & $T E' \dashv$ & id * id $\dashv$ & expand 4 \\
+11 & $F T' E' \dashv$ & id * id $\dashv$ & expand 8 \\
+12 & id $T' E' \dashv$ & id * id $\dashv$ & match \\
+13 & $T' E' \dashv$ & * id $\dashv$ & expand 5 \\
+14 & $* F T' E' \dashv$ & * id $\dashv$ & match \\
+15 & $F T' E' \dashv$ & id $\dashv$ & expand 8 \\
+16 & id $T' E' \dashv$ & id $\dashv$ & match \\
+17 & $T' E' \dashv$ & $\dashv$ & expand 6 \\
+18 & $E' \dashv$ & $\dashv$ & expand 3 \\
+19 & $\dashv$ & $\dashv$ & match \\
+20 & (empty) & (empty) & accept \\
+\bottomrule
+\end{tabular}
+\end{center}
+The sequence of expansions (0,1,4,8,6,2,4,8,5,8,6,3) is exactly the leftmost derivation.
+\end{example}
+
+\section{When a grammar is not LL(1)}
+
+\subsection{Left recursion}
+If $A \to A\alpha \mid \beta$, then $\mathrm{First}(\beta) \subseteq \mathrm{First}(A\alpha)$,
+so both rules are predicted on the same token: a conflict. (A recursive-descent parser would
+loop forever.) \textbf{Fix}: rewrite as right recursion with a new non-terminal:
+\[
+A \to A\alpha \mid \beta \qquad\leadsto\qquad A \to \beta A', \quad A' \to \alpha A' \mid \varepsilon.
+\]
+This is how $E \to E + T \mid T$ became $E\to TE'$, $E' \to +TE' \mid \varepsilon$.
+
+\begin{important}[Associativity is lost]
+The rewritten grammar's parse tree for $a-b-c$ hangs to the right. A compiler must
+re-associate when building the abstract syntax tree (or evaluate with an accumulator) to
+preserve left associativity. This is one reason LR parsing is preferred for expressions.
+\end{important}
+
+\subsection{Common prefixes: left factoring}
+$A \to \alpha\beta_1 \mid \alpha\beta_2$ conflicts on $\mathrm{First}(\alpha)$. Factor out
+the prefix: $A \to \alpha A'$, $A' \to \beta_1 \mid \beta_2$. E.g.\ WLP4's
+\code{factor -> ID | ID LPAREN RPAREN | ...} needs factoring for LL(1).
+
+\subsection{Limits}
+Some languages have no LL(1) grammar at all (e.g.\ $\{a^nb^m : n\ge m\}$ which needs
+unbounded lookahead to decide). LL($k$) for larger $k$ helps sometimes but tables grow
+quickly. Every LL(1) grammar is unambiguous.
+
+\section{Recursive descent}
+
+An LL(1) grammar can be parsed by hand by writing one function per non-terminal; the call
+stack plays the role of the parse stack.
+\begin{lstlisting}[style=cpp]
+Token la;                                  // lookahead
+void match(Kind k) { if (la.kind != k) error(); la = next(); }
+void E()  { T(); Eprime(); }
+void Eprime() {
+    if (la.kind == PLUS) { match(PLUS); T(); Eprime(); }
+    else if (la.kind == RPAREN || la.kind == EOF_) { /* epsilon */ }
+    else error();
+}
+void T()  { F(); Tprime(); }
+void Tprime() {
+    if (la.kind == STAR) { match(STAR); F(); Tprime(); }
+    else if (la.kind == PLUS || la.kind == RPAREN || la.kind == EOF_) {}
+    else error();
+}
+void F() {
+    if (la.kind == ID) match(ID);
+    else if (la.kind == LPAREN) { match(LPAREN); E(); match(RPAREN); }
+    else error();
+}
+\end{lstlisting}
+Each branch condition is exactly a row of the predict table. Many production compilers
+(GCC's and Clang's C++ front ends) use hand-written recursive descent.
+
+\section{Summary}
+\begin{itemize}
+  \item Top-down parsing = leftmost derivation; expand non-terminals on the stack, match terminals.
+  \item Predict$(A,a)$ uses First of the RHS, plus Follow$(A)$ when the RHS is nullable.
+  \item Compute Nullable, First, Follow by fixed-point iteration.
+  \item LL(1) iff the predict table has no multiply-defined entries.
+  \item Remove left recursion and left-factor to make a grammar LL(1); beware lost associativity.
+  \item Recursive descent is a hand-coded LL(1) parser.
+\end{itemize}

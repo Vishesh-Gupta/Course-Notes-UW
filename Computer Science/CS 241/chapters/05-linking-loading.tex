@@ -1,0 +1,192 @@
+\chapter{Linking, Loading and Relocation}
+
+\section{Loaders}
+
+So far every program was assumed to start at address 0. In reality the operating system
+runs many programs and chooses where each one goes. The \textbf{loader} is the part of the OS
+that:
+\begin{enumerate}
+  \item finds free memory at some address $\alpha$;
+  \item copies the program's words into $\mathrm{MEM}[\alpha], \mathrm{MEM}[\alpha+4], \dots$;
+  \item sets up registers (\code{\$30}, \code{\$31}, any inputs) and jumps to $\alpha$.
+\end{enumerate}
+
+\begin{lstlisting}[style=c]
+// naive loader
+alpha = findFreeRAM(n);
+for (i = 0; i < n; i++)
+    MEM[alpha + 4*i] = file[i];
+$30 = alpha + n*4 + stackSize;   // or end of memory
+$31 = returnToOS;
+PC = alpha;
+\end{lstlisting}
+
+The OS itself is a program that is already loaded; conceptually it runs in a loop:
+read a program name, load it, \code{jalr} to it, and continue when it returns.
+
+\section{Relocation}
+
+\paragraph{The problem.} Machine code assembled for address 0 is wrong at address $\alpha$
+wherever it contains an \emph{absolute address}. In our subset that means exactly the
+\code{.word label} lines: \code{.word foo} contains the address of \code{foo} assuming the
+program starts at 0. Branch offsets are PC-relative, so they are fine.
+
+\paragraph{Solution.} The loader adds $\alpha$ to every word that holds an address. But a
+word in a binary file looks just like any other word, so the assembler must tell the loader
+\emph{which} words to adjust. That information is stored in an \textbf{object file} format.
+In CS 241 we use \textbf{MERL} (MIPS Executable Relocatable Linkable).
+
+\section{The MERL format}
+
+A MERL file consists of a 3-word header, the code, and a table of entries:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+offset & contents & meaning \\
+\midrule
+\code{0x00} & \code{0x10000002} & cookie: the instruction \code{beq \$0, \$0, 2} \\
+\code{0x04} & \textit{endModule} & total length of the file in bytes \\
+\code{0x08} & \textit{endCode} & length of header + code in bytes \\
+\code{0x0c} & code \dots & the assembled program \\
+\textit{endCode} & table \dots & relocation and external symbol entries \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The cookie is clever: it is a valid instruction that skips the next two words, so a MERL file
+loaded at address 0 can be run directly, jumping over \textit{endModule} and \textit{endCode}.
+
+Table entries:
+\begin{center}
+\begin{tabular}{llp{7cm}}
+\toprule
+type & format & meaning \\
+\midrule
+REL & \code{0x01}, \textit{loc} & word at \textit{loc} holds a relocatable address \\
+ESR & \code{0x11}, \textit{loc}, \textit{len}, $c_1,\dots,c_{len}$ & external symbol
+reference: word at \textit{loc} should hold the address of the imported symbol named
+$c_1\dots c_{len}$ (one ASCII char per word) \\
+ESD & \code{0x05}, \textit{loc}, \textit{len}, $c_1,\dots,c_{len}$ & external symbol
+definition: this module exports a symbol with that name at address \textit{loc} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All locations are relative to the beginning of the MERL file \emph{including} the 12-byte
+header, i.e.\ the code is assembled as though it starts at address \code{0x0c}.
+
+\begin{example}
+Source:
+\begin{lstlisting}[style=mips]
+    lis $3
+    .word ten
+    jr $31
+ten: .word 10
+\end{lstlisting}
+MERL output (each line one word):
+\begin{lstlisting}[style=mips]
+beq $0, $0, 2      ; 0x00 cookie
+.word 0x24         ; 0x04 endModule
+.word 0x1c         ; 0x08 endCode
+lis $3             ; 0x0c
+.word 0x18         ; 0x10 address of ten (0x0c + 0x0c)
+jr $31             ; 0x14
+.word 10           ; 0x18 ten
+.word 0x01         ; 0x1c REL entry
+.word 0x10         ; 0x20 location to relocate
+\end{lstlisting}
+\end{example}
+
+\section{A relocating loader}
+
+\begin{lstlisting}[style=c]
+read cookie, endMod, endCode;
+codeLen = endCode - 12;
+alpha = findFreeRAM(codeLen + stack);
+for (i = 0; i < codeLen; i += 4)
+    MEM[alpha + i] = readWord();
+i = endCode;
+while (i < endMod) {
+    format = readWord();
+    if (format == 1) {               // REL
+        rel = readWord();
+        MEM[alpha + rel - 12] += alpha - 12;
+        i += 8;
+    } else error("unknown format");
+}
+\end{lstlisting}
+
+Why $\alpha - 12$? The stored address already includes the header offset of 12 (code was
+assembled starting at \code{0x0c}), but the loader places the first code word (not the header)
+at $\alpha$. So the true address is $\mathit{stored} - 12 + \alpha$.
+
+\begin{important}[Position-independent code]
+Code containing no absolute addresses (only PC-relative branches) is
+\textbf{position-independent} and needs no relocation. Hidden absolute addresses that the
+assembler cannot see (e.g.\ computing an address by arithmetic on a constant) will break
+under relocation, so always produce addresses with \code{.word label}.
+\end{important}
+
+\section{Linking}
+
+Large programs are split across files, and libraries (like the \code{print} routine or
+\code{alloc.merl} used by our compiler) are assembled separately. A \textbf{linker} combines
+object files into one, resolving references between them.
+
+\paragraph{Directives.}
+\begin{itemize}
+  \item \code{.import name} declares that \code{name} is defined in another module.
+        Using it in \code{.word name} generates an ESR entry (with value 0 in the code).
+  \item \code{.export name} makes a label defined in this module visible to others
+        (generates an ESD entry).
+\end{itemize}
+An assembler for MERL must check: an imported name must not also be a local label;
+an exported name must be defined; a label used must be either defined or imported.
+
+\subsection{Linking algorithm}
+To link $m_1$ and $m_2$ (producing a module in which $m_2$'s code follows $m_1$'s):
+\begin{enumerate}
+  \item Check no symbol is exported by both (duplicate definition $\Rightarrow$ error).
+  \item Let $\alpha = \mathit{endCode}(m_1) - 12$. Relocate $m_2$: add $\alpha$ to every
+        location in $m_2$'s table, and add $\alpha$ to each word in $m_2$'s code marked REL.
+  \item For each ESR in $m_1$ whose name is ESD-exported by $m_2$: write the ESD's address
+        into the referenced word and change the ESR into a REL (it is now an internal
+        address, still needing relocation at load time). Symmetrically for ESRs in $m_2$
+        resolved by $m_1$'s ESDs.
+  \item Concatenate: header, code of $m_1$, code of $m_2$, combined tables. Recompute
+        \textit{endCode} and \textit{endModule}.
+\end{enumerate}
+ESRs that remain unresolved stay as ESRs, so linking can happen in stages; a final
+executable should have none left.
+
+\begin{lstlisting}[style=c]
+alpha = m1.endCode - 12;
+for (e : m2.table) e.loc += alpha;
+for (e : m2.table) if (e.type == REL) m2.code[e.loc] += alpha;
+for (d : m2.ESDs) d.addr += alpha;   // (same as loc for ESD)
+for (r : m1.ESRs) if (m2 exports r.name) {
+    m1.code[r.loc] = addressOf(r.name); r.type = REL; }
+for (r : m2.ESRs) if (m1 exports r.name) {
+    m2.code[r.loc] = addressOf(r.name); r.type = REL; }
+\end{lstlisting}
+
+\section{Static vs.\ dynamic linking}
+\begin{aside}
+In the course we do \emph{static} linking: all modules are merged into one file before
+running. Real systems also use \emph{dynamic} linking (shared libraries, \code{.so}/\code{.dll}),
+where references are resolved at load time or on first call, so library code is shared among
+processes and can be updated without relinking. Real object formats (ELF, COFF, Mach-O) carry
+the same kinds of information as MERL: code, relocation records, and symbol tables.
+\end{aside}
+
+\section{Summary}
+\begin{itemize}
+  \item The loader picks an address $\alpha$, copies code there, and must relocate absolute addresses.
+  \item In our subset, only \code{.word label} produces absolute addresses; branches are relative.
+  \item MERL = header (cookie \code{0x10000002}, endModule, endCode) + code + table of REL,
+        ESR, ESD entries; locations include the 12-byte header.
+  \item Relocation at load: $\mathrm{MEM}[\alpha+\mathit{loc}-12] \mathrel{+}= \alpha-12$.
+  \item Linking: offset the second module, resolve ESRs against ESDs (turning them into RELs),
+        concatenate, fix the header; duplicate exports are an error.
+\end{itemize}

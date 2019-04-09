@@ -1,0 +1,154 @@
+\chapter{Scanning}
+
+\section{The scanning problem}
+
+A \textbf{scanner} (lexer, tokenizer) is the first phase of a compiler. It reads a string of
+characters and splits it into \textbf{tokens}, each a pair (\emph{kind}, \emph{lexeme}):
+\[
+\mathtt{int\ x = 42;} \;\Longrightarrow\;
+(\mathrm{INT},\mathtt{int})\ (\mathrm{ID},\mathtt{x})\ (\mathrm{BECOMES},\mathtt{=})\
+(\mathrm{NUM},\mathtt{42})\ (\mathrm{SEMI},\mathtt{;})
+\]
+Whitespace and comments are discarded. Each token kind is a regular language, so the
+language of all valid token sequences, $L = (T_1 \mid T_2 \mid \dots \mid T_k)^*$ (with
+whitespace interleaved), is regular too.
+
+\begin{important}[Scanning is a decomposition problem]
+Recognising whether $w \in L^*$ is easy, but the scanner must also produce \emph{a
+decomposition} of $w$ into tokens. In general the decomposition is not unique: is
+\code{abc} one identifier or three? Is \code{>=} one token or \code{>} then \code{=}? We need
+a rule to choose.
+\end{important}
+
+\section{Building a token-recognising DFA}
+
+\begin{enumerate}
+  \item Write a regular expression for each token kind.
+  \item Build an $\varepsilon$-NFA for their union, remembering for each accepting state which
+        token kind it accepts.
+  \item Convert to a DFA by subset construction. An accepting DFA state may contain accepting
+        NFA states for several kinds (e.g.\ keyword \code{int} vs.\ identifier); resolve by a
+        priority order (keywords beat identifiers).
+\end{enumerate}
+
+In practice (and in the CS 241 WLP4 scanner assignment) keywords are recognised as
+identifiers by the DFA, and afterwards a lookup checks whether the lexeme is a reserved word.
+
+\begin{example}[Partial WLP4 token DFA]
+A fragment of the DFA (keywords are recognised as \code{ID} and looked up afterwards):
+\begin{center}
+\begin{tikzpicture}[shorten >=1pt,node distance=2.4cm,on grid,auto,>=Stealth,every state/.style={minimum size=1cm,font=\scriptsize}]
+  \node[state,initial] (s) at (0,0) {$s$};
+  \node[state,accepting] (id) at (3.2,1.8) {ID};
+  \node[state,accepting] (num) at (3.2,0) {NUM};
+  \node[state,accepting] (zero) at (3.2,-1.8) {ZERO};
+  \node[state,accepting] (lt) at (0,-3.4) {LT};
+  \node[state,accepting] (le) at (3.2,-3.4) {LE};
+  \path[->]
+    (s) edge node {a-z,A-Z} (id)
+    (id) edge[loop right] node {a-z,A-Z,0-9} ()
+    (s) edge node {1-9} (num)
+    (num) edge[loop right] node {0-9} ()
+    (s) edge node[pos=0.7] {0} (zero)
+    (s) edge node[swap] {$<$} (lt)
+    (lt) edge node {$=$} (le);
+\end{tikzpicture}
+\end{center}
+Note \code{ZERO} has no outgoing edges: in WLP4 \code{0} followed by a digit is an error,
+not a longer number.
+\end{example}
+
+\section{Maximal munch}
+
+\begin{definition}
+The \textbf{maximal munch} rule: at each step, choose the \emph{longest} prefix of the
+remaining input that is a valid token.
+\end{definition}
+
+\paragraph{General maximal munch algorithm.} Run the DFA from the current position as far as
+possible, remembering the last position at which it was in an accepting state. When the DFA
+gets stuck (or the input ends), back up to that last accepting position, emit that token,
+and restart from there.
+
+\begin{lstlisting}[style=cpp]
+std::vector<Token> scan(const std::string &w) {
+    std::vector<Token> out;
+    size_t pos = 0;
+    while (pos < w.size()) {
+        int state = START;
+        size_t i = pos, lastAcceptEnd = std::string::npos;
+        int lastAcceptState = ERROR;
+        while (i < w.size() && delta(state, w[i]) != ERROR) {
+            state = delta(state, w[i++]);
+            if (accepting(state)) { lastAcceptEnd = i; lastAcceptState = state; }
+        }
+        if (lastAcceptEnd == std::string::npos) throw ScanError(pos);
+        out.push_back({kindOf(lastAcceptState), w.substr(pos, lastAcceptEnd - pos)});
+        pos = lastAcceptEnd;          // back up to last accept
+    }
+    return out;
+}
+\end{lstlisting}
+
+The backing up can cause $\Theta(n^2)$ worst-case time: e.g.\ if tokens are \code{a} and
+\code{a...ab} the scanner may read far ahead before failing and backing up, repeatedly.
+(A memoised version, due to Reps, achieves linear time.)
+
+\section{Simplified maximal munch}
+
+\begin{definition}
+\textbf{Simplified maximal munch}: run the DFA until it gets stuck. If the current state
+is accepting, emit the token; otherwise report an error. Never back up.
+\end{definition}
+
+\begin{lstlisting}[style=cpp]
+while (pos < w.size()) {
+    int state = START; size_t i = pos;
+    while (i < w.size() && delta(state, w[i]) != ERROR)
+        state = delta(state, w[i++]);
+    if (!accepting(state)) throw ScanError(pos);
+    emit(kindOf(state), w.substr(pos, i - pos));
+    pos = i;
+}
+\end{lstlisting}
+
+This runs in $\Theta(n)$ time and is what CS 241's WLP4 and MIPS-assembly scanners use. The
+price: some strings that \emph{can} be decomposed into tokens are rejected.
+
+\begin{example}[Simplified maximal munch can fail]
+Suppose tokens are $\{a,\ aab\}$ (alternatively: C++ \code{>{}>} vs.\ nested templates). On
+input $aaa$: the DFA reads $a$ (accepting), then $aa$ (not accepting, but still alive since
+it is a prefix of $aab$), then the third $a$ kills it after $aa$. The state for $aa$ is not
+accepting, so simplified munch reports an error. Yet $aaa = a\cdot a\cdot a$ is a valid
+decomposition, and full maximal munch would find it by backing up.
+\end{example}
+
+\begin{example}[Maximal munch is not always what you want]
+In C++03, \code{vector<vector<int>{}>} scanned \code{>{}>} as a single shift token, a famous
+annoyance (fixed in C++11 by a special parser rule). Similarly, \code{x-{}-{}-y} is scanned as
+\code{x -{}- - y}. Maximal munch is greedy, not a full search over decompositions.
+\end{example}
+
+\section{Whitespace, comments, and token separation}
+
+In WLP4, whitespace and comments (\code{//} to end of line) are recognised as ``tokens''
+by the DFA and then discarded. Some pairs of tokens must be separated by whitespace,
+because under maximal munch they would otherwise merge: \code{int x} vs.\ \code{intx}, or
+\code{42abc} (WLP4 treats a NUM immediately followed by a letter as an error). Numbers out of
+range (above $2^{31}-1$) are rejected by the scanner as a separate check.
+
+\section{Theory: why not just a regex for the program?}
+
+The language of token sequences is regular, but programming languages require balanced
+parentheses, matched braces, and nested structure. $\{(^n )^n\}$ is not regular, so after
+scanning we need a more powerful formalism: context-free grammars (next chapter).
+
+\section{Summary}
+\begin{itemize}
+  \item The scanner turns characters into (kind, lexeme) tokens using a DFA built from the
+        regexes for each token kind (union, then subset construction).
+  \item Decompositions are ambiguous; maximal munch takes the longest token each time.
+  \item General maximal munch backs up to the last accepting state (worst case quadratic).
+  \item Simplified maximal munch never backs up: linear time, but may reject decomposable inputs.
+  \item Keywords: scan as identifiers then look them up; whitespace and comments are discarded.
+\end{itemize}

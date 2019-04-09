@@ -1,0 +1,235 @@
+\chapter{Optimization and Memory Management}
+
+\section{Optimization}
+
+The code generator of Chapter 12 is correct but wasteful: it pushes and pops for every binary
+operator and reloads variables constantly. \textbf{Optimization} transforms a program into an
+equivalent one that is faster or smaller. (``Optimization'' is a misnomer: finding truly optimal
+code is undecidable, so we only \emph{improve}.) In CS 241 the final assignment rewarded
+shorter generated code, measured in instructions.
+
+\begin{important}[Correctness first]
+An optimization must preserve the observable behaviour of every valid program, including
+output, return value and (for WLP4) memory effects. Most optimizations need some proof that
+a condition holds (e.g.\ ``this variable is not modified in between'').
+\end{important}
+
+\subsection{Constant folding and propagation}
+\textbf{Constant folding}: evaluate expressions whose operands are compile-time constants.
+\code{x = 2 + 3 * 4;} becomes \code{x = 14;}, saving the whole push/pop sequence:
+\begin{lstlisting}[style=mips]
+lis $3
+.word 14
+\end{lstlisting}
+\textbf{Constant propagation}: if \code{int x = 5;} and \code{x} is never assigned, every use
+of \code{x} can be replaced by 5, which may enable more folding. Folding must respect the
+target's semantics (32-bit wraparound, truncating division, and never fold a division by zero
+into a compile-time crash).
+
+\subsection{Common subexpression elimination}
+In \code{a = (b+c)*(b+c);} compute \code{b+c} once and reuse it, provided neither \code{b}
+nor \code{c} changes in between. Pointer stores complicate this (\emph{aliasing}): \code{*p = 0}
+might modify \code{b} if \code{p == \&b}.
+
+\subsection{Dead code elimination}
+Remove code whose result is never used or that can never execute, e.g.\ the body of
+\code{while (1 > 2) \{...\}} or an assignment to a variable that is overwritten before being
+read. Careful: \code{println} and procedure calls have side effects and cannot be removed.
+
+\subsection{Strength reduction and peephole optimization}
+Replace expensive operations by cheaper ones: multiplying by 2 becomes \code{add \$3, \$3, \$3}.
+A \textbf{peephole optimizer} scans a small window of emitted instructions for patterns:
+\begin{lstlisting}[style=mips]
+; push($3) immediately followed by pop($5)
+sw $3, -4($30)
+sub $30, $30, $4
+add $30, $30, $4
+lw $5, -4($30)
+; ==> equivalent to
+add $5, $3, $0
+\end{lstlisting}
+
+\subsection{Register allocation}
+Loads and stores dominate naive code. \textbf{Register allocation} keeps variables and
+temporaries in registers instead of on the stack. Since MIPS has ~20 free registers, we
+need to share them among variables whose lifetimes do not overlap.
+
+\begin{itemize}
+  \item A variable is \textbf{live} at a point if its current value may be read later.
+  \item Two variables \textbf{interfere} if they are live at the same time.
+  \item Build the \textbf{interference graph} (one vertex per variable, edge when they
+        interfere). Assigning registers is \textbf{graph colouring} with $k$ colours = $k$
+        registers.
+  \item Graph colouring is NP-hard, so compilers use heuristics (e.g.\ Chaitin's: repeatedly
+        remove a vertex with degree $<k$; if none exists, choose one to \emph{spill} to memory).
+\end{itemize}
+
+\begin{example}
+Live ranges in a straight-line fragment:
+\begin{lstlisting}[style=cpp]
+int a = 1;      // a live
+int b = a + 2;  // a, b live
+int c = b * b;  // b, c live (a dead if not used later)
+return c + 1;
+\end{lstlisting}
+Interference edges: $a$--$b$, $b$--$c$. Two registers suffice: $a, c \mapsto$ \code{\$5},
+$b \mapsto$ \code{\$6}.
+\end{example}
+
+\subsection{Procedure-level optimizations}
+\begin{itemize}
+  \item \textbf{Inlining}: replace a call by the body of the callee, saving call overhead and
+        enabling further optimization (at the cost of code size).
+  \item \textbf{Tail-call optimization}: if the last action of a procedure is \code{return f(...)},
+        reuse the current frame and jump instead of calling. Tail recursion then runs in
+        constant stack space (like a loop).
+  \item Only save registers that are actually modified.
+\end{itemize}
+
+\section{Memory management}
+
+WLP4's \code{new} and \code{delete} need a \textbf{heap}: a region of memory (between the
+program and the stack) from which blocks are allocated in arbitrary order and freed in
+arbitrary order (unlike the LIFO stack).
+
+\begin{center}
+\begin{tikzpicture}[cell/.style={draw,minimum height=0.7cm,font=\small}]
+  \node[cell,minimum width=2.2cm] (code) at (0,0) {code};
+  \node[cell,minimum width=3.2cm,right=0pt of code] (heap) {heap $\to$};
+  \node[cell,minimum width=2.4cm,right=0pt of heap,fill=gray!10] (free) {free};
+  \node[cell,minimum width=2.4cm,right=0pt of free] (stack) {$\leftarrow$ stack};
+  \node[below] at (code.south west) {\scriptsize 0};
+  \node[below] at (stack.south east) {\scriptsize end of memory};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Explicit allocation with a free list}
+The allocator keeps a \textbf{free list}: a linked list of free blocks, stored \emph{in} the
+free blocks themselves (each holds its size and a pointer to the next free block). Each
+allocated block has a hidden header word storing its size so \code{delete} knows how much to
+free; \code{new} returns the address just after the header.
+
+\paragraph{Allocation} of $n$ words: search the free list for a block of size $\ge n+1$; split
+it, returning one part and leaving the remainder on the list. Strategies:
+\begin{itemize}
+  \item \textbf{First fit}: the first block that is large enough (fast).
+  \item \textbf{Best fit}: the smallest block that is large enough (less waste per allocation,
+        but leaves tiny useless fragments; requires a full scan).
+  \item \textbf{Worst fit}: the largest block (leaves big remainders).
+\end{itemize}
+\paragraph{Deallocation}: insert the block back into the free list (often kept sorted by
+address) and \textbf{coalesce} it with adjacent free neighbours to form larger blocks.
+
+\begin{definition}
+\textbf{Fragmentation}: free memory is broken into many small non-contiguous blocks, so a
+request can fail even though the total free space would suffice. \emph{External}
+fragmentation is wasted space between blocks; \emph{internal} fragmentation is wasted space
+inside a block that is bigger than requested.
+\end{definition}
+
+\begin{example}
+Heap of 100 words. Allocate $A=20$, $B=30$, $C=20$, then free $B$. Free space: 30 (where B was)
+$+$ 30 at the end $=60$ words, but a request for 40 words fails: external fragmentation.
+\end{example}
+
+No allocator can avoid fragmentation for all request sequences; without moving blocks
+(compaction) some sequences force heap usage much larger than the live data.
+
+\subsection{The buddy system}
+Restrict block sizes to powers of two. The heap starts as one block of size $2^k$.
+\begin{itemize}
+  \item To allocate $n$ words, round up to the smallest power $2^j \ge n+1$. Take a free block of
+        size $2^j$; if none, split a larger block in half repeatedly. The two halves of a split
+        are \textbf{buddies}.
+  \item To free a block, check whether its buddy is also free; if so, merge them into a block
+        twice the size, and repeat upward.
+\end{itemize}
+A block of size $2^j$ at offset $a$ (relative to the heap start) has its buddy at offset
+$a \oplus 2^j$ (flip bit $j$), so finding buddies is cheap. Keep one free list per size.
+Trade-off: fast allocation and coalescing, but internal fragmentation up to about 50\%.
+
+\begin{example}
+Heap 64 words. Request 7 words (+1 header = 8): split $64\to32+32\to16+16\to8+8$; return the
+first 8. Request 14 words ($\to 16$): use the free 16. Freeing the 8 merges it with its free
+buddy 8 to give 16; that 16's buddy is allocated, so merging stops.
+\end{example}
+
+\section{Garbage collection}
+
+In languages like Racket, Java or Python, the programmer never calls \code{delete}. The
+runtime automatically reclaims \textbf{garbage}: heap blocks that can no longer be reached by
+the program.
+
+\begin{definition}
+The \textbf{roots} are pointers held outside the heap (registers, stack, globals). A heap block
+is \textbf{reachable} if it can be reached from a root by following pointers. Unreachable
+blocks are garbage.
+\end{definition}
+
+\subsection{Reference counting}
+Each block stores the number of pointers to it. Assigning a pointer increments the new
+target's count and decrements the old target's; when a count reaches 0 the block is freed
+(recursively decrementing what it points to).
+\begin{itemize}
+  \item[+] Garbage reclaimed immediately and incrementally; no long pauses.
+  \item[$-$] Every pointer assignment costs extra work; counts take space.
+  \item[$-$] \textbf{Cycles} are never reclaimed: two blocks pointing to each other keep each
+        other's count at 1 even when unreachable.
+\end{itemize}
+
+\subsection{Mark and sweep}
+\begin{enumerate}
+  \item \textbf{Mark}: starting from the roots, traverse (DFS) all reachable blocks and set a
+        mark bit in each.
+  \item \textbf{Sweep}: scan the entire heap; unmarked blocks are added to the free list;
+        clear marks on the others.
+\end{enumerate}
+Handles cycles. Cost: marking is proportional to live data, sweeping to the whole heap. The
+program is paused while collecting (``stop the world''), and the heap remains fragmented.
+
+\subsection{Copying collection}
+Split the heap into two halves, \emph{from-space} and \emph{to-space}; allocate only in
+from-space by bumping a pointer (very fast). When it fills:
+\begin{enumerate}
+  \item Copy every reachable block from from-space into to-space, contiguously, leaving a
+        \emph{forwarding address} in the old copy so each block is copied once and pointers
+        to it can be updated (Cheney's algorithm does this with a BFS using to-space itself as
+        the queue).
+  \item Swap the roles of the two halves.
+\end{enumerate}
+\begin{itemize}
+  \item[+] Time proportional to live data only; compacts the heap (no fragmentation);
+        allocation is a pointer bump.
+  \item[$-$] Only half the memory is usable at a time; objects move, so all pointers must be
+        known precisely.
+\end{itemize}
+
+\begin{aside}
+Modern collectors are \emph{generational}: most objects die young, so new objects are
+allocated in a small nursery that is collected often (by copying), and survivors are
+promoted to an older generation collected rarely (often by mark-sweep-compact). Many also run
+incrementally or concurrently to avoid long pauses.
+\end{aside}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+ & reclaims cycles & pause & fragmentation \\
+\midrule
+reference counting & no & short, incremental & yes \\
+mark and sweep & yes & proportional to heap & yes \\
+copying & yes & proportional to live data & no (compacts) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Summary}
+\begin{itemize}
+  \item Optimizations: constant folding/propagation, CSE, dead code, strength reduction,
+        peephole, inlining, tail calls; all must preserve behaviour.
+  \item Register allocation = colouring the interference graph of live ranges; spill when out of registers.
+  \item Heaps use free lists (first/best/worst fit) with headers and coalescing; fragmentation is unavoidable in general.
+  \item Buddy system: power-of-two blocks, buddy at $a \oplus 2^j$, fast merges, internal fragmentation.
+  \item GC: reference counting (no cycles), mark and sweep (whole-heap sweep), copying
+        (compacting, half the memory).
+\end{itemize}
