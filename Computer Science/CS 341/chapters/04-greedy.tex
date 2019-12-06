@@ -1,0 +1,160 @@
+\chapter{Greedy Algorithms}
+
+\begin{important}[Paradigm]
+A greedy algorithm builds a solution one piece at a time, each time making the choice that looks best
+\emph{right now}, and never revisiting it. Greedy algorithms are easy to design and usually fast,
+but often wrong; the work is in the \textbf{proof}.
+\end{important}
+
+Two standard proof templates:
+\begin{itemize}
+  \item \textbf{Greedy stays ahead}: show by induction that after each step, the greedy partial solution
+        is at least as good as any other solution's corresponding prefix.
+  \item \textbf{Exchange argument}: take an optimal solution $O$ that differs from the greedy solution $G$;
+        modify $O$ step by step (swap two elements) into $G$ without making it worse. Hence $G$ is optimal.
+\end{itemize}
+
+\section{Interval scheduling}
+\begin{definition}
+Input: $n$ intervals (jobs) $[s_i,f_i)$. Output: a maximum-size set of pairwise disjoint (compatible) intervals.
+\end{definition}
+
+Candidate greedy rules: earliest start time (fails: one long early interval), shortest interval
+(fails: a short interval overlapping two long disjoint ones), fewest conflicts (fails on a more intricate example).
+The correct rule is \textbf{earliest finish time}.
+
+\begin{lstlisting}[style=pseudo]
+sort intervals so that $f_1 \le f_2 \le \dots \le f_n$
+S = {}; last = $-\infty$
+for i = 1 to n do
+    if $s_i \ge$ last then
+        S = S $\cup$ {i}; last = $f_i$
+return S
+\end{lstlisting}
+Runtime $\Theta(n\log n)$ (sorting dominates).
+
+\begin{theorem}
+Earliest-finish-first returns an optimal schedule.
+\end{theorem}
+\begin{proof}[Proof (greedy stays ahead)]
+Let $G=(g_1,\dots,g_k)$ be the greedy intervals in order, and let $O=(o_1,\dots,o_m)$ be an optimal solution sorted by finish time.
+Claim: $f(g_r)\le f(o_r)$ for all $r\le k$. For $r=1$, greedy picks the interval with the smallest finish time overall.
+If $f(g_{r-1})\le f(o_{r-1})$, then $o_r$ starts after $f(o_{r-1})\ge f(g_{r-1})$, so $o_r$ was compatible with greedy's choices
+when greedy chose $g_r$; greedy chose the earliest-finishing compatible interval, so $f(g_r)\le f(o_r)$.
+
+Now suppose $m>k$. Then $o_{k+1}$ starts after $f(o_k)\ge f(g_k)$, so it is compatible with all of $G$. Greedy only stops when no
+compatible interval remains, so it would have selected another interval after $g_k$, a contradiction. Hence $k=m$.
+\end{proof}
+
+\paragraph{Interval colouring (partitioning).} To schedule \emph{all} intervals using the fewest rooms, process intervals
+by \emph{start} time and put each in any free room (opening a new one if none). The number of rooms used equals the
+maximum depth (number of intervals over a common point), which is an obvious lower bound. With a min-heap of room
+finish times this is $\bigO(n\log n)$.
+
+\section{Scheduling to minimize lateness}
+\begin{definition}
+Single machine; job $i$ has processing time $t_i$ and deadline $d_i$. A schedule orders the jobs with no idle time;
+job $i$ finishes at $f_i$ and has lateness $\ell_i=\max(0,f_i-d_i)$. Minimize the maximum lateness $L=\max_i\ell_i$.
+\end{definition}
+Rule: \textbf{earliest deadline first} (EDF), ignoring processing times! (Shortest job first and smallest slack $d_i-t_i$ both fail.)
+
+\begin{theorem}
+EDF minimizes maximum lateness.
+\end{theorem}
+\begin{proof}[Proof (exchange argument)]
+An \emph{inversion} in a schedule is a pair of jobs $i,j$ with $d_i<d_j$ but $j$ scheduled before $i$.
+EDF has no inversions (ties in deadline can be ordered arbitrarily; all such orders have the same max lateness).
+
+If a schedule has an inversion, it has an \emph{adjacent} inversion: consecutive jobs $j,i$ with $d_i<d_j$.
+Swap them. Other jobs are unaffected; $i$ now finishes earlier, so $\ell_i$ does not increase.
+Job $j$ now finishes at the time $i$ used to finish, $f$, so its new lateness is
+$\max(0,f-d_j)\le\max(0,f-d_i)=$ old $\ell_i$. So the max lateness does not increase, and the number of inversions drops by one.
+
+Start from an optimal schedule with no idle time; repeatedly swapping adjacent inversions gives an inversion-free schedule
+(i.e.\ EDF up to ties) that is still optimal.
+\end{proof}
+
+\section{Fractional knapsack}
+Items $1..n$ with weights $w_i>0$ and values $v_i$; capacity $W$. We may take a fraction $x_i\in[0,1]$ of each item.
+Maximize $\sum x_iv_i$ subject to $\sum x_iw_i\le W$.
+
+Greedy: sort by value density $v_i/w_i$ decreasing; take whole items while they fit, then a fraction of the next one.
+$\Theta(n\log n)$ (or $\Theta(n)$ using weighted-median selection).
+
+\begin{theorem}
+The greedy algorithm is optimal for fractional knapsack.
+\end{theorem}
+\begin{proof}
+Order items so $v_1/w_1\ge\dots\ge v_n/w_n$; greedy's solution $x$ is $(1,\dots,1,x_k,0,\dots,0)$.
+(If all items fit, greedy takes everything and is trivially optimal, so assume $\sum w_i>W$; then greedy fills the knapsack exactly.)
+Let $y$ be an optimal solution agreeing with $x$ on as many leading indices as possible, and let $i$ be the first index with $y_i\ne x_i$.
+Greedy takes as much of item $i$ as fits, so $y_i<x_i$. Since $\sum_{j<i}y_jw_j=\sum_{j<i}x_jw_j$ and $x$ fills the knapsack,
+either $y$ has spare capacity or some item $j>i$ has $y_j>0$.
+Move weight $\epsilon>0$ (small) from such an item $j$, or from the spare capacity, to item $i$. The value changes by
+$\epsilon(v_i/w_i-v_j/w_j)\ge0$. The new solution is feasible and still optimal; taking $\epsilon$ as large as possible either makes $y_i=x_i$ or empties item $j$,
+and repeating finitely often turns $y$ into $x$ without decreasing value. So $x$ is optimal.
+\end{proof}
+
+\begin{remark}
+Greedy by density \textbf{fails} for 0/1 knapsack. Take capacity $W=50$ and three items with
+(weight, value) equal to $(10,60)$, $(20,100)$ and $(30,120)$.
+Greedy takes items 1, 2 for value 160; optimal is items 2, 3 for 220. 0/1 knapsack needs dynamic programming (Chapter 5).
+\end{remark}
+
+\section{Huffman codes}
+We want a binary \emph{prefix-free} code for an alphabet $\Sigma$ (no codeword is a prefix of another), so a bit string decodes uniquely.
+A prefix code is a binary tree with characters at the leaves; the codeword is the root-to-leaf path (0 = left, 1 = right).
+Given frequencies $f(c)$, minimize the encoded length
+\[
+B(T)=\sum_{c\in\Sigma}f(c)\cdot\mathrm{depth}_T(c).
+\]
+
+\begin{lstlisting}[style=pseudo]
+Huffman(C, f):
+    Q = min-priority queue of the characters keyed by f
+    repeat |C| - 1 times:
+        x = ExtractMin(Q); y = ExtractMin(Q)
+        create node z with children x, y and f(z) = f(x) + f(y)
+        Insert(Q, z)
+    return ExtractMin(Q)            // root of the tree
+\end{lstlisting}
+With a binary heap, $\bigO(n\log n)$ for $n=|\Sigma|$.
+
+\begin{example}
+Frequencies $a{:}45, b{:}13, c{:}12, d{:}16, e{:}9, f{:}5$. Merge $f,e\to14$; $c,b\to25$; $14,d\to30$; $25,30\to55$; $a,55\to100$.
+Codes: $a=0$, $c=100$, $b=101$, $f=1100$, $e=1101$, $d=111$. Cost $=45+3(12+13+16)+4(5+9)=224$ (vs.\ 300 with a fixed 3-bit code).
+\end{example}
+
+\begin{lemma}[Greedy choice]
+Let $x,y$ be the two least frequent characters. There is an optimal tree in which $x$ and $y$ are siblings at maximum depth.
+\end{lemma}
+\begin{proof}
+An optimal tree is full (every internal node has 2 children; otherwise contract). Take siblings $a,b$ at maximum depth.
+Swap $x$ with $a$: since $f(x)\le f(a)$ and $\mathrm{depth}(x)\le\mathrm{depth}(a)$, the cost changes by
+$(f(a)-f(x))(\mathrm{depth}(x)-\mathrm{depth}(a))\le0$. Similarly swap $y$ with $b$. The result is still optimal.
+\end{proof}
+
+\begin{lemma}[Optimal substructure]
+Let $C'$ be $C$ with $x,y$ replaced by a new character $z$, $f(z)=f(x)+f(y)$. If $T'$ is optimal for $C'$, then replacing
+leaf $z$ in $T'$ by an internal node with children $x,y$ gives an optimal tree $T$ for $C$.
+\end{lemma}
+\begin{proof}
+$B(T)=B(T')+f(x)+f(y)$. If some $T''$ for $C$ had $B(T'')<B(T)$, by the previous lemma we may assume $x,y$ are siblings in $T''$;
+merging them gives a tree for $C'$ with cost $B(T'')-f(x)-f(y)<B(T')$, a contradiction.
+\end{proof}
+Together, by induction on $|C|$, Huffman's algorithm is optimal.
+
+\section{Pitfalls}
+\begin{itemize}
+  \item A greedy rule that ``works on examples'' is not a proof. Always try to find a counterexample first.
+  \item In exchange arguments, make sure the swap keeps the solution \emph{feasible} and argue it does not get worse.
+  \item Coin change with denominations $\{1,3,4\}$ and amount 6: greedy gives $4+1+1$, optimal is $3+3$.
+\end{itemize}
+
+\section*{Summary}
+\begin{itemize}
+  \item Interval scheduling: earliest finish time; greedy stays ahead. $\Theta(n\log n)$.
+  \item Minimize max lateness: earliest deadline first; exchange adjacent inversions.
+  \item Fractional knapsack: highest value density first; 0/1 knapsack is \emph{not} greedy.
+  \item Huffman: repeatedly merge the two least frequent; greedy choice + optimal substructure.
+\end{itemize}

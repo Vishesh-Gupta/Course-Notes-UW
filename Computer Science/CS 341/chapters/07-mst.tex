@@ -1,0 +1,117 @@
+\chapter{Minimum Spanning Trees}
+
+\begin{definition}
+Let $G=(V,E)$ be a connected undirected graph with edge weights $w:E\to\R$. A \emph{spanning tree} is a subset $T\subseteq E$ forming a tree on all of $V$
+($|T|=n-1$). A \emph{minimum spanning tree} (MST) minimizes $w(T)=\sum_{e\in T}w(e)$.
+\end{definition}
+Applications: network design (cheapest way to connect sites), clustering (delete the $k-1$ heaviest MST edges to get a max-spacing $k$-clustering),
+and approximation algorithms (metric TSP, Chapter 11).
+
+\section{The cut property}
+A \emph{cut} is a partition $(S,V\setminus S)$ with $\emptyset\ne S\ne V$. An edge \emph{crosses} the cut if it has one endpoint on each side.
+A set $A$ of edges \emph{respects} the cut if no edge of $A$ crosses it.
+
+\begin{theorem}[Cut property]
+Let $A$ be a subset of some MST, $(S,V\setminus S)$ a cut respecting $A$, and $e$ a minimum-weight edge crossing the cut. Then $A\cup\{e\}$ is contained in
+some MST. (In particular, if edge weights are distinct, the lightest edge crossing any cut is in \emph{every} MST.)
+\end{theorem}
+\begin{proof}[Proof (exchange)]
+Let $T$ be an MST containing $A$. If $e=uv\in T$ we are done. Otherwise $T\cup\{e\}$ has a unique cycle, which crosses the cut at $e$ and so must cross it
+again at some edge $e'\in T$, $e'\notin A$ (since $A$ respects the cut). Then $T'=T\cup\{e\}\setminus\{e'\}$ is a spanning tree (removing an edge of the cycle
+keeps it connected) with $w(T')=w(T)+w(e)-w(e')\le w(T)$ since $w(e)\le w(e')$. So $T'$ is an MST containing $A\cup\{e\}$.
+\end{proof}
+
+\begin{theorem}[Cycle property]
+If $e$ is a strictly heaviest edge on some cycle, then $e$ is in no MST.
+\end{theorem}
+
+\begin{important}[Generic MST algorithm]
+Start with $A=\emptyset$. While $|A|<n-1$, find a cut respecting $A$ and add a lightest crossing edge. By the cut property, $A$ is always contained in an MST.
+Kruskal and Prim are two ways of choosing the cut.
+\end{important}
+
+\section{Kruskal's algorithm}
+\begin{lstlisting}[style=pseudo]
+Kruskal(G, w):
+    A = {}
+    for each v in V do MakeSet(v)
+    sort E by weight, increasing
+    for each edge (u, v) in sorted order do
+        if Find(u) $\ne$ Find(v) then          // different components
+            A = A $\cup$ {(u, v)}; Union(u, v)
+    return A
+\end{lstlisting}
+\textbf{Correctness}: when $(u,v)$ is added, let $S$ be the component of $u$ in $(V,A)$. The cut $(S,V\setminus S)$ respects $A$, and $(u,v)$ is the lightest
+crossing edge: any lighter crossing edge would have been considered earlier and added (its endpoints were in different components then, and still are).
+Edges that are skipped would close a cycle, so the result is a forest, and since $G$ is connected it ends with $n-1$ edges.
+
+\subsection{Union-find (disjoint sets)}
+Operations: \code{MakeSet(x)}, \code{Find(x)} (return the representative of $x$'s set), \code{Union(x,y)}.
+\begin{itemize}
+  \item \textbf{Linked lists with union by size}: each element stores a pointer to its representative, so \code{Find} is $\bigO(1)$; \code{Union} relabels the smaller set.
+        An element's set at least doubles every time it is relabeled, so each element is relabeled $\le\log_2 n$ times: total union cost $\bigO(n\log n)$.
+  \item \textbf{Forest with union by rank and path compression}: $m$ operations take $\bigO(m\,\alpha(n))$, where $\alpha$ is the inverse Ackermann function ($\le4$ in practice).
+\end{itemize}
+\begin{lstlisting}[style=pseudo]
+Find(x):
+    if parent[x] $\ne$ x then parent[x] = Find(parent[x])    // path compression
+    return parent[x]
+Union(x, y):
+    a = Find(x); b = Find(y)
+    if rank[a] < rank[b] then swap a, b
+    parent[b] = a
+    if rank[a] == rank[b] then rank[a] = rank[a] + 1
+\end{lstlisting}
+\textbf{Kruskal runtime}: sorting $\bigO(m\log m)=\bigO(m\log n)$ (since $m\le n^2$), plus $2m$ finds and $n-1$ unions, which is $\bigO(m\log n)$ even with the simple list
+structure. Total $\bigO(m\log n)$.
+
+\section{Prim's algorithm}
+Prim grows a single tree from a root $r$, always adding the lightest edge leaving the tree (cut $=(\text{tree},\text{rest})$).
+\begin{lstlisting}[style=pseudo]
+Prim(G, w, r):
+    for each v do key[v] = $\infty$; parent[v] = nil
+    key[r] = 0
+    Q = min-priority queue of all vertices keyed by key
+    while Q not empty do
+        u = ExtractMin(Q)
+        for each v adjacent to u do
+            if v in Q and w(u, v) < key[v] then
+                parent[v] = u; DecreaseKey(Q, v, w(u, v))
+    return {(v, parent[v]) : v $\ne$ r}
+\end{lstlisting}
+$\mathrm{key}[v]$ is the weight of the lightest edge from $v$ to the current tree. Correctness is directly the cut property with $S$ = the extracted vertices.
+
+\textbf{Runtime}: $n$ \code{ExtractMin} and up to $m$ \code{DecreaseKey}.
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Priority queue & Total time & Best for \\
+\midrule
+Unsorted array & $\bigO(n^2)$ & dense graphs \\
+Binary heap & $\bigO((n+m)\log n)=\bigO(m\log n)$ & sparse graphs \\
+Fibonacci heap & $\bigO(m+n\log n)$ & theory \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{example}
+Vertices $a,b,c,d$ with edges $ab{:}1$, $bc{:}2$, $ac{:}3$, $cd{:}4$, $bd{:}5$.
+Kruskal: take $ab$ (1), $bc$ (2), skip $ac$ (cycle), take $cd$ (4): weight 7.
+Prim from $a$: add $ab$, then lightest edge leaving $\{a,b\}$ is $bc$, then $cd$. Same tree.
+\end{example}
+
+\section{Uniqueness and other facts}
+\begin{itemize}
+  \item If all weights are distinct, the MST is unique.
+  \item Adding a constant to all weights, or applying any increasing function, does not change which trees are MSTs (only the order of edges matters).
+        This is \emph{not} true for shortest paths.
+  \item Negative weights are fine for MST algorithms.
+  \item Bor\r{u}vka's algorithm: in each round every component adds its lightest outgoing edge; $\bigO(\log n)$ rounds, $\bigO(m\log n)$ total.
+\end{itemize}
+
+\section*{Summary}
+\begin{itemize}
+  \item Cut property: the lightest edge across a cut respecting $A$ can be added safely; proved by exchanging with a cycle edge.
+  \item Kruskal: sorted edges + union-find, $\bigO(m\log n)$.
+  \item Prim: grow one tree using a priority queue, $\bigO(m\log n)$ with a binary heap, $\bigO(n^2)$ with an array.
+\end{itemize}

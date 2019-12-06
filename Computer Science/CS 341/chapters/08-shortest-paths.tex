@@ -1,0 +1,143 @@
+\chapter{Shortest Paths}
+
+Let $G=(V,E)$ be a directed graph with edge weights $w$. The weight of a path is the sum of its edge weights, and
+$\delta(u,v)$ is the minimum weight of a $u$-$v$ path ($\infty$ if none; $-\infty$ if a negative-weight cycle is reachable on the way).
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Problem & Weights & Algorithm & Time \\
+\midrule
+Single source & unweighted & BFS & $\bigO(n+m)$ \\
+Single source & DAG, any weights & topological order & $\bigO(n+m)$ \\
+Single source & $w\ge0$ & Dijkstra & $\bigO((n+m)\log n)$ \\
+Single source & any (detects neg.\ cycles) & Bellman--Ford & $\bigO(nm)$ \\
+All pairs & any, no neg.\ cycles & Floyd--Warshall & $\Theta(n^3)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Common structure}
+\begin{lemma}[Optimal substructure]
+Any subpath of a shortest path is a shortest path.
+\end{lemma}
+\begin{proof}
+If a subpath $x\leadsto y$ could be replaced by a lighter one, the whole path would get lighter.
+\end{proof}
+If there is no negative cycle, shortest paths can be taken to be simple (at most $n-1$ edges): removing a cycle of nonnegative weight does not increase weight.
+
+All single-source algorithms maintain estimates $d[v]\ge\delta(s,v)$ and improve them by \textbf{relaxation}:
+\begin{lstlisting}[style=pseudo]
+Relax(u, v):
+    if d[u] + w(u, v) < d[v] then
+        d[v] = d[u] + w(u, v); parent[v] = u
+\end{lstlisting}
+Initialize $d[s]=0$, $d[v]=\infty$ otherwise. Key facts: $d[v]$ never drops below $\delta(s,v)$ (it is always the weight of some path), and
+(\emph{path-relaxation property}) if $s=v_0,v_1,\dots,v_k$ is a shortest path and its edges are relaxed in this order (possibly interleaved with other relaxations),
+then afterwards $d[v_k]=\delta(s,v_k)$.
+
+\section{Shortest paths in a DAG}
+\begin{lstlisting}[style=pseudo]
+DAGShortestPaths(G, w, s):
+    topologically sort G
+    initialize d
+    for each u in topological order do
+        for each edge (u, v) do Relax(u, v)
+\end{lstlisting}
+Every path visits vertices in topological order, so its edges are relaxed in path order; by path relaxation the result is correct. $\bigO(n+m)$.
+Negative weights are fine. Negating weights gives \emph{longest} paths in a DAG (critical path in project scheduling); longest simple path in a general graph is NP-hard.
+
+\section{Dijkstra's algorithm}
+For nonnegative weights.
+\begin{lstlisting}[style=pseudo]
+Dijkstra(G, w, s):
+    initialize d; S = {}
+    Q = min-priority queue on V keyed by d
+    while Q not empty do
+        u = ExtractMin(Q); S = S $\cup$ {u}
+        for each edge (u, v) do Relax(u, v)     // DecreaseKey if d[v] changes
+\end{lstlisting}
+
+\begin{theorem}
+If all weights are nonnegative, then when $u$ is extracted, $d[u]=\delta(s,u)$.
+\end{theorem}
+\begin{proof}
+Suppose not, and let $u$ be the first vertex extracted with $d[u]>\delta(s,u)$. Then $u\ne s$ and $u$ is reachable. Take a shortest path $P$ from $s$ to $u$ and let
+$(x,y)$ be the first edge of $P$ with $x\in S$, $y\notin S$. When $x$ was extracted, $d[x]=\delta(s,x)$ (choice of $u$) and $(x,y)$ was relaxed, so
+$d[y]=\delta(s,y)$ (subpaths of shortest paths are shortest). Since weights are nonnegative, $\delta(s,y)\le\delta(s,u)$. So
+\[
+d[y]=\delta(s,y)\le\delta(s,u)<d[u],
+\]
+yet $u$ was extracted before $y$, so $d[u]\le d[y]$. Contradiction.
+\end{proof}
+Runtime with a binary heap: $n$ extractions and $\le m$ decrease-keys, $\bigO((n+m)\log n)$; with a Fibonacci heap $\bigO(m+n\log n)$; with an array $\bigO(n^2)$.
+
+\begin{important}[Negative edges break Dijkstra]
+Vertices $s,a,b$ with $w(s,a)=2$, $w(s,b)=3$, $w(b,a)=-2$. Dijkstra extracts $a$ with $d[a]=2$ and never updates it, but $\delta(s,a)=1$.
+Adding a constant to every edge does \emph{not} fix this: it penalizes paths with more edges.
+\end{important}
+
+\section{Bellman--Ford}
+\begin{lstlisting}[style=pseudo]
+BellmanFord(G, w, s):
+    initialize d
+    repeat n - 1 times:
+        for each edge (u, v) in E do Relax(u, v)
+    for each edge (u, v) in E do
+        if d[u] + w(u, v) < d[v] then return "negative cycle reachable from s"
+    return d
+\end{lstlisting}
+Runtime $\Theta(nm)$.
+
+\begin{theorem}
+If no negative cycle is reachable from $s$, Bellman--Ford returns $d[v]=\delta(s,v)$ for all $v$; otherwise it reports a negative cycle.
+\end{theorem}
+\begin{proof}
+No negative cycle: each reachable $v$ has a shortest simple path $v_0=s,\dots,v_k=v$ with $k\le n-1$. In round $i$, edge $(v_{i-1},v_i)$ is relaxed, so by path
+relaxation $d[v]=\delta(s,v)$ after round $k$. Then no edge can be relaxed further ($d[v]\le d[u]+w(u,v)$ is the triangle inequality for $\delta$), so no cycle is reported.
+
+Negative cycle $v_0,\dots,v_k=v_0$ reachable, and suppose no edge is reported: $d[v_i]\le d[v_{i-1}]+w(v_{i-1},v_i)$ for all $i$. Summing around the cycle,
+the $d$ terms cancel (all finite since reachable), giving $0\le\sum w(v_{i-1},v_i)<0$. Contradiction.
+\end{proof}
+
+\paragraph{DP view.} Let $D_i[v]$ = minimum weight of an $s$-$v$ path with at most $i$ edges. Then
+$D_i[v]=\min\bigl(D_{i-1}[v],\ \min_{(u,v)\in E}D_{i-1}[u]+w(u,v)\bigr)$, and $\delta(s,v)=D_{n-1}[v]$. Bellman--Ford is this DP computed in place.
+\emph{Application}: currency arbitrage (weights $-\log(\text{rate})$; an arbitrage is a negative cycle).
+
+\section{All-pairs shortest paths: Floyd--Warshall}
+Running Bellman--Ford from every source is $\bigO(n^2m)$, which is $\bigO(n^4)$ for dense graphs; Dijkstra from every source is $\bigO(nm\log n)$ but needs $w\ge0$.
+
+Number the vertices $1..n$. Let $D^{(k)}[i][j]$ be the minimum weight of an $i$-$j$ path whose \emph{intermediate} vertices all lie in $\{1,\dots,k\}$.
+A shortest such path either avoids vertex $k$, or passes through $k$ exactly once (no negative cycles), splitting into $i\leadsto k$ and $k\leadsto j$ with intermediates in $\{1..k-1\}$:
+\[
+D^{(0)}[i][j]=\begin{cases}0 & i=j\\ w(i,j) & (i,j)\in E\\ \infty & \text{else}\end{cases},\qquad
+D^{(k)}[i][j]=\min\bigl(D^{(k-1)}[i][j],\ D^{(k-1)}[i][k]+D^{(k-1)}[k][j]\bigr).
+\]
+\begin{lstlisting}[style=pseudo]
+FloydWarshall(W):
+    D = W
+    for k = 1 to n do
+        for i = 1 to n do
+            for j = 1 to n do
+                if D[i][k] + D[k][j] < D[i][j] then
+                    D[i][j] = D[i][k] + D[k][j]; next[i][j] = next[i][k]
+    return D
+\end{lstlisting}
+$\Theta(n^3)$ time, $\Theta(n^2)$ space (updating in place is safe since row $k$ and column $k$ do not change in round $k$).
+A negative cycle exists iff some $D[i][i]<0$ at the end.
+The same recurrence with Boolean operations computes the \textbf{transitive closure} (Warshall).
+
+\begin{aside}
+\textbf{Johnson's algorithm} handles sparse graphs with negative edges: add a new vertex $q$ with 0-weight edges to all vertices, run Bellman--Ford from $q$ to get
+$h(v)=\delta(q,v)$, reweight $w'(u,v)=w(u,v)+h(u)-h(v)\ge0$ (path weights change by $h(\text{start})-h(\text{end})$, so shortest paths are preserved), then run Dijkstra from every vertex.
+Total $\bigO(nm\log n)$.
+\end{aside}
+
+\section*{Summary}
+\begin{itemize}
+  \item All algorithms are built on relaxation; correctness via the path-relaxation property or an exchange/contradiction argument.
+  \item DAG: relax in topological order, linear time, any weights.
+  \item Dijkstra: greedy, needs nonnegative weights, $\bigO(m\log n)$.
+  \item Bellman--Ford: $n-1$ rounds of relaxing all edges, $\bigO(nm)$; extra round detects negative cycles.
+  \item Floyd--Warshall: DP over allowed intermediate vertices, $\Theta(n^3)$.
+\end{itemize}

@@ -1,0 +1,169 @@
+\chapter{Recurrences and the Master Theorem}
+
+Recursive algorithms have running times described by recurrences, such as
+$T(n)=2T(n/2)+\Theta(n)$ for mergesort. This chapter covers three ways to solve them:
+recursion trees (to guess), substitution (to prove), and the Master theorem (to look up).
+
+\section{Conventions}
+\begin{itemize}
+  \item We usually ignore floors and ceilings: $T(\floor{n/2})$ and $T(\ceil{n/2})$ are written $T(n/2)$.
+        This does not change the asymptotic answer for the recurrences in this course
+        (it can be justified rigorously, e.g.\ by proving the bound for powers of 2 and using monotonicity).
+  \item The base case $T(n)=\Theta(1)$ for $n\le n_0$ is implicit.
+  \item ``$+f(n)$'' means the non-recursive work: dividing and combining.
+\end{itemize}
+
+\section{Recursion trees}
+Draw the recursion as a tree: the root costs $f(n)$, it has $a$ children each of size $n/b$, each costing $f(n/b)$, and so on.
+Sum the costs level by level.
+
+\begin{example}[$T(n)=2T(n/2)+cn$]
+Level $i$ has $2^i$ nodes each of size $n/2^i$, costing $cn/2^i$ each, so $cn$ per level.
+There are $\log_2 n+1$ levels, so $T(n)=cn(\log_2 n+1)\in\Theta(n\log n)$.
+\end{example}
+
+\begin{center}
+\begin{tikzpicture}[level distance=1.1cm,
+  level 1/.style={sibling distance=5cm},
+  level 2/.style={sibling distance=2.5cm},
+  every node/.style={font=\small}]
+\node {$cn$}
+  child {node {$cn/2$} child {node {$cn/4$}} child {node {$cn/4$}}}
+  child {node {$cn/2$} child {node {$cn/4$}} child {node {$cn/4$}}};
+\node at (6.2,0) {$cn$};
+\node at (6.2,-1.1) {$cn$};
+\node at (6.2,-2.2) {$cn$};
+\node at (6.2,-3.0) {$\vdots$};
+\end{tikzpicture}
+\end{center}
+
+\begin{example}[$T(n)=3T(n/4)+cn^2$]
+Level $i$: $3^i$ nodes, each costing $c(n/4^i)^2$, total $cn^2(3/16)^i$.
+This is a decreasing geometric series, so $T(n)\le cn^2\sum_{i\ge0}(3/16)^i=\frac{16}{13}cn^2$, and $T(n)\in\Theta(n^2)$:
+the root dominates.
+\end{example}
+
+\begin{example}[$T(n)=4T(n/2)+cn$]
+Level $i$ costs $4^i\cdot c n/2^i=cn2^i$, an increasing geometric series dominated by the leaves.
+There are $4^{\log_2 n}=n^2$ leaves, so $T(n)\in\Theta(n^2)$.
+\end{example}
+
+\begin{example}[Unbalanced: $T(n)=T(n/3)+T(2n/3)+cn$]
+Every full level costs $cn$. The shortest root-to-leaf path has length $\log_3 n$ and the longest $\log_{3/2}n$.
+So $cn\log_3 n\le T(n)\le cn\log_{3/2}n$ roughly, i.e.\ $T(n)\in\Theta(n\log n)$.
+\end{example}
+
+\section{The substitution method}
+Guess the answer (often from a recursion tree), then prove it by induction, with explicit constants.
+
+\begin{example}
+Claim: $T(n)=2T(\floor{n/2})+n$ with $T(1)=1$ satisfies $T(n)\le cn\log_2 n$ for $n\ge 2$ and suitable $c$.
+
+Inductive step: assuming the bound for $\floor{n/2}$,
+\[
+T(n)\le 2c\floor{n/2}\log_2\floor{n/2}+n\le cn\log_2(n/2)+n=cn\log_2 n-cn+n\le cn\log_2 n
+\]
+whenever $c\ge1$. For the base cases, $T(2)=4$ and $T(3)=5$, so $c\ge2$ works ($2\cdot 2\log 2=4$, $2\cdot 3\log_2 3\approx 9.5$).
+All $n\ge4$ reduce to $\floor{n/2}\ge2$, so the induction is sound.
+\end{example}
+
+\begin{important}[Pitfall: proving the exact form]
+In the inductive step you must derive \emph{exactly} the hypothesis $T(n)\le c\,g(n)$, not $T(n)\le c\,g(n)+n$.
+``$T(n)\le cn+n\in\bigO(n)$'' is \textbf{not} a valid proof that $T(n)\le cn$; the constant cannot grow at each step.
+\end{important}
+
+\paragraph{Strengthening the hypothesis.}
+Sometimes the natural guess fails by a lower-order term and we must subtract one.
+For $T(n)=2T(n/2)+1$, guessing $T(n)\le cn$ gives $T(n)\le cn+1$, which does not close.
+Instead guess $T(n)\le cn-d$: then $T(n)\le 2(cn/2-d)+1=cn-2d+1\le cn-d$ when $d\ge1$. So $T(n)\in\bigO(n)$.
+
+\paragraph{Changing variables.}
+For $T(n)=2T(\sqrt n)+\log n$, set $m=\log n$ and $S(m)=T(2^m)$. Then $S(m)=2S(m/2)+m$, so
+$S(m)=\Theta(m\log m)$ and $T(n)=\Theta(\log n\log\log n)$.
+
+\section{The Master theorem}
+
+\begin{theorem}[Master theorem, CLRS form]
+Let $a\ge1$, $b>1$, and $T(n)=aT(n/b)+f(n)$. Let $c^*=\log_b a$ (the \emph{critical exponent}).
+\begin{enumerate}
+  \item If $f(n)\in\bigO(n^{c^*-\varepsilon})$ for some $\varepsilon>0$, then $T(n)\in\Theta(n^{c^*})$. \hfill (leaves dominate)
+  \item If $f(n)\in\Theta(n^{c^*}\log^k n)$ for some $k\ge0$, then $T(n)\in\Theta(n^{c^*}\log^{k+1}n)$. \hfill (balanced)
+  \item If $f(n)\in\Omega(n^{c^*+\varepsilon})$ for some $\varepsilon>0$, and the \emph{regularity condition}
+        $af(n/b)\le \delta f(n)$ holds for some $\delta<1$ and large $n$, then $T(n)\in\Theta(f(n))$. \hfill (root dominates)
+\end{enumerate}
+\end{theorem}
+
+The intuition is the recursion tree: there are $a^{\log_b n}=n^{\log_b a}$ leaves, and level $i$ costs $a^if(n/b^i)$.
+The three cases say the level costs are increasing geometrically, roughly constant, or decreasing geometrically.
+
+\paragraph{Simplified version for $f(n)=\Theta(n^y)$.} Compare $y$ with $x=\log_b a$:
+\[
+T(n)\in\begin{cases}
+\Theta(n^x) & y<x,\\
+\Theta(n^x\log n) & y=x,\\
+\Theta(n^y) & y>x.
+\end{cases}
+\]
+(The regularity condition holds automatically for polynomials.)
+
+\begin{example}[Standard recurrences]\
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Recurrence & $\log_b a$ & Case & Solution \\
+\midrule
+$T(n)=2T(n/2)+n$ (mergesort) & $1$ & 2 & $\Theta(n\log n)$ \\
+$T(n)=T(n/2)+1$ (binary search) & $0$ & 2 & $\Theta(\log n)$ \\
+$T(n)=3T(n/2)+n$ (Karatsuba) & $\log_2 3\approx1.585$ & 1 & $\Theta(n^{\log_2 3})$ \\
+$T(n)=7T(n/2)+n^2$ (Strassen) & $\log_2 7\approx2.807$ & 1 & $\Theta(n^{\log_2 7})$ \\
+$T(n)=8T(n/2)+n^2$ (naive block matmult) & $3$ & 1 & $\Theta(n^3)$ \\
+$T(n)=2T(n/2)+n\log n$ & $1$ & 2 ($k=1$) & $\Theta(n\log^2n)$ \\
+$T(n)=T(n/2)+n$ & $0$ & 3 & $\Theta(n)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{example}
+
+\begin{important}[When the Master theorem does not apply]
+\begin{itemize}
+  \item Subproblems of different sizes, e.g.\ $T(n)=T(n/5)+T(7n/10)+n$ (median of medians); use a recursion tree or substitution.
+  \item Subtractive recurrences, e.g.\ $T(n)=T(n-1)+n$, which gives $\Theta(n^2)$ by summing.
+  \item Gaps between cases: $T(n)=2T(n/2)+n/\log n$ is not covered by the CLRS form (the answer is $\Theta(n\log\log n)$).
+\end{itemize}
+\end{important}
+
+\subsection{Proof sketch of the Master theorem}
+Assume $n=b^k$. Unrolling,
+\[
+T(n)=n^{\log_b a}T(1)+\sum_{i=0}^{k-1}a^if(n/b^i).
+\]
+For $f(n)=n^y$, the sum is $n^y\sum_{i=0}^{k-1}(a/b^y)^i$. Let $r=a/b^y$; note $r<1\iff y>\log_b a$.
+\begin{itemize}
+  \item $r<1$: the geometric sum is $\Theta(1)$, so $T(n)=\Theta(n^y)$ (the $n^{\log_b a}$ term is smaller).
+  \item $r=1$: the sum is $k=\log_b n$ terms of $n^y$, so $T(n)=\Theta(n^y\log n)$.
+  \item $r>1$: the sum is $\Theta(n^y r^k)=\Theta(n^y a^k/b^{yk})=\Theta(a^k)=\Theta(n^{\log_b a})$.
+\end{itemize}
+
+\section{Other recurrence shapes}
+\begin{itemize}
+  \item $T(n)=T(n-1)+\Theta(1)\Rightarrow\Theta(n)$; $T(n)=T(n-1)+\Theta(n)\Rightarrow\Theta(n^2)$.
+  \item $T(n)=2T(n-1)+\Theta(1)\Rightarrow\Theta(2^n)$ (e.g.\ naive recursion for Towers of Hanoi).
+  \item $T(n)=T(n-1)+T(n-2)+\Theta(1)\Rightarrow\Theta(\varphi^n)$, $\varphi=(1+\sqrt5)/2$ (naive Fibonacci; motivates DP).
+  \item $T(n)=T(\alpha n)+T(\beta n)+\Theta(n)$ with $\alpha+\beta<1$ $\Rightarrow\Theta(n)$; with $\alpha+\beta=1$ $\Rightarrow\Theta(n\log n)$.
+\end{itemize}
+
+\begin{theorem}
+If $T(n)\le T(\alpha n)+T(\beta n)+cn$ with $\alpha+\beta<1$, then $T(n)\in\bigO(n)$.
+\end{theorem}
+\begin{proof}
+Guess $T(n)\le dn$. Then $T(n)\le d\alpha n+d\beta n+cn=(d(\alpha+\beta)+c)n\le dn$ provided
+$d\ge c/(1-\alpha-\beta)$. Choose $d$ also large enough for the base cases.
+\end{proof}
+
+\section*{Summary}
+\begin{itemize}
+  \item Recursion trees give a guess by summing per-level costs; decide whether the root, the leaves, or all levels dominate.
+  \item Substitution proves the guess by induction; derive the exact hypothesis, and subtract lower-order terms if needed.
+  \item Master theorem: compare $f(n)$ with $n^{\log_b a}$. Smaller $\Rightarrow n^{\log_b a}$; equal $\Rightarrow$ extra $\log$; larger (with regularity) $\Rightarrow f(n)$.
+  \item Uneven splits with total fraction $<1$ cost $\Theta(n)$ when the extra work is linear.
+\end{itemize}

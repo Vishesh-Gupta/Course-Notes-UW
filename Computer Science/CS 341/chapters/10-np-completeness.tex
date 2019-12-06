@@ -1,0 +1,165 @@
+\chapter{NP-Completeness}
+
+To get started we need one problem proven NP-complete from scratch; after that, everything is done by reductions.
+
+\section{Satisfiability and the Cook--Levin theorem}
+A Boolean formula in \emph{conjunctive normal form} (CNF) is an AND of \emph{clauses}, each an OR of \emph{literals} ($x_i$ or $\overline{x_i}$).
+\begin{itemize}
+  \item \textsc{SAT}: given a CNF formula $\Phi$, is there a truth assignment making $\Phi$ true?
+  \item \textsc{3-SAT}: the same, where every clause has exactly 3 literals.
+\end{itemize}
+Example: $(x_1\lor\overline{x_2}\lor x_3)\land(\overline{x_1}\lor x_2\lor x_3)\land(\overline{x_3}\lor x_2\lor x_1)$ is satisfied by $x_1=x_2=x_3=$ true.
+
+\begin{theorem}[Cook 1971, Levin 1973]
+\textsc{SAT} is NP-complete.
+\end{theorem}
+\begin{proof}[Idea only]
+SAT is in NP (the assignment is the certificate). For hardness, let $L\in\mathbf{NP}$ with verifier $V$ running in time $p(n)$. Given $x$, build a formula whose
+variables describe a $p(n)\times p(n)$ \emph{tableau}: the full configuration (tape contents, head position, state) of $V$ at each time step, with the certificate
+bits left free. Clauses enforce that row 0 is the start configuration on $(x,y)$, each row follows from the previous by the transition rules (a local check on
+small windows), and some row is accepting. The formula has polynomial size, and it is satisfiable iff some certificate $y$ makes $V$ accept, i.e.\ iff $x\in L$.
+\end{proof}
+In CS 341 the proof is not examined; you need the statement and how to use it.
+
+\begin{important}[Reduction tree used in this chapter]
+\[
+\textsc{SAT}\le_P\textsc{3-SAT}\le_P
+\begin{cases}
+\textsc{Independent-Set}\le_P\textsc{Vertex-Cover},\ \textsc{Clique}\\
+\textsc{Dir-Ham-Cycle}\le_P\textsc{Ham-Cycle}\le_P\textsc{TSP}\\
+\textsc{Subset-Sum}\le_P\textsc{Knapsack}\\
+\textsc{3-Colouring}
+\end{cases}
+\]
+Every problem listed is in NP (certificates: the assignment / set / cycle / subset / colouring), so all are NP-complete.
+\end{important}
+
+\section{SAT \texorpdfstring{$\le_P$}{<=} 3-SAT}
+Replace each clause $C$ by an equisatisfiable set of 3-clauses, using fresh variables per clause.
+\begin{itemize}
+  \item $|C|=3$: keep it.
+  \item $|C|=1$, $C=(\ell)$: with fresh $a,b$, use $(\ell\lor a\lor b)(\ell\lor a\lor\overline b)(\ell\lor\overline a\lor b)(\ell\lor\overline a\lor\overline b)$; all four hold iff $\ell$ is true.
+  \item $|C|=2$, $C=(\ell_1\lor\ell_2)$: with fresh $a$, use $(\ell_1\lor\ell_2\lor a)(\ell_1\lor\ell_2\lor\overline a)$.
+  \item $|C|=k>3$, $C=(\ell_1\lor\dots\lor\ell_k)$: with fresh $y_1,\dots,y_{k-3}$, use
+  \[
+  (\ell_1\lor\ell_2\lor y_1)(\overline{y_1}\lor\ell_3\lor y_2)(\overline{y_2}\lor\ell_4\lor y_3)\cdots(\overline{y_{k-3}}\lor\ell_{k-1}\lor\ell_k).
+  \]
+\end{itemize}
+\begin{proof}[Correctness of the long-clause gadget]
+($\Rightarrow$) If some $\ell_i$ is true, set $y_j=$ true for $j\le i-2$ and false for $j\ge i-1$. Each 3-clause before the one containing $\ell_i$ is satisfied by its
+$y_j$, the one containing $\ell_i$ by $\ell_i$, and each after it by its $\overline{y_j}$.
+($\Leftarrow$) If all $\ell_i$ are false, the first clause forces $y_1$, then the second forces $y_2$, \dots, so $y_{k-3}$ is true and the last clause is false.
+\end{proof}
+The new formula has $\bigO(\text{size of }\Phi)$ clauses, so the reduction is polynomial.
+
+\section{3-SAT \texorpdfstring{$\le_P$}{<=} Independent Set}
+Given $\Phi$ with $m$ clauses, build $G$:
+\begin{itemize}
+  \item for each clause, a triangle with one vertex per literal occurrence;
+  \item an edge between every pair of vertices labelled with complementary literals $x_i$ and $\overline{x_i}$.
+\end{itemize}
+Set $k=m$.
+\begin{proof}
+($\Rightarrow$) Given a satisfying assignment, pick one true literal from each clause; the $m$ chosen vertices lie in different triangles and are never complementary
+(both are true), so they are independent.
+($\Leftarrow$) An independent set of size $m$ has exactly one vertex per triangle. It never contains both $x_i$ and $\overline{x_i}$, so set every chosen literal
+true (other variables arbitrarily); this is consistent and satisfies every clause.
+\end{proof}
+$G$ has $3m$ vertices and $\bigO(m^2)$ edges. Hence \textsc{Independent-Set} is NP-complete, and by Chapter 9 so are \textsc{Vertex-Cover} and \textsc{Clique}.
+
+\section{Hamiltonian cycle}
+\subsection{3-SAT \texorpdfstring{$\le_P$}{<=} Directed Hamiltonian Cycle}
+Let $\Phi$ have variables $x_1..x_n$ and clauses $C_1..C_m$.
+\begin{itemize}
+  \item For each variable $x_i$, a bidirected path $P_i$ of $3m+3$ vertices $v_{i,1},\dots,v_{i,3m+3}$ (edges both ways between consecutive vertices).
+        Traversing $P_i$ left to right means $x_i=$ true; right to left means false.
+  \item A start $s$ and end $t$: edges $s\to v_{1,1}$, $s\to v_{1,3m+3}$; from both ends of $P_i$ to both ends of $P_{i+1}$; from both ends of $P_n$ to $t$; and $t\to s$.
+  \item For each clause $C_j$, a vertex $c_j$. If $x_i\in C_j$, add $v_{i,3j}\to c_j\to v_{i,3j+1}$ (usable when going left to right). If $\overline{x_i}\in C_j$,
+        add $v_{i,3j+1}\to c_j\to v_{i,3j}$ (usable when going right to left).
+\end{itemize}
+\begin{proof}
+($\Rightarrow$) Traverse each $P_i$ in the direction given by the assignment. For each clause pick one true literal and detour through $c_j$ at that variable's
+path; the detour goes the right way by construction. This visits everything exactly once.
+
+($\Leftarrow$) Suppose a Hamiltonian cycle enters $c_j$ from $v_{i,3j}$. It must leave to $v_{i,3j+1}$: otherwise $v_{i,3j+1}$ could only be entered from
+$v_{i,3j+2}$ (and $v_{i,3j}$ is used up), and then it would be a dead end. The spacing (vertices $3j-1$, $3j+2$ are buffers never adjacent to clause vertices) makes this argument
+work. So removing the clause vertices from the cycle leaves a cycle that runs $s,P_1,P_2,\dots,P_n,t$, traversing each $P_i$ in one direction. Set $x_i$ by
+that direction. Each $c_j$ was visited by a detour that is only possible if the corresponding literal is true, so every clause is satisfied.
+\end{proof}
+
+\subsection{Directed \texorpdfstring{$\le_P$}{<=} undirected Hamiltonian cycle}
+Replace each vertex $v$ by a path $v_{\text{in}}-v_{\text{mid}}-v_{\text{out}}$ and each arc $(u,v)$ by the edge $u_{\text{out}}v_{\text{in}}$. Since $v_{\text{mid}}$ has degree 2,
+any Hamiltonian cycle passes $v_{\text{in}},v_{\text{mid}},v_{\text{out}}$ consecutively, so it follows arcs of the directed graph consistently in one direction.
+
+\subsection{Ham-Cycle \texorpdfstring{$\le_P$}{<=} TSP}
+Shown in Chapter 9 (weights 1 for edges, 2 for non-edges, bound $n$). So \textsc{TSP} is NP-complete; in fact this construction satisfies the triangle inequality, so even \emph{metric} TSP is NP-complete.
+\textsc{Ham-Path} is NP-complete too (similar gadget).
+
+\section{3-SAT \texorpdfstring{$\le_P$}{<=} Subset Sum}
+\textsc{Subset-Sum}: given positive integers $a_1..a_r$ and a target $T$, is there a subset summing to exactly $T$?
+
+Construct numbers written in base 10 with $n+m$ digits: one digit per variable, then one per clause.
+\begin{itemize}
+  \item For each variable $x_i$: numbers $y_i$ and $z_i$, both with a 1 in variable digit $i$. $y_i$ has a 1 in clause digit $j$ for each clause containing $x_i$;
+        $z_i$ has a 1 in clause digit $j$ for each clause containing $\overline{x_i}$.
+  \item For each clause $C_j$: slack numbers $g_j$ and $h_j$ with a 1 and a 2 respectively in clause digit $j$, zero elsewhere.
+  \item Target $T$: digit 1 in every variable position, digit 4 in every clause position.
+\end{itemize}
+Each column sums to at most $5<10$, so there are no carries and we can reason digit by digit.
+\begin{proof}
+($\Rightarrow$) Take $y_i$ if $x_i$ is true, $z_i$ otherwise. Variable digits are 1. Clause digit $j$ gets the number of true literals in $C_j$, between 1 and 3;
+add slack ($g_j$, $h_j$, or both) to reach 4.
+($\Leftarrow$) Variable digit $i$ forces exactly one of $y_i,z_i$; set $x_i$ accordingly. The slacks contribute at most 3 to clause digit $j$, so at least one chosen
+literal number contributes, i.e.\ some literal of $C_j$ is true.
+\end{proof}
+The numbers have $n+m$ digits, i.e.\ $\bigO(n+m)$ bits each: polynomial. (This is why subset sum's $\bigO(rT)$ DP does not contradict NP-completeness: $T$ is
+exponential in the input size.) Corollaries: \textsc{Knapsack} (set $w_i=v_i=a_i$, $W=V=T$) and \textsc{Partition} are NP-complete.
+
+\section{3-SAT \texorpdfstring{$\le_P$}{<=} 3-Colouring}
+\textsc{3-Colouring}: can the vertices be coloured with 3 colours so adjacent vertices differ? (2-colouring is in P, by BFS.)
+\begin{itemize}
+  \item \textbf{Palette}: a triangle on vertices $T,F,B$ (true, false, base). In any 3-colouring they get distinct colours; name colours after them.
+  \item \textbf{Variables}: for each $x_i$ a triangle $x_i,\overline{x_i},B$. So one of $x_i,\overline{x_i}$ is coloured $T$ and the other $F$.
+  \item \textbf{OR-gadget} $\mathrm{OR}(u,v)$: new vertices $p,q,o$ forming a triangle, with edges $up$ and $vq$. Output $o$.
+  \item \textbf{Clauses}: for $C=(\ell_1\lor\ell_2\lor\ell_3)$, build $o_1=\mathrm{OR}(\ell_1,\ell_2)$ and $o_2=\mathrm{OR}(o_1,\ell_3)$, and join $o_2$ to $F$ and $B$ (forcing $o_2$ to be coloured $T$).
+\end{itemize}
+\begin{lemma}[OR-gadget]
+If $u,v$ are both coloured $F$, then $o$ must be $F$. If at least one of $u,v$ is $T$ (the other $T$, $F$, or $B$), the gadget can be coloured with $o=T$.
+\end{lemma}
+\begin{proof}
+If $u=v=F$, then $p,q\ne F$, so $\{p,q\}=\{T,B\}$ and $o=F$. If $u=T$: put $o=T$; $q$ must avoid $v$ and $T$, and $p$ must avoid $T$ and $q$: choose $q\in\{F,B\}\setminus\{v\}$
+and $p$ the other of $\{F,B\}$. The case $v=T$ is symmetric.
+\end{proof}
+\begin{proof}[Correctness]
+($\Rightarrow$) Colour literals by the satisfying assignment. In each clause some literal is $T$: if $\ell_3=T$, colour the first gadget validly (always possible:
+its triangle avoids at most two input colours) and the second with $o_2=T$; if $\ell_1$ or $\ell_2$ is $T$, colour $o_1=T$ and then $o_2=T$.
+($\Leftarrow$) If all literals in some clause are $F$, the lemma forces $o_1=F$ and then $o_2=F$, contradicting the edge $o_2F$. So the assignment ``$x_i$ true iff coloured $T$'' satisfies every clause.
+\end{proof}
+The graph has $3+3n+6m$ vertices: polynomial. So \textsc{3-Colouring} (and $k$-colouring for every $k\ge3$) is NP-complete.
+
+\section{Choosing a source problem}
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+If the target problem is about\dots & try reducing from \\
+\midrule
+choosing a subset with no conflicts & Independent Set \\
+covering / hitting requirements & Vertex Cover, Set Cover \\
+ordering / sequencing / tours & Ham Cycle or Ham Path \\
+numbers adding up exactly & Subset Sum, Partition \\
+assigning labels with constraints & 3-Colouring, 3-SAT \\
+anything else & 3-SAT \\
+\bottomrule
+\end{tabular}
+\end{center}
+Common pitfalls: reducing in the wrong direction; proving only one direction of the iff; constructions that are exponential in size (e.g.\ writing numbers in unary
+that were given in binary); forgetting to show membership in NP.
+
+\section*{Summary}
+\begin{itemize}
+  \item Cook--Levin: SAT is NP-complete. SAT $\le_P$ 3-SAT by splitting clauses with fresh variables.
+  \item 3-SAT $\le_P$ IS (triangles + complement edges, $k=m$); IS $\equiv_P$ VC $\equiv_P$ Clique.
+  \item 3-SAT $\le_P$ Dir-Ham-Cycle (variable paths, clause detours) $\le_P$ Ham-Cycle $\le_P$ TSP.
+  \item 3-SAT $\le_P$ Subset Sum (base-10 digits, slack numbers 1 and 2, target 1\dots1\,4\dots4).
+  \item 3-SAT $\le_P$ 3-Colouring (palette triangle, variable triangles, OR-gadgets).
+\end{itemize}
