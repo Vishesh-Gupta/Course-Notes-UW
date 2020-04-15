@@ -1,0 +1,168 @@
+\chapter{Introduction}
+
+\begin{aside}
+\textbf{Sources.} The module list and ordering in these notes follow the archived CS 350 term
+pages on \code{student.cs.uwaterloo.ca/\textasciitilde cs350/}, specifically the course outline and
+reading-materials pages of \textbf{Winter 2018} (modules: Introduction, Threads, Synchronization,
+Processes/Kernel/System Calls, Virtual Memory, Scheduling, Devices and I/O, File Systems; the
+``Interprocess Communication and Networking'' module was listed as \emph{not covered}) and
+\textbf{Fall 2020} (same modules, with a new \emph{Virtual Machines} module at the end). The
+recommended (optional) textbook in both terms was Arpaci-Dusseau, \emph{Operating Systems: Three
+Easy Pieces} (OSTEP); older terms used Silberschatz, Galvin and Gagne. Assignments were done in
+OS/161 on the System/161 MIPS simulator.
+\end{aside}
+
+\section{What is an operating system?}
+
+There is no single crisp definition; it helps to look at the OS from three viewpoints.
+
+\begin{description}
+  \item[Application view] The OS provides an \emph{execution environment} for running
+    programs. It gives each program the resources it needs (CPU time, memory, storage) and an
+    \emph{interface} to those resources that is more convenient than the bare hardware:
+    files instead of disk sectors, virtual address spaces instead of physical RAM,
+    threads instead of a single CPU.
+  \item[System view] The OS is a \emph{resource manager}. It allocates resources among many
+    concurrently running programs, isolates them from each other (one buggy program should
+    not crash another), and enforces policy (who may access which file, who runs next).
+  \item[Implementation view] The OS is a \emph{concurrent, real-time program}. Concurrency
+    is inherent: many programs, devices and interrupts are all active at once. Real-time
+    because hardware events (a network packet, a disk completion) must be handled promptly.
+\end{description}
+
+\begin{definition}[Kernel]
+The \textbf{kernel} is the part of the OS that runs in privileged (kernel / supervisor) mode
+and responds to system calls, interrupts and exceptions. The \textbf{operating system} as a whole
+also includes user-level parts: system libraries, daemons/servers, shells, utilities.
+\end{definition}
+
+\begin{important}[Privilege]
+Hardware supports at least two execution modes. In \emph{kernel mode} the CPU may execute
+privileged instructions (halt, change the page table base / TLB, disable interrupts, talk to
+devices). In \emph{user mode} such instructions trap. Applications run in user mode, so the only
+way for an application to use hardware is to ask the kernel through a \emph{system call}.
+\end{important}
+
+\section{Layers of a computer system}
+
+\begin{center}
+\begin{tikzpicture}[box/.style={draw,text width=7.6cm,minimum height=0.8cm,align=center,font=\small}]
+  \node[box] (u) {User programs (shell, editors, compilers, \ldots)};
+  \node[box,below=0pt of u] (l) {Libraries (libc: \code{printf}, \code{malloc}, wrappers)};
+  \node[box,below=0pt of l,fill=blue!8] (k) {Kernel: processes, VM, scheduler, FS, drivers};
+  \node[box,below=0pt of k] (h) {Hardware: CPU, MMU/TLB, memory, devices};
+  \draw[-{Stealth},thick] ($(l.north east)+(0.3,0)$) -- node[right,font=\small]{system calls} ($(k.south east)+(0.3,0.1)$);
+  \draw[-{Stealth},thick] ($(h.south west)+(-0.3,0)$) -- node[left,font=\small]{interrupts, exceptions} ($(k.north west)+(-0.3,-0.1)$);
+\end{tikzpicture}
+\end{center}
+
+The kernel sits between the user programs and the hardware. Control enters the kernel in exactly
+three ways:
+\begin{enumerate}
+  \item \textbf{System calls} --- deliberate requests from a user program (via a trap
+    instruction such as \code{syscall} on MIPS).
+  \item \textbf{Exceptions} --- errors or conditions caused by the running instruction
+    (divide by zero, illegal address, TLB miss).
+  \item \textbf{Interrupts} --- asynchronous signals from devices (timer tick, disk done).
+\end{enumerate}
+After handling, the kernel either returns to the interrupted program or switches to another.
+
+\section{OS abstractions}
+
+A large part of the course is about how the OS implements a few key abstractions.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Abstraction & Hides / virtualizes & Module \\
+\midrule
+Thread & the CPU (sequential execution) & Threads, Scheduling \\
+Process & address space + threads + resources & Processes \\
+Address space & physical memory & Virtual memory \\
+File / directory & disk blocks & File systems \\
+Device driver interface & device registers & Devices and I/O \\
+Virtual machine & the entire hardware & Virtual machines \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{aside}
+OSTEP organizes the same material as three ``easy pieces'': \emph{virtualization} (CPU and
+memory), \emph{concurrency} (threads, locks, condition variables), and \emph{persistence}
+(devices and file systems). CS 350 covers all three, with concurrency first because writing a
+kernel requires synchronization from day one.
+\end{aside}
+
+\section{Monolithic kernels vs microkernels}
+
+\begin{description}
+  \item[Monolithic kernel] Everything (file systems, drivers, networking, VM, scheduling) runs
+    in kernel mode in one address space. Fast (procedure calls between subsystems) but a bug
+    anywhere can crash the system. Linux, traditional Unix, OS/161.
+  \item[Microkernel] Only a minimum runs in kernel mode (address spaces, threads, IPC);
+    file systems, drivers, etc.\ run as user-level server processes. More robust and modular,
+    but more IPC overhead. Mach, L4, QNX, MINIX 3.
+  \item[Hybrid] Mixtures, e.g.\ Windows NT and macOS (XNU = Mach + BSD).
+\end{description}
+
+\section{OS/161 and System/161}
+
+The assignments use \textbf{OS/161}, a small teaching operating system originally from Harvard,
+which runs on \textbf{System/161}, a simulator of a MIPS R3000 based machine (\code{sys161}).
+
+\begin{itemize}
+  \item The kernel is written in C (with a little MIPS assembly for low-level entry/exit and
+    context switching).
+  \item Source tree highlights: \code{kern/thread} (threads, scheduler, synchronization
+    primitives in \code{synch.c}), \code{kern/arch/mips} (trap handling, \code{switchframe},
+    TLB code), \code{kern/syscall}, \code{kern/vm} (initially the very simple \code{dumbvm}),
+    \code{kern/vfs} and \code{kern/fs} (SFS), plus user-level programs and \code{libc} under
+    \code{user/}.
+  \item Debugging is done by attaching \code{cs350-gdb} to the simulator (\code{sys161 -w}).
+\end{itemize}
+
+Typical assignment progression (2016--2021):
+\begin{enumerate}[label=\textbf{A\arabic*}]
+  \setcounter{enumi}{-1}
+  \item Getting familiar with the code base, building and running the kernel, \code{gdb}.
+  \item Implementing \textbf{locks} and \textbf{condition variables}, then solving a
+    synchronization problem (e.g.\ a traffic intersection or cat/mouse simulation).
+  \item[\textbf{A2a}] Process system calls: \code{fork}, \code{getpid}, \code{waitpid}, \code{\_exit}.
+  \item[\textbf{A2b}] \code{execv} with argument passing.
+  \item[\textbf{A3}] Virtual memory: TLB replacement, read-only text segment, replacing
+    \code{dumbvm} with a page-granular physical memory allocator (coremap).
+\end{enumerate}
+
+\begin{lstlisting}[style=bash]
+# build and run OS/161 (typical workflow)
+cd os161-1.99/kern/compile/ASST2
+bmake depend && bmake && bmake install
+cd ~/cs350-os161/root
+sys161 kernel-ASST2          # boots to the OS/161 menu
+sys161 -w kernel-ASST2       # wait for debugger
+cs350-gdb kernel             # in another terminal: target remote unix:.sockets/gdb
+\end{lstlisting}
+
+\section{Course roadmap}
+
+\begin{enumerate}
+  \item Threads and concurrency --- how one CPU appears to run many threads.
+  \item Synchronization --- making concurrent threads cooperate safely.
+  \item Processes and the kernel --- system calls, exceptions, interrupts, user/kernel boundary.
+  \item Virtual memory --- address translation, paging, TLBs, page replacement.
+  \item Scheduling --- choosing which thread runs next.
+  \item Devices and I/O --- talking to hardware, disks and SSDs.
+  \item File systems --- persistent storage, i-nodes, crash consistency.
+  \item Virtual machines --- running whole operating systems on top of a hypervisor.
+\end{enumerate}
+
+\section*{Summary}
+\begin{itemize}
+  \item An OS provides an execution environment (abstractions + interface), manages and
+    isolates resources, and is itself a concurrent real-time program.
+  \item The kernel runs in privileged mode; it is entered only through system calls,
+    exceptions and interrupts.
+  \item Key abstractions: threads, processes, address spaces, files, virtual machines.
+  \item CS 350 assignments build process management and virtual memory into OS/161, a small
+    monolithic kernel running on a simulated MIPS R3000.
+\end{itemize}

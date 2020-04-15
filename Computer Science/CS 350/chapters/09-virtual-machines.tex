@@ -1,0 +1,177 @@
+\chapter{Virtual Machines}
+
+\begin{aside}
+This module was added in Fall 2020 (listed as ``New!'' on that term's reading page). In Winter
+2018 the final slot was ``Interprocess Communication and Networking'', marked as not covered, so
+networking is only mentioned briefly at the end.
+\end{aside}
+
+\section{What is a virtual machine?}
+
+\begin{definition}
+A \textbf{virtual machine} (VM) is a software abstraction of a complete computer: CPU, memory,
+devices. A \textbf{guest} operating system runs inside the VM. The \textbf{hypervisor} (or
+\emph{virtual machine monitor}, VMM) is the software that creates and runs VMs on the real
+\textbf{host} hardware, multiplexing it among the guests.
+\end{definition}
+
+Just as a process virtualizes a CPU and memory for an application, a VM virtualizes the whole
+machine for an operating system.
+
+Uses:
+\begin{itemize}
+  \item \textbf{Server consolidation}: many lightly loaded servers on one physical machine;
+    the basis of cloud computing (AWS EC2, etc.).
+  \item \textbf{Isolation}: a compromised or crashed guest does not affect others.
+  \item Running different OSes side by side (development, testing, legacy software).
+  \item \textbf{Snapshots and live migration}: VM state can be saved, cloned, or moved to
+    another host while running.
+  \item OS development and teaching --- System/161 is itself a (simulated) machine!
+\end{itemize}
+
+\section{Types of hypervisors}
+
+\begin{center}
+\begin{tikzpicture}[b/.style={draw,minimum width=1.6cm,minimum height=0.6cm,font=\small,align=center}]
+  % type 1
+  \node[b,minimum width=4cm,fill=gray!20] (hw1) at (0,0) {hardware};
+  \node[b,minimum width=4cm,fill=blue!10,above=0pt of hw1] (hv1) {hypervisor};
+  \node[b,above=0pt of hv1.north west,anchor=south west,minimum width=2cm] (g1) {guest OS};
+  \node[b,above=0pt of hv1.north east,anchor=south east,minimum width=2cm] (g2) {guest OS};
+  \node[b,above=0pt of g1,minimum width=2cm] {apps};
+  \node[b,above=0pt of g2,minimum width=2cm] {apps};
+  \node[below=0.1cm of hw1,font=\small] {Type 1 (bare metal)};
+  % type 2
+  \node[b,minimum width=4cm,fill=gray!20] (hw2) at (6,0) {hardware};
+  \node[b,minimum width=4cm,above=0pt of hw2] (host) {host OS};
+  \node[b,above=0pt of host.north west,anchor=south west,minimum width=2cm,fill=blue!10] (hv2) {hypervisor};
+  \node[b,above=0pt of host.north east,anchor=south east,minimum width=2cm] (ha) {host apps};
+  \node[b,above=0pt of hv2,minimum width=2cm] (go) {guest OS};
+  \node[b,above=0pt of go,minimum width=2cm] {apps};
+  \node[below=0.1cm of hw2,font=\small] {Type 2 (hosted)};
+\end{tikzpicture}
+\end{center}
+
+\begin{description}
+  \item[Type 1 (native, bare metal)] runs directly on the hardware: Xen, VMware ESXi,
+    Microsoft Hyper-V. Often a small privileged guest (Xen's \emph{dom0}) handles device drivers.
+  \item[Type 2 (hosted)] runs as an application on a host OS and uses the host's drivers:
+    VMware Workstation, VirtualBox, QEMU. Linux KVM blurs the line (the Linux kernel itself
+    becomes the hypervisor).
+\end{description}
+
+\section{Virtualizing the CPU}
+
+\subsection{Trap and emulate}
+Run the guest OS \emph{directly} on the CPU, but in user mode (deprivileged). Ordinary
+instructions run at full speed. When the guest executes a privileged instruction (e.g.\ write the
+TLB, disable interrupts, return from exception), the CPU traps to the hypervisor, which
+\textbf{emulates} the effect on the VM's \emph{virtual} state (virtual CPU registers, virtual
+interrupt flag, virtual TLB) and returns.
+
+System calls and exceptions from guest applications also trap into the hypervisor first; it
+reflects them into the guest OS by jumping to the guest's exception handler as if the hardware
+had done so (and records that the virtual CPU is now in ``virtual kernel mode'').
+
+\begin{theorem}[Popek and Goldberg, 1974, informally]
+A machine can be virtualized by trap-and-emulate if every \emph{sensitive} instruction (one that
+reads or changes privileged machine state or behaves differently in user vs.\ kernel mode) is
+also \emph{privileged} (traps when executed in user mode).
+\end{theorem}
+
+Classic x86 violated this: e.g.\ \code{popf} in user mode silently ignores changes to the
+interrupt flag instead of trapping. Solutions:
+\begin{itemize}
+  \item \textbf{Binary translation} (VMware, 1999): scan guest kernel code before running it and
+    rewrite problematic instructions into calls to the hypervisor; cache translated blocks.
+  \item \textbf{Paravirtualization} (Xen): modify the guest OS to call the hypervisor explicitly
+    (\textbf{hypercalls}) instead of using sensitive instructions. Fast, but requires guest source
+    changes.
+  \item \textbf{Hardware-assisted virtualization} (Intel VT-x, AMD-V, 2005+): a new CPU mode
+    (``guest mode'' / non-root mode) in which the guest kernel runs at its normal privilege
+    level; specified events cause a \emph{VM exit} to the hypervisor, which later does a
+    \emph{VM entry}. Guest state is kept in a control structure (VMCS).
+\end{itemize}
+
+\section{Virtualizing memory}
+
+Now there are three kinds of addresses:
+\[
+  \text{guest virtual} \xrightarrow{\text{guest page table}} \text{guest physical}
+  \xrightarrow{\text{hypervisor}} \text{host (machine) physical}.
+\]
+The guest OS believes it controls physical memory; the hypervisor actually allocates machine
+frames to the VM.
+
+\begin{description}
+  \item[Shadow page tables] The hypervisor write-protects the guest's page tables; whenever
+    the guest changes them, it traps, and the hypervisor updates a \emph{shadow} page table that
+    maps guest virtual directly to machine physical. The real MMU uses the shadow table. Correct
+    but many expensive traps.
+  \item[Software-managed TLB (MIPS)] On a TLB miss the hypervisor's handler gets control, runs the
+    guest's refill handler (whose \code{tlbwr} traps), translates the guest physical frame to the
+    machine frame, and installs the combined mapping.
+  \item[Nested / extended page tables] (Intel EPT, AMD NPT) The hardware walks \emph{both}
+    tables: guest page table (guest virtual $\to$ guest physical) and the hypervisor's table
+    (guest physical $\to$ machine). No traps on guest page table updates, but a TLB miss is
+    expensive: with two 4-level tables a full walk can take up to $24$ memory references
+    ($(4+1)(4+1)-1$), so large pages and big TLBs matter.
+\end{description}
+
+Memory overcommitment: the hypervisor can page guest memory to disk, use a \textbf{balloon
+driver} inside the guest (the balloon ``allocates'' guest pages so the guest's own replacement
+policy chooses what to give up, and the hypervisor reclaims the backing frames), and share
+identical pages between VMs copy-on-write (\textbf{content-based page sharing}).
+
+\section{Virtualizing I/O}
+
+\begin{itemize}
+  \item \textbf{Emulation}: present a well-known virtual device (e.g.\ an old network card or IDE
+    disk); the guest's ordinary driver accesses its registers, each access traps, and the
+    hypervisor emulates the device using real host devices. Works with unmodified guests but slow.
+  \item \textbf{Paravirtual devices} (virtio, Xen split drivers): the guest uses a special driver
+    that communicates with the hypervisor through shared-memory ring buffers, batching requests
+    and avoiding per-register traps.
+  \item \textbf{Device passthrough}: give a VM direct access to a physical device (or a virtual
+    function of an SR-IOV device), with an IOMMU translating and restricting the device's DMA
+    addresses so it can only reach that VM's memory.
+\end{itemize}
+
+\section{Containers (OS-level virtualization)}
+Containers (Docker, LXC) isolate groups of processes that \emph{share one kernel}: namespaces give
+each container its own view of PIDs, file system mounts, network interfaces and users; cgroups
+limit their resource usage. Much lighter than VMs (no guest kernel), but weaker isolation and the
+same OS kernel for everyone.
+
+\section{Networking (brief, for context)}
+Not examined in the terms covered here, but for completeness: the OS implements the network
+protocol stack (link layer driver, IP routing, TCP/UDP) in the kernel and exposes it via the
+\textbf{socket} API (\code{socket}, \code{bind}, \code{listen}, \code{accept}, \code{connect},
+\code{send}, \code{recv}). Sockets are also the main mechanism for inter-process communication
+between machines, complementing pipes and shared memory on a single machine.
+
+\begin{lstlisting}[style=c]
+int s = socket(AF_INET, SOCK_STREAM, 0);          /* TCP socket */
+struct sockaddr_in addr = { .sin_family = AF_INET,
+                            .sin_port = htons(8080),
+                            .sin_addr.s_addr = htonl(INADDR_ANY) };
+bind(s, (struct sockaddr *)&addr, sizeof addr);
+listen(s, 16);
+int c = accept(s, NULL, NULL);                    /* blocks for a client */
+char buf[256]; ssize_t n = recv(c, buf, sizeof buf, 0);
+send(c, buf, n, 0);                               /* echo it back */
+close(c); close(s);
+\end{lstlisting}
+
+\section*{Summary}
+\begin{itemize}
+  \item A hypervisor multiplexes hardware among guest OSes; Type 1 runs on bare metal, Type 2 on
+    a host OS.
+  \item CPU: trap-and-emulate works when all sensitive instructions are privileged
+    (Popek--Goldberg); otherwise binary translation, paravirtualization, or hardware support
+    (VT-x/AMD-V).
+  \item Memory: guest virtual $\to$ guest physical $\to$ machine physical, via shadow page
+    tables or hardware nested page tables; ballooning and page sharing for overcommit.
+  \item I/O: device emulation, paravirtual drivers, or passthrough with an IOMMU.
+  \item Containers share the host kernel and are lighter but less isolated than VMs.
+\end{itemize}

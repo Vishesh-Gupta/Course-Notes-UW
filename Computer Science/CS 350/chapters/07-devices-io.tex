@@ -1,0 +1,226 @@
+\chapter{Devices and I/O}
+
+\section{Devices and buses}
+
+Devices (disks, network cards, timers, serial consoles, GPUs) connect to the CPU and memory
+through one or more \textbf{buses}. A typical system has a fast memory bus, an I/O bus
+(PCI Express), and slower peripheral buses (USB, SATA). In System/161 all devices sit on a
+simple \code{LAMEbus} with up to 32 slots.
+
+\begin{definition}[Device driver]
+A \textbf{device driver} is the part of the kernel that interacts with a particular device: it
+knows the device's registers and protocol, and presents a uniform interface (e.g.\ ``read block
+$n$'') to the rest of the kernel.
+\end{definition}
+
+\section{Device registers}
+
+The kernel communicates with a device through \textbf{device registers}, typically of three
+kinds:
+\begin{description}
+  \item[Status] read to learn the device's state (busy, done, error).
+  \item[Command] written to tell the device what to do.
+  \item[Data] used to transfer data to/from the device.
+\end{description}
+
+Two ways to access device registers:
+\begin{itemize}
+  \item \textbf{Port-mapped I/O}: special instructions (\code{in}/\code{out} on x86) address a
+    separate I/O address space.
+  \item \textbf{Memory-mapped I/O}: registers appear at physical addresses; ordinary loads and
+    stores access them. MIPS/System/161 uses this: each LAMEbus slot gets a 64\,KB region of
+    physical addresses starting at \code{0x1FE00000}, which the kernel accesses through the
+    uncached segment \code{kseg1} (\code{0xA0000000} + physical) so that reads/writes really reach
+    the device.
+\end{itemize}
+
+\begin{example}[System/161 timer/clock device]
+\begin{center}
+\begin{tabular}{@{}cccl@{}}
+\toprule
+Offset & Size & Type & Description \\
+\midrule
+0 & 4 & status & current time (seconds) \\
+4 & 4 & status & current time (nanoseconds) \\
+8 & 4 & command & restart-on-expiry flag \\
+12 & 4 & status and command & interrupt (reading acknowledges it) \\
+16 & 4 & command & countdown time (microseconds) \\
+20 & 4 & command & speaker (causes a beep) \\
+\bottomrule
+\end{tabular}
+\end{center}
+Writing 1000000 to offset 16 with restart set makes the timer interrupt every second.
+\end{example}
+
+\section{Polling vs interrupts}
+
+\begin{example}[System/161 serial console, write one character]
+Registers: \emph{character buffer} (data), \emph{write IRQ} (status/command), \emph{read IRQ}.
+
+\textbf{Polling} (busy waiting):
+\begin{lstlisting}[style=c]
+void serial_putc_polled(char c) {
+    write_reg(SERIAL_CHAR, c);            /* start the operation */
+    while (read_reg(SERIAL_WIRQ) == 0)    /* spin until device says done */
+        ;
+    write_reg(SERIAL_WIRQ, 0);            /* acknowledge completion */
+}
+\end{lstlisting}
+\textbf{Interrupt-driven}:
+\begin{lstlisting}[style=c]
+void serial_putc(char c) {
+    P(serial_write_sem);                  /* only one write in progress (init 1) */
+    write_reg(SERIAL_CHAR, c);            /* start; return immediately */
+}
+void serial_interrupt_handler(void) {     /* device raises an interrupt when done */
+    write_reg(SERIAL_WIRQ, 0);            /* acknowledge */
+    V(serial_write_sem);                  /* allow the next write */
+}
+\end{lstlisting}
+\end{example}
+
+\begin{important}[Trade-off]
+Polling wastes CPU while the device works, but has very low latency and no interrupt overhead;
+it is fine for very fast devices or when the CPU has nothing else to do. Interrupts let the CPU
+run other threads while the device works, at the cost of interrupt handling overhead per event.
+Very high-rate devices (fast network cards) switch adaptively between the two (e.g.\ Linux
+NAPI).
+\end{important}
+
+\section{Moving data: programmed I/O vs DMA}
+
+\begin{description}
+  \item[Programmed I/O (PIO)] The CPU itself copies data between memory and the device's data
+    registers or on-device buffer, word by word. Simple, but the CPU is busy for the whole
+    transfer.
+  \item[Direct memory access (DMA)] The device transfers data directly to/from main memory.
+    The driver tells the device the physical memory address, the length and the operation;
+    the device then masters the bus, copies the data, and raises an interrupt on completion.
+    The CPU is free during the transfer (it competes with the device for the memory bus only).
+\end{description}
+
+\begin{lstlisting}[style=c]
+/* DMA disk read, conceptually */
+void disk_read_dma(uint32_t sector, paddr_t buf, size_t nsectors) {
+    lock_acquire(disk_lock);
+    write_reg(DISK_SECTOR, sector);
+    write_reg(DISK_ADDR,   buf);          /* PHYSICAL address of the buffer */
+    write_reg(DISK_COUNT,  nsectors);
+    write_reg(DISK_CMD,    CMD_READ);     /* start */
+    P(disk_done);                         /* block; interrupt handler does V */
+    lock_release(disk_lock);
+}
+\end{lstlisting}
+\begin{remark}
+DMA uses physical addresses, so the buffer must be contiguous in physical memory (or the device
+must support scatter/gather lists) and must not be paged out during the transfer
+(\emph{pinned}).
+\end{remark}
+
+System/161 disks use PIO through a 512-byte on-device transfer buffer that is memory-mapped.
+
+\section{Hard disk drives}
+
+\begin{center}
+\begin{tikzpicture}
+  \draw (0,0) circle (2cm);
+  \draw (0,0) circle (1.4cm);
+  \draw (0,0) circle (0.8cm);
+  \fill (0,0) circle (0.08cm);
+  \draw[fill=gray!30] (0:1.4) arc (0:30:1.4) -- (30:2) arc (30:0:2) -- cycle;
+  \node[font=\small] at (15:2.5) {sector};
+  \node[font=\small] at (-90:1.1) {track};
+  \draw[thick] (4,-1.8) -- (1.2,0.6);
+  \fill (1.2,0.6) circle (0.07);
+  \node[font=\small,align=left,anchor=north west] at (4.05,-1.8) {arm with\\read/write head};
+  \draw[-{Stealth}] (130:2.3) arc (130:170:2.3);
+  \node[font=\small,anchor=east] at (150:2.45) {rotation};
+\end{tikzpicture}
+\end{center}
+
+A disk has one or more \textbf{platters} rotating at constant speed (5400--15000 RPM). Each
+surface is divided into concentric \textbf{tracks}, each track into \textbf{sectors} (512\,B or
+4\,KB). Tracks at the same radius on all surfaces form a \textbf{cylinder}. An \textbf{arm}
+moves the read/write heads radially. The drive presents a linear array of logical block numbers;
+nearby block numbers are physically nearby.
+
+Cost of an I/O request of $k$ sectors:
+\[
+  T = T_{\text{seek}} + T_{\text{rot}} + T_{\text{transfer}}.
+\]
+\begin{description}
+  \item[Seek time] move the heads to the right track: from 0 (same track) up to a maximum of
+    roughly 10--20\,ms; a common model is linear in seek distance, average $\approx$ one third of
+    the maximum for random requests.
+  \item[Rotational latency] wait for the sector to come under the head: between 0 and one full
+    rotation $\omega^{-1}$; average half a rotation.
+  \item[Transfer time] $k/(\text{sectors per track}) \times$ rotation time.
+\end{description}
+
+\begin{example}
+10000 RPM $\Rightarrow$ one rotation $= 60/10000$\,s $= 6$\,ms, average rotational latency
+3\,ms. Average seek 5\,ms. 1000 sectors per track; reading 8 sectors (4\,KB): transfer
+$= 8/1000 \times 6\,\text{ms} = 0.048$\,ms. Total $\approx 8.05$\,ms, so random 4\,KB reads
+achieve about $4\,\text{KB}/8\,\text{ms} \approx 0.5$\,MB/s, while sequential reads approach
+$1000 \times 512\,\text{B} / 6\,\text{ms} \approx 85$\,MB/s.
+\end{example}
+
+\begin{important}[Moral]
+Seek and rotation dominate. Large, sequential transfers are vastly faster than small random ones.
+File systems and disk schedulers try to make I/O sequential and to reduce seek distances.
+\end{important}
+
+\section{Disk head scheduling}
+
+When several requests are pending, the order matters. Example: head at cylinder 53 (moving
+toward higher numbers), queue $98, 183, 37, 122, 14, 124, 65, 67$, cylinders $0..199$.
+
+\begin{description}
+  \item[FCFS] Serve in arrival order. Fair but poor: $53\to98\to183\to37\to122\to14\to124\to65
+    \to67$, total movement $45+85+146+85+108+110+59+2 = 640$ cylinders.
+  \item[SSTF (shortest seek time first)] Always serve the closest request:
+    $53\to65\to67\to37\to14\to98\to122\to124\to183$, total $12+2+30+23+84+24+2+59 = 236$.
+    Greedy and good, but can \textbf{starve} far requests.
+  \item[SCAN (elevator)] Move in one direction serving requests, reverse at the last request
+    in that direction (strictly this variant is called LOOK): $53\to65\to67\to98\to122\to124
+    \to183\to37\to14$, total $130 + 169 = 299$. No starvation; middle cylinders get better service.
+  \item[C-SCAN] Serve only while moving in one direction, then jump back to the start
+    (circular). More uniform waiting times.
+\end{description}
+
+Modern drives do their own scheduling internally (they know the exact geometry and rotational
+position); the OS keeps queues deep enough for the drive to optimize, and may still merge and
+sort requests.
+
+\section{Solid state drives (SSDs)}
+
+SSDs use NAND flash: no moving parts, so no seek or rotational latency; random reads are fast
+($\sim$tens of $\mu$s).
+
+\begin{itemize}
+  \item Flash is organized into \textbf{pages} (e.g.\ 4\,KB, the unit of read/write) grouped into
+    \textbf{blocks} (e.g.\ 128 pages, the unit of erase).
+  \item A page cannot be overwritten in place: it must be erased first, and erase works only on
+    whole blocks and is slow (ms).
+  \item Each block survives a limited number of program/erase cycles (\textbf{wear out}).
+  \item The \textbf{flash translation layer} (FTL) in the drive maps logical blocks to physical
+    pages. Writes go to fresh erased pages (log-structured style); old copies are marked
+    invalid; \textbf{garbage collection} copies valid pages out of mostly-invalid blocks and
+    erases them; \textbf{wear levelling} spreads erases evenly.
+  \item The OS can help with \textbf{TRIM}: tell the drive which logical blocks are no longer in
+    use. Disk head scheduling is irrelevant for SSDs; defragmentation is harmful (extra writes).
+\end{itemize}
+
+\section{Other persistent storage}
+Persistent memory (e.g.\ byte-addressable NVM) blurs the line between memory and storage; RAID
+combines multiple disks for performance (striping) and reliability (mirroring, parity).
+
+\section*{Summary}
+\begin{itemize}
+  \item Drivers talk to devices through status/command/data registers, via port-mapped or
+    memory-mapped I/O (System/161: memory-mapped, accessed through uncached kseg1).
+  \item Completion is detected by polling or interrupts; data is moved by programmed I/O or DMA.
+  \item Disk access time $=$ seek $+$ rotational latency $+$ transfer; seek and rotation dominate.
+  \item Disk scheduling: FCFS (fair, slow), SSTF (greedy, starvation), SCAN/elevator and C-SCAN.
+  \item SSDs: no mechanical latency, but erase-before-write in blocks, wear; the FTL hides this.
+\end{itemize}
