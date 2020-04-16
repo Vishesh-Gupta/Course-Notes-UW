@@ -1,0 +1,214 @@
+\chapter{Lecture 11: Copy-and-Swap, Rvalues and Move Semantics}
+\begin{center}
+\textit{February 8, 2018}
+\end{center}
+
+\section{Recap and the Failing-\code{new} Problem}
+\begin{lstlisting}[style=cpp]
+Node &Node::operator=(const Node &other) {
+    if (this == &other) return *this;
+    data = other.data;
+    delete next;
+    next = other.next ? new Node{*other.next} : nullptr;
+    return *this;
+}
+\end{lstlisting}
+
+\paragraph{Q.} What if \code{new} fails?
+
+\code{new} throws an exception and the function is exited before \code{next} is
+assigned. If the caller catches the exception and tries to recover, the object's
+\code{next} is now a dangling pointer (and our dtor will delete it again later).
+
+\paragraph{Solution.} Don't delete the old data until the new data is safely in
+hand:
+\begin{lstlisting}[style=cpp]
+Node &Node::operator=(const Node &other) {
+    if (this == &other) return *this;
+    Node *tmp = next;
+    next = other.next ? new Node{*other.next} : nullptr;  // if this throws,
+    data = other.data;                                    // nothing has changed
+    delete tmp;
+    return *this;
+}
+\end{lstlisting}
+(In fact this version is correct even without the self-assignment check, but the
+check saves work.)
+
+\section{The Copy-and-Swap Idiom}
+\begin{lstlisting}[style=cpp]
+// node.h
+struct Node {
+    ...
+    void swap(Node &other);
+    Node &operator=(const Node &other);
+};
+
+// node.cc
+#include <utility>
+void Node::swap(Node &other) {
+    using std::swap;
+    swap(data, other.data);
+    swap(next, other.next);
+}
+
+Node &Node::operator=(const Node &other) {
+    Node tmp = other;   // deep copy via the copy ctor (may throw: fine)
+    swap(tmp);          // I take tmp's fresh copy; tmp takes my old data
+    return *this;       // tmp's dtor frees my old data
+}
+\end{lstlisting}
+This relies on a correctly implemented copy ctor and dtor, and is safe for
+self-assignment and for a failing \code{new} automatically.
+
+\section{Member Functions vs.\ Standalone Functions}
+\code{operator=} must be implemented as a method; the left-hand side is
+represented by \code{*this}. Other operators can be either.
+
+\begin{example}
+Implement the Vec operators as methods.
+\begin{lstlisting}[style=cpp]
+// vec.h
+struct Vec {
+    int x, y;
+    Vec operator+(const Vec &other) const;
+    Vec operator*(int k) const;            // only v * k!
+};
+
+// vec.cc
+#include "vec.h"
+Vec Vec::operator+(const Vec &other) const {
+    return {x + other.x, y + other.y};
+}
+Vec Vec::operator*(int k) const {
+    return {x * k, y * k};
+}
+\end{lstlisting}
+\code{k * v} cannot be a method of \code{Vec}, since the left operand is an
+\code{int}. It must remain a standalone function:
+\code{Vec operator*(int k, const Vec \&v) \{ return v * k; \}}.
+\end{example}
+
+What about I/O operators as methods?
+\begin{lstlisting}[style=cpp]
+struct Vec {
+    ...
+    std::ostream &operator<<(std::ostream &out) const {
+        out << x << " " << y;
+        return out;
+    }
+};
+
+Vec v{1, 2};
+v << cout;       // this compiles... and looks completely backwards
+\end{lstlisting}
+\begin{important}[Rule]
+I/O operators should always be implemented as standalone functions, because the
+stream must be the left operand.
+\end{important}
+
+\section{Tracing Copies}
+\begin{lstlisting}[style=cpp]
+Node plusOne(Node n) {
+    for (Node *p = &n; p; p = p->next) ++p->data;
+    return n;
+}
+
+Node n{1, new Node{2, nullptr}};
+Node n2{plusOne(n)};
+\end{lstlisting}
+\begin{itemize}
+  \item \code{n} is built with the basic ctor.
+  \item Passing \code{n} by value to \code{plusOne}: copy ctor (deep copy of both
+        nodes).
+  \item Returning \code{n} by value from \code{plusOne}: copy into a temporary
+        in \code{main}'s frame.
+  \item Initializing \code{n2} from that temporary: copy ctor again.
+\end{itemize}
+Compiling with \code{g++ -std=c++14 -fno-elide-constructors node.cc} shows all
+the copy-ctor calls; without the flag the compiler removes some of them (copy
+elision, next lecture).
+
+Look at the last step: \code{n2} is copy-constructed from a \emph{temporary},
+which is destroyed as soon as \code{n2} has been built. Deep-copying the whole
+list, only to throw the original away a moment later, is wasteful. When we are
+about to copy from a temporary, it makes sense to not copy but to take over
+(steal) its data.
+
+\section{Rvalues and Rvalue References}
+\paragraph{Q.} How do we know a value is a temporary?
+
+\begin{definition}
+An \textbf{lvalue} is anything with an address (a named storage location). An
+\textbf{rvalue} is a value that is not an lvalue: temporaries such as
+\code{plusOne(n)}, \code{x + y}, or literals.
+\end{definition}
+
+C++11 introduced \textbf{rvalue references}, written \code{T\&\&}, which bind
+to rvalues: references to temporary objects that are about to be destroyed.
+Overloading on \code{const T\&} vs.\ \code{T\&\&} lets the compiler pick
+``copy'' for lvalues and ``steal'' for rvalues.
+
+\section{The Move Constructor}
+The move ctor takes a single rvalue reference as its parameter:
+\begin{lstlisting}[style=cpp]
+Node::Node(Node &&other) : data{other.data}, next{other.next} {
+    other.next = nullptr;   // other is about to be destroyed and its dtor
+                            // will run: make sure we steal, not share
+}
+\end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, minimum width=13mm, minimum height=7mm},
+  >={Stealth}]
+\node[box] (o) at (0,0) {1 \,/};
+\node[left=2mm of o] {\code{other}};
+\node[box] (t) at (0,-1.5) {1 \,$\bullet$};
+\node[left=2mm of t] {\code{this}};
+\node[box] (b) at (3,-0.75) {2 \,$\bullet$};
+\node[box] (c) at (5.5,-0.75) {3 \,/};
+\draw[->] (t) -- (b);
+\draw[->] (b) -- (c);
+\draw[->, dashed, gray] (o) -- node[above, sloped, font=\scriptsize] {was} (b);
+\end{tikzpicture}
+\end{center}
+
+\section{The Move Assignment Operator}
+\begin{lstlisting}[style=cpp]
+Node m{10, new Node{20, nullptr}};
+m = plusOne(n);           // the right side is an rvalue: move assignment
+
+Node &Node::operator=(Node &&other) {
+    using std::swap;
+    swap(data, other.data);
+    swap(next, other.next);   // or simply: swap(other);
+    return *this;
+}
+\end{lstlisting}
+Swapping gives \code{other} our old list; \code{other} is a temporary, so its
+dtor frees our old list for us. No allocation, so it cannot fail.
+
+If you don't write the move operations, the copy versions are used for rvalues
+too (it is still correct, just slower).
+
+\section{Copy/Move Elision (Preview)}
+\begin{lstlisting}[style=cpp]
+// c++/elision/vec.cc
+Vec makeAVec() { return {0, 0}; }
+Vec v = makeAVec();
+\end{lstlisting}
+Theoretically: one basic ctor (inside \code{makeAVec}) plus one copy/move ctor
+(to get the value into \code{v}). In practice only the basic ctor runs: the
+\code{Vec\{0,0\}} is created directly in the space for \code{v}. More next
+lecture.
+
+\section*{Summary}
+\begin{itemize}
+  \item In \code{operator=}, allocate the new data before deleting the old, or
+        use copy-and-swap.
+  \item Operators whose left operand isn't your class (\code{k * v},
+        \code{<<}, \code{>>}) must be standalone functions.
+  \item Rvalues are temporaries; \code{T\&\&} binds to them.
+  \item Move ctor/assignment steal the resources of a dying object and leave it
+        in a destructible state (e.g.\ \code{next = nullptr}).
+\end{itemize}

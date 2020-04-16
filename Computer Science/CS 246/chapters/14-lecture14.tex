@@ -1,0 +1,247 @@
+\chapter{Lecture 14: System Modelling, UML and Inheritance}
+\begin{center}
+\textit{February 27, 2018}
+\end{center}
+
+\section{System Modelling}
+It is a good idea to sketch out a design before you code. Designing a program
+means
+\begin{itemize}
+  \item identifying the key entities (classes), and
+  \item identifying the relationships between classes --- this is the most
+        important part.
+\end{itemize}
+
+\section{UML}
+\textbf{UML} (Unified Modelling Language) is a standard notation for drawing
+class diagrams. A class is drawn as a box with three sections: name, fields,
+methods. Visibility is marked with \code{+} (public), \code{-} (private),
+\code{\#} (protected).
+
+\begin{center}
+\begin{tikzpicture}
+\node[draw, rectangle split, rectangle split parts=3, text width=4.2cm,
+  align=left, font=\small] {
+  \centering\textbf{Vec}
+  \nodepart{second} \code{-x: Integer}\\ \code{-y: Integer}
+  \nodepart{third} \code{+getX(): Integer}\\ \code{+getY(): Integer}};
+\end{tikzpicture}
+\end{center}
+
+Fields and methods may be omitted when they are not relevant to the diagram.
+
+\section{Relationship 1: Composition (owns-a)}
+\begin{lstlisting}[style=cpp]
+class Vec {
+    int x, y;
+  public:
+    Vec(int x, int y) : x{x}, y{y} {}
+};
+
+class Basis {
+    Vec v1, v2;
+};
+
+Basis b;   // won't compile: Vec has no default ctor
+\end{lstlisting}
+To make it compile, either
+\begin{enumerate}
+  \item give \code{Vec} a default ctor, or
+  \item have \code{Basis}'s ctor use the MIL to call a non-default Vec ctor:
+\begin{lstlisting}[style=cpp]
+class Basis {
+    Vec v1, v2;
+  public:
+    Basis() : v1{1, 0}, v2{0, 1} {}
+};
+Basis b;   // compiles
+\end{lstlisting}
+\end{enumerate}
+
+Embedding one object inside another is called \textbf{composition}: a Basis
+\textbf{owns-a} Vec (two, in fact). If A owns-a B, then typically
+\begin{enumerate}
+  \item B has no identity outside A;
+  \item if A is destroyed, B is destroyed;
+  \item if A is copied, B is copied (deep copy).
+\end{enumerate}
+Example: a car owns its wheels. In UML, composition is drawn with a
+\emph{filled} diamond at the owner's end; multiplicities go at the other end.
+
+\begin{center}
+\begin{tikzpicture}[cls/.style={draw, minimum width=20mm, minimum height=8mm}]
+\node[cls] (car) {Car};
+\node[cls, right=35mm of car] (w) {Wheel};
+\draw[-{Diamond[fill=black,length=4mm,width=2.5mm]}] (w) -- node[above, pos=0.15] {4} (car);
+\end{tikzpicture}
+\end{center}
+
+\section{Relationship 2: Aggregation (has-a)}
+Example: parts in a catalogue, ducks in a pond. A catalogue \textbf{has-a}
+collection of parts. If A has-a B, then typically
+\begin{enumerate}
+  \item B exists independently of A;
+  \item destroying A does not destroy B;
+  \item copying A does not copy B (shallow copy: the copies share the B's).
+\end{enumerate}
+\begin{lstlisting}[style=cpp]
+class Catalogue {
+    Part *parts[100];   // pointers to parts that live elsewhere
+    ...                 // ~Catalogue() does NOT delete them
+};
+\end{lstlisting}
+In UML, aggregation is drawn with a \emph{hollow} diamond.
+\begin{center}
+\begin{tikzpicture}[cls/.style={draw, minimum width=20mm, minimum height=8mm}]
+\node[cls] (pond) {Pond};
+\node[cls, right=35mm of pond] (d) {Duck};
+\draw[-{Diamond[open,length=4mm,width=2.5mm]}] (d) -- node[above, pos=0.15] {0..*} (pond);
+\end{tikzpicture}
+\end{center}
+
+Whether a pointer field means ownership or not is not visible in the code; it is
+a design decision that must be documented (and reflected in the Big Five).
+
+\section{Relationship 3: Inheritance (is-a)}
+Suppose we have classes \code{Book} (title, author, numPages), \code{Text}
+(additionally a topic), and \code{Comic} (additionally a hero). As three
+unrelated classes they capture no relationship.
+
+\paragraph{Q.} How do we create an array that can hold all of these?
+
+In C we would use an array of \code{void*}, or an array of a \code{union} type:
+\begin{lstlisting}[style=cpp]
+union BookTypes {
+    Book *b;
+    Text *t;
+    Comic *c;
+};
+BookTypes myBooks[100];
+\end{lstlisting}
+Neither is type-safe: nothing records which kind of book each element is.
+
+Observe: a Text \emph{is a} Book (with a topic field), and a Comic \emph{is a}
+Book (with a hero field). Model this with inheritance:
+\begin{lstlisting}[style=cpp]
+class Book {                       // base class / superclass
+    string title, author;
+    int numPages;
+  public:
+    Book(const string &t, const string &a, int n)
+        : title{t}, author{a}, numPages{n} {}
+};
+
+class Text : public Book {         // derived class / subclass
+    string topic;
+  public:
+    Text(const string &t, const string &a, int n, const string &topic);
+};
+
+class Comic : public Book {
+    string hero;
+  public:
+    Comic(const string &t, const string &a, int n, const string &hero);
+};
+\end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[cls/.style={draw, minimum width=20mm, minimum height=8mm}]
+\node[cls] (b) {Book};
+\node[cls, below left=15mm and 5mm of b] (t) {Text};
+\node[cls, below right=15mm and 5mm of b] (c) {Comic};
+\draw[-{Triangle[open,length=3.5mm,width=3mm]}] (t.north) -- (b.south west);
+\draw[-{Triangle[open,length=3.5mm,width=3mm]}] (c.north) -- (b.south east);
+\end{tikzpicture}
+\end{center}
+
+A derived class inherits all the members (fields and methods) of its base
+class. Any method you can call on a Book, you can call on a Text or Comic.
+
+\begin{aside}
+We've seen this already: anything you can do with an \code{istream} you can do
+with an \code{ifstream} or \code{istringstream}, because they inherit from
+\code{istream}.
+\end{aside}
+
+\subsection{Inheriting Private Members}
+\code{Text} has inherited \code{title}, \code{author} and \code{numPages}, but
+they are private in \code{Book}:
+\begin{lstlisting}[style=cpp]
+Text t{...};
+t.author = "Bob";    // error: author is private
+\end{lstlisting}
+Private really does mean private to the class --- even subclasses can't access
+it. So this constructor does not compile:
+\begin{lstlisting}[style=cpp]
+Text::Text(const string &t, const string &a, int n, const string &topic)
+    : title{t}, author{a}, numPages{n}, topic{topic} {}   // error
+\end{lstlisting}
+for two reasons:
+\begin{enumerate}
+  \item \code{title}, \code{author}, \code{numPages} are private in Book;
+  \item the MIL can only name fields declared in \emph{this} class.
+\end{enumerate}
+
+\begin{important}[Object construction, with inheritance]
+\begin{enumerate}
+  \item Space is allocated.
+  \item The superclass part is constructed.
+  \item Fields are initialized (MIL or default ctors).
+  \item The ctor body runs.
+\end{enumerate}
+\end{important}
+In step 2 the Book part is default-constructed unless told otherwise --- but Book
+has no default ctor. Options: (1) give Book a default ctor; (2) call a
+non-default Book ctor in the MIL:
+\begin{lstlisting}[style=cpp]
+Text::Text(const string &t, const string &a, int n, const string &topic)
+    : Book{t, a, n}, topic{topic} {}
+\end{lstlisting}
+Option 2 is the right one: the superclass ctor might do work (like enforcing
+invariants) that subclasses shouldn't have to repeat.
+
+\section{Protected Visibility}
+A \code{protected} member is accessible by the class and all of its subclasses
+(but not by clients).
+\begin{lstlisting}[style=cpp]
+class Book {
+  protected:
+    string title, author;
+    int numPages;
+  public:
+    ...
+};
+class Text : public Book {
+  public:
+    void addAuthor(const string &a) { author += a; }   // OK: protected
+};
+Text t{...};
+t.author = "Bob";    // still an error for clients
+\end{lstlisting}
+But protected fields break encapsulation: anyone can write a subclass and
+thereby get access, and a subclass may break the base class's invariants.
+
+\begin{important}[Advice]
+Keep fields private; give subclasses protected accessors/mutators instead.
+\end{important}
+\begin{lstlisting}[style=cpp]
+class Book {
+    string title, author;
+    int numPages;
+  protected:
+    void addAuthor(const string &a) { author += a; }   // controlled access
+  public:
+    ...
+};
+\end{lstlisting}
+
+\section*{Summary}
+\begin{itemize}
+  \item Design first: classes and relationships, drawn in UML.
+  \item Composition (owns-a, filled diamond): parts die and copy with the whole.
+  \item Aggregation (has-a, hollow diamond): parts live independently.
+  \item Inheritance (is-a, open triangle): subclasses inherit all members, but
+        can't touch private ones; construct the base part through the MIL.
+  \item \code{protected} gives subclasses access; prefer private fields with
+        protected accessors.
+\end{itemize}

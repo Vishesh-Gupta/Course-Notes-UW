@@ -1,0 +1,172 @@
+\chapter{Graph Basics, BFS and DFS}
+
+\section{Definitions and representations}
+A graph $G=(V,E)$ has $n=|V|$ vertices and $m=|E|$ edges. In an undirected graph, $m\le\binom n2$; in a directed graph, $m\le n(n-1)$.
+A graph is \emph{connected} if every pair of vertices is joined by a path; a \emph{tree} is a connected acyclic graph (with $n-1$ edges).
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+ & Adjacency matrix & Adjacency lists \\
+\midrule
+Space & $\Theta(n^2)$ & $\Theta(n+m)$ \\
+Is $(u,v)\in E$? & $\Theta(1)$ & $\Theta(\deg u)$ \\
+List neighbours of $u$ & $\Theta(n)$ & $\Theta(\deg u)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+We use adjacency lists unless stated; ``linear time'' for graphs means $\bigO(n+m)$.
+Handshake lemma: $\sum_v\deg(v)=2m$.
+
+\section{Breadth-first search}
+BFS explores vertices in order of distance (number of edges) from a source $s$.
+\begin{lstlisting}[style=pseudo]
+BFS(G, s):
+    for each v in V do dist[v] = $\infty$; parent[v] = nil
+    dist[s] = 0; Q = queue containing s
+    while Q not empty do
+        u = Dequeue(Q)
+        for each v adjacent to u do
+            if dist[v] == $\infty$ then
+                dist[v] = dist[u] + 1; parent[v] = u; Enqueue(Q, v)
+\end{lstlisting}
+Each vertex is enqueued at most once and each adjacency list scanned once: $\bigO(n+m)$.
+
+\begin{theorem}
+After BFS, $\mathrm{dist}[v]=\delta(s,v)$, the length of a shortest $s$-$v$ path, and following \code{parent} pointers gives a shortest path.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Invariant: the queue holds vertices with nondecreasing \code{dist}, and the first and last differ by at most 1.
+So vertices are dequeued in nondecreasing order of \code{dist}. Clearly $\mathrm{dist}[v]\ge\delta(s,v)$ since it is the length of an
+actual path. Suppose $v$ is a vertex with minimum $\delta(s,v)$ such that $\mathrm{dist}[v]>\delta(s,v)$, and let $u$ be the vertex before $v$
+on a shortest path; then $\mathrm{dist}[u]=\delta(s,u)=\delta(s,v)-1$. When $u$ was dequeued, $v$ was either undiscovered (then
+$\mathrm{dist}[v]=\mathrm{dist}[u]+1$) or already discovered from a vertex dequeued no later than $u$, giving $\mathrm{dist}[v]\le\mathrm{dist}[u]+1$. Contradiction.
+\end{proof}
+
+The parent edges form the \textbf{BFS tree}. In an undirected graph every non-tree edge joins vertices whose levels differ by at most 1.
+
+\subsection{Testing bipartiteness}
+$G$ is \emph{bipartite} if $V=A\cup B$ with every edge between $A$ and $B$; equivalently, $G$ is 2-colourable.
+\begin{theorem}
+A graph is bipartite if and only if it has no odd cycle.
+\end{theorem}
+\textbf{Algorithm}: run BFS from each unvisited vertex; colour by parity of level. If some edge joins two vertices of the same level,
+report ``not bipartite'', otherwise the colouring is a valid bipartition. $\bigO(n+m)$.
+
+\begin{proof}[Correctness]
+If no edge joins same-level vertices, all edges join adjacent levels (BFS property), which have different parities: valid 2-colouring.
+If edge $uv$ joins two vertices at the same level $k$, let $w$ be their lowest common ancestor in the BFS tree at level $j<k$.
+The tree paths $w\to u$ and $w\to v$ plus edge $uv$ form a cycle of length $2(k-j)+1$, odd; so $G$ is not bipartite (an odd cycle
+cannot be 2-coloured).
+\end{proof}
+
+\section{Depth-first search}
+DFS goes as deep as possible before backtracking. We record discovery and finish times.
+\begin{lstlisting}[style=pseudo]
+DFS(G):
+    for each v do colour[v] = white
+    time = 0
+    for each v in V do
+        if colour[v] == white then Visit(v)
+
+Visit(u):
+    time = time + 1; d[u] = time; colour[u] = grey
+    for each v adjacent to u do
+        if colour[v] == white then parent[v] = u; Visit(v)
+    colour[u] = black; time = time + 1; f[u] = time
+\end{lstlisting}
+Runtime $\Theta(n+m)$. White = undiscovered, grey = on the recursion stack, black = finished.
+
+\begin{theorem}[Parenthesis theorem]
+For any $u,v$, the intervals $[d[u],f[u]]$ and $[d[v],f[v]]$ are either disjoint or one contains the other; $v$ is a descendant of $u$
+in the DFS forest iff $[d[v],f[v]]\subseteq[d[u],f[u]]$.
+\end{theorem}
+\begin{theorem}[White-path theorem]
+$v$ is a descendant of $u$ iff at time $d[u]$ there is a path from $u$ to $v$ consisting entirely of white vertices.
+\end{theorem}
+
+\subsection{Edge classification (directed graphs)}
+When DFS examines edge $(u,v)$:
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+Type & Colour of $v$ when explored & Intervals \\
+\midrule
+Tree edge & white & $v$ discovered via this edge \\
+Back edge (to ancestor) & grey & $d[v]<d[u]<f[u]<f[v]$ \\
+Forward edge (to non-child descendant) & black, $d[u]<d[v]$ & $d[u]<d[v]<f[v]<f[u]$ \\
+Cross edge & black, $d[v]<d[u]$ & $d[v]<f[v]<d[u]<f[u]$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+In an undirected graph, every edge is a tree edge or a back edge.
+
+\begin{lemma}
+A directed graph has a cycle iff DFS finds a back edge.
+\end{lemma}
+\begin{proof}
+A back edge $(u,v)$ plus the tree path $v\leadsto u$ is a cycle. Conversely, let $C$ be a cycle and $v$ the first vertex of $C$ discovered;
+let $u$ be its predecessor on $C$. At $d[v]$ the rest of $C$ is a white path from $v$ to $u$, so $u$ becomes a descendant of $v$
+(white-path theorem), and $(u,v)$ is a back edge.
+\end{proof}
+
+\section{Topological sort}
+A \emph{topological order} of a DAG lists the vertices so that every edge $(u,v)$ has $u$ before $v$. A directed graph has one iff it is acyclic.
+
+\textbf{DFS algorithm}: run DFS and output vertices in \emph{decreasing finish time} (prepend each vertex to a list when it finishes).
+\begin{proof}[Correctness]
+For any edge $(u,v)$ in a DAG we show $f[v]<f[u]$. When $(u,v)$ is explored, $v$ is not grey (that would be a back edge, i.e.\ a cycle).
+If $v$ is white, it becomes a descendant of $u$ and finishes first. If $v$ is black, it has already finished, while $u$ has not.
+\end{proof}
+\textbf{Kahn's algorithm} (alternative): repeatedly remove a vertex of in-degree 0, maintaining in-degree counts and a queue. Also $\bigO(n+m)$,
+and it detects a cycle when vertices remain but none has in-degree 0.
+
+\section{Strongly connected components}
+In a directed graph, $u$ and $v$ are \emph{strongly connected} if each is reachable from the other. This is an equivalence relation; its classes are
+the \textbf{strongly connected components} (SCCs). Contracting each SCC to a vertex gives the \textbf{component graph} $G^{SCC}$, which is a DAG.
+
+\subsection{Kosaraju's algorithm}
+\begin{lstlisting}[style=pseudo]
+SCC(G):
+    run DFS(G) to compute finish times f[u]
+    compute $G^T$ (reverse all edges)
+    run DFS($G^T$), with the main loop considering vertices in decreasing f[u]
+    each tree of the second DFS forest is one SCC
+\end{lstlisting}
+Runtime $\Theta(n+m)$ (two DFS's plus the transpose).
+
+\begin{lemma}
+Let $C,C'$ be distinct SCCs with an edge from $C$ to $C'$. Then $\max_{u\in C}f[u]>\max_{v\in C'}f[v]$.
+\end{lemma}
+\begin{proof}
+If the first DFS discovers a vertex $x$ of $C$ first, all of $C\cup C'$ is white-reachable from $x$, so everything in $C'$ finishes before $x$.
+If it discovers $C'$ first, $C$ is not reachable from $C'$ (the component graph is acyclic), so all of $C'$ finishes before any vertex of $C$ is discovered.
+\end{proof}
+\textbf{Why it works}: the second DFS starts at the vertex with the largest finish time, which lies in a \emph{source} SCC $C$ of $G^{SCC}$, i.e.\ a sink
+of $(G^T)^{SCC}$, so the DFS from it reaches exactly $C$. In general, by the lemma every edge of $G^T$ leaving
+the current component goes to a component with a larger maximum finish time, which the second pass has already fully explored (those vertices are no longer white). So each DFS tree in the second pass is
+exactly one SCC.
+
+\subsection{Tarjan's algorithm (one pass)}
+Tarjan's algorithm runs a single DFS, keeping a stack of vertices and a value
+$\mathrm{low}[u]=$ the smallest discovery time reachable from $u$ using tree edges down and then at most one back/cross edge to a vertex still on the stack.
+\begin{lstlisting}[style=pseudo]
+Visit(u):
+    d[u] = low[u] = ++time; push u on S; onStack[u] = true
+    for each v adjacent to u do
+        if d[v] undefined then Visit(v); low[u] = min(low[u], low[v])
+        elif onStack[v] then low[u] = min(low[u], d[v])
+    if low[u] == d[u] then           // u is the root of an SCC
+        repeat pop w from S; onStack[w] = false; add w to current SCC
+        until w == u
+\end{lstlisting}
+Also $\Theta(n+m)$. Tarjan outputs SCCs in reverse topological order of the component graph.
+
+\section*{Summary}
+\begin{itemize}
+  \item BFS: shortest paths in unweighted graphs, bipartiteness (odd cycle iff same-level edge), $\bigO(n+m)$.
+  \item DFS: discovery/finish times, parenthesis and white-path theorems; tree/back/forward/cross edges.
+  \item Cycle iff back edge; topological order is decreasing finish time.
+  \item SCCs: Kosaraju (DFS, transpose, DFS by decreasing finish time) or Tarjan (low-links), both linear.
+\end{itemize}

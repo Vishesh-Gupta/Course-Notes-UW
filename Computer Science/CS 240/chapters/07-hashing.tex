@@ -1,0 +1,235 @@
+\chapter{Dictionaries via Hashing}
+
+\section{Direct Addressing}
+
+If keys are integers in $\{0, \ldots, M-1\}$, store the dictionary in an array
+$A$ of size $M$, with $A[k]$ holding the value for key $k$ (or \code{nil}).
+\code{search}, \code{insert}, \code{delete} are all $\Theta(1)$, but space is
+$\Theta(M)$, which is wasteful when $n \ll M$ and impossible when keys come from a
+huge universe $U$.
+
+\section{Hashing}
+
+\begin{definition}
+A \emph{hash function} $h : U \to \{0, \ldots, M-1\}$ maps keys to slots of a
+\emph{hash table} $T$ of size $M$. Ideally key $k$ is stored at $T[h(k)]$. A
+\emph{collision} occurs when $h(k_1) = h(k_2)$ for $k_1 \ne k_2$.
+\end{definition}
+
+Since $|U| \gg M$, collisions are unavoidable. Two decisions: choose a good $h$,
+and choose a collision-resolution strategy.
+
+\begin{definition}
+The \emph{load factor} is $\alpha = n / M$.
+\end{definition}
+
+We keep $\alpha$ bounded by \emph{rehashing}: when $\alpha$ exceeds a threshold,
+allocate a table of roughly twice the size, choose a new hash function, and
+reinsert everything ($\Theta(n + M)$). Rehashing happens rarely enough that the
+amortized cost per operation is $\bigO(1)$. Similarly shrink when $\alpha$ gets too
+small, so space stays $\Theta(n)$.
+
+\paragraph{Uniform hashing assumption.} For analysis, assume each key is
+independently equally likely to hash to any slot. This is not literally true
+for a fixed $h$, which is why we later discuss universal hashing.
+
+\section{Separate Chaining}
+
+Each slot holds a bucket (usually an unsorted linked list) of all keys hashing to it.
+\begin{itemize}
+  \item \code{search(k)}: scan bucket $T[h(k)]$.
+  \item \code{insert(k,v)}: add to the front of bucket $T[h(k)]$: $\Theta(1)$.
+  \item \code{delete(k)}: search, then unlink.
+\end{itemize}
+Under uniform hashing, the expected bucket length is $\alpha$, so the expected
+cost of \code{search}/\code{delete} is $\Theta(1 + \alpha)$. With $\alpha \in
+\Theta(1)$ (maintained by rehashing), all operations are $\Theta(1)$ expected,
+while the worst case is $\Theta(n)$ (all keys in one bucket).
+
+\section{Open Addressing}
+
+Store all items directly in the table, at most one per slot ($\alpha \le 1$).
+Each key has a \emph{probe sequence} $h(k, 0), h(k, 1), \ldots$ of slots to try.
+\begin{lstlisting}
+probe-insert(T, (k, v)):
+  for j <- 0 to M-1 do
+    if T[h(k, j)] is empty or "deleted" then
+      T[h(k, j)] <- (k, v); return "success"
+  return "failure to insert"       // need to rehash
+
+probe-search(T, k):
+  for j <- 0 to M-1 do
+    if T[h(k, j)] is empty then return "not found"
+    else if T[h(k, j)] has key k then return T[h(k, j)]
+    // else: occupied by another key or "deleted": keep probing
+  return "not found"
+\end{lstlisting}
+
+\paragraph{Deletion.} We cannot simply empty a slot, since that would break
+probe sequences of other keys passing through it. Instead use \emph{lazy
+deletion}: mark the slot as ``deleted''. Search continues past such slots;
+insert may reuse them. Rehash when too many deleted markers accumulate.
+
+\subsection{Linear Probing}
+
+$h(k, j) = (h(k) + j) \bmod M$. Simple and cache-friendly, but suffers from
+\emph{primary clustering}: occupied runs grow, and a key hashing anywhere into a
+run extends it, so long runs get longer.
+
+\begin{example}
+$M = 11$, $h(k) = k \bmod 11$. Insert 41, 22, 44, 59, 32, 31, 73.
+\begin{itemize}
+  \item $41 \to 8$; $22 \to 0$; $44 \to 0$ collides, goes to 1;
+  \item $59 \to 4$; $32 \to 10$; $31 \to 9$;
+  \item $73 \to 7$.
+\end{itemize}
+Now inserting 19 ($h = 8$) probes 8, 9, 10, 0, 1 and lands in 2: the clusters at
+7--10 and 0--1 merged into one.
+\end{example}
+
+\subsection{Quadratic Probing}
+
+$h(k,j) = (h(k) + c_1 j + c_2 j^2) \bmod M$. Avoids primary clustering but has
+\emph{secondary clustering} (keys with the same $h(k)$ share a probe sequence),
+and must be designed carefully so the sequence visits enough slots (e.g.\ $M$
+prime and $\alpha < 1/2$ guarantees an empty slot is found).
+
+\subsection{Double Hashing}
+
+Use two independent hash functions:
+\[
+h(k, j) = (h_0(k) + j\, h_1(k)) \bmod M,
+\]
+where $h_1(k) \neq 0$ and is relatively prime to $M$ (e.g.\ $M$ prime) so the
+probe sequence is a permutation of all slots. Keys that collide at $h_0$ usually
+get different step sizes, avoiding both kinds of clustering. A common choice is
+the multiplicative method for $h_1$: $h_1(k) = \floor{M' (kA - \floor{kA})} + 1$
+with $A \approx (\sqrt5-1)/2$.
+
+\subsection{Cuckoo Hashing}
+
+Use two hash functions $h_0, h_1$ and two tables $T_0, T_1$ (or one table).
+Every key $k$ is stored in either $T_0[h_0(k)]$ or $T_1[h_1(k)]$ --- nowhere else.
+\begin{itemize}
+  \item \code{search} and \code{delete} check exactly two slots: $\Theta(1)$
+        \emph{worst case}.
+  \item \code{insert} places $k$ in $T_0[h_0(k)]$; if that slot was occupied by
+        $k'$, then $k'$ is kicked out and moves to its alternative slot in the
+        other table, possibly kicking out another key, and so on.
+\end{itemize}
+\begin{lstlisting}
+cuckoo-insert(k, v):
+  i <- 0
+  do at most 2n times:
+    if T_i[h_i(k)] is empty then
+      T_i[h_i(k)] <- (k, v); return "success"
+    swap (k, v) with T_i[h_i(k)]     // evict the occupant
+    i <- 1 - i                       // evicted key goes to the other table
+  return "failure"                   // a cycle: rehash with new h0, h1
+\end{lstlisting}
+If insert loops too long, there is a cycle and we rehash with new hash functions
+(and possibly a bigger table). With $\alpha < 1/2$ (across both tables) and
+random-like hash functions, the expected insertion time is $\bigO(1)$.
+
+\begin{example}
+$M = 11$, $h_0(k) = k \bmod 11$, $h_1(k) = \floor{11(0.618k - \floor{0.618k})}$.
+Insert 51: $h_0 = 7$, goes to $T_0[7]$. Insert 95: $h_0 = 7$ is taken, so 95
+takes $T_0[7]$ and 51 is evicted to $T_1[h_1(51)]$.
+\end{example}
+
+\subsection{Expected Probes}
+
+Under uniform hashing, for open addressing with load factor $\alpha < 1$:
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Strategy & Unsuccessful search / insert & Successful search\\
+\midrule
+Linear probing & $\frac{1}{(1-\alpha)^2}$ & $\frac{1}{1-\alpha}$\\
+Double hashing (ideal) & $\frac{1}{1-\alpha}$ & $\frac{1}{\alpha}\ln\frac{1}{1-\alpha}$\\
+Cuckoo hashing & $\frac{\alpha}{(1-2\alpha)^2}$ (insert) & $1$ (worst case $\le 2$)\\
+Separate chaining & $1 + \alpha$ & $1 + \alpha/2$\\
+\bottomrule
+\end{tabular}
+\end{center}
+(Up to constants and lower-order terms.) The key point: all are $\bigO(1)$ when
+$\alpha$ is bounded away from the critical value (1 for probing, $1/2$ for cuckoo).
+
+\begin{proof}[Sketch for ideal double hashing]
+If each probe is to a uniformly random slot not yet probed, each probe finds an
+empty slot with probability at least $1 - \alpha$. The number of probes is then
+dominated by a geometric random variable with mean $\frac1{1-\alpha}$.
+\end{proof}
+
+\section{Choosing a Hash Function}
+
+Goals: fast to compute and spreads keys uniformly, even for structured
+(non-random) keys.
+\begin{itemize}
+  \item \textbf{Modular method:} $h(k) = k \bmod M$ with $M$ prime, not close to
+        a power of 2 (otherwise $h$ depends only on low-order bits).
+  \item \textbf{Multiplicative method:} $h(k) = \floor{M (kA - \floor{kA})}$
+        for a constant $0 < A < 1$; Knuth suggests $A = \varphi - 1 \approx 0.618$.
+        Here $M$ can be any size.
+  \item \textbf{Strings:} interpret $s = s_0 s_1 \ldots s_{p-1}$ as a number in
+        base $R$ (e.g.\ 255) and reduce mod $M$, using Horner's rule:
+        $h(s) = (\cdots((s_0 R + s_1) R + s_2)\cdots) \bmod M$, reducing at each step.
+\end{itemize}
+
+\subsection{Universal Hashing}
+
+For any fixed $h$, an adversary can choose $n$ keys that all collide, forcing
+$\Theta(n)$ per operation. The fix is randomization: choose $h$ at random from a
+family when the table is created (and at each rehash).
+
+\begin{definition}
+A family $\mathcal H$ of hash functions $U \to \{0,\ldots,M-1\}$ is
+\emph{universal} if for every pair of distinct keys $k_1 \ne k_2$,
+\[
+\Pr_{h \in \mathcal H}[h(k_1) = h(k_2)] \le \frac1M.
+\]
+\end{definition}
+
+\begin{theorem}
+Let $p > |U|$ be prime and $\mathcal H = \{h_{a,b}(k) = ((ak + b) \bmod p) \bmod M
+: 1 \le a < p,\ 0 \le b < p\}$. Then $\mathcal H$ is universal.
+\end{theorem}
+
+\begin{theorem}
+With $h$ drawn from a universal family and separate chaining, the expected
+length of the bucket for any key $k$ is at most $1 + \alpha$. Thus every
+operation takes $\bigO(1 + \alpha)$ expected time for \emph{every} input.
+\end{theorem}
+\begin{proof}
+For each other key $k'$ in the table, let $X_{k'}$ be 1 if $h(k') = h(k)$.
+$\mathbb E[X_{k'}] \le 1/M$. By linearity, the expected number of colliding keys
+is $\le n/M = \alpha$; add 1 for $k$ itself.
+\end{proof}
+
+\section{Hashing vs.\ Balanced Search Trees}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+ & Hash table & AVL tree\\
+\midrule
+search/insert/delete & $\bigO(1)$ expected & $\Theta(\log n)$ worst case\\
+worst case & $\Theta(n)$ (cuckoo: $\bigO(1)$ search) & $\Theta(\log n)$\\
+ordered operations (min, successor, range) & not supported & supported\\
+space & wasted empty slots & pointers + heights\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Summary}
+\begin{itemize}
+  \item Direct addressing is $\Theta(1)$ but needs space $\Theta(|U|)$.
+  \item Hashing maps a large universe to $M$ slots; keep $\alpha = n/M$ bounded by
+        rehashing (amortized $\bigO(1)$).
+  \item Chaining: expected $\Theta(1 + \alpha)$.
+  \item Open addressing: linear probing (primary clustering), quadratic probing
+        (secondary clustering), double hashing; lazy deletion.
+  \item Cuckoo hashing: $\bigO(1)$ worst-case search and delete; expected $\bigO(1)$
+        insert when $\alpha < 1/2$.
+  \item Universal hashing gives expected guarantees for every input.
+\end{itemize}

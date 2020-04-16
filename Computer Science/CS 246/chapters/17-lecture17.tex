@@ -1,0 +1,236 @@
+\chapter{Lecture 17: Exceptions and Design Patterns}
+\begin{center}
+\textit{March 8, 2018}
+\end{center}
+
+\section{Exceptions (continued)}
+Last time: in C++, when an error condition occurs, an exception is thrown. By
+default, an exception that is not handled causes the program to terminate.
+
+To handle exceptions we use a \code{try \{ ... \}} block followed by
+\code{catch (...) \{ ... \}} blocks (see \code{rangeErrorCaught.cc}):
+\begin{lstlisting}[style=cpp]
+#include <iostream>
+#include <stdexcept>
+#include <vector>
+using namespace std;
+
+int main() {
+    vector<int> v;
+    v.emplace_back(2);
+    try {
+        cout << v.at(1) << endl;    // out of range
+    } catch (out_of_range &r) {
+        cerr << "Range error: " << r.what() << endl;
+    }
+    cout << "Program continues" << endl;
+}
+\end{lstlisting}
+
+\subsection{Stack Unwinding}
+The thrower and the handler don't have to be in the same function
+(\code{callChain.cc}):
+\begin{lstlisting}[style=cpp]
+void f() {
+    cout << "Start f" << endl;
+    throw out_of_range{"f"};        // the argument becomes what()
+    cout << "Finish f" << endl;     // never printed
+}
+void g() { cout << "Start g" << endl; f(); cout << "Finish g" << endl; }
+void h() { cout << "Start h" << endl; g(); cout << "Finish h" << endl; }
+
+int main() {
+    cout << "Start main" << endl;
+    try {
+        h();
+    } catch (out_of_range &) {
+        cerr << "Range error" << endl;
+    }
+    cout << "Finish main" << endl;
+}
+// Output: Start main, Start h, Start g, Start f, Range error, Finish main
+\end{lstlisting}
+
+\begin{definition}
+\textbf{Stack unwinding}: when an exception is thrown, the call stack is
+repeatedly popped until a matching \code{catch} block is found. Destructors of
+stack-allocated objects in the popped frames run as their frames are popped.
+\end{definition}
+
+\subsection{Recovery in Stages}
+A handler can do part of the recovery and then pass the problem on:
+\begin{lstlisting}[style=cpp]
+try {
+    ...
+} catch (SomeException &e) {
+    // do part of the recovery, then choose:
+    throw SomeOtherException{...};  // 1. throw a completely different exception
+    throw e;                        // 2. throw the exception we caught
+    throw;                          // 3. re-throw the original: recommended
+}
+\end{lstlisting}
+In option 2, the exception we caught might really have been a \emph{subclass}
+of \code{SomeException}; \code{throw e} throws a copy made from the
+\emph{static} type of \code{e}, i.e.\ a sliced object. In option 3, the original
+exception object is re-thrown as is; no slicing.
+
+\subsection{What Can Be Thrown}
+\begin{itemize}
+  \item All exceptions in the C++ standard library inherit from the class
+        \code{std::exception} (e.g.\ \code{out\_of\_range},
+        \code{invalid\_argument}, \code{bad\_alloc}, \code{length\_error}).
+  \item User-defined exceptions do not have to inherit from \code{exception}.
+  \item In C++ you can throw anything: \code{int}s, strings, whatever.
+\end{itemize}
+
+\paragraph{Q.} How do we write a catch block that catches all kinds of
+exceptions?
+\begin{lstlisting}[style=cpp]
+try {
+    ...
+} catch (...) {     // literally three dots: catches everything
+    ...
+}
+\end{lstlisting}
+
+\subsection{Exceptions for Control Flow?}
+Since exceptions jump out of arbitrarily deep calls, you could use them for
+normal control flow, e.g.\ returning a result from deep recursion by throwing it.
+\begin{quote}
+\textit{``You can do some cool shit with exceptions, but don't use it.''}
+--- Nomair Naeem
+\end{quote}
+Exceptions are slow to process: compare \code{recfib.cc} (ordinary recursive
+Fibonacci) with \code{exfib.cc} (the same, but each call ``returns'' by
+throwing): the throwing version is dramatically slower. Use exceptions for
+actual errors.
+
+\subsection{Good Practice}
+Use the existing exception classes or create your own:
+\begin{lstlisting}[style=cpp]
+class BadInput {};
+
+int n;
+try {
+    if (!(cin >> n)) throw BadInput{};
+} catch (BadInput &) {              // naming the parameter (&b) is also legal
+    cout << "Not an int, using 0" << endl;
+    n = 0;
+}
+\end{lstlisting}
+\begin{important}[Advice]
+Always catch exceptions by reference:
+\begin{itemize}
+  \item no slicing occurs (subclass information, and virtual \code{what()},
+        are preserved);
+  \item it is more efficient, since no copy is made.
+\end{itemize}
+\end{important}
+
+Exceptions to know: \code{vector::at} throws \code{std::out\_of\_range};
+\code{new} throws \code{std::bad\_alloc} when there is no more heap memory.
+
+\subsection{Exceptions and Destructors}
+\begin{itemize}
+  \item By default, if a destructor throws an exception, the program terminates
+        (\code{std::terminate} is called), because dtors are implicitly
+        \code{noexcept}.
+  \item It is possible to write a destructor that may throw:
+        \code{\textasciitilde Node() noexcept(false) \{ ... \}}. This is a bad
+        idea.
+\end{itemize}
+Why: suppose the stack is unwinding because of one live exception. As frames are
+popped, destructors run. If one of those destructors throws, there are now two
+live exceptions, and C++ has no way to handle both: \code{std::terminate} is
+called.
+
+\section{Design Patterns (continued)}
+The guiding principle behind design patterns: \textbf{program to an interface,
+not an implementation}.
+\begin{itemize}
+  \item Use abstract base classes to provide the interface.
+  \item Work through pointers/references to the abstract class and call its
+        virtual methods.
+  \item The actual objects can then be swapped in or out as needed: we get
+        abstraction over a variety of behaviours.
+\end{itemize}
+
+\section{Iterator Pattern Revisited}
+Our iterator implemented \code{*}, \code{++} and \code{!=}. Make that an
+interface:
+\begin{lstlisting}[style=cpp]
+class AbsIter {
+  public:
+    virtual int &operator*() const = 0;
+    virtual AbsIter &operator++() = 0;
+    virtual bool operator!=(const AbsIter &other) const = 0;
+    virtual ~AbsIter() {}
+};
+
+class List {
+    struct Node;
+    ...
+  public:
+    class Iterator : public AbsIter {
+        // override the three pure virtual methods
+    };
+};
+
+class Set {
+    ...
+  public:
+    class Iterator : public AbsIter {
+        ...
+    };
+};
+\end{lstlisting}
+Since \code{List::Iterator} and \code{Set::Iterator} both implement the
+\code{AbsIter} interface, we can write generic traversals that work on either
+data structure:
+\begin{lstlisting}[style=cpp]
+template <typename Fn>             // Fn: the type of a function parameter
+void foreach(AbsIter &start, const AbsIter &finish, Fn f) {
+    while (start != finish) {
+        f(*start);
+        ++start;
+    }
+}
+
+void addFive(int &x) { x += 5; }
+
+List l;
+...
+List::Iterator b = l.begin();
+foreach(b, l.end(), addFive);      // adds 5 to every element of l
+\end{lstlisting}
+
+\section{The Observer Pattern}
+Used for publish/subscribe systems:
+\begin{itemize}
+  \item the entity publishing data is the \textbf{subject} (publisher);
+  \item the entities subscribing to the data are \textbf{observers}
+        (subscribers).
+\end{itemize}
+The protocol:
+\begin{enumerate}
+  \item new data becomes available in the subject;
+  \item the subject notifies all attached observers (\code{notifyObservers()}
+        calls each observer's \code{notify()});
+  \item each observer requests whatever further information it needs from the
+        subject, e.g.\ by calling \code{getState()}.
+\end{enumerate}
+Example: a spreadsheet's cells (subjects) and the charts and formulas that depend
+on them (observers). Details and code next lecture.
+
+\section*{Summary}
+\begin{itemize}
+  \item \code{try}/\code{catch}; stack unwinding pops frames (running dtors)
+        until a handler is found.
+  \item Re-throw with plain \code{throw;} to avoid slicing; catch by reference;
+        \code{catch (...)} catches everything.
+  \item Exceptions are for errors, not control flow (they are slow).
+  \item Dtors should never throw: two simultaneous exceptions terminate the
+        program.
+  \item Program to interfaces; an abstract iterator enables generic algorithms.
+  \item Observer: subjects notify attached observers of changes.
+\end{itemize}

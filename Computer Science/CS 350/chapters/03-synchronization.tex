@@ -1,0 +1,376 @@
+\chapter{Synchronization}
+
+\section{Race conditions and critical sections}
+
+Threads in a process share global data. Without coordination, concurrent access gives results
+that depend on timing.
+
+\begin{example}[Lost update]
+Two threads each run \code{total++} 1000 times on a shared \code{int total = 0}. The statement
+compiles to roughly three instructions:
+\begin{lstlisting}[style=mips]
+lw   t0, total      # load
+addi t0, t0, 1      # increment
+sw   t0, total      # store
+\end{lstlisting}
+Interleaving: T1 loads 0, T2 loads 0, T1 stores 1, T2 stores 1. One increment is lost. The final
+value can be anything from 2 to 2000 (2 needs a tricky interleaving, but is possible).
+\end{example}
+
+\begin{definition}
+A \textbf{race condition} occurs when the result of a program depends on the relative timing
+or interleaving of threads. A \textbf{critical section} is a piece of code that accesses shared
+data and must not be executed by more than one thread at a time. \textbf{Mutual exclusion} is
+the property that at most one thread is inside the critical section.
+\end{definition}
+
+Requirements for a correct critical section solution:
+\begin{enumerate}
+  \item \textbf{Mutual exclusion}: at most one thread inside.
+  \item \textbf{Progress}: if no thread is inside and some want in, one of them eventually
+    gets in.
+  \item \textbf{Bounded waiting} (fairness): a thread that wants in is not overtaken forever.
+\end{enumerate}
+
+\begin{aside}
+\textbf{Compiler and CPU reordering.} The compiler may keep a shared variable in a register or
+reorder memory accesses; \code{volatile} forces every access to go to memory but does
+\emph{not} make operations atomic. Modern CPUs also reorder loads/stores; synchronization
+primitives contain \emph{memory barriers} (\code{sync} on MIPS) so that accesses do not leak
+out of critical sections.
+\end{aside}
+
+\section{Achieving mutual exclusion}
+
+\subsection{Disabling interrupts}
+On a \emph{single} processor, a thread can only lose the CPU through an interrupt. Disabling
+interrupts (\code{splhigh()} in OS/161) around a critical section therefore gives mutual
+exclusion. Drawbacks: only the kernel may do it; it does not work on multiprocessors; it delays
+device handling, so critical sections must be very short.
+
+\subsection{Peterson's algorithm (software only)}
+For two threads, using only loads and stores (assuming sequential consistency):
+\begin{lstlisting}[style=c]
+volatile bool flag[2] = {false, false};
+volatile int turn;
+
+void enter(int i) {          /* i is 0 or 1 */
+    int j = 1 - i;
+    flag[i] = true;          /* I want in */
+    turn = j;                /* but you go first */
+    while (flag[j] && turn == j) { /* busy wait */ }
+}
+void leave(int i) { flag[i] = false; }
+\end{lstlisting}
+Correct but impractical: two threads only, busy waits, and breaks under memory reordering.
+
+\subsection{Hardware atomic instructions}
+\begin{definition}[Test-and-set]
+\code{TestAndSet(addr, v)} atomically stores \code{v} at \code{addr} and returns the old value.
+\end{definition}
+x86 provides \code{xchg}; many architectures provide \code{compare-and-swap}. MIPS instead has a
+pair: \code{ll} (load-linked) and \code{sc} (store-conditional). \code{sc} only succeeds if no
+other write to that address happened since the matching \code{ll}; it returns success/failure.
+
+\begin{lstlisting}[style=c]
+/* test-and-set built from ll/sc, as in OS/161's spinlock_data_testandset */
+static inline int test_and_set(volatile int *addr) {
+    int x, y;
+    y = 1;
+    __asm volatile(
+        ".set push; .set mips32;"
+        "ll %0, 0(%2);"       /* x = *addr (linked) */
+        "sc %1, 0(%2);"       /* try *addr = 1; y = success? */
+        ".set pop"
+        : "=&r"(x), "+r"(y) : "r"(addr));
+    if (y == 0) return 1;     /* sc failed: pretend lock was held */
+    return x;                 /* old value */
+}
+\end{lstlisting}
+
+\section{Spinlocks}
+
+\begin{lstlisting}[style=c]
+void spinlock_acquire(struct spinlock *lk) {
+    splraise(IPL_NONE, IPL_HIGH);      /* disable interrupts on this CPU */
+    for (;;) {
+        if (lk->lk_lock != 0) continue;            /* test first (cheap read) */
+        if (test_and_set(&lk->lk_lock) == 0) break; /* got it */
+    }
+    lk->lk_holder = curcpu->c_self;
+    membar_any_any();
+}
+void spinlock_release(struct spinlock *lk) {
+    membar_any_any();
+    lk->lk_holder = NULL;
+    lk->lk_lock = 0;
+    spllower(IPL_HIGH, IPL_NONE);
+}
+\end{lstlisting}
+
+\begin{itemize}
+  \item A spinlock \emph{busy-waits}: the waiting thread burns CPU.
+  \item OS/161 spinlocks also disable interrupts on the local CPU, so the holder cannot be
+    preempted (which would make others spin for a whole quantum) and an interrupt handler on the
+    same CPU cannot deadlock trying to take the same lock.
+  \item Use spinlocks only for very short critical sections. Never block (sleep) while holding
+    a spinlock.
+\end{itemize}
+
+\section{Locks (mutexes)}
+
+A \textbf{lock} provides mutual exclusion like a spinlock, but a thread that cannot acquire it
+\emph{blocks} instead of spinning. Locks also have an \textbf{owner}: only the thread that
+acquired a lock may release it.
+
+\begin{lstlisting}[style=c]
+struct lock {
+    char *lk_name;
+    struct wchan *lk_wchan;
+    struct spinlock lk_spin;   /* protects the fields below */
+    struct thread *lk_owner;   /* NULL if free */
+};
+
+void lock_acquire(struct lock *lk) {
+    spinlock_acquire(&lk->lk_spin);
+    while (lk->lk_owner != NULL) {
+        /* atomically releases lk_spin and sleeps; reacquires on wakeup */
+        wchan_sleep(lk->lk_wchan, &lk->lk_spin);
+    }
+    lk->lk_owner = curthread;
+    spinlock_release(&lk->lk_spin);
+}
+
+void lock_release(struct lock *lk) {
+    KASSERT(lock_do_i_hold(lk));
+    spinlock_acquire(&lk->lk_spin);
+    lk->lk_owner = NULL;
+    wchan_wakeone(lk->lk_wchan, &lk->lk_spin);
+    spinlock_release(&lk->lk_spin);
+}
+\end{lstlisting}
+
+\begin{important}[Why \code{while} and not \code{if}?]
+After being woken, another thread may grab the lock before the woken thread runs. The woken
+thread must re-check the condition. Also, \code{wchan\_sleep} must release the spinlock and
+sleep \emph{atomically}, otherwise a wakeup could happen between the release and the sleep and
+be lost.
+\end{important}
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & Spinlock & Lock \\
+\midrule
+Waiting & busy-wait & block on wait channel \\
+Good for & very short sections, interrupt handlers & longer sections \\
+Can sleep while holding? & no & yes \\
+Overhead & low when uncontended & context switch when contended \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Semaphores}
+
+\begin{definition}[Semaphore (Dijkstra)]
+A \textbf{semaphore} is an object with a non-negative integer value and two atomic operations:
+\begin{itemize}
+  \item \code{P} (wait, ``proberen''): if the value is 0, block until it is positive; then
+    decrement it.
+  \item \code{V} (signal, ``verhogen''): increment the value (waking a waiter if any).
+\end{itemize}
+\end{definition}
+
+\begin{lstlisting}[style=c]
+void P(struct semaphore *sem) {
+    spinlock_acquire(&sem->sem_lock);
+    while (sem->sem_count == 0)
+        wchan_sleep(sem->sem_wchan, &sem->sem_lock);
+    sem->sem_count--;
+    spinlock_release(&sem->sem_lock);
+}
+void V(struct semaphore *sem) {
+    spinlock_acquire(&sem->sem_lock);
+    sem->sem_count++;
+    wchan_wakeone(sem->sem_wchan, &sem->sem_lock);
+    spinlock_release(&sem->sem_lock);
+}
+\end{lstlisting}
+
+Kinds of use:
+\begin{itemize}
+  \item \textbf{Binary semaphore} (initial value 1): like a lock, but no owner --- any thread
+    can \code{V}.
+  \item \textbf{Counting semaphore} (initial value $N$): $N$ identical resources.
+  \item \textbf{Signalling} (initial value 0): one thread waits (\code{P}) for an event that
+    another thread announces (\code{V}). E.g.\ a parent waits for $k$ children by calling
+    \code{P} $k$ times; each child calls \code{V} once when done.
+\end{itemize}
+
+\subsection{Producer/consumer (bounded buffer)}
+\begin{lstlisting}[style=c]
+#define N 16
+item buffer[N]; int in = 0, out = 0;
+struct semaphore *items;   /* initial 0: number of full slots */
+struct semaphore *spaces;  /* initial N: number of empty slots */
+struct lock *mutex;        /* protects buffer, in, out */
+
+void produce(item x) {
+    P(spaces);                    /* wait for an empty slot */
+    lock_acquire(mutex);
+    buffer[in] = x; in = (in + 1) % N;
+    lock_release(mutex);
+    V(items);                     /* announce a full slot */
+}
+item consume(void) {
+    P(items);
+    lock_acquire(mutex);
+    item x = buffer[out]; out = (out + 1) % N;
+    lock_release(mutex);
+    V(spaces);
+    return x;
+}
+\end{lstlisting}
+\begin{remark}
+Swapping the order (taking \code{mutex} before \code{P(spaces)}) can deadlock: a producer holding
+the mutex sleeps on a full buffer, and no consumer can get the mutex to free a slot.
+\end{remark}
+
+\section{Condition variables}
+
+A \textbf{condition variable} lets a thread wait, \emph{inside} a critical section protected by a
+lock, until some condition on shared data becomes true. It is always used together with a lock.
+
+\begin{description}
+  \item[\code{cv\_wait(cv, lk)}] atomically release \code{lk} and block on \code{cv}; when woken,
+    reacquire \code{lk} before returning.
+  \item[\code{cv\_signal(cv, lk)}] wake one thread waiting on \code{cv} (caller holds \code{lk}).
+  \item[\code{cv\_broadcast(cv, lk)}] wake all threads waiting on \code{cv}.
+\end{description}
+
+\begin{lstlisting}[style=c]
+void cv_wait(struct cv *cv, struct lock *lk) {
+    spinlock_acquire(&cv->cv_spin);
+    lock_release(lk);                         /* release only after holding cv_spin */
+    wchan_sleep(cv->cv_wchan, &cv->cv_spin);  /* so no signal can be lost */
+    spinlock_release(&cv->cv_spin);
+    lock_acquire(lk);
+}
+\end{lstlisting}
+
+OS/161 (like POSIX) uses \textbf{Mesa semantics}: a signalled thread is merely made ready; by the
+time it runs the condition may be false again. Hence the golden rule:
+
+\begin{important}[Always wait in a loop]
+\begin{lstlisting}[style=c]
+lock_acquire(lk);
+while (!condition)        /* NOT "if" */
+    cv_wait(cv, lk);
+/* condition holds and we hold lk */
+lock_release(lk);
+\end{lstlisting}
+(Hoare semantics, where the signaller hands the lock directly to the waiter, would allow
+\code{if}, but almost no real system implements it.)
+\end{important}
+
+\begin{example}[Bounded buffer with a lock and two CVs]
+\begin{lstlisting}[style=c]
+int count = 0;
+struct lock *mtx; struct cv *notfull, *notempty;
+
+void produce(item x) {
+    lock_acquire(mtx);
+    while (count == N) cv_wait(notfull, mtx);
+    buffer[in] = x; in = (in + 1) % N; count++;
+    cv_signal(notempty, mtx);
+    lock_release(mtx);
+}
+item consume(void) {
+    lock_acquire(mtx);
+    while (count == 0) cv_wait(notempty, mtx);
+    item x = buffer[out]; out = (out + 1) % N; count--;
+    cv_signal(notfull, mtx);
+    lock_release(mtx);
+    return x;
+}
+\end{lstlisting}
+\end{example}
+
+\section{Deadlock}
+
+\begin{example}
+Thread 1: \code{lock\_acquire(A); lock\_acquire(B);} \quad
+Thread 2: \code{lock\_acquire(B); lock\_acquire(A);}. If each gets its first lock, both wait
+forever.
+\end{example}
+
+\begin{definition}[Deadlock]
+A set of threads is \textbf{deadlocked} if each is blocked waiting for a resource held by
+another thread in the set, so none can make progress.
+\end{definition}
+
+\begin{theorem}[Coffman conditions]
+Deadlock can occur only if all four hold simultaneously:
+\begin{enumerate}
+  \item \textbf{Mutual exclusion} (no sharing): a resource can be held by only one thread.
+  \item \textbf{Hold and wait}: a thread holds resources while requesting more.
+  \item \textbf{No preemption}: resources cannot be forcibly taken away.
+  \item \textbf{Circular wait}: a cycle of threads each waiting for the next.
+\end{enumerate}
+\end{theorem}
+
+\subsection{Prevention} Break one condition:
+\begin{itemize}
+  \item \emph{No hold and wait}: request all resources at once, or release everything before
+    requesting more (wasteful, may starve).
+  \item \emph{Preemption}: if a request cannot be satisfied, release what you hold and retry
+    (e.g.\ \code{lock\_tryacquire} then back off). Risk of livelock.
+  \item \emph{Resource ordering}: number all resources and always acquire in increasing
+    order. Then a cycle is impossible: in a cycle some thread would hold a higher-numbered
+    resource while waiting for a lower one. This is the most common practical technique.
+\end{itemize}
+
+\subsection{Detection and recovery}
+Model the system as a \textbf{resource allocation graph}: an edge $T \to R$ if $T$ requests $R$,
+$R \to T$ if $R$ is allocated to $T$. With single-instance resources, deadlock $\iff$ a cycle
+exists. With multiple instances, use a detection algorithm:
+
+\begin{lstlisting}[style=c]
+/* U[i][j]: units of resource j requested by thread i
+   A[i][j]: units of resource j allocated to thread i
+   avail[j]: free units of resource j */
+bool done[n] = {false};
+bool progress = true;
+while (progress) {
+    progress = false;
+    for (i = 0; i < n; i++)
+        if (!done[i] && U[i] <= avail) {   /* componentwise compare */
+            avail += A[i];                 /* pretend T_i finishes, frees all */
+            done[i] = true; progress = true;
+        }
+}
+/* every thread with done[i] == false is deadlocked */
+\end{lstlisting}
+
+\begin{example}
+Resources $R_1,R_2$ with 1 and 2 units. $A = \{T_1:(1,0), T_2:(0,1), T_3:(0,1)\}$, so
+avail $=(0,0)$. Requests $U = \{T_1:(0,1), T_2:(1,0), T_3:(0,0)\}$. $T_3$ can finish (needs
+nothing): avail $=(0,1)$. Now $T_1$ can finish: avail $=(1,1)$. Then $T_2$. No deadlock.
+If instead $T_3$ also requested $(1,0)$, nobody could proceed: $T_1,T_2,T_3$ deadlocked.
+\end{example}
+
+Recovery: kill a thread in the cycle, or preempt and roll back. Many systems simply ignore
+deadlock (the ``ostrich algorithm'') and rely on lock-ordering discipline in code.
+
+\section*{Summary}
+\begin{itemize}
+  \item Races arise when interleavings of accesses to shared data produce different results;
+    critical sections must be mutually exclusive.
+  \item Hardware atomics (test-and-set, CAS, \code{ll}/\code{sc}) build spinlocks; spinlocks
+    plus wait channels build blocking locks, semaphores and condition variables.
+  \item Semaphores: \code{P}/\code{V} on a counter; good for counting resources and signalling.
+  \item CVs: wait for a condition while holding a lock; Mesa semantics $\Rightarrow$ wait in a
+    \code{while} loop.
+  \item Deadlock needs mutual exclusion, hold-and-wait, no preemption, circular wait; prevent by
+    lock ordering, or detect with a graph / matrix algorithm.
+\end{itemize}

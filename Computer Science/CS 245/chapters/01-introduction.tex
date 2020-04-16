@@ -1,0 +1,192 @@
+\chapter{Introduction: Logic and Computation}
+
+\section{Why study logic in computer science?}
+
+Logic is the study of \emph{correct reasoning}: which conclusions follow from which
+assumptions, independent of what the statements are actually about. CS 245 treats logic
+as a mathematical object in its own right. We define precise \emph{languages}
+(propositional logic and first-order predicate logic), give them a precise
+\emph{meaning} (semantics), and design \emph{proof systems} that let us derive conclusions
+by symbol manipulation alone. We then ask how the two sides relate (soundness and
+completeness) and what the fundamental limits of the approach are (undecidability,
+incompleteness).
+
+Logic shows up all over computer science:
+\begin{itemize}
+  \item \textbf{Hardware}: digital circuits are propositional formulas; circuit
+        minimisation is simplification of Boolean formulas.
+  \item \textbf{Programming languages}: type systems are logics (the Curry--Howard
+        correspondence: proofs are programs, propositions are types); conditionals and
+        loop guards are formulas.
+  \item \textbf{Program verification}: specifications are formulas, and correctness
+        proofs (Hoare logic, Chapter~\ref{ch:hoare}) are formal deductions.
+  \item \textbf{Databases}: SQL queries are essentially first-order formulas (relational
+        calculus).
+  \item \textbf{Artificial intelligence and automated reasoning}: SAT solvers, SMT
+        solvers, theorem provers, model checkers, Prolog.
+  \item \textbf{Theory of computation}: the question ``is there an algorithm that decides
+        whether a formula is valid?'' leads directly to Turing machines and the halting
+        problem (Chapter~\ref{ch:undecidability}).
+\end{itemize}
+
+\section{Arguments, premises and conclusions}
+
+\begin{definition}[Proposition]
+A \emph{proposition} is a declarative sentence that is either true or false (but not
+both).
+\end{definition}
+
+\begin{example}
+``$2+2=4$'', ``Waterloo is in Ontario'' and ``every even integer greater than $2$ is the sum
+of two primes'' are propositions (the last one has an unknown truth value, but it has
+one). ``Close the door!'', ``Is it raining?'' and ``$x > 3$'' (with $x$ unspecified) are
+\emph{not} propositions.
+\end{example}
+
+\begin{definition}[Argument]
+An \emph{argument} consists of a set of propositions called \emph{premises} and one
+proposition called the \emph{conclusion}. The argument is \emph{valid} if, in every
+situation in which all the premises are true, the conclusion is also true.
+\end{definition}
+
+The key word is \emph{every}. Validity depends only on the \emph{form} of the argument,
+not on whether the premises are actually true.
+
+\begin{example}[A valid argument]
+\begin{quote}
+If it is raining, then the ground is wet.\\
+It is raining.\\
+Therefore, the ground is wet.
+\end{quote}
+Writing $p$ for ``it is raining'' and $q$ for ``the ground is wet'', the form is
+\[
+  p \to q,\; p \;\;\therefore\;\; q.
+\]
+This form (\emph{modus ponens}) is valid no matter what $p$ and $q$ stand for.
+\end{example}
+
+\begin{example}[An invalid argument]
+\begin{quote}
+If it is raining, then the ground is wet.\\
+The ground is wet.\\
+Therefore, it is raining.
+\end{quote}
+The form $p\to q,\ q \;\therefore\; p$ (\emph{affirming the consequent}) is invalid: take
+$p$ false and $q$ true (someone ran the sprinkler). Both premises are true and the
+conclusion is false. One such situation, a \emph{counterexample}, is enough to show
+invalidity.
+\end{example}
+
+\begin{important}[Valid vs.\ sound vs.\ true]
+\begin{itemize}
+  \item A \emph{valid} argument can have false premises and a false conclusion:
+        ``All cats are fish; all fish fly; therefore all cats fly'' is valid.
+  \item An argument is \emph{sound} (in the informal sense) if it is valid \emph{and} all
+        its premises are actually true. Then its conclusion must be true.
+  \item An invalid argument can have a true conclusion; that the conclusion happens to be
+        true does not make the reasoning correct.
+\end{itemize}
+(Careful: later we use ``soundness'' for a property of a \emph{proof system}, which is a
+different idea.)
+\end{important}
+
+\section{Two views of ``follows from''}
+
+CS 245 studies two quite different ways of making ``the conclusion follows from the
+premises'' precise.
+
+\begin{description}
+  \item[Semantic (model-theoretic).] Consider every possible way of assigning meaning to
+        the symbols (every truth valuation, or every interpretation in predicate logic).
+        If the conclusion is true in every one in which all premises are true, we write
+        $\Sigma \models \varphi$ (\emph{$\Sigma$ semantically entails $\varphi$}).
+  \item[Syntactic (proof-theoretic).] Fix a finite set of inference rules. If there is a
+        finite derivation of $\varphi$ from $\Sigma$ using only those rules, we write
+        $\Sigma \vdash \varphi$ (\emph{$\varphi$ is provable from $\Sigma$}).
+\end{description}
+
+The semantic view is close to our intuition about ``truth'', but checking infinitely many
+interpretations is not mechanical. The syntactic view is mechanical (a computer can check
+a proof), but on its face has nothing to do with truth. The central results of the course
+are that, for propositional and first-order logic, the two coincide:
+\[
+  \Sigma \vdash \varphi \iff \Sigma \models \varphi
+  \qquad\text{(soundness $\Rightarrow$, completeness $\Leftarrow$).}
+\]
+
+\section{Formal languages: object language vs.\ metalanguage}
+
+When we study a logic we use two languages at once:
+\begin{itemize}
+  \item the \emph{object language}: the formal logic being studied, with symbols such as
+        $p, q, \neg, \land, \to, \forall$;
+  \item the \emph{metalanguage}: the (mathematical) English we use to talk \emph{about}
+        the object language, including symbols like $\models$, $\vdash$, ``iff'' and
+        $\Rightarrow$.
+\end{itemize}
+For example, $p \to q$ is a formula of the object language, while
+``$\{p\to q, p\} \models q$'' is a statement in the metalanguage that happens to be true.
+Keeping the two levels apart avoids a lot of confusion, especially when comparing $\to$
+(a connective inside formulas) with $\Rightarrow$ or ``implies'' (reasoning about
+formulas).
+
+\section{Translating English into logic}
+
+A recurring skill in the course is translating English sentences into formulas. Some
+standard translations:
+
+\begin{center}
+\begin{tabular}{p{0.62\textwidth}l}
+\toprule
+English & Formula \\
+\midrule
+not $p$; it is not the case that $p$ & $\neg p$ \\
+$p$ and $q$; $p$ but $q$; $p$ although $q$ & $p \land q$ \\
+$p$ or $q$ (inclusive) & $p \lor q$ \\
+if $p$ then $q$; $q$ if $p$; $p$ only if $q$; $p$ is sufficient for $q$;
+  $q$ is necessary for $p$ & $p \to q$ \\
+$p$ if and only if $q$; $p$ exactly when $q$ & $p \leftrightarrow q$ \\
+$p$ unless $q$ & $\neg q \to p$ (equivalently $p \lor q$) \\
+either $p$ or $q$ but not both & $(p\lor q)\land\neg(p\land q)$ \\
+neither $p$ nor $q$ & $\neg p \land \neg q$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{important}[Pitfall: ``only if'']
+``$p$ only if $q$'' means $p \to q$, \emph{not} $q \to p$. ``You can graduate only if you
+pass CS 245'' says graduating requires passing; it does not say passing guarantees
+graduation.
+\end{important}
+
+\begin{example}
+``If Alice goes to the party and Bob does not, then Carol will be unhappy unless Dave
+comes.'' With atoms $a,b,c,d$:
+\[
+  (a \land \neg b) \to (\neg d \to c).
+\]
+\end{example}
+
+\section{Roadmap of the course}
+
+\begin{enumerate}
+  \item Propositional logic: syntax, semantics, proof systems, soundness and completeness.
+  \item Predicate (first-order) logic: syntax, semantics, natural deduction, soundness
+        and completeness.
+  \item Applications: formal arithmetic (Peano axioms), program verification with Hoare
+        logic.
+  \item Limits: Turing machines, the halting problem, undecidability of first-order
+        validity, G\"odel's incompleteness theorems.
+\end{enumerate}
+
+\section*{Summary}
+\begin{itemize}
+  \item A proposition is a declarative sentence with a definite truth value.
+  \item An argument is valid iff every situation making all premises true makes the
+        conclusion true; one counterexample shows invalidity.
+  \item Validity is about form, not content; valid $\neq$ true.
+  \item $\models$ (semantic entailment) and $\vdash$ (provability) are the two notions of
+        consequence; soundness and completeness say they agree.
+  \item Distinguish the object language from the metalanguage, and be careful
+        translating ``only if'' and ``unless''.
+\end{itemize}

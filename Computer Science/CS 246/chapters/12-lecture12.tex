@@ -1,0 +1,255 @@
+\chapter{Lecture 12: Elision, Rule of Five, Const Methods and Encapsulation}
+\begin{center}
+\textit{February 13, 2018}
+\end{center}
+
+\section{Copy/Move Elision}
+(\emph{Elision} means omission, disappearance.)
+\begin{lstlisting}[style=cpp]
+Vec makeVec() { return {0, 0}; }
+...
+Vec v = makeVec();
+\end{lstlisting}
+In theory: the basic ctor runs inside \code{makeVec}; then since we return by
+value and the returned value is an rvalue, the move ctor runs to build \code{v}
+(or the copy ctor if there is no move ctor).
+
+What actually happens: only the basic ctor runs! The object is created directly
+in the space reserved for \code{v}.
+
+\begin{important}[Elision]
+Compilers are allowed (though, in C++14, not required) to eliminate copy and
+move constructions in these situations --- even if the copy/move ctor has side
+effects (like printing). So never rely on the number of times a copy ctor runs.
+\end{important}
+To turn it off (e.g.\ to observe the calls): \code{g++ -fno-elide-constructors}.
+
+Elision also applies to arguments:
+\begin{lstlisting}[style=cpp]
+void f(Vec v) { ... }
+f(makeVec());    // the result is built directly in f's parameter
+\end{lstlisting}
+
+\section{Rule of Five}
+\begin{important}[Rule of Five]
+If you need to write any one of
+\begin{itemize}
+  \item the copy constructor,
+  \item the copy assignment operator,
+  \item the destructor,
+  \item the move constructor,
+  \item the move assignment operator,
+\end{itemize}
+then you usually need to write all five.
+\end{important}
+The reason: needing a custom one of these almost always means the class
+\emph{owns a resource} (heap memory, a file, \dots), and every one of the five
+must then handle that resource. Most classes own nothing directly and need none
+of them.
+
+\section{Short Topic: Arrays of Objects}
+\begin{lstlisting}[style=cpp]
+struct Vec {
+    int x, y;
+    Vec(int x, int y) : x{x}, y{y} {}
+};
+
+Vec vectors[3];              // stack array of 3 Vec objects
+Vec *vp = new Vec[3];        // heap array of 3 Vec objects
+\end{lstlisting}
+Neither compiles: each element must be constructed, and there is no default
+ctor. How to fix this?
+\begin{enumerate}
+  \item Provide a default ctor.
+  \item For a stack array, use array initialization syntax:
+\begin{lstlisting}[style=cpp]
+Vec vectors[3] = {Vec{0, 0}, Vec{1, 3}, Vec{2, 4}};
+\end{lstlisting}
+  \item Use an array of pointers to objects:
+\begin{lstlisting}[style=cpp]
+Vec *vp[3];                    // stack array of 3 Vec pointers
+Vec **vp1 = new Vec*[3];       // heap array of 3 Vec pointers
+for (int i = 0; i < 3; ++i) vp1[i] = new Vec{i, i};
+...
+for (int i = 0; i < 3; ++i) delete vp1[i];
+delete [] vp1;
+\end{lstlisting}
+\end{enumerate}
+
+\section{Short Topic: Const Methods}
+\begin{lstlisting}[style=cpp]
+struct Student {
+    int assns, mt, final;
+    float grade() { return 0.4 * assns + 0.2 * mt + 0.4 * final; }
+};
+
+const Student billy{80, 50, 75};   // can't change billy's fields
+billy.grade();                     // error!
+\end{lstlisting}
+\paragraph{Q.} Can I call \code{billy.grade()}?
+
+No: \code{grade} did not promise not to change the fields, even though it doesn't
+actually change them. To make the promise, declare the method \code{const}
+(after the parameter list):
+\begin{lstlisting}[style=cpp]
+struct Student {
+    int assns, mt, final;
+    float grade() const { return 0.4 * assns + 0.2 * mt + 0.4 * final; }
+};
+\end{lstlisting}
+Inside a const method, \code{this} has type \code{const Student*}, so the
+compiler rejects any modification of a field.
+
+\begin{important}[Rule]
+\code{const} objects can only call \code{const} methods. Make every method that
+doesn't modify the object \code{const}.
+\end{important}
+
+\subsection{Mutable Fields}
+Suppose we want to count how many times \code{grade} is called:
+\begin{lstlisting}[style=cpp]
+struct Student {
+    int assns, mt, final;
+    int numCalls = 0;
+    float grade() const {
+        ++numCalls;     // error: grade is const
+        return 0.4 * assns + 0.2 * mt + 0.4 * final;
+    }
+};
+\end{lstlisting}
+This won't compile. But the call counter isn't really part of the student's
+logical state, so a const method should be allowed to change it. Mark the field
+\code{mutable}:
+\begin{lstlisting}[style=cpp]
+    mutable int numCalls = 0;
+\end{lstlisting}
+A \code{mutable} field can be modified in a const object or by a const method.
+(Distinguish \emph{physical} constness --- no bits change --- from
+\emph{logical} constness --- the object's observable state doesn't change.)
+
+\section{Invariants and Encapsulation}
+\begin{lstlisting}[style=cpp]
+struct Node {
+    int data;
+    Node *next;
+    Node(int data, Node *next) : data{data}, next{next} {}
+    ~Node() { delete next; }
+};
+
+Node n1{1, new Node{2, nullptr}};   // fine
+Node n2{3, nullptr};                // fine
+Node n3{4, &n2};                    // disaster
+\end{lstlisting}
+When \code{n3} goes out of scope, its dtor runs \code{delete \&n2}, deleting a
+stack address: the program is likely to crash.
+
+\begin{definition}
+An \textbf{invariant} is a statement/assumption about a class that must be true
+for the class to function correctly.
+\end{definition}
+\begin{itemize}
+  \item Node invariant: \code{next} is either \code{nullptr} or points to a
+        heap-allocated Node (that this Node owns).
+  \item Stack invariant: the last item pushed is the first popped. Easy to break
+        if clients can reach the underlying array and, say, sort it.
+\end{itemize}
+If client code has unrestricted access to the implementation, it can break
+invariants, resulting in crashes and undefined behaviour.
+
+\begin{definition}
+\textbf{Encapsulation}: classes should be treated as black boxes (capsules).
+Client code gets limited access through public methods (the \emph{interface}).
+\end{definition}
+
+\begin{lstlisting}[style=cpp]
+struct Vec {
+    Vec(int x, int y);        // public: struct members are public by default
+  private:
+    int x, y;
+  public:
+    Vec operator+(const Vec &v) const { return {x + v.x, y + v.y}; }
+};
+
+int main() {
+    Vec v{1, 2};              // OK: Vec(int, int) is public
+    Vec v1 = v + v;           // OK: operator+ is public; free Big 5 are public
+    cout << v.x << endl;      // won't compile: x is private
+}
+\end{lstlisting}
+
+\begin{important}[Advice]
+Fields should be private. Only selected methods should be public (the
+interface).
+\end{important}
+
+\subsection{The \code{class} Keyword}
+\begin{lstlisting}[style=cpp]
+class Vec {
+    int x, y;                 // private by default
+  public:
+    Vec(int x, int y);
+    Vec operator+(const Vec &v) const;
+};
+\end{lstlisting}
+The \emph{only} difference between \code{struct} and \code{class} is the default
+visibility: public for \code{struct}, private for \code{class}.
+
+\section{Encapsulating Node}
+To guarantee the Node invariant, create a wrapper class \code{List} that has
+exclusive access to the Node objects:
+\begin{lstlisting}[style=cpp]
+// list.h
+class List {
+    struct Node;                 // private nested class: declared only
+    Node *theList = nullptr;
+  public:
+    void addToFront(int n);
+    int ith(int i) const;
+    ~List();
+};
+
+// list.cc
+#include "list.h"
+struct List::Node {              // full definition hidden in the .cc file
+    int data;
+    Node *next;
+    Node(int data, Node *next) : data{data}, next{next} {}
+    ~Node() { delete next; }
+};
+
+List::~List() { delete theList; }
+
+void List::addToFront(int n) {
+    theList = new Node{n, theList};
+}
+
+// requires: 0 <= i < length of the list
+int List::ith(int i) const {
+    Node *curr = theList;
+    for (int j = 0; j < i && curr; ++j, curr = curr->next);
+    return curr->data;
+}
+\end{lstlisting}
+No one outside \code{List} knows the Node structure (it is defined only in the
+\code{.cc} file), so only \code{List} can create Nodes, and it always puts them
+on the heap. We now have a guarantee that the invariant is maintained. (We should
+also write or disable the copy/move operations of \code{List}: Rule of Five.)
+
+\paragraph{The cost.} The client can no longer walk the list. Printing it
+requires \code{ith(0)}, \code{ith(1)}, \dots, each of which walks from the
+front, so traversing the list costs
+$1 + 2 + \cdots + n \in \Theta(n^2)$ instead of $\Theta(n)$. Next lecture:
+the Iterator pattern fixes this.
+
+\section*{Summary}
+\begin{itemize}
+  \item Compilers may elide copies/moves; don't rely on their side effects.
+  \item Rule of Five: write all five or none.
+  \item Arrays of objects need a default ctor, an initializer, or pointers.
+  \item \code{const} methods can be called on const objects; \code{mutable}
+        fields are exempt from constness.
+  \item Invariants must be protected by encapsulation: private fields, public
+        interface; \code{class} defaults to private.
+  \item Hiding Node inside List secures the invariant but makes traversal
+        $\Theta(n^2)$.
+\end{itemize}

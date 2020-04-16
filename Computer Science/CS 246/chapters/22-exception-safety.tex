@@ -1,0 +1,171 @@
+\chapter{Topic: Exception Safety Guarantees}
+
+\begin{aside}
+This chapter continues Lecture 21 and covers material from the remainder of the
+term (not in the original lecture notes).
+\end{aside}
+
+\section{Levels of Exception Safety}
+Lecture 21 made sure resources are released when an exception passes through. But
+what state is an object left in? There are three standard levels of guarantee a
+function can offer:
+
+\begin{definition}
+\begin{enumerate}
+  \item \textbf{Basic guarantee}: if an exception occurs, the program is in
+        \emph{some} valid but unspecified state. Nothing is leaked, no
+        invariants are broken.
+  \item \textbf{Strong guarantee}: if an exception is raised while executing
+        \code{f}, the state of the program is as if \code{f} had not been
+        called (``commit or roll back'').
+  \item \textbf{No-throw guarantee}: \code{f} never throws an exception, and
+        always accomplishes its task.
+\end{enumerate}
+\end{definition}
+A function that gives none of these is not exception safe at all.
+
+\section{An Example}
+\begin{lstlisting}[style=cpp]
+class A { ... };
+class B { ... };
+class C {
+    A a;
+    B b;
+  public:
+    void f() {
+        a.g();   // may throw (strong guarantee)
+        b.h();   // may throw (strong guarantee)
+    }
+};
+\end{lstlisting}
+Is \code{C::f} exception safe?
+\begin{itemize}
+  \item If \code{a.g()} throws: nothing has happened yet (\code{g} has the
+        strong guarantee). OK.
+  \item If \code{b.h()} throws: the effects of \code{h} are undone, but
+        \code{a.g()} has already happened and is not undone. So \code{f} would
+        need to undo \code{g}'s effects --- very hard or impossible if \code{g}
+        had non-local side effects (printing, writing a file).
+\end{itemize}
+So \code{f} offers only the basic guarantee (at best).
+
+\subsection{Achieving the Strong Guarantee}
+If \code{A::g} and \code{B::h} have no non-local side effects, we can do the
+work on \emph{copies} and then swap them in:
+\begin{lstlisting}[style=cpp]
+class C {
+    A a;
+    B b;
+  public:
+    void f() {
+        A atemp = a;    // may throw: fine, nothing changed yet
+        B btemp = b;
+        atemp.g();      // may throw: fine, only the copies changed
+        btemp.h();
+        a = atemp;      // what if copy assignment throws?
+        b = btemp;
+    }
+};
+\end{lstlisting}
+The last two lines are the problem: if \code{b = btemp} throws, \code{a} has
+already been modified. We need the ``commit'' step to be no-throw. Assigning
+\emph{pointers} can't throw --- so use the pImpl idiom:
+\begin{lstlisting}[style=cpp]
+struct CImpl {
+    A a;
+    B b;
+};
+
+class C {
+    std::unique_ptr<CImpl> pImpl;
+  public:
+    void f() {
+        auto temp = std::make_unique<CImpl>(*pImpl);  // copy: may throw, fine
+        temp->a.g();                                  // may throw, fine
+        temp->b.h();                                  // may throw, fine
+        std::swap(pImpl, temp);                       // no-throw commit
+    }   // temp (the old state) is destroyed here
+};
+\end{lstlisting}
+Now \code{f} has the strong guarantee (assuming \code{g} and \code{h} have no
+non-local side effects). This is the same idea as copy-and-swap for
+\code{operator=}.
+
+\begin{important}[Rule of thumb]
+Do everything that might throw on the side (on copies/temporaries), then commit
+with operations that cannot throw (pointer assignment, swap of built-in types,
+moves marked \code{noexcept}).
+\end{important}
+
+\section{Exception Safety and \code{vector}}
+\code{vector} manages a heap array with RAII: when a vector goes out of scope,
+its dtor frees the array and calls the dtor of every element.
+
+\begin{itemize}
+  \item \code{vector<C>}: owns the \code{C} objects; they are destroyed with
+        the vector.
+  \item \code{vector<C*>}: the dtor frees the array of pointers, but does
+        \emph{not} delete the objects pointed to (pointers have no dtor). If the
+        vector should own them, you must delete them yourself:
+\begin{lstlisting}[style=cpp]
+for (auto p : v) delete p;
+\end{lstlisting}
+  \item \code{vector<unique\_ptr<C>>}: owns the objects, and frees them
+        automatically, even during unwinding. No explicit cleanup loop needed.
+\end{itemize}
+
+\subsection{\code{emplace\_back} and \code{noexcept}}
+\code{vector::emplace\_back} (and \code{push\_back}) offer the strong guarantee:
+if it throws, the vector is unchanged. When the array is full, it must
+\begin{enumerate}
+  \item allocate a bigger array,
+  \item copy the elements from the old array to the new one,
+  \item delete the old array.
+\end{enumerate}
+If a copy throws midway (step 2), the new array is simply discarded and the old
+one is intact: strong guarantee.
+
+But copying is expensive; moving would be much faster. However, if a \emph{move}
+throws midway, some elements of the old array have already been gutted, and the
+original state can't be restored. So \code{vector} only moves elements if the
+move ctor is guaranteed not to throw; otherwise it copies.
+
+\begin{important}[Advice]
+Declare move constructors and move assignment operators (and \code{swap}) as
+\code{noexcept} when they cannot throw --- which is almost always.
+\begin{lstlisting}[style=cpp]
+class C {
+  public:
+    C(C &&other) noexcept;
+    C &operator=(C &&other) noexcept;
+};
+\end{lstlisting}
+Otherwise \code{vector} (and other library code) will silently fall back to the
+slower copy. Destructors are implicitly \code{noexcept}.
+\end{important}
+
+\section{Exception-Safe \code{operator=}}
+Compare the versions of \code{Node::operator=} from Lectures 10--11:
+\begin{center}
+\begin{tabular}{@{}lp{0.55\textwidth}@{}}
+\toprule
+Version & Guarantee \\
+\midrule
+\code{delete next;} then \code{new} & none: leaves a dangling \code{next} if
+\code{new} throws \\
+\code{new} into temp, then \code{delete} old & strong \\
+copy-and-swap & strong (if the copy ctor is safe and \code{swap} is no-throw) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Summary}
+\begin{itemize}
+  \item Basic: valid state, no leaks. Strong: all-or-nothing. No-throw: never
+        fails.
+  \item A sequence of strong operations is not automatically strong.
+  \item Achieve strong guarantee by working on copies and committing with
+        no-throw operations (pImpl + swap).
+  \item Use \code{vector<unique\_ptr<C>>} for owned polymorphic objects.
+  \item Mark moves and swaps \code{noexcept} so containers can use them.
+\end{itemize}

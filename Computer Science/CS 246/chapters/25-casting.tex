@@ -1,0 +1,141 @@
+\chapter{Topic: Casting and Run-Time Type Information}
+
+\begin{aside}
+Material from the remainder of the term, not covered in the original lecture
+notes.
+\end{aside}
+
+\section{C-Style Casts}
+In C:
+\begin{lstlisting}[style=c]
+Node n;
+int *ip = (int *) &n;   // forces C to treat a Node* as an int*
+\end{lstlisting}
+C-style casts should be avoided in C++. They do several very different things
+with the same syntax, they are hard to search for, and the compiler won't stop
+you from doing something meaningless. If you must cast, use one of the four C++
+casts, which say exactly what you mean.
+
+\section{\code{static\_cast}}
+For ``sensible'' casts with well-defined semantics, checked at compile time:
+\begin{lstlisting}[style=cpp]
+double d = 3.7;
+void f(int x);
+void f(double x);
+f(static_cast<int>(d));    // calls f(int); d is truncated to 3
+\end{lstlisting}
+Downcasting a superclass pointer to a subclass pointer:
+\begin{lstlisting}[style=cpp]
+Book *b = new Text{...};
+Text *t = static_cast<Text*>(b);
+t->getTopic();
+\end{lstlisting}
+You are telling the compiler ``trust me, \code{b} really points to a Text''. If
+you are wrong, the behaviour is undefined. \code{static\_cast} does no run-time
+check.
+
+\section{\code{reinterpret\_cast}}
+For unsafe, implementation-dependent ``weird'' conversions: reinterpret the bits
+of one type as another.
+\begin{lstlisting}[style=cpp]
+Student s;
+Turtle *t = reinterpret_cast<Turtle*>(&s);   // treat a Student as a Turtle
+\end{lstlisting}
+Almost any use is undefined or non-portable. You will rarely, if ever, need it.
+
+\section{\code{const\_cast}}
+For converting between \code{const} and non-\code{const}; the only C++ cast
+that can ``cast away'' const.
+\begin{lstlisting}[style=cpp]
+void g(int *p);               // suppose g doesn't actually modify *p,
+                              // but its author forgot the const
+void f(const int *p) {
+    g(const_cast<int*>(p));   // OK as long as g really doesn't modify *p
+}
+\end{lstlisting}
+Useful for working with libraries that are not const-correct. Modifying an
+object that was originally declared const through such a pointer is undefined
+behaviour.
+
+\section{\code{dynamic\_cast}}
+Is it safe to convert a \code{Book*} to a \code{Text*}? It depends on what the
+pointer actually points to. \code{dynamic\_cast} checks at run time:
+\begin{lstlisting}[style=cpp]
+Book *pb = ...;
+Text *pt = dynamic_cast<Text*>(pb);
+if (pt) cout << pt->getTopic();   // pb really pointed to a Text
+else cout << "Not a Text";        // dynamic_cast returned nullptr
+\end{lstlisting}
+\begin{itemize}
+  \item If the cast works (\code{*pb} is a Text, or a subclass of Text),
+        \code{pt} points to the object; otherwise \code{pt} is \code{nullptr}.
+  \item \code{dynamic\_cast} only works on classes with at least one virtual
+        method (it uses the vtable to find the run-time type --- see the next
+        chapter). This information is called \textbf{RTTI} (run-time type
+        information).
+  \item With references: there's no null reference, so a failing
+        \code{dynamic\_cast<Text\&>(b)} throws \code{std::bad\_cast}.
+\end{itemize}
+
+\subsection{Casting Smart Pointers}
+\begin{lstlisting}[style=cpp]
+shared_ptr<Book> sb = make_shared<Text>(...);
+shared_ptr<Text> st = dynamic_pointer_cast<Text>(sb);   // shares ownership
+// also: static_pointer_cast, const_pointer_cast
+\end{lstlisting}
+
+\section{Using RTTI: Polymorphic Assignment Revisited}
+Dynamic casting lets us solve the mixed-assignment problem from Lecture 18 with a
+virtual \code{operator=}:
+\begin{lstlisting}[style=cpp]
+Text &Text::operator=(const Book &other) {     // virtual, overrides Book's
+    const Text &tother = dynamic_cast<const Text&>(other);  // throws bad_cast
+    if (this == &tother) return *this;                      // if not a Text
+    Book::operator=(other);
+    topic = tother.topic;
+    return *this;
+}
+\end{lstlisting}
+Assigning a Comic to a Text through Book references now throws instead of
+silently corrupting the Text.
+
+\section{Is Dynamic Casting Good Style?}
+\begin{lstlisting}[style=cpp]
+void whatIsIt(Book *b) {
+    if (dynamic_cast<Comic*>(b)) cout << "Comic";
+    else if (dynamic_cast<Text*>(b)) cout << "Text";
+    else if (b) cout << "Book";
+    else cout << "Nothing";
+}
+\end{lstlisting}
+This is tightly coupled to the Book hierarchy: every time a new subclass is
+added, this function (and every function like it) must be found and changed. It
+is exactly what virtual methods are for:
+\begin{lstlisting}[style=cpp]
+class Book {
+  public:
+    virtual std::string identify() const { return "Book"; }
+};
+// each subclass overrides identify()
+\end{lstlisting}
+When a hierarchy is \emph{closed} (the set of subclasses is fixed) but the set of
+operations is open, Visitor (Lecture 20) is the virtual-method-based answer.
+Code that switches on run-time type with \code{dynamic\_cast} is a design smell:
+use virtual methods (or Visitor) whenever you can.
+
+\section*{Summary}
+\begin{center}
+\begin{tabular}{@{}lp{0.62\textwidth}@{}}
+\toprule
+Cast & Use \\
+\midrule
+\code{static\_cast} & well-defined conversions; unchecked downcasts \\
+\code{reinterpret\_cast} & reinterpret bits; unsafe, non-portable \\
+\code{const\_cast} & add/remove \code{const} \\
+\code{dynamic\_cast} & checked downcast using RTTI; \code{nullptr} or
+                        \code{bad\_cast} on failure \\
+\bottomrule
+\end{tabular}
+\end{center}
+Avoid C-style casts; prefer virtual methods to type switches built from
+\code{dynamic\_cast}.

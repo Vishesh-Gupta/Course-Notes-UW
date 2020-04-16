@@ -1,0 +1,186 @@
+\chapter{Generative Recursion}\label{ch:generative}
+
+\begin{definition}[Generative recursion]
+A recursive function uses \textbf{generative recursion} if at least one
+recursive call is on a value that is \emph{generated} by computation, rather
+than being a structural part of the input (like \code{(rest lst)} or
+\code{(sub1 n)}).
+\end{definition}
+
+Generative recursion is more powerful but has two costs: the code no longer
+follows from a template, and \textbf{termination} is no longer guaranteed.
+The design recipe is modified: think of the algorithm first (how to generate
+smaller subproblems and combine their solutions), and argue termination.
+
+\section{Euclid's algorithm}
+For $m, n \in \N$ with $n > 0$: $\gcd(m, 0) = m$ and
+$\gcd(m, n) = \gcd(n, m \bmod n)$.
+
+\begin{lstlisting}[style=racket]
+;; (euclid-gcd m n) produces the greatest common divisor of m and n.
+;; Examples:
+(check-expect (euclid-gcd 24 18) 6)
+(check-expect (euclid-gcd 7 0) 7)
+
+;; euclid-gcd: Nat Nat -> Nat
+(define (euclid-gcd m n)
+  (cond [(zero? n) m]
+        [else (euclid-gcd n (remainder m n))]))
+\end{lstlisting}
+
+\paragraph{Trace.}
+\begin{lstlisting}[style=racket]
+(euclid-gcd 24 18)
+=> (euclid-gcd 18 6)      ; (remainder 24 18) = 6
+=> (euclid-gcd 6 0)       ; (remainder 18 6) = 0
+=> 6
+\end{lstlisting}
+
+\paragraph{Correctness.} Any common divisor of $m$ and $n$ divides
+$m - qn = m \bmod n$, and conversely any common divisor of $n$ and $m \bmod n$
+divides $m$. So $\gcd(m,n) = \gcd(n, m \bmod n)$.
+
+\paragraph{Termination.} The second argument strictly decreases
+($0 \le m \bmod n < n$) and is a natural number, so it reaches 0 after finitely
+many steps. (In fact after at most about $2\log_2 n$ steps, since the second
+argument at least halves every two calls.)
+
+\begin{important}[Termination arguments]
+To prove a generative recursion terminates, find a \textbf{measure}: a
+natural number computed from the arguments that strictly decreases at every
+recursive call. Since naturals cannot decrease forever, recursion must stop.
+\end{important}
+
+\subsection{A function that may not terminate}
+The Collatz function:
+\begin{lstlisting}[style=racket]
+;; collatz: Nat -> Nat     requires: n >= 1
+(define (collatz n)
+  (cond [(= n 1) 1]
+        [(even? n) (collatz (/ n 2))]
+        [else (collatz (+ 1 (* 3 n)))]))
+\end{lstlisting}
+No one knows whether this terminates for every $n \ge 1$ --- it is a famous
+open problem. This illustrates why termination needs an argument.
+
+\section{Quicksort}
+Quicksort (C.~A.~R.~Hoare, 1960) is a divide-and-conquer sorting algorithm:
+\begin{enumerate}
+  \item If the list is empty, it is sorted.
+  \item Otherwise pick a \textbf{pivot} (the first element).
+  \item Partition the rest into elements less than the pivot and the others.
+  \item Sort each part recursively and append: smaller, pivot, larger.
+\end{enumerate}
+
+\begin{lstlisting}[style=racket]
+;; (quick-sort lon) produces lon sorted in non-decreasing order.
+;; Examples:
+(check-expect (quick-sort empty) empty)
+(check-expect (quick-sort '(3 1 4 1 5 9 2 6)) '(1 1 2 3 4 5 6 9))
+
+;; quick-sort: (listof Num) -> (listof Num)
+(define (quick-sort lon)
+  (cond [(empty? lon) empty]
+        [else
+         (local [(define pivot (first lon))
+                 (define less (filter (lambda (x) (< x pivot)) (rest lon)))
+                 (define greater (filter (lambda (x) (>= x pivot)) (rest lon)))]
+           (append (quick-sort less)
+                   (list pivot)
+                   (quick-sort greater)))]))
+\end{lstlisting}
+
+The recursive calls are on \code{less} and \code{greater}, lists computed by
+\code{filter} --- this is generative recursion.
+
+\paragraph{Condensed trace.}
+\begin{lstlisting}[style=racket]
+(quick-sort (list 3 5 1 4))
+=> (append (quick-sort (list 1)) (list 3) (quick-sort (list 5 4)))
+=> (append (append (quick-sort empty) (list 1) (quick-sort empty))
+           (list 3) (quick-sort (list 5 4)))
+=> (append (list 1) (list 3) (quick-sort (list 5 4)))
+=> (append (list 1) (list 3)
+           (append (quick-sort (list 4)) (list 5) (quick-sort empty)))
+=> (append (list 1) (list 3) (append (list 4) (list 5) empty))
+=> (list 1 3 4 5)
+\end{lstlisting}
+
+\paragraph{Termination.} Measure: length of the list. Both \code{less} and
+\code{greater} are sublists of \code{(rest lon)}, so each has length strictly
+less than \code{(length lon)}.
+
+\paragraph{Efficiency.} Partitioning costs time proportional to the list length.
+If the pivot splits the list roughly in half each time, there are about
+$\log_2 n$ levels, each with $\Theta(n)$ total work: $\Theta(n \log n)$. If the
+list is already sorted, \code{less} is always empty and \code{greater} has
+length $n-1$: $n + (n-1) + \cdots = \Theta(n^2)$. A common bug is putting
+elements equal to the pivot in neither part (losing duplicates) or in a part
+with the pivot itself (non-termination).
+
+\section{Mergesort}
+Mergesort splits the list in half, sorts each half recursively, and uses
+\code{merge} from Chapter 8. It is always $\Theta(n \log n)$.
+\begin{lstlisting}[style=racket]
+;; merge-sort: (listof Num) -> (listof Num)
+(define (merge-sort lon)
+  (cond [(or (empty? lon) (empty? (rest lon))) lon]
+        [else
+         (local [(define half (quotient (length lon) 2))]
+           (merge (merge-sort (take lon half))
+                  (merge-sort (drop lon half))))]))
+
+;; (take lst n) produces the first n elements; (drop lst n) the rest.
+;; take: (listof X) Nat -> (listof X)
+(define (take lst n)
+  (cond [(zero? n) empty]
+        [else (cons (first lst) (take (rest lst) (sub1 n)))]))
+;; drop: (listof X) Nat -> (listof X)
+(define (drop lst n)
+  (cond [(zero? n) lst]
+        [else (drop (rest lst) (sub1 n))]))
+\end{lstlisting}
+Termination: for lists of length $\ge 2$, both halves are strictly shorter.
+
+\section{Other examples of generative recursion}
+
+\subsection{Binary search for a root (bisection)}
+To find $x$ with $f(x) \approx 0$ on $[lo, hi]$ where $f(lo)$ and $f(hi)$
+have opposite signs, repeatedly halve the interval:
+\begin{lstlisting}[style=racket]
+;; (find-root f lo hi tol) produces an approximate root of f in [lo, hi].
+;; find-root: (Num -> Num) Num Num Num -> Num
+;;   requires: (f lo) and (f hi) have opposite signs; tol > 0
+(define (find-root f lo hi tol)
+  (local [(define mid (/ (+ lo hi) 2))]
+    (cond [(< (- hi lo) tol) mid]
+          [(<= (* (f lo) (f mid)) 0) (find-root f lo mid tol)]
+          [else (find-root f mid hi tol)])))
+
+(check-within (find-root (lambda (x) (- (* x x) 2)) 0 2 0.0001)
+              (sqrt 2) 0.001)
+\end{lstlisting}
+Termination: the interval width halves each call, so after
+$\ceil{\log_2((hi-lo)/tol)}$ calls it is below the tolerance.
+
+\subsection{Processing strings in chunks}
+Splitting a list of characters into words, where each recursive call is on
+the characters after the next space, is generative: the amount removed depends
+on the data.
+
+\section{Design recipe for generative recursion}
+\begin{enumerate}
+  \item Identify trivially solvable cases and their solutions.
+  \item Describe how to generate one or more smaller problems.
+  \item Describe how to combine their solutions.
+  \item Give a termination argument (a decreasing measure) in a comment.
+  \item Test the trivial cases and cases that exercise each kind of split; include inputs that might cause non-termination (duplicates, sorted input).
+\end{enumerate}
+
+\section{Summary}
+\begin{itemize}
+  \item Generative recursion recurses on computed values; it is not driven by a template.
+  \item Termination must be argued with a decreasing natural-number measure.
+  \item Euclid's gcd, quicksort, mergesort and bisection are the canonical examples.
+  \item Quicksort is $\Theta(n \log n)$ on average and $\Theta(n^2)$ in the worst case; mergesort is always $\Theta(n \log n)$.
+\end{itemize}

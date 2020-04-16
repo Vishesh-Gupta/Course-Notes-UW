@@ -1,0 +1,254 @@
+\chapter{Lecture 4: Shell Scripting, Testing and Intro to C++}
+\begin{center}
+\textit{January 16, 2018}
+\end{center}
+
+\section{Conditions with \code{[ ]} (continued)}
+Recall that \code{[ cond ]} (the \code{test} program) evaluates a condition and
+sets its status code to 0 (true) or 1 (false). Output we do not care about is
+sent to \code{/dev/null}.
+
+\begin{center}
+\begin{tabular}{@{}lp{0.62\textwidth}@{}}
+\toprule
+Test & True when \\
+\midrule
+\code{[ s1 = s2 ]}, \code{[ s1 == s2 ]} & strings are equal \\
+\code{[ s1 != s2 ]} & strings are different \\
+\code{[ -z s ]}, \code{[ -n s ]} & string is empty / non-empty \\
+\code{[ a -eq b ]}, \code{-ne} & integers equal / not equal \\
+\code{-gt}, \code{-ge}, \code{-lt}, \code{-le} & integer $>$, $\ge$, $<$, $\le$ \\
+\code{[ -e f ]} & file \code{f} exists \\
+\code{[ -f f ]}, \code{[ -d f ]} & \code{f} is an ordinary file / a directory \\
+\code{[ -r f ]}, \code{-w}, \code{-x} & \code{f} is readable / writable / executable \\
+\code{[ c1 -a c2 ]}, \code{[ c1 -o c2 ]} & and / or \\
+\code{[ ! c ]} & not \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{important}[Strings vs.\ numbers]
+\code{=} and \code{!=} compare \emph{strings}; \code{-eq}, \code{-lt}, \dots{}
+compare \emph{integers}. \code{[ 01 = 1 ]} is false but \code{[ 01 -eq 1 ]} is
+true. Always quote variables inside tests (\code{[ "\$\{x\}" = "abc" ]}) so an
+empty variable doesn't turn into a syntax error.
+\end{important}
+
+\section{If Statements}
+\begin{lstlisting}[style=bash]
+if [ cond ]; then
+    statements
+elif [ cond ]; then
+    statements
+else
+    statements
+fi
+\end{lstlisting}
+The thing after \code{if} is really any command: the branch is taken if its
+status code is 0. So we can test a command directly, without looking at
+\code{\$?}.
+
+\begin{example}
+Good-password checker, with output, and a usage message if called incorrectly.
+\begin{lstlisting}[style=bash]
+#!/bin/bash
+usage() {
+    echo "Usage: $0 password" 1>&2     # error messages go to stderr
+    exit 1
+}
+
+if [ $# -ne 1 ]; then
+    usage
+fi
+
+if egrep "^$1$" /usr/share/dict/words > /dev/null; then
+    echo "Not a good password"
+else
+    echo "Maybe a good password"
+fi
+\end{lstlisting}
+Notes:
+\begin{itemize}
+  \item \code{\$\#} is the number of arguments.
+  \item \code{usage() \{ ... \}} defines a shell \emph{function}; inside a
+        function, \code{\$1}, \code{\$2}, \dots{} refer to the function's own
+        arguments.
+  \item \code{exit 1} ends the script with a non-zero (failure) status.
+  \item \code{1>\&2} sends the message to stderr.
+\end{itemize}
+\end{example}
+
+\section{Loops}
+
+\subsection{While Loops}
+\begin{lstlisting}[style=bash]
+while [ cond ]; do
+    statements
+done
+\end{lstlisting}
+
+\begin{example}
+Print the numbers from 1 to \code{\$1}.
+\begin{lstlisting}[style=bash]
+#!/bin/bash
+x=1
+while [ ${x} -le $1 ]; do
+    echo ${x}
+    x=$((x + 1))
+done
+\end{lstlisting}
+Variables hold strings, so \code{x=x+1} would just store the string
+\code{x+1}. Arithmetic is done with \code{\$((...))}.
+\end{example}
+
+\subsection{For Loops}
+A \code{for} loop iterates over a list of words:
+\begin{lstlisting}[style=bash]
+for x in a b c d; do
+    echo ${x}
+done
+\end{lstlisting}
+
+\begin{example}
+Rename every \code{.cpp} file in the current directory to have a \code{.cc}
+extension (the task the graphical shell couldn't do in Lecture~1).
+\begin{lstlisting}[style=bash]
+#!/bin/bash
+for name in *.cpp; do
+    mv "${name}" "${name%cpp}cc"
+done
+\end{lstlisting}
+The glob \code{*.cpp} expands to the list of matching files. \code{\$\{name\%cpp\}}
+is the value of \code{name} with the trailing \code{cpp} removed.
+\end{example}
+
+\begin{example}
+How many times does the word \code{\$1} appear in the file \code{\$2}?
+\begin{lstlisting}[style=bash]
+#!/bin/bash
+x=0
+for word in $(cat "$2"); do
+    if [ "${word}" = "$1" ]; then
+        x=$((x + 1))
+    fi
+done
+echo ${x}
+\end{lstlisting}
+\code{\$(cat "\$2")} is deliberately unquoted so that it splits into one word
+per loop iteration.
+\end{example}
+
+\begin{example}
+Payday is the last Friday of the month. On what day is this month's payday?
+\begin{lstlisting}[style=bash]
+#!/bin/bash
+answer() {
+    if [ "$1" -eq 31 ]; then
+        echo "This month: the 31st"
+    else
+        echo "This month: the ${1}th"
+    fi
+}
+# cal prints a calendar; column 6 is Friday. Take the last non-empty one.
+answer $(cal | awk '{print $6}' | egrep "[0-9]" | tail -1)
+\end{lstlisting}
+Generalizing to any month/year: pass \code{\$1 \$2} along to \code{cal}
+(\code{cal \$1 \$2}); with no arguments \code{cal} uses the current month.
+\end{example}
+
+\section{Testing}
+Testing is an essential part of program development. It is \emph{not}
+debugging: testing reveals the presence of bugs; it cannot prove their
+absence. Testing should happen \emph{while} you write code, not only at the end.
+
+\begin{itemize}
+  \item \textbf{Human testing}: code inspections, walkthroughs, explaining your
+        code to someone else.
+  \item \textbf{Machine testing}: running the program on inputs and checking the
+        outputs.
+  \item \textbf{Black-box testing}: tests are written from the specification
+        only, without looking at the implementation. Cover various classes of
+        input (numeric ranges, positive/negative), boundary cases (edges of
+        ranges, empty input, first/last), multiple simultaneous boundaries
+        (corner cases), intuition, and things that are clearly wrong (invalid
+        input).
+  \item \textbf{White-box testing}: tests are written with the code in view, so
+        that every branch, loop and function is exercised (statement and branch
+        coverage).
+  \item \textbf{Performance testing}: is the program efficient enough?
+  \item \textbf{Regression testing}: keep a test suite and re-run it every time
+        the code changes, to make sure nothing that used to work is now broken.
+\end{itemize}
+
+A1 asks us to automate regression testing with a script. A minimal version: for
+each test stem listed in a suite file, run the program on \code{stem.in} and
+compare with \code{stem.out}.
+\begin{lstlisting}[style=bash]
+#!/bin/bash
+# usage: ./runSuite suite-file program
+for stem in $(cat "$1"); do
+    tmp=$(mktemp)
+    "$2" < "${stem}.in" > "${tmp}"
+    if ! diff "${tmp}" "${stem}.out" > /dev/null; then
+        echo "Test failed: ${stem}"
+    fi
+    rm "${tmp}"
+done
+\end{lstlisting}
+
+\section{Introduction to C++}
+C++ was designed by Bjarne Stroustrup (early 1980s) as ``C with classes''. It is
+(almost) a superset of C, adding classes, references, operator and function
+overloading, templates, exceptions, a much bigger standard library, and more.
+In CS 246 we use the C++14 standard.
+
+\begin{lstlisting}[style=cpp]
+#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Hello world" << endl;
+    return 0;
+}
+\end{lstlisting}
+
+Differences from C that are already visible:
+\begin{itemize}
+  \item \code{\#include <iostream>} instead of \code{<stdio.h>}; I/O is done with
+        \emph{streams} (\code{cout}) and the operator \code{<<} instead of
+        \code{printf}.
+  \item \code{using namespace std;} lets us write \code{cout} instead of
+        \code{std::cout}.
+  \item \code{main} must return \code{int}; \code{return 0} may be omitted in
+        \code{main} (0 is returned by default).
+  \item \code{endl} writes a newline and flushes the output buffer.
+\end{itemize}
+
+Compiling and running:
+\begin{lstlisting}[style=bash]
+g++ -std=c++14 hello.cc            # produces a.out
+./a.out
+g++ -std=c++14 hello.cc -o hello   # name the executable
+./hello
+\end{lstlisting}
+(On the student environment \code{g++14} is an alias for
+\code{g++ -std=c++14}.) C++ source files conventionally use \code{.cc} (or
+\code{.cpp}); headers use \code{.h}.
+
+\begin{aside}
+In CS 246 we write C++, not C: use \code{new}/\code{delete} rather than
+\code{malloc}/\code{free}, and C++ streams and strings rather than
+\code{printf}/\code{scanf} and \code{char*}. Details start next lecture.
+\end{aside}
+
+\section*{Summary}
+\begin{itemize}
+  \item \code{[ ]} tests strings (\code{=}, \code{!=}), integers (\code{-eq},
+        \code{-lt}, \dots) and files (\code{-e}, \code{-f}, \code{-d}).
+  \item \code{if/elif/else/fi}, \code{while ... do ... done},
+        \code{for x in list; do ... done}; arithmetic with \code{\$((...))};
+        functions and \code{exit}.
+  \item Black-box, white-box and regression testing; automate with scripts.
+  \item C++ hello world, \code{iostream}, and compiling with
+        \code{g++ -std=c++14}.
+\end{itemize}

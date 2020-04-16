@@ -1,0 +1,213 @@
+\chapter{Lists}\label{ch:lists}
+
+Structures hold a \emph{fixed} number of values. To represent an arbitrary
+number of values --- a class list, the words in a sentence, a sequence of
+measurements --- we need a type whose values can be any size. The list is
+the fundamental such type in Racket.
+
+\section{Constructing lists}
+
+A list is either empty, or a first element followed by the rest of the list.
+\begin{itemize}
+  \item \code{empty} (also written \code{'()}) is the empty list.
+  \item \code{(cons v lst)} produces a new list whose first element is \code{v} and whose rest is the list \code{lst}.
+\end{itemize}
+
+\begin{lstlisting}[style=racket]
+empty                                  ; the empty list
+(cons 'a empty)                        ; one element
+(cons 'a (cons 'b (cons 'c empty)))    ; three elements: a, b, c
+\end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[node distance=0pt,
+  cell/.style={draw, minimum width=7mm, minimum height=6mm}]
+  \node[cell] (a1) {\texttt{'a}}; \node[cell, right=of a1] (a2) {};
+  \node[cell, right=12mm of a2] (b1) {\texttt{'b}}; \node[cell, right=of b1] (b2) {};
+  \node[cell, right=12mm of b2] (c1) {\texttt{'c}}; \node[cell, right=of c1] (c2) {};
+  \node[right=12mm of c2] (e) {\texttt{empty}};
+  \draw[-{Stealth}] (a2.center) -- (b1.west);
+  \draw[-{Stealth}] (b2.center) -- (c1.west);
+  \draw[-{Stealth}] (c2.center) -- (e.west);
+\end{tikzpicture}
+\end{center}
+
+\section{Deconstructing lists}
+\begin{itemize}
+  \item \code{(first lst)} --- the first element; error on \code{empty}.
+  \item \code{(rest lst)} --- the list without its first element; error on \code{empty}.
+  \item \code{(empty? v)} --- true iff \code{v} is the empty list.
+  \item \code{(cons? v)} --- true iff \code{v} is a non-empty list.
+\end{itemize}
+
+\begin{important}[List substitution rules]
+\begin{itemize}
+  \item \code{(first (cons a b))} $\Rightarrow$ \code{a}
+  \item \code{(rest (cons a b))} $\Rightarrow$ \code{b}
+  \item \code{(empty? empty)} $\Rightarrow$ \code{true}; \code{(empty? v)} $\Rightarrow$ \code{false} for any other value
+  \item \code{(cons? (cons a b))} $\Rightarrow$ \code{true}; \code{(cons? v)} $\Rightarrow$ \code{false} otherwise
+\end{itemize}
+A value \code{(cons v1 (cons v2 empty))} is fully evaluated: \code{cons} is a constructor.
+\end{important}
+
+\section{Data definition for lists}
+
+The set of lists is defined \textbf{recursively} (self-referentially):
+
+\begin{lstlisting}[style=racket]
+;; A (listof Num) is one of:
+;; * empty
+;; * (cons Num (listof Num))
+\end{lstlisting}
+
+The definition is not circular because the base case \code{empty} is not
+self-referential, and every self-reference refers to a smaller list. We use
+\code{(listof X)} for any element type \code{X}, and sometimes
+\code{(ne-listof X)} for non-empty lists:
+
+\begin{lstlisting}[style=racket]
+;; A (ne-listof X) is one of:
+;; * (cons X empty)
+;; * (cons X (ne-listof X))
+\end{lstlisting}
+
+\section{The list template}
+
+The template follows the data definition: one \code{cond} clause per case,
+selectors in the \code{cons} case, and --- because the rest is itself a list
+--- a \textbf{recursive call} on the rest.
+
+\begin{lstlisting}[style=racket]
+;; listof-X-template: (listof X) -> Any
+(define (listof-X-template lst)
+  (cond [(empty? lst) ...]
+        [(cons? lst) (... (first lst) ...
+                          (listof-X-template (rest lst)) ...)]))
+\end{lstlisting}
+
+\begin{important}[Key idea]
+Assume the recursive call already produces the correct answer for
+\code{(rest lst)}. Your job is only to say how to combine \code{(first lst)}
+with that answer. This is the programming analogue of the induction step in
+a proof by induction.
+\end{important}
+
+\section{First recursive functions}
+
+\begin{example}[Counting elements]
+\begin{lstlisting}[style=racket]
+;; (count-items lst) produces the number of elements in lst.
+;; Examples:
+(check-expect (count-items empty) 0)
+(check-expect (count-items (cons 'a (cons 'b empty))) 2)
+
+;; count-items: (listof Any) -> Nat
+(define (count-items lst)
+  (cond [(empty? lst) 0]
+        [else (+ 1 (count-items (rest lst)))]))
+\end{lstlisting}
+(This is the built-in \code{length}.)
+\end{example}
+
+\begin{example}[Sum]
+\begin{lstlisting}[style=racket]
+;; (sum lst) produces the sum of the numbers in lst.
+;; Examples:
+(check-expect (sum empty) 0)
+(check-expect (sum (cons 2 (cons 3 empty))) 5)
+
+;; sum: (listof Num) -> Num
+(define (sum lst)
+  (cond [(empty? lst) 0]
+        [else (+ (first lst) (sum (rest lst)))]))
+\end{lstlisting}
+\end{example}
+
+\paragraph{Condensed trace.} Full traces of recursive functions are long; a
+\emph{condensed trace} shows only the key steps:
+\begin{lstlisting}[style=racket]
+(sum (cons 2 (cons 3 empty)))
+=> (+ 2 (sum (cons 3 empty)))
+=> (+ 2 (+ 3 (sum empty)))
+=> (+ 2 (+ 3 0))
+=> (+ 2 3)
+=> 5
+\end{lstlisting}
+For comparison, the first few full steps are:
+\begin{lstlisting}[style=racket]
+(sum (cons 2 (cons 3 empty)))
+=> (cond [(empty? (cons 2 (cons 3 empty))) 0]
+         [else (+ (first (cons 2 (cons 3 empty)))
+                  (sum (rest (cons 2 (cons 3 empty)))))])
+=> (cond [false 0]
+         [else (+ (first (cons 2 (cons 3 empty)))
+                  (sum (rest (cons 2 (cons 3 empty)))))])
+=> (cond [else (+ (first (cons 2 (cons 3 empty)))
+                  (sum (rest (cons 2 (cons 3 empty)))))])
+=> (+ (first (cons 2 (cons 3 empty))) (sum (rest (cons 2 (cons 3 empty)))))
+=> (+ 2 (sum (rest (cons 2 (cons 3 empty)))))
+=> (+ 2 (sum (cons 3 empty)))
+=> ...
+\end{lstlisting}
+
+\section{List abbreviations}
+In \emph{Beginning Student with List Abbreviations}:
+\begin{itemize}
+  \item \code{(list 1 2 3)} abbreviates \code{(cons 1 (cons 2 (cons 3 empty)))}.
+  \item \code{'(a b c)} abbreviates \code{(list 'a 'b 'c)}; quoting distributes over the elements.
+  \item \code{second}, \code{third}, \ldots, \code{eighth} select later elements.
+\end{itemize}
+\code{(list 1 2)} and \code{(cons 1 2)} are different: the latter is not a list
+at all in the teaching languages (it is an error, since the second argument
+must be a list). \code{(cons (list 1 2) (list 3))} is the two-element list
+\code{(list (list 1 2) 3)}.
+
+\section{Lists of structures and strings}
+
+Lists can hold any values. A list of structures uses both templates together:
+\begin{lstlisting}[style=racket]
+;; (class-average los) produces the average avg of the students in los.
+;; class-average: (listof Student) -> Num
+;;   requires: los is non-empty
+(define (class-average los)
+  (/ (total-avg los) (length los)))
+
+;; (total-avg los) produces the sum of the averages in los.
+;; total-avg: (listof Student) -> Num
+(define (total-avg los)
+  (cond [(empty? los) 0]
+        [else (+ (student-avg (first los)) (total-avg (rest los)))]))
+\end{lstlisting}
+
+Strings are processed by converting to a list of characters:
+\begin{lstlisting}[style=racket]
+;; (count-vowels s) produces the number of vowels in s.
+;; count-vowels: Str -> Nat
+(check-expect (count-vowels "banana") 3)
+(define (count-vowels s) (count-vowels/list (string->list s)))
+
+;; count-vowels/list: (listof Char) -> Nat
+(define (count-vowels/list loc)
+  (cond [(empty? loc) 0]
+        [(vowel? (first loc)) (+ 1 (count-vowels/list (rest loc)))]
+        [else (count-vowels/list (rest loc))]))
+
+;; vowel?: Char -> Bool
+(define (vowel? c) (member? (char-downcase c) '(#\a #\e #\i #\o #\u)))
+\end{lstlisting}
+
+\section{Common pitfalls}
+\begin{itemize}
+  \item Taking \code{first} or \code{rest} of \code{empty}.
+  \item Forgetting the base case, or getting its value wrong (the sum of nothing is 0, the product of nothing is 1).
+  \item Confusing \code{cons} (add one element at the front) with \code{append} (join two lists).
+  \item Making the recursive call on the whole list instead of the rest (infinite recursion).
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item A list is \code{empty} or \code{(cons first rest)}; the data definition is recursive.
+  \item The list template has an \code{empty} case and a \code{cons} case with a recursive call on the rest.
+  \item Trust the recursion: combine the first element with the answer for the rest.
+  \item \code{list} and quote are abbreviations for nested \code{cons}.
+\end{itemize}

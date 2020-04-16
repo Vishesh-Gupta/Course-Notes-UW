@@ -1,0 +1,110 @@
+\chapter{Tutorial 2: Shell Commands, Streams, grep and Vim}
+\begin{center}
+\textit{January 10, 2018}
+\end{center}
+
+\section{List of Commands}
+
+\begin{center}
+\begin{tabular}{@{}lp{0.65\textwidth}@{}}
+\toprule
+Command & What it does \\
+\midrule
+\code{cd} & change directory; with no argument goes home; \code{cd -} goes back
+            to the previous directory \\
+\code{clear} & clear the screen \\
+\code{ls} & list files, e.g.\ \code{ls ..}, \code{ls -l}, \code{ls -a} \\
+\code{touch} & create an empty file (or update a file's timestamp) \\
+\code{pwd} & display the present working directory \\
+\code{cat} & print the contents of a file \\
+\code{head} & print the first 10 lines (\code{head -n 5} for the first 5) \\
+\code{tail} & print the last 10 lines \\
+\code{sort} & sort lines in lexicographical order \\
+\code{uniq} & remove \emph{adjacent} duplicate lines (so usually used after \code{sort}) \\
+\code{shuf} & output a random permutation of the input lines \\
+\code{tac} & like \code{cat} but prints the lines in reverse order \\
+\code{wc} & count lines, words and characters \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Input and Output Streams}
+Think of a program as a black box with one input stream and two output streams:
+\begin{itemize}
+  \item \textbf{stdin}: by default the keyboard.
+  \item \textbf{stdout}: by default the screen. stdout is \emph{buffered}: output
+        is collected and written in blocks, since writing character by character
+        is expensive.
+  \item \textbf{stderr}: by default also the screen. stderr is \emph{not}
+        buffered, so error messages appear immediately. Example: the nuclear
+        reactor is about to explode --- we want to see that message \emph{now},
+        not when the buffer fills up.
+\end{itemize}
+We will solidify these concepts when we do I/O in C++.
+
+\begin{lstlisting}[style=bash]
+g++ printer.cc -o print
+./print > out.txt 2> err.txt   # stdout to out.txt, stderr to err.txt
+./print &> all.txt             # all streams to all.txt
+./print > all.txt 2>&1         # same: send stderr where stdout is going
+\end{lstlisting}
+
+\begin{important}[Stream numbers]
+stdin is 0, stdout is 1, stderr is 2. \code{2>\&1} redirects stderr to the same
+place as stdout; \code{\&>} redirects both. Order matters: \code{2>\&1} must come
+\emph{after} \code{> file}.
+\end{important}
+
+\paragraph{Pipes.} \code{cmd1 | cmd2} connects stdout of \code{cmd1} to stdin of
+\code{cmd2}.
+
+\paragraph{Embedded commands.} \code{\$(cmd)} is replaced by the output of
+\code{cmd}, e.g.\ \code{egrep "\$(cat pattern)" words.txt}.
+
+\section{grep and Regular Expressions}
+\code{grep} (and \code{egrep}, which uses extended regular expressions) prints
+the lines of its input that match a pattern:
+\begin{lstlisting}[style=bash]
+egrep "int" wordcollection.txt
+\end{lstlisting}
+
+\begin{center}
+\begin{tabular}{@{}cl@{}}
+\toprule
+Symbol & Meaning \\
+\midrule
+\code{\^{}} & match the beginning of the line \\
+\code{\$} & match the end of the line \\
+\code{.} & match any single character \\
+\code{?} & the preceding item 0 or 1 times \\
+\code{*} & the preceding item 0 or more times \\
+\code{+} & the preceding item 1 or more times \\
+\code{[ ]} & any one of the characters inside \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Vim Commands}
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Keys & Effect \\
+\midrule
+\code{i} & enter insert mode (\code{Esc} returns to normal mode) \\
+\code{Esc :w} & write (save) \\
+\code{Esc :wq} & write and quit \\
+\code{Esc :x} & save (only if there are changes) and quit \\
+\code{Esc :xa} & do \code{:x} on all open buffers/tabs \\
+\code{Esc :q!} & quit without saving \\
+\code{u} & undo \\
+\code{Ctrl-r} & redo \\
+\code{dd}, \code{yy}, \code{p} & delete line, copy (yank) line, paste \\
+\code{/text} & search forward for \code{text} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Summary}
+Know the basic file/text commands, the three standard streams and how to
+redirect them (including \code{2>\&1}), pipes and \code{\$(...)}, basic regex
+for \code{egrep}, and enough Vim to edit, save and quit.

@@ -1,0 +1,193 @@
+\chapter{Introduction}
+
+\section{Course Information}
+
+\begin{description}[leftmargin=!,labelwidth=3.6cm]
+  \item[Instructors] Tim Brecht and Dan Holtby (my term).
+  \item[Prerequisites] CS 135, or 85\% or higher in CS 115 or CS 116.
+  \item[Languages] C (the C99 standard) for almost everything, and Racket as a
+    reference point to compare the \emph{functional} paradigm from CS 135 with the
+    \emph{imperative} paradigm of C.
+  \item[Web page] \url{http://www.student.cs.uwaterloo.ca/~cs136/}
+  \item[Textbook] \emph{C Programming: A Modern Approach} (CP:AMA), 2nd ed., by
+    K.\,N.~King. A copy can be borrowed from the DC library on 3-hour reserve.
+  \item[Course notes] Available on the course web page; a printed coursepack can be bought
+    at Media.Doc (MC 2018).
+\end{description}
+
+\subsection{Programming environment: Seashell}
+
+Seashell is a browser-based IDE built at Waterloo specifically for this course.
+\begin{itemize}
+  \item It works with both C and Racket.
+  \item It is integrated with the submission system (Marmoset) and the public/private
+    test environment.
+  \item It makes it easy to run your own tests: for a program \code{foo.c} you can create
+    test input files \code{foo.in} together with expected output files \code{foo.expect}.
+  \item You log in with your WatIAM user name and your \code{student.cs.uwaterloo.ca}
+    password.
+\end{itemize}
+
+\subsection{Styled boxes in the course notes}
+
+The official course notes use three kinds of boxes, and I follow a similar convention:
+\begin{itemize}
+  \item \textbf{Thick boxes} contain important information (exam material). In these notes
+    they appear as blue ``important'' boxes.
+  \item \textbf{Thin boxes} contain comments and asides. Content in an aside will not be
+    on the exams.
+  \item \textbf{Dashed boxes} contain ``advanced'' material. It may be discussed in class
+    or appear on assignments, but you are not responsible for it on exams unless your
+    instructor says otherwise.
+\end{itemize}
+
+\begin{important}[Example of an important box]
+This is what exam-relevant facts look like in these notes.
+\end{important}
+
+\begin{aside}
+And this is what an aside looks like. Asides are not tested.
+\end{aside}
+
+\subsection{Marking scheme}
+
+\begin{center}
+\begin{tabular}{lr}
+  \toprule
+  Component & Weight \\
+  \midrule
+  Assignments (roughly weekly) & 20\% \\
+  Participation (clickers) & 5\% \\
+  Midterm & 25\% \\
+  Final exam & 50\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{important}[Passing the course]
+To pass CS 136 you must pass \emph{both} the assignment component \emph{and} the weighted
+exam component (midterm + final).
+\end{important}
+
+\paragraph{Clickers.} i>Clickers are used for participation marks; they can be bought at the
+bookstore and are registered as part of Assignment~0. Credit is only given for attending
+your own section. Using someone else's clicker is an academic offence.
+
+\paragraph{Assignments.} Assignments are weekly; depending on the term there are up to 10
+(my term had 8).
+
+\begin{aside}
+\textbf{Advice.} Start every assignment early and use the ISA (Instructional Support
+Assistant) office hours. Write the code on paper first, trace through it by hand, and
+\emph{then} type it in. Tracing by hand is also exactly what the exams ask you to do.
+\end{aside}
+
+\section{What CS 136 Is About}
+
+CS 135 taught program design in a purely \emph{functional} setting: values never change and
+a program is evaluated by \emph{substitution}. CS 136 has three main themes:
+\begin{enumerate}
+  \item \textbf{Imperative programming.} Programs that work by changing \emph{state}
+    (mutation, side effects, loops). We will need a new model of computation --- memory and
+    control flow --- to replace the substitution model.
+  \item \textbf{Low-level memory.} C lets (forces) us to deal directly with memory addresses,
+    pointers, the stack and the heap, and to manage memory manually.
+  \item \textbf{Data abstraction and efficiency.} Organising programs into modules, designing
+    abstract data types (stacks, queues, dictionaries, \dots), and analysing the efficiency of
+    algorithms and data structures with Big-O notation.
+\end{enumerate}
+
+\section{Racket Review}
+
+Since we keep comparing C with Racket, here is a quick review of the CS 135 material we rely
+on. The course mostly uses the \emph{full} Racket language (\code{\#lang racket}) rather than
+the teaching languages.
+
+\subsection{The design recipe}
+
+Every function is documented with a \emph{purpose}, a \emph{contract}, and (in Racket)
+examples/tests:
+\begin{lstlisting}[style=racket]
+;; (sum-squares lon) produces the sum of the squares of the numbers in lon
+;; sum-squares: (listof Num) -> Num
+(define (sum-squares lon)
+  (cond [(empty? lon) 0]
+        [else (+ (sqr (first lon)) (sum-squares (rest lon)))]))
+
+(check-expect (sum-squares '(1 2 3)) 14)
+\end{lstlisting}
+In CS 136 we keep the purpose and contract, and add \emph{requires} (preconditions) and later
+\emph{effects} (side effects) and \emph{time} (efficiency) to the documentation.
+
+\subsection{Values, definitions and the substitution model}
+
+In Racket a \code{define} binds an identifier to a value that never changes. Evaluation is
+modelled by repeatedly substituting values for identifiers and applying functions:
+\begin{lstlisting}[style=racket]
+(define (my-sqr n) (* n n))
+(my-sqr (+ 1 2))
+=> (my-sqr 3)
+=> (* 3 3)
+=> 9
+\end{lstlisting}
+This works because there are no side effects. Once we introduce mutation, the substitution
+model breaks down, which is why Unit~05 builds a new model.
+
+\subsection{Lists and recursion}
+
+A list is either \code{empty} or \code{(cons v lst)}. Structural recursion follows the shape
+of the data:
+\begin{lstlisting}[style=racket]
+;; (count-evens lon) counts the even numbers in lon
+;; count-evens: (listof Int) -> Nat
+(define (count-evens lon)
+  (cond [(empty? lon) 0]
+        [(even? (first lon)) (add1 (count-evens (rest lon)))]
+        [else (count-evens (rest lon))]))
+\end{lstlisting}
+We will also use \emph{accumulative} recursion, which turns into loops in C:
+\begin{lstlisting}[style=racket]
+(define (sum-acc lon acc)
+  (cond [(empty? lon) acc]
+        [else (sum-acc (rest lon) (+ acc (first lon)))]))
+\end{lstlisting}
+
+\subsection{Structures}
+
+\begin{lstlisting}[style=racket]
+(struct posn (x y))          ; full Racket; define-struct in teaching languages
+(define p (posn 3 4))
+(posn-x p)                   ; => 3
+(posn? p)                    ; => #t
+\end{lstlisting}
+C has the same idea with \code{struct}, but the fields have declared types.
+
+\subsection{Higher-order functions}
+
+Functions are first-class values in Racket: they can be passed as arguments, returned, and
+created anonymously with \code{lambda}. The abstract list functions are the classic examples:
+\begin{lstlisting}[style=racket]
+(map add1 '(1 2 3))                  ; => '(2 3 4)
+(filter even? '(1 2 3 4))            ; => '(2 4)
+(foldr + 0 '(1 2 3))                 ; => 6
+(map (lambda (x) (* x x)) '(1 2 3))  ; => '(1 4 9)
+\end{lstlisting}
+C has \emph{function pointers}, which give us a (more limited) version of this
+(Units~06 and~13).
+
+\subsection{Binary search trees and dictionaries}
+
+A BST node has a key, a value and two subtrees, where every key in the left subtree is smaller
+and every key in the right subtree is larger than the node's key. A \emph{dictionary} maps keys
+to values; in CS 135 we implemented it with association lists and BSTs. We revisit both in C
+in Units~03, 11 and~12.
+
+\section{Summary}
+\begin{itemize}
+  \item CS 136 moves from functional Racket to imperative C99, using Seashell.
+  \item Grading: assignments 20\%, participation 5\%, midterm 25\%, final 50\%; both the
+    assignment and exam components must be passed.
+  \item The Racket ideas we keep using: the design recipe, the substitution model (and why it
+    fails with mutation), lists and recursion, structures, higher-order functions, BSTs and
+    dictionaries.
+\end{itemize}

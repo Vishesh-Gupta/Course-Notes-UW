@@ -1,0 +1,158 @@
+\chapter{Lecture 2: Redirection, Globbing, Pipes and egrep}
+\begin{center}
+\textit{January 9, 2018}
+\end{center}
+
+\section{cat and Keyboard Signals}
+\code{cat} stands for \emph{concatenate}; with file arguments it displays the
+contents of the files one after another. With no arguments it echoes stdin to
+stdout.
+
+\begin{itemize}
+  \item \textbf{Ctrl+C} --- kill the running program.
+  \item \textbf{Ctrl+D} --- send the end-of-file (EOF) signal.
+\end{itemize}
+
+\section{Input and Output Redirection}
+
+\begin{definition}
+\textbf{Output redirection} sends the output produced by a program to a file:
+\code{command arg1 arg2 ... > filename}.
+
+\textbf{Input redirection} sends the contents of a file to a program as its
+input: \code{command arg1 arg2 ... < filename}.
+\end{definition}
+
+\subsection*{\code{cat sample.txt} vs.\ \code{cat < sample.txt}}
+The output is identical, but the mechanism is different:
+\begin{itemize}
+  \item \code{cat sample.txt}: \code{cat} is given a filename, \emph{cat} opens
+        the file and displays its contents.
+  \item \code{cat < sample.txt}: the \emph{shell} opens the file and sends its
+        contents to \code{cat}'s stdin; \code{cat} never sees a filename.
+\end{itemize}
+The difference is visible with \code{wc}:
+\begin{lstlisting}[style=bash]
+$ wc sample.txt
+ 10  52 300 sample.txt
+$ wc < sample.txt
+ 10  52 300
+\end{lstlisting}
+
+Input and output redirection can be combined (each used once):
+\begin{lstlisting}[style=bash]
+cmd arg1 arg2 ... < inputfile > outputfile
+cat -n < in.txt > out.txt    # like cp, but numbers the lines
+\end{lstlisting}
+
+\section{Behind the Scenes: Three Streams}
+Every Linux process (\code{ls}, \code{cat}, a C/C++ program, \dots) has three
+streams associated with it.
+
+\begin{center}
+\begin{tabular}{@{}p{0.29\textwidth}p{0.29\textwidth}p{0.29\textwidth}@{}}
+\toprule
+stdin (standard input) & stdout (standard output) & stderr (standard error) \\
+\midrule
+Default: keyboard & Default: screen & Default: screen \\
+Change with \code{<} & Change with \code{>} & Change with \code{2>} \\
+ & Buffered & Not buffered \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{aside}
+\textbf{Buffering:} writing in blocks is faster than writing one character at a
+time (you will see why in CS 350). stderr is unbuffered so error messages show up
+immediately.
+\end{aside}
+
+\begin{lstlisting}[style=bash]
+cmd >> out.txt               # append to the end of out.txt
+cmd < in 1> out 2>&1         # stdout to out, stderr to the same place as stdout
+\end{lstlisting}
+\code{\&1} means ``wherever stream 1 (stdout) is currently going''.
+
+\section{Wildcards and Globbing}
+\begin{lstlisting}[style=bash]
+ls *.txt
+\end{lstlisting}
+\code{*.txt} is a \textbf{globbing pattern}: \code{*} matches any sequence of
+characters, so this lists all files whose names end with \code{.txt}.
+
+The \emph{shell} intercepts the pattern:
+\begin{enumerate}
+  \item it finds the files that match the pattern, and
+  \item replaces the pattern by those file names.
+\end{enumerate}
+So \code{ls} actually receives \code{ls sample.txt sample2.txt}. Because the
+shell does the work, globbing works with any command:
+\begin{lstlisting}[style=bash]
+cat *.txt
+echo *.txt      # a cheap way to see what a pattern expands to
+rm *.txt
+rm -rf *        # careful!!
+\end{lstlisting}
+Other glob characters: \code{?} matches exactly one character, and \code{[abc]}
+matches one of the listed characters.
+
+\begin{important}[Quoting]
+Single quotes and double quotes suppress globbing: \code{echo "*.txt"} prints
+\code{*.txt}.
+\end{important}
+
+\section{Pipes}
+We can send the output (stdout) of one program to the input (stdin) of another
+with a \textbf{pipe}: \code{cmd1 | cmd2}.
+
+\begin{example}
+How many words occur in the first 20 lines of \code{sample.txt}?
+\begin{lstlisting}[style=bash]
+head -20 sample.txt | wc -w
+\end{lstlisting}
+\end{example}
+
+\begin{example}
+Files \code{words*.txt} contain lists of words, one per line. Print a
+duplicate-free list of all the words in all the files.
+\begin{lstlisting}[style=bash]
+cat words*.txt | sort | uniq
+\end{lstlisting}
+\code{uniq} only removes \emph{adjacent} duplicates, which is why we
+\code{sort} first.
+\end{example}
+
+\section{Embedded Commands}
+Use \code{\$(cmd)} to embed the output of a command inside another command:
+\begin{lstlisting}[style=bash]
+echo "Today is $(date) and I am $(whoami)"
+\end{lstlisting}
+\begin{itemize}
+  \item Double quotes allow embedded commands (and variables) but suppress
+        globbing; they also keep the result as a \emph{single} argument.
+  \item Single quotes suppress embedded commands as well:
+        \code{echo 'Today is \$(date)'} prints the text literally.
+  \item Without quotes, each whitespace-separated word is a separate argument.
+\end{itemize}
+
+\section{egrep}
+\code{egrep pattern file(s)} prints the lines that contain a substring matching
+the given pattern (a regular expression).
+\begin{lstlisting}[style=bash]
+egrep cs246 index.shtml | wc -l           # number of lines mentioning cs246
+egrep "cs246|CS246" index.shtml | wc -l   # either spelling
+\end{lstlisting}
+\code{|} in a regular expression means ``or''. Use double quotes around patterns
+containing characters that are special to the shell (\code{|}, \code{*},
+\code{?}, \dots), otherwise the shell interprets them first.
+
+\section*{Summary}
+\begin{itemize}
+  \item \code{>}, \code{>>}, \code{<}, \code{2>}, \code{2>\&1} redirect streams;
+        the shell does the redirection, not the program.
+  \item stdout is buffered, stderr is not.
+  \item Globbing (\code{*}, \code{?}, \code{[...]}) is expanded by the shell;
+        quotes suppress it.
+  \item Pipes chain programs; \code{\$(...)} embeds a command's output.
+  \item \code{egrep} searches for lines matching a regular expression.
+\end{itemize}

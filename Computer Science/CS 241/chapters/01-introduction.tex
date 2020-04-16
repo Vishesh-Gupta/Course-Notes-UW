@@ -1,0 +1,223 @@
+\chapter{Introduction and Data Representation}
+
+\section{What this course is about}
+
+CS 241 answers the question: \emph{what actually happens between typing a program and the
+machine running it?} We build, piece by piece, the tool chain that turns source code into
+something a CPU executes:
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.6cm and 0.5cm, box/.style={draw,rounded corners,minimum height=0.8cm,align=center,font=\small}]
+  \node[box] (src) {WLP4\\source};
+  \node[box,right=of src] (scan) {scanner};
+  \node[box,right=of scan] (parse) {parser};
+  \node[box,right=of parse] (sem) {semantic\\analysis};
+  \node[box,right=of sem] (gen) {code\\gen};
+  \node[box,below=of gen] (asm) {assembler};
+  \node[box,left=of asm] (link) {linker};
+  \node[box,left=of link] (load) {loader};
+  \node[box,left=of load] (run) {MIPS CPU};
+  \draw[-Stealth] (src) -- (scan);
+  \draw[-Stealth] (scan) -- (parse);
+  \draw[-Stealth] (parse) -- (sem);
+  \draw[-Stealth] (sem) -- (gen);
+  \draw[-Stealth] (gen) -- (asm);
+  \draw[-Stealth] (asm) -- (link);
+  \draw[-Stealth] (link) -- (load);
+  \draw[-Stealth] (load) -- (run);
+\end{tikzpicture}
+\end{center}
+
+The course is ``bottom-up'' in the first half (bits $\to$ machine code $\to$ assembly
+$\to$ assembler $\to$ linker/loader) and ``top-down'' in the second half (formal
+languages $\to$ scanning $\to$ parsing $\to$ semantic analysis $\to$ code generation).
+The word \emph{sequential} in the title means we study programs that execute one
+instruction after another (no concurrency).
+
+\section{Bits, bytes and words}
+
+\begin{definition}
+A \textbf{bit} is a 0 or 1. A \textbf{byte} is 8 bits; a \textbf{nibble} is 4 bits. A
+\textbf{word} is the machine's natural unit of data; on our MIPS machine a word is 32 bits
+(4 bytes).
+\end{definition}
+
+A byte can hold $2^8 = 256$ distinct values; a word holds $2^{32} \approx 4.29\times10^9$.
+An $n$-bit sequence has $2^n$ possible values.
+
+\begin{important}[Key idea: bits have no inherent meaning]
+A sequence of bits is just a sequence of bits. Whether \code{11111111} means 255,
+$-1$, the character \code{\"y} in Latin-1, or part of an instruction depends entirely
+on how it is \emph{interpreted}. The same word in memory can be read as an unsigned
+integer, a signed integer, an ASCII string, or a MIPS instruction. The CPU only
+``knows'' a word is an instruction because the program counter happens to point at it.
+\end{important}
+
+\section{Number bases}
+
+A number written $d_{n-1}\dots d_1 d_0$ in base $b$ represents
+\[
+  \sum_{i=0}^{n-1} d_i\, b^i, \qquad 0 \le d_i < b.
+\]
+
+\subsection{Binary and hexadecimal}
+Binary is base 2. Hexadecimal (hex) is base 16 using digits \code{0}--\code{9} and \code{a}--\code{f}. Each hex
+digit corresponds to exactly one nibble, so converting between binary and hex is just
+grouping bits in fours from the right:
+\[
+  \underbrace{1010}_{\mathtt{a}}\;\underbrace{0011}_{\mathtt{3}}\;\underbrace{1111}_{\mathtt{f}}\;\underbrace{0000}_{\mathtt{0}}
+  = \mathtt{0xa3f0}.
+\]
+We write hex with a \code{0x} prefix. A 32-bit word is exactly 8 hex digits.
+
+\begin{center}
+\begin{tabular}{cccc@{\hspace{2em}}cccc}
+\toprule
+bin & hex & dec & & bin & hex & dec \\
+\midrule
+0000 & 0 & 0 & & 1000 & 8 & 8 \\
+0001 & 1 & 1 & & 1001 & 9 & 9 \\
+0010 & 2 & 2 & & 1010 & a & 10 \\
+0011 & 3 & 3 & & 1011 & b & 11 \\
+0100 & 4 & 4 & & 1100 & c & 12 \\
+0101 & 5 & 5 & & 1101 & d & 13 \\
+0110 & 6 & 6 & & 1110 & e & 14 \\
+0111 & 7 & 7 & & 1111 & f & 15 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Decimal to binary}
+Two standard methods:
+\begin{enumerate}
+  \item \textbf{Repeated division}: divide by 2, record remainders; read them bottom-to-top.
+  \item \textbf{Subtract powers}: find the largest power of 2 that fits, subtract, repeat.
+\end{enumerate}
+
+\begin{example}
+$38$: $38/2=19\ r0$, $19/2=9\ r1$, $9/2=4\ r1$, $4/2=2\ r0$, $2/2=1\ r0$, $1/2=0\ r1$.
+Reading remainders upward: $100110_2 = \mathtt{0x26}$. Check: $32+4+2=38$.
+\end{example}
+
+\section{Unsigned integers}
+
+An $n$-bit unsigned integer uses the plain binary interpretation, covering $[0, 2^n-1]$.
+Arithmetic is performed modulo $2^n$: carries out of the top bit are lost (\emph{overflow}
+wraps around). For $n=32$, $\mathtt{0xffffffff}+1 = 0$.
+
+\section{Signed integers}
+
+\subsection{Sign-magnitude (and why we do not use it)}
+Use the top bit as a sign and the rest as magnitude. Problems: two zeros ($+0$, $-0$), and
+addition needs case analysis on signs.
+
+\subsection{One's complement}
+Negate by flipping every bit. Still two zeros, and addition needs an ``end-around carry''.
+
+\subsection{Two's complement}
+\begin{definition}
+In $n$-bit \textbf{two's complement}, bit pattern $b_{n-1}\dots b_0$ represents
+\[
+  -b_{n-1}2^{n-1} + \sum_{i=0}^{n-2} b_i 2^i.
+\]
+Equivalently, interpret as unsigned $u$; if $u \ge 2^{n-1}$ the value is $u - 2^n$.
+The range is $[-2^{n-1},\, 2^{n-1}-1]$.
+\end{definition}
+
+So the top bit has \emph{negative} weight. For 8 bits the range is $[-128,127]$; for 32 bits
+it is $[-2^{31}, 2^{31}-1] = [-2147483648, 2147483647]$.
+
+\begin{important}[Negation in two's complement]
+To compute $-x$: flip all bits and add 1. This works because
+$x + \bar{x} = 2^n - 1$, so $\bar{x}+1 = 2^n - x \equiv -x \pmod{2^n}$.
+\end{important}
+
+\begin{example}
+8-bit $-38$: $38 = 00100110$; flip $\to 11011001$; add 1 $\to 11011010 = \mathtt{0xda}$.
+Check: $-128 + 64 + 16 + 8 + 2 = -38$.
+\end{example}
+
+\paragraph{Why two's complement wins.} Addition, subtraction and (low-order) multiplication
+are \emph{the same bit operations} for signed and unsigned numbers: everything is just
+arithmetic mod $2^n$. Only comparisons, division, widening and overflow detection differ.
+That is why MIPS has \code{slt} vs.\ \code{sltu}, \code{div} vs.\ \code{divu},
+\code{mult} vs.\ \code{multu}, but only one \code{add}.
+
+\paragraph{Pitfalls.}
+\begin{itemize}
+  \item $-2^{n-1}$ has no positive counterpart: negating \code{0x80000000} gives itself.
+  \item Signed overflow: adding two positives can produce a negative (e.g.\ $127+1=-128$ in 8 bits).
+        Overflow happened iff both operands have the same sign and the result has the other sign.
+  \item Comparing: \code{0xffffffff} is the largest unsigned word but signed it is $-1$.
+\end{itemize}
+
+\subsection{Sign extension}
+To widen an $n$-bit two's complement number to $m>n$ bits, copy the sign bit into all new
+positions. E.g.\ 16-bit \code{0xfffe} ($-2$) becomes 32-bit \code{0xfffffffe}. Unsigned
+values are \emph{zero-extended} instead. This matters for MIPS immediates: the 16-bit
+offsets in \code{lw}, \code{sw}, \code{beq}, \code{bne} are sign-extended.
+
+\section{Characters: ASCII}
+
+ASCII is a 7-bit code (stored in a byte) mapping integers to characters. Useful values:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+character & decimal & hex \\
+\midrule
+newline \code{\textbackslash n} & 10 & \code{0x0a} \\
+space & 32 & \code{0x20} \\
+\code{'0'} & 48 & \code{0x30} \\
+\code{'A'} & 65 & \code{0x41} \\
+\code{'a'} & 97 & \code{0x61} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Digit $d$ is character $d + 48$; lowercase is uppercase $+32$. To print an integer in MIPS
+we must convert each decimal digit to its ASCII code before writing it out.
+
+\section{Bit operations and shifts}
+
+Logical operations act bitwise: AND masks bits off, OR sets bits, XOR toggles them.
+A left shift by $k$ multiplies by $2^k$ (mod $2^n$). A logical right shift fills with 0
+(unsigned division by $2^k$); an arithmetic right shift fills with the sign bit (signed
+division rounding toward $-\infty$). Our CS 241 MIPS subset has no shift instructions, so we
+emulate them with \code{mult}/\code{div} by powers of two.
+
+\section{Endianness and byte addressing}
+
+Memory is an array of bytes, each with an address. A word occupies four consecutive bytes,
+and on MIPS words must be \emph{aligned}: their address is a multiple of 4.
+\emph{Big-endian} stores the most significant byte at the lowest address; \emph{little-endian}
+stores the least significant byte first. The CS 241 MIPS emulator is big-endian, so
+\code{0x12345678} at address \code{0x100} has \code{0x12} at \code{0x100}.
+
+\section{The stored-program idea}
+
+The machine has a CPU containing registers, an ALU, a program counter (PC) and an instruction
+register (IR), connected to RAM. Programs live in RAM alongside data (von Neumann
+architecture). The CPU repeatedly runs the \emph{fetch--execute cycle}:
+
+\begin{lstlisting}[style=c]
+PC = 0;
+while (true) {
+    IR = MEM[PC];   // fetch
+    PC = PC + 4;    // advance BEFORE executing
+    execute(IR);    // decode and execute
+}
+\end{lstlisting}
+
+Note that PC is incremented \emph{before} the instruction executes; this is why branch
+offsets are relative to the address of the \emph{next} instruction.
+
+\section{Summary}
+\begin{itemize}
+  \item Bits only acquire meaning from interpretation; the same word can be unsigned, signed, text or code.
+  \item Hex is a compact notation for binary: one hex digit per four bits, eight per word.
+  \item Two's complement: top bit has weight $-2^{n-1}$; negate by flip-and-add-one; add/sub are
+        identical for signed and unsigned, comparisons and division are not.
+  \item Sign-extend signed values, zero-extend unsigned ones.
+  \item MIPS words are 32 bits, word-aligned and big-endian; the CPU runs fetch / increment PC / execute.
+\end{itemize}

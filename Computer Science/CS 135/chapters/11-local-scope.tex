@@ -1,0 +1,167 @@
+\chapter{Local Definitions and Lexical Scope}\label{ch:local}
+
+From this point on we use \textbf{Intermediate Student}, which adds the
+\code{local} special form. \code{local} lets us make definitions visible only
+inside one expression.
+
+\section{The \code{local} form}
+\begin{lstlisting}[style=racket]
+(local [(define x1 e1)
+        ...
+        (define xn en)]
+  body)
+\end{lstlisting}
+The definitions (constants or functions) are visible in \code{body} and in each
+other's definitions (later definitions may use earlier ones), but not outside
+the \code{local} expression.
+
+\section{Uses of local}
+
+\subsection{1. Clarity: naming intermediate values}
+Heron's formula for the area of a triangle with sides $a,b,c$:
+$A = \sqrt{s(s-a)(s-b)(s-c)}$ where $s = (a+b+c)/2$.
+\begin{lstlisting}[style=racket]
+;; (heron a b c) produces the area of a triangle with side lengths a, b, c.
+;; heron: Num Num Num -> Num
+;;   requires: a, b, c satisfy the triangle inequality
+(check-expect (heron 3 4 5) 6)
+(define (heron a b c)
+  (local [(define s (/ (+ a b c) 2))]
+    (sqrt (* s (- s a) (- s b) (- s c)))))
+\end{lstlisting}
+
+\subsection{2. Efficiency: avoiding repeated computation}
+\begin{lstlisting}[style=racket]
+;; list-max: (ne-listof Num) -> Num
+(define (list-max lon)
+  (cond [(empty? (rest lon)) (first lon)]
+        [else (local [(define max-rest (list-max (rest lon)))]
+                (cond [(> (first lon) max-rest) (first lon)]
+                      [else max-rest]))]))
+\end{lstlisting}
+Without \code{local}, writing \code{(list-max (rest lon))} in both the
+question and the answer makes two recursive calls per level, i.e.\
+$\Theta(2^n)$ time. With \code{local} it is evaluated once: $\Theta(n)$.
+
+\subsection{3. Encapsulation: hiding helper functions}
+Helpers that are only meaningful to one function can be hidden inside it,
+for example the accumulator helper of reverse:
+\begin{lstlisting}[style=racket]
+;; (my-reverse lst) produces lst in reverse order.
+;; my-reverse: (listof Any) -> (listof Any)
+(check-expect (my-reverse '(1 2 3)) '(3 2 1))
+(define (my-reverse lst)
+  (local [;; (rev/acc l acc) produces l reversed, followed by acc
+          ;; rev/acc: (listof Any) (listof Any) -> (listof Any)
+          (define (rev/acc l acc)
+            (cond [(empty? l) acc]
+                  [else (rev/acc (rest l) (cons (first l) acc))]))]
+    (rev/acc lst empty)))
+\end{lstlisting}
+Locally defined functions need a purpose and contract, but no separate
+examples or tests (they cannot be called from outside, so they are tested
+through the enclosing function).
+
+\subsection{4. Using enclosing parameters}
+A local function can refer to parameters of the enclosing function, so they
+need not be passed along explicitly:
+\begin{lstlisting}[style=racket]
+;; (count-above lon t) produces how many elements of lon exceed t.
+;; count-above: (listof Num) Num -> Nat
+(define (count-above lon t)
+  (local [;; count/l: (listof Num) -> Nat
+          (define (count/l l)
+            (cond [(empty? l) 0]
+                  [(> (first l) t) (add1 (count/l (rest l)))]
+                  [else (count/l (rest l))]))]
+    (count/l lon)))
+\end{lstlisting}
+This becomes essential with \code{lambda} in the next chapter.
+
+\section{Semantics of local}
+The substitution model is extended with a rule that \textbf{renames} each
+locally defined name to a fresh, unique name and \textbf{lifts} the
+definitions to the top level.
+
+\begin{important}[Local rule]
+\code{(local [(define x1 e1) ... (define xn en)] body)} $\Rightarrow$
+\code{(define x1' e1') ... (define xn' en') body'}, where each \code{xi'} is
+a fresh identifier and \code{e1'}, \ldots, \code{body'} are the original
+expressions with every \code{xi} replaced by \code{xi'}. The lifted
+definitions are then evaluated in order like top-level definitions.
+\end{important}
+
+\begin{example}[Trace of local]
+\begin{lstlisting}[style=racket]
+(heron 3 4 5)
+=> (local [(define s (/ (+ 3 4 5) 2))]
+     (sqrt (* s (- s 3) (- s 4) (- s 5))))
+=> (define s_0 (/ (+ 3 4 5) 2))
+   (sqrt (* s_0 (- s_0 3) (- s_0 4) (- s_0 5)))
+=> (define s_0 (/ 12 2))
+   (sqrt (* s_0 (- s_0 3) (- s_0 4) (- s_0 5)))
+=> (define s_0 6)
+   (sqrt (* s_0 (- s_0 3) (- s_0 4) (- s_0 5)))
+=> (define s_0 6)
+   (sqrt (* 6 (- s_0 3) (- s_0 4) (- s_0 5)))
+=> ...
+=> (define s_0 6)
+   (sqrt (* 6 3 2 1))
+=> (define s_0 6)
+   (sqrt 36)
+=> (define s_0 6)
+   6
+\end{lstlisting}
+Every call to \code{heron} creates a new fresh name (\code{s\_0},
+\code{s\_1}, \ldots), so values from different calls never collide. In
+traces, previously evaluated lifted definitions can be shown once and then
+omitted.
+\end{example}
+
+\section{Lexical scope}
+
+\begin{definition}[Binding occurrence, scope]
+A \textbf{binding occurrence} of an identifier is where it is introduced
+(a \code{define}, a function parameter, a \code{local} definition). The
+\textbf{scope} of a binding is the region of the program where uses of the
+name refer to that binding.
+\end{definition}
+
+Racket uses \textbf{lexical (static) scope}: the binding a name refers to is
+determined by the program text. To find it, start at the use and move outward
+through enclosing \code{local}s and function headers until a binding for that
+name is found; if none, it is a top-level (global) binding.
+
+\begin{example}[Shadowing]
+\begin{lstlisting}[style=racket]
+(define x 1)
+(define (f x)
+  (local [(define x 10)
+          (define (g y) (+ x y))]
+    (g x)))
+(f 5)   ; => 20
+\end{lstlisting}
+Inside \code{g}, \code{x} refers to the innermost binding, the local
+\code{x} = 10, which \textbf{shadows} the parameter \code{x} = 5 and the global
+\code{x} = 1. The argument in \code{(g x)} is also the local \code{x}. So the
+result is $10 + 10 = 20$.
+\end{example}
+
+It helps to draw \textbf{contour diagrams}: a box around each scope (top
+level, each function body, each \code{local}); a use refers to the nearest
+enclosing box that binds the name.
+
+\section{Style}
+\begin{itemize}
+  \item Use \code{local} to name values that are used more than once or that have a meaningful name.
+  \item Do not over-nest: if a helper is useful on its own, keep it at top level and test it.
+  \item Avoid reusing the same name at different levels (shadowing) unless deliberate; it confuses readers.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item \code{local} provides definitions visible in a single expression.
+  \item Uses: clarity, efficiency (avoid recomputation), encapsulation, and access to enclosing parameters.
+  \item Semantics: rename to fresh names and lift to the top level.
+  \item Racket is lexically scoped; inner bindings shadow outer ones.
+\end{itemize}

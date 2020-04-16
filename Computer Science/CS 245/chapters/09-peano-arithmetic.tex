@@ -1,0 +1,185 @@
+\chapter{Peano Arithmetic and Formal Number Theory}\label{ch:peano}
+
+Having a sound and complete proof system for first-order logic, we can now pick a set of
+axioms and study what follows. The most important example is arithmetic on the natural
+numbers. This chapter also revisits induction, the main proof technique for reasoning
+about programs and data structures.
+
+\section{The language of arithmetic}
+
+The language $\mathcal{L}_A$ has
+\begin{itemize}
+  \item a constant symbol $0$;
+  \item a unary function symbol $s$ (successor; think $s(x)=x+1$);
+  \item binary function symbols $+$ and $\cdot$ (written infix);
+  \item equality $=$ (and sometimes a binary predicate $<$, which can also be defined).
+\end{itemize}
+The \emph{standard interpretation} $\mathcal{N}$ has domain $\N=\{0,1,2,\dots\}$ with the
+usual meanings. The closed term $s(s(s(0)))$ denotes $3$; we abbreviate $s^n(0)$ by
+$\overline{n}$ (a \emph{numeral}).
+
+\section{The Peano axioms}
+
+\begin{definition}[Peano arithmetic, PA]
+\begin{align*}
+&\text{(PA1)}\quad \forall x\,\neg(s(x)=0)\\
+&\text{(PA2)}\quad \forall x\,\forall y\,(s(x)=s(y)\to x=y)\\
+&\text{(PA3)}\quad \forall x\,(x+0=x)\\
+&\text{(PA4)}\quad \forall x\,\forall y\,(x+s(y)=s(x+y))\\
+&\text{(PA5)}\quad \forall x\,(x\cdot 0=0)\\
+&\text{(PA6)}\quad \forall x\,\forall y\,(x\cdot s(y)=x\cdot y+x)\\
+&\text{(PA7, induction scheme)}\quad
+  \big(\varphi[0/x]\land\forall x\,(\varphi\to\varphi[s(x)/x])\big)\to\forall x\,\varphi
+\end{align*}
+for every formula $\varphi$ (which may have other free variables, implicitly universally
+quantified).
+\end{definition}
+
+\begin{itemize}
+  \item PA1 and PA2 say $0$ is not a successor and $s$ is injective, so
+        $0, s(0), s(s(0)),\dots$ are all distinct.
+  \item PA3--PA6 are the recursive definitions of $+$ and $\cdot$ (recursion on the second
+        argument).
+  \item PA7 is not one axiom but infinitely many: one for each formula $\varphi$. Its
+        job is to rule out elements that are not reachable from $0$ by finitely many
+        successor steps (as far as first-order logic can).
+\end{itemize}
+
+Order can be defined: $x\le y$ abbreviates $\exists z\,(x+z=y)$ and $x<y$ abbreviates
+$\exists z\,(x+s(z)=y)$.
+
+\section{Computing with the axioms}
+
+\begin{example}[$\overline{2}+\overline{2}=\overline{4}$]
+Informally, using PA4 twice and PA3 once:
+\begin{align*}
+s(s(0))+s(s(0)) &= s(s(s(0))+s(0)) && \text{PA4}\\
+ &= s(s(s(s(0))+0)) && \text{PA4}\\
+ &= s(s(s(s(0)))) && \text{PA3 and $=e$.}
+\end{align*}
+Every true equation between closed terms is provable this way: PA (in fact, the much
+weaker system without induction) proves all true closed atomic sentences.
+\end{example}
+
+\section{Proofs by induction in PA}
+
+To prove $\forall x\,\varphi$ in PA, prove the base case $\varphi[0/x]$ and the inductive
+step $\forall x\,(\varphi\to\varphi[s(x)/x])$, then apply PA7 and $\to e$.
+
+\begin{example}[$\vdash_{PA}\forall x\,(0+x=x)$]
+Note this is \emph{not} an axiom: PA3 says $x+0=x$, with $0$ on the right. Let
+$\varphi$ be $0+x=x$.
+\begin{ndproof}
+1 & $\forall x\,(x+0=x)$ & PA3\\
+2 & $\forall x\,\forall y\,(x+s(y)=s(x+y))$ & PA4\\
+3 & $0+0=0$ & $\forall e$ 1\\
+4 & \bx\bx $0+x_0=x_0$ & $x_0$ fresh;\ assumption\\
+5 & \bx\bx $\forall y\,(0+s(y)=s(0+y))$ & $\forall e$ 2\\
+6 & \bx\bx $0+s(x_0)=s(0+x_0)$ & $\forall e$ 5\\
+7 & \bx\bx $0+s(x_0)=s(x_0)$ & $=e$ 4, 6\\
+8 & \bx $0+x_0=x_0\to 0+s(x_0)=s(x_0)$ & $\to i$ 4--7\\
+9 & $\forall x\,(0+x=x\to 0+s(x)=s(x))$ & $\forall i$ 4--8\\
+10 & $0+0=0\land\forall x\,(0+x=x\to 0+s(x)=s(x))$ & $\land i$ 3, 9\\
+11 & $(0+0=0\land\forall x\,(\dots))\to\forall x\,(0+x=x)$ & PA7\\
+12 & $\forall x\,(0+x=x)$ & $\to e$ 10, 11
+\end{ndproof}
+In line 7, $=e$ uses $\varphi'$ being $0+s(x_0)=s(z)$: line 6 is $\varphi'[0+x_0/z]$ and
+line 4 says $0+x_0=x_0$, giving $\varphi'[x_0/z]$.
+\end{example}
+
+\begin{example}[$\forall x\,\neg(s(x)=x)$, informally]
+Let $\varphi(x)$ be $\neg(s(x)=x)$.
+\emph{Base}: $\neg(s(0)=0)$ is an instance of PA1.
+\emph{Step}: assume $\neg(s(x_0)=x_0)$. If $s(s(x_0))=s(x_0)$, then by PA2,
+$s(x_0)=x_0$, contradicting the IH. So $\neg(s(s(x_0))=s(x_0))$.
+By PA7, $\forall x\,\neg(s(x)=x)$.
+\end{example}
+
+\begin{example}[Commutativity of $+$, sketch]
+\begin{enumerate}
+  \item Lemma A: $\forall x\,(0+x=x)$ (above).
+  \item Lemma B: $\forall x\,\forall y\,(s(y)+x=s(y+x))$, by induction on $x$:
+        base $s(y)+0=s(y)=s(y+0)$ by PA3; step
+        $s(y)+s(x)=s(s(y)+x)=s(s(y+x))=s(y+s(x))$ by PA4, IH, PA4.
+  \item Theorem: $\forall x\,\forall y\,(x+y=y+x)$, by induction on $y$:
+        base $x+0=x=0+x$ by PA3 and Lemma A; step
+        $x+s(y)=s(x+y)=s(y+x)=s(y)+x$ by PA4, IH, Lemma B.
+\end{enumerate}
+Choosing which variable to induct on, and which auxiliary lemmas to prove first, is the
+creative part.
+\end{example}
+
+\section{Forms of induction}
+
+\begin{important}[Equivalent induction principles on $\N$]
+\begin{description}
+  \item[Simple induction:] $P(0)$ and $\forall n\,(P(n)\to P(n+1))$ imply $\forall n\,P(n)$.
+  \item[Strong (complete) induction:] if $\forall n\,\big((\forall k<n\ P(k))\to P(n)\big)$
+        then $\forall n\,P(n)$. (No separate base case is needed, but the case $n=0$ must
+        be handled with no hypotheses.)
+  \item[Well-ordering:] every non-empty subset of $\N$ has a least element. A proof by
+        ``minimal counterexample'' uses this.
+\end{description}
+Strong induction follows from simple induction applied to $Q(n)=\forall k\le n\ P(k)$.
+\end{important}
+
+Structural induction (Chapter~\ref{ch:propsyntax}) generalises these to any inductively
+defined set: formulas, lists, trees. Induction on the length of a proof (used in the
+soundness proof) is strong induction on $\N$.
+
+\begin{example}[Strong induction]
+Every integer $n\ge2$ is a product of primes. If $n$ is prime, done. Otherwise $n=ab$ with
+$2\le a,b<n$; by IH both $a$ and $b$ are products of primes, hence so is $n$.
+\end{example}
+
+\begin{important}[Common pitfalls]
+\begin{itemize}
+  \item Forgetting the base case (``$n=n+1$ implies $n+1=n+2$'' proves nothing).
+  \item An inductive step that silently fails for small $n$ (the classic ``all horses are
+        the same colour'' argument breaks going from $1$ to $2$).
+  \item Using the conclusion $\forall x\,\varphi$ inside the step: the IH is only
+        $\varphi$ for the particular $x_0$.
+  \item Inducting on the wrong variable, or with a statement too weak to carry the step;
+        strengthening the claim (``loading the induction'') often helps.
+\end{itemize}
+\end{important}
+
+\section{Models of PA and the limits of first-order arithmetic}
+
+\begin{itemize}
+  \item The standard model $\mathcal{N}$ satisfies all axioms of PA, so (by soundness)
+        PA is consistent if we accept that $\mathcal{N}$ exists.
+  \item \textbf{Non-standard models.} Add a new constant $c$ and sentences
+        $\overline{n}<c$ for every $n$. Every finite subset is satisfied in $\mathcal{N}$
+        (interpret $c$ as a large number), so by compactness the whole set has a model:
+        a model of PA with an element larger than every numeral. So first-order PA cannot
+        pin down $\N$ up to isomorphism. (Second-order induction, quantifying over all
+        subsets, can.)
+  \item \textbf{Incompleteness.} G\"odel (1931) showed there are sentences true in
+        $\mathcal{N}$ that PA cannot prove, and that this cannot be fixed by adding more
+        (computably listable) axioms. See Chapter~\ref{ch:undecidability}.
+  \item By contrast, \emph{Presburger arithmetic} (only $0$, $s$, $+$, no $\cdot$) is
+        complete and decidable.
+\end{itemize}
+
+\begin{aside}
+The connection to computer science: the recursive equations PA3--PA6 are exactly how
+addition and multiplication would be programmed on unary numbers:
+\begin{lstlisting}[style=racket]
+(define (add x y)            ; recursion on y, like PA3/PA4
+  (cond [(zero? y) x]
+        [else (add1 (add x (sub1 y)))]))
+\end{lstlisting}
+and an induction proof of a property of \code{add} follows the shape of its recursion.
+\end{aside}
+
+\section*{Summary}
+\begin{itemize}
+  \item PA: $0$ is not a successor; $s$ is injective; recursive definitions of $+$ and
+        $\cdot$; and the induction scheme (one axiom per formula).
+  \item Facts like $0+x=x$ and $x+y=y+x$ need induction; closed equations just need
+        PA3--PA6.
+  \item Simple induction, strong induction and well-ordering are equivalent on $\N$;
+        structural induction generalises them.
+  \item First-order PA has non-standard models (compactness) and is incomplete (G\"odel).
+\end{itemize}

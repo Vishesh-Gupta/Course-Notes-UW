@@ -1,0 +1,210 @@
+\chapter{The Single-Cycle Datapath and Control}
+
+We now build a processor that executes \code{add}, \code{sub}, \code{and},
+\code{or}, \code{slt}, \code{lw}, \code{sw}, \code{beq} (and later \code{j})
+with each instruction completing in exactly one (long) clock cycle.
+
+\section{Performance}
+
+\begin{definition}
+CPU time $=$ Instruction count $\times$ CPI $\times$ Clock cycle time
+$= \dfrac{\text{IC} \times \text{CPI}}{\text{Clock rate}}$, where CPI is the
+average number of clock cycles per instruction.
+\end{definition}
+
+The ``iron law'' shows the trade-offs: the ISA and compiler affect IC, the
+implementation affects CPI and cycle time. A single-cycle design has
+CPI $= 1$ but a long cycle time.
+
+\section{Datapath Elements}
+
+\begin{itemize}
+  \item \textbf{PC} register and an adder computing $PC + 4$.
+  \item \textbf{Instruction memory}: address in, instruction out
+    (read-only, combinational).
+  \item \textbf{Register file}: two read ports, one write port (written at
+    the clock edge when \code{RegWrite} = 1).
+  \item \textbf{ALU} with \code{Zero} output.
+  \item \textbf{Data memory}: address, write data, read data;
+    \code{MemRead}/\code{MemWrite} controls.
+  \item \textbf{Sign extender} (16 $\to$ 32 bits) and a \textbf{shift-left-2}
+    unit for branch offsets, plus a second adder for the branch target.
+\end{itemize}
+
+Separate instruction and data memories are needed because a single-cycle
+design cannot use one memory twice in the same cycle (a structural hazard).
+
+\section{Building the Datapath}
+
+\paragraph{Fetch.} Instruction $\gets$ IMem[PC]; PC $\gets$ PC + 4
+(unless a branch is taken).
+
+\paragraph{R-type.} Read \code{rs}, \code{rt}; ALU computes; write result
+to \code{rd}.
+
+\paragraph{Load/store.} Read \code{rs} (base) and, for \code{sw},
+\code{rt}; ALU adds base + sign-extended offset; \code{lw} reads data memory
+and writes to \code{rt}; \code{sw} writes \code{rt}'s value to memory.
+
+\paragraph{Branch.} ALU subtracts \code{rs} $-$ \code{rt}; if
+\code{Zero}, the next PC is $PC + 4 + (\text{signext}(imm) \ll 2)$.
+
+Merging these requires multiplexers wherever a unit has more than one
+possible source:
+\begin{itemize}
+  \item \code{RegDst} mux: write register is \code{rt} (I-type) or
+    \code{rd} (R-type).
+  \item \code{ALUSrc} mux: second ALU operand is register \code{rt} or the
+    sign-extended immediate.
+  \item \code{MemtoReg} mux: write-back value is ALU result or memory data.
+  \item \code{PCSrc} mux: next PC is $PC+4$ or the branch target;
+    $\code{PCSrc} = \code{Branch} \cdot \code{Zero}$.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[thick, >=Stealth, font=\small,
+  blk/.style={draw, minimum height=1.6cm, minimum width=1.4cm, align=center},
+  mux/.style={draw, trapezium, trapezium angle=70, shape border rotate=270,
+    minimum width=0.9cm, minimum height=0.4cm, inner sep=1pt, font=\scriptsize}]
+  \node[blk, minimum width=0.6cm] (pc) at (0,0) {PC};
+  \node[blk] (im) at (1.8,0) {Instr\\Mem};
+  \node[blk, minimum height=2.2cm] (rf) at (4.4,0) {Reg\\File};
+  \node[blk, minimum width=0.9cm] (se) at (4.4,-2.2) {Sign\\ext};
+  \node[mux] (asrc) at (6.2,-0.6) {M};
+  \node[draw, minimum height=1.8cm, minimum width=1cm] (alu) at (7.4,0) {ALU};
+  \node[blk] (dm) at (9.4,0) {Data\\Mem};
+  \node[mux] (m2r) at (11,0) {M};
+  \node[draw, circle, inner sep=1pt] (add4) at (1.8,2.2) {$+4$};
+
+  \draw[->] (pc) -- (im);
+  \draw[->] (im) -- node[above]{\scriptsize rs,rt} (rf);
+  \draw[->] (im.south) |- (se.west);
+  \draw[->] ($(rf.east)+(0,0.6)$) -- ($(alu.west)+(0,0.6)$);
+  \draw[->] ($(rf.east)+(0,-0.6)$) -- (asrc.west);
+  \draw[->] (se.east) -| (asrc.south);
+  \draw[->] (asrc.east) -- ($(alu.west)+(0,-0.6)$);
+  \draw[->] (alu) -- node[above]{\scriptsize addr} (dm);
+  \draw[->] (dm) -- (m2r);
+  \draw[->] ($(alu.east)+(0,-0.6)$) -- ++(0.3,0) |- ++(0,-1.4) -| (m2r.south);
+  \draw[->] (m2r.east) -- ++(0.4,0) |- ++(0,-3.2) -| ($(rf.south)+(0.4,0)$);
+  \node[font=\scriptsize] at (8.2,-2.95) {write data};
+  \draw[->] (pc.north) |- (add4.west);
+  \draw[->] (add4.east) -- ++(1.2,0) node[right]{\scriptsize to PC mux};
+\end{tikzpicture}
+\caption{Simplified single-cycle datapath (branch logic and RegDst mux
+omitted for clarity).}
+\end{figure}
+
+\section{Control}
+
+The \textbf{main control unit} decodes the 6-bit opcode into the control
+signals. A separate small \textbf{ALU control} unit combines a 2-bit
+\code{ALUOp} from main control with the \code{funct} field.
+
+\subsection{Main control table}
+
+\begin{center}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccccc}
+\toprule
+Instr & RegDst & ALUSrc & MemtoReg & RegWrite & MemRead & MemWrite & Branch & ALUOp \\
+\midrule
+R-type & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 10 \\
+\code{lw} & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 00 \\
+\code{sw} & X & 1 & X & 0 & 0 & 1 & 0 & 00 \\
+\code{beq} & X & 0 & X & 0 & 0 & 0 & 1 & 01 \\
+\bottomrule
+\end{tabular}}
+\end{center}
+
+X means don't care: \code{sw} and \code{beq} do not write a register, so it
+does not matter which register number or write value is selected. (But
+\code{RegWrite} and \code{MemWrite} must never be X!)
+
+\subsection{ALU control}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+ALUOp & funct & Operation & ALU control \\
+\midrule
+00 (lw/sw) & XXXXXX & add & 0010 \\
+01 (beq) & XXXXXX & subtract & 0110 \\
+10 (R) & 100000 & add & 0010 \\
+10 (R) & 100010 & subtract & 0110 \\
+10 (R) & 100100 & AND & 0000 \\
+10 (R) & 100101 & OR & 0001 \\
+10 (R) & 101010 & slt & 0111 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This two-level decoding (main control + ALU control) keeps the main
+control small and fast.
+
+\subsection{Adding jump}
+
+For \code{j}: the target is $\{(PC+4)[31{:}28], \text{addr}[25{:}0], 00\}$.
+Add one more mux after the \code{PCSrc} mux, controlled by a new \code{Jump}
+signal from main control.
+
+\begin{example}[Tracing \code{lw \$t1, 8(\$t0)}]
+\begin{enumerate}
+  \item Fetch from IMem[PC]; adder computes PC+4.
+  \item Register file reads \code{\$t0} (rs); \code{rt} is \code{\$t1}.
+  \item Sign-extend 8; \code{ALUSrc}=1 selects it; ALU control = add;
+    ALU outputs \code{\$t0}+8.
+  \item Data memory reads that address (\code{MemRead}=1).
+  \item \code{MemtoReg}=1 selects memory data; \code{RegDst}=0 selects
+    \code{rt}; \code{RegWrite}=1 writes \code{\$t1} at the clock edge.
+  \item \code{Branch}=0, so PC $\gets$ PC+4.
+\end{enumerate}
+\end{example}
+
+\begin{important}[Exam-style question: control faults]
+A common question: ``suppose \code{RegDst} is stuck at 0; which instructions
+break?'' Answer: R-type instructions (they would write \code{rt} instead of
+\code{rd}); \code{lw} still works; \code{sw}, \code{beq} don't care.
+Always reason per instruction using the control table.
+\end{important}
+
+\section{Timing of the Single-Cycle Design}
+
+The clock period must accommodate the slowest instruction, which is
+\code{lw}:
+\[
+T = t_{IMem} + t_{RegRead} + t_{ALU} + t_{DMem} + t_{RegWrite\,setup}.
+\]
+
+\begin{example}
+Let IMem = 200\,ps, register read = 100\,ps, ALU = 200\,ps, DMem = 200\,ps,
+register write = 100\,ps (ignore muxes). Instruction times:
+R-type 600, \code{lw} 800, \code{sw} 700, \code{beq} 500\,ps. The
+single-cycle clock must be 800\,ps even though most instructions need less.
+With a mix of 25\% \code{lw}, 10\% \code{sw}, 45\% R-type, 20\% \code{beq},
+a hypothetical variable-length clock would average
+$0.25(800) + 0.10(700) + 0.45(600) + 0.20(500) = 640$\,ps,
+so single-cycle wastes $800/640 = 1.25\times$.
+\end{example}
+
+\begin{important}[Problems with single-cycle]
+\begin{itemize}
+  \item Cycle time set by the slowest instruction; common, fast instructions
+    are penalized (violates ``make the common case fast'').
+  \item Each functional unit used at most once per instruction, so units
+    must be duplicated (two memories, three adders).
+  \item Complex instructions (floating point) would make the cycle huge.
+\end{itemize}
+Solutions: multi-cycle (next chapter) and pipelining.
+\end{important}
+
+\section*{Summary}
+\begin{itemize}
+  \item CPU time = IC $\times$ CPI $\times$ cycle time.
+  \item Datapath: PC, IMem, register file, ALU, DMem, sign extend, adders;
+    muxes RegDst, ALUSrc, MemtoReg, PCSrc (and Jump).
+  \item Control: main control from opcode (table above) + ALU control from
+    ALUOp and funct.
+  \item Single-cycle: CPI = 1, cycle time = longest instruction (\code{lw}).
+\end{itemize}

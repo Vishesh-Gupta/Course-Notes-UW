@@ -1,0 +1,176 @@
+\chapter{Topic: Coupling, Cohesion and MVC}
+
+\begin{aside}
+Material from the remainder of the term, not covered in the original lecture
+notes.
+\end{aside}
+
+\section{Measures of Design Quality}
+How do we tell whether a modular design is good? Two classic measures.
+
+\subsection{Coupling}
+\begin{definition}
+\textbf{Coupling} is how much distinct modules (classes) depend on each other.
+\end{definition}
+From low (good) to high (bad):
+\begin{enumerate}
+  \item modules communicate via function calls with basic parameters/results;
+  \item modules pass arrays/structs back and forth;
+  \item modules affect each other's control flow (e.g.\ passing flags that tell
+        the other module what to do);
+  \item modules share global data;
+  \item modules have access to each other's implementation (\code{friend}s,
+        public fields).
+\end{enumerate}
+With high coupling, changes to one module require changes to others, and modules
+are hard to reuse individually.
+
+\subsection{Cohesion}
+\begin{definition}
+\textbf{Cohesion} is how closely the elements of a single module are related to
+each other.
+\end{definition}
+From low (bad) to high (good):
+\begin{enumerate}
+  \item arbitrary grouping of unrelated elements (e.g.\ \code{<utility>}:
+        \code{swap}, \code{pair}, \code{move}, \dots);
+  \item elements share a common theme but are otherwise unrelated, maybe sharing
+        some base code (e.g.\ \code{<algorithm>});
+  \item elements manipulate the same state over the lifetime of an object (e.g.\
+        open/read/close a file);
+  \item elements pass data to each other (a pipeline);
+  \item elements cooperate to perform exactly one task.
+\end{enumerate}
+With low cohesion, modules are poorly organized and hard to understand and
+maintain.
+
+\begin{important}[Goal]
+Low coupling, high cohesion.
+\end{important}
+
+\section{Decoupling the Interface}
+Your primary program classes should not be printing things. Consider
+\begin{lstlisting}[style=cpp]
+class ChessBoard {
+    ...
+    void move(...) {
+        ...
+        std::cout << "Your move" << std::endl;
+    }
+};
+\end{lstlisting}
+This is bad design: it inhibits code reuse. What if we want a graphical display,
+or to use the same game logic over the network, or to write output to a file?
+Slightly better: give the class a stream to print to,
+\begin{lstlisting}[style=cpp]
+class ChessBoard {
+    std::ostream &out;
+  public:
+    ChessBoard(std::ostream &out) : out{out} {}
+    ...
+};
+\end{lstlisting}
+but it still assumes a text interface.
+
+\begin{definition}
+\textbf{Single Responsibility Principle}: a class should have only one reason to
+change.
+\end{definition}
+If two distinct parts of the specification can change independently (the rules
+of chess vs.\ how the board is displayed), they belong in different classes.
+\code{ChessBoard} should communicate with its user via parameters, results, and
+possibly exceptions; a separate class handles I/O.
+
+\section{Model--View--Controller (MVC)}
+\begin{definition}
+\textbf{MVC} separates a program into three parts:
+\begin{itemize}
+  \item the \textbf{model}: the main data and logic you are manipulating (e.g.\
+        the game state);
+  \item the \textbf{view}: how the model is displayed;
+  \item the \textbf{controller}: how the model is manipulated (interprets user
+        input, decides what to do).
+\end{itemize}
+\end{definition}
+
+\begin{center}
+\begin{tikzpicture}[cls/.style={draw, minimum width=24mm, minimum height=9mm},
+  >={Stealth}]
+\node[cls] (m) {Model};
+\node[cls, below left=15mm and 6mm of m] (v) {View};
+\node[cls, below right=15mm and 6mm of m] (c) {Controller};
+\draw[->] (c) -- node[right, font=\small] {updates} (m);
+\draw[->, dashed] (m) -- node[left, font=\small] {notifies} (v);
+\draw[->] (v) -- node[below, font=\small] {user input} (c);
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}
+  \item The model may have multiple views (text and graphics at the same time).
+        It doesn't need to know their details: the model is typically a
+        \textbf{subject} and the views are \textbf{observers} (Observer pattern,
+        Lecture 18).
+  \item The controller mediates control flow between model and view. The model
+        may (or may not) hold a reference to the controller.
+  \item Swapping out the view or controller does not require changing the model,
+        and the model can be tested without any UI.
+\end{itemize}
+
+\begin{lstlisting}[style=cpp]
+class Game : public Subject {          // model
+    Board board;
+  public:
+    bool makeMove(const Move &m);      // returns false if illegal
+    const Board &getState() const { return board; }
+};
+
+class TextDisplay : public Observer {  // view
+    Game &game;
+    std::ostream &out;
+  public:
+    TextDisplay(Game &g, std::ostream &out) : game{g}, out{out} {
+        game.attach(this);
+    }
+    void notify() override { out << game.getState(); }
+};
+
+class Controller {                     // controller
+    Game &game;
+  public:
+    explicit Controller(Game &g) : game{g} {}
+    void play(std::istream &in) {
+        Move m;
+        while (in >> m) {
+            if (game.makeMove(m)) game.notifyObservers();
+            else std::cerr << "Illegal move" << std::endl;
+        }
+    }
+};
+\end{lstlisting}
+
+\section{Other Design Principles}
+\begin{itemize}
+  \item \textbf{Open/Closed Principle}: classes should be open for extension
+        but closed for modification. Changes in a program should happen by
+        writing \emph{new} code (new subclasses, new decorators, new visitors),
+        not by editing working code. Strategies, Decorator, Template Method and
+        Visitor all support this.
+  \item \textbf{Liskov Substitution Principle}: if B is a subtype of A, a B must
+        be usable anywhere an A is expected, without the client noticing.
+        Subclasses must not strengthen preconditions, weaken postconditions or
+        break invariants of the superclass. (Classic violation: \code{Square} as
+        a subclass of a mutable \code{Rectangle} --- setting the width of a
+        square also changes its height, which no Rectangle client expects.)
+  \item \textbf{Program to an interface} (Lecture 17), and prefer composition
+        over inheritance when the relationship is not really is-a.
+\end{itemize}
+
+\section*{Summary}
+\begin{itemize}
+  \item Aim for low coupling (modules depend on each other as little as
+        possible) and high cohesion (each module does one coherent thing).
+  \item Keep I/O out of core logic (Single Responsibility).
+  \item MVC: model (data/logic, a Subject), views (Observers that display it),
+        controller (turns input into model operations).
+  \item Open/Closed and Liskov Substitution guide good use of inheritance.
+\end{itemize}

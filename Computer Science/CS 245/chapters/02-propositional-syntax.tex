@@ -1,0 +1,211 @@
+\chapter{Propositional Logic: Syntax}\label{ch:propsyntax}
+
+Syntax is about which strings of symbols are legal formulas, with no reference yet to
+truth or meaning.
+
+\section{The alphabet}
+
+The language of propositional logic, $\mathcal{L}^p$, uses the following symbols:
+\begin{itemize}
+  \item \emph{propositional variables} (atoms): $p, q, r, \dots$, possibly with
+        subscripts $p_1, p_2, \dots$; the set of atoms is written $\Prop$ (countable);
+  \item \emph{connectives}: $\neg$ (negation), $\land$ (conjunction), $\lor$ (disjunction),
+        $\to$ (implication), $\leftrightarrow$ (biconditional);
+  \item \emph{punctuation}: the parentheses $($ and $)$.
+\end{itemize}
+Some presentations also include the constants $\top$ and $\bot$ as atomic formulas.
+
+An \emph{expression} is any finite string of these symbols. Most expressions, such as
+$)p\neg\land($, are garbage. We now pick out the meaningful ones.
+
+\section{Well-formed formulas}
+
+\begin{definition}[Well-formed formula]
+The set $\Fm(\mathcal{L}^p)$ of \emph{well-formed formulas} (wffs, or just formulas) is
+the smallest set of expressions such that
+\begin{enumerate}
+  \item every atom $p \in \Prop$ is a formula (an \emph{atomic formula});
+  \item if $A$ is a formula, then $(\neg A)$ is a formula;
+  \item if $A$ and $B$ are formulas and $\star \in \{\land,\lor,\to,\leftrightarrow\}$,
+        then $(A \star B)$ is a formula.
+\end{enumerate}
+\end{definition}
+
+``Smallest'' means nothing is a formula unless it is forced to be by finitely many
+applications of the rules. Equivalently: an expression is a formula iff it has a
+\emph{formation sequence}, a finite list of expressions each of which is an atom or is
+obtained from earlier ones by rule 2 or 3, ending with the expression.
+
+\begin{example}
+$((p \land q) \to (\neg r))$ is a formula, with formation sequence
+\[
+  p,\quad q,\quad r,\quad (p\land q),\quad (\neg r),\quad ((p\land q)\to(\neg r)).
+\]
+The expressions $p\land q$ (missing outer parentheses), $(p \neg q)$ and $(p \land)$ are
+not formulas under the strict definition.
+\end{example}
+
+\subsection{Conventions for dropping parentheses}
+
+Fully parenthesised formulas are hard to read, so we adopt conventions (and always
+mean the fully parenthesised formula):
+\begin{itemize}
+  \item omit the outermost pair of parentheses;
+  \item precedence, from tightest to loosest: $\neg$, $\land$, $\lor$, $\to$,
+        $\leftrightarrow$;
+  \item $\to$ associates to the \emph{right}: $p \to q \to r$ means $p\to(q\to r)$;
+  \item $\land$ and $\lor$ are usually written associating left; since they are
+        associative semantically the choice rarely matters.
+\end{itemize}
+So $\neg p \land q \to r \lor s$ abbreviates $(((\neg p) \land q) \to (r \lor s))$.
+
+\section{Structural induction}
+
+Because formulas are defined inductively, we prove properties of \emph{all} formulas by
+induction that follows the definition.
+
+\begin{theorem}[Principle of structural induction]
+Let $R$ be a property of expressions. Suppose
+\begin{enumerate}
+  \item (base case) every atom has property $R$;
+  \item (inductive step for $\neg$) if $A$ has $R$, then $(\neg A)$ has $R$;
+  \item (inductive step for binary connectives) if $A$ and $B$ have $R$, then so does
+        $(A \star B)$ for each $\star\in\{\land,\lor,\to,\leftrightarrow\}$.
+\end{enumerate}
+Then every well-formed formula has property $R$.
+\end{theorem}
+
+\begin{proof}[Justification]
+Let $S$ be the set of formulas with property $R$. The hypotheses say $S$ contains all
+atoms and is closed under the formation rules. Since $\Fm$ is the \emph{smallest} such
+set, $\Fm \subseteq S$. (Alternatively, do ordinary strong induction on the length of a
+formation sequence, or on the number of connectives.)
+\end{proof}
+
+\begin{example}[Balanced parentheses]
+\emph{Claim}: every formula has the same number of left and right parentheses.
+
+\emph{Proof.} Let $l(A)$, $r(A)$ be the numbers of left and right parentheses in $A$.
+\begin{itemize}
+  \item Base: an atom $p$ has $l(p)=r(p)=0$.
+  \item $(\neg A)$: $l = l(A)+1 = r(A)+1 = r$ by the induction hypothesis.
+  \item $(A\star B)$: $l = l(A)+l(B)+1 = r(A)+r(B)+1 = r$.
+\end{itemize}
+By structural induction the claim holds for every formula. \qed
+\end{example}
+
+\begin{example}[Proper prefixes]
+\emph{Claim}: every non-empty proper prefix of a formula has strictly more left than
+right parentheses (in particular, no proper prefix of a formula is a formula).
+
+\emph{Sketch.} Atoms have no non-empty proper prefixes. For $(\neg A)$, a proper prefix is
+$($, or $(\neg$, or $(\neg A'$ where $A'$ is a prefix of $A$ (a proper prefix, or $A$
+itself); in each case the extra leading $($ is unmatched, using the IH for proper
+prefixes of $A$ and the balance lemma for $A$ itself. The case $(A\star B)$ is similar.
+\end{example}
+
+\begin{example}[Counting]
+Let $c(A)$ be the number of occurrences of binary connectives and $a(A)$ the number of
+occurrences of atoms. If $A$ contains no $\neg$, then $a(A) = c(A)+1$. Base: $1 = 0+1$.
+Step: $a(A\star B) = a(A)+a(B) = c(A)+1+c(B)+1 = c(A\star B)+1$.
+\end{example}
+
+\section{Unique readability}
+
+Could a formula be built in two different ways, and so have two different meanings? For
+example, is $(p\land q\to r)$ ambiguous? Under the official, fully parenthesised
+definition, no.
+
+\begin{theorem}[Unique readability]
+Every formula is of exactly one of the following forms:
+\begin{enumerate}
+  \item an atom;
+  \item $(\neg A)$ for a unique formula $A$;
+  \item $(A\star B)$ for a unique connective $\star$ and unique formulas $A$, $B$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+The first symbol of a formula is an atom (case 1) or $($. If it starts with $(\neg$ then
+it must come from rule 2, and $A$ is determined by removing the first two and last
+symbols. Otherwise suppose $(A\star B) = (A'\star' B')$. Then $A$ and $A'$ both start at
+position 2. If $A \neq A'$, one is a proper prefix of the other, so a proper prefix of a
+formula is a formula, contradicting the prefix lemma. Hence $A=A'$, so $\star=\star'$
+and $B=B'$.
+\end{proof}
+
+Unique readability is what lets us define functions on formulas by \emph{structural
+recursion} (e.g.\ the truth value of a formula, its height, its set of subformulas) and
+know they are well defined.
+
+\begin{definition}[Main connective, subformula]
+In case 2 or 3 above, $\neg$ (respectively $\star$) is the \emph{main connective} of the
+formula. The set of \emph{subformulas} is defined recursively:
+$\mathrm{sub}(p)=\{p\}$, $\mathrm{sub}((\neg A))=\{(\neg A)\}\cup\mathrm{sub}(A)$, and
+$\mathrm{sub}((A\star B)) = \{(A\star B)\}\cup\mathrm{sub}(A)\cup\mathrm{sub}(B)$.
+\end{definition}
+
+\section{Parse trees}
+
+A formula can be drawn as a \emph{parse tree}: leaves are atoms, each internal node is
+labelled with a connective, $\neg$ nodes have one child and binary nodes have two. The
+root is the main connective. Unique readability says each formula has exactly one parse
+tree.
+
+\begin{example}
+The parse tree of $\neg p \land q \to (r \lor \neg p)$, i.e.\
+$(((\neg p)\land q)\to(r\lor(\neg p)))$:
+\begin{center}
+\begin{tikzpicture}[level distance=11mm,
+  level 1/.style={sibling distance=36mm},
+  level 2/.style={sibling distance=16mm},
+  level 3/.style={sibling distance=10mm}]
+\node {$\to$}
+  child {node {$\land$}
+    child {node {$\neg$} child {node {$p$}}}
+    child {node {$q$}}}
+  child {node {$\lor$}
+    child {node {$r$}}
+    child {node {$\neg$} child {node {$p$}}}};
+\end{tikzpicture}
+\end{center}
+Every subtree corresponds to a subformula. The \emph{height} of the formula is the height
+of the tree (here $3$, counting edges on the longest root-to-leaf path).
+\end{example}
+
+\begin{aside}
+Checking whether a string is a well-formed formula is a parsing problem, like in a
+compiler. A simple algorithm: if the string is an atom, accept; if it starts with
+$(\neg$ and ends with $)$, recurse on the middle; otherwise, scan from the second symbol
+keeping a parenthesis counter and find the first point where the counter returns to $0$
+after a complete formula; the next symbol must be a binary connective, and recurse on
+both sides. The prefix lemma guarantees this split point is the only possible one.
+\end{aside}
+
+\section{Recursive definitions on formulas}
+
+Some standard functions defined by structural recursion:
+\begin{align*}
+  \mathrm{height}(p) &= 0, &
+  \mathrm{height}(\neg A) &= 1 + \mathrm{height}(A), \\
+  && \mathrm{height}(A\star B) &= 1+\max(\mathrm{height}(A),\mathrm{height}(B)).\\
+  \mathrm{atoms}(p) &= \{p\}, &
+  \mathrm{atoms}(\neg A) &= \mathrm{atoms}(A), \\
+  && \mathrm{atoms}(A\star B) &= \mathrm{atoms}(A)\cup\mathrm{atoms}(B).
+\end{align*}
+Proofs about such functions are then by structural induction. For instance, one can show
+a formula of height $h$ has at most $2^{h+1}-1$ symbols excluding parentheses.
+
+\section*{Summary}
+\begin{itemize}
+  \item Formulas are the smallest set containing the atoms and closed under
+        $(\neg A)$ and $(A\star B)$.
+  \item Structural induction: prove for atoms, then show each formation rule preserves
+        the property.
+  \item Lemmas: parentheses balance; proper prefixes have excess left parentheses.
+  \item Unique readability: every formula decomposes in exactly one way, so it has one
+        parse tree and a unique main connective, and recursive definitions are well
+        defined.
+  \item Precedence conventions ($\neg,\land,\lor,\to,\leftrightarrow$; $\to$ is
+        right-associative) are only abbreviations.
+\end{itemize}

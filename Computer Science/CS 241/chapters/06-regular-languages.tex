@@ -1,0 +1,285 @@
+\chapter{Formal Languages and Regular Languages}
+
+\section{Why formal languages?}
+
+The second half of the course builds a compiler. To recognise and analyse programs we need a
+precise notion of what a ``valid program'' is. Formal language theory gives us a hierarchy of
+language classes, each with a matching recogniser:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+class & described by & recognised by \\
+\midrule
+finite & a list & lookup \\
+regular & regular expressions & DFAs / NFAs \\
+context-free & context-free grammars & pushdown automata (parsers) \\
+context-sensitive & context-sensitive grammars & linear-bounded automata \\
+recursive / r.e. & unrestricted grammars & Turing machines \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Compilers use regular languages for \emph{scanning} (tokens), context-free languages for
+\emph{parsing} (structure), and ad-hoc context-sensitive checks for \emph{semantic analysis}
+(types, declarations).
+
+\section{Basic definitions}
+
+\begin{definition}
+An \textbf{alphabet} $\Sigma$ is a finite, non-empty set of symbols. A \textbf{word} (string)
+over $\Sigma$ is a finite sequence of symbols from $\Sigma$; $\varepsilon$ denotes the empty
+word, and $|w|$ the length of $w$. $\Sigma^*$ is the set of all words over $\Sigma$. A
+\textbf{language} is any subset $L \subseteq \Sigma^*$.
+\end{definition}
+
+Note the distinctions: $\emptyset$ is the empty language, $\{\varepsilon\}$ is the language
+containing only the empty word; these are different.
+
+\paragraph{Operations on languages.}
+\begin{itemize}
+  \item Union $L_1 \cup L_2$.
+  \item Concatenation $L_1 L_2 = \{xy : x\in L_1, y \in L_2\}$.
+  \item Powers: $L^0 = \{\varepsilon\}$, $L^{n+1} = L^n L$.
+  \item Kleene star $L^* = \bigcup_{n\ge 0} L^n$; $L^+ = L L^*$.
+\end{itemize}
+
+\section{Regular languages}
+
+\begin{definition}
+The \textbf{regular languages} over $\Sigma$ are the smallest class such that $\emptyset$,
+$\{\varepsilon\}$ and $\{a\}$ (for each $a\in\Sigma$) are regular, and that is closed under
+union, concatenation and Kleene star.
+\end{definition}
+
+All finite languages are regular. $\{a^n b^n : n\ge 0\}$ is \emph{not} regular (a finite
+automaton cannot count unboundedly); this is the classic motivation for context-free
+grammars.
+
+\subsection{Regular expressions}
+A regular expression denotes a regular language:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+regex & language \\
+\midrule
+$\emptyset$ & $\emptyset$ \\
+$\varepsilon$ & $\{\varepsilon\}$ \\
+$a$ & $\{a\}$ \\
+$E_1 \mid E_2$ & $L(E_1)\cup L(E_2)$ \\
+$E_1 E_2$ & $L(E_1) L(E_2)$ \\
+$E^*$ & $L(E)^*$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Precedence: star binds tightest, then concatenation, then alternation.
+
+\begin{example}
+\begin{itemize}
+  \item Binary strings with an even number of 1s: $(0^* 1 0^* 1)^* 0^*$.
+  \item C identifiers: $(\ell \mid \_)(\ell \mid d \mid \_)^*$ where $\ell$ = letters, $d$ = digits.
+  \item Decimal integers without leading zeros: $0 \mid (1|\dots|9)(0|\dots|9)^*$.
+\end{itemize}
+\end{example}
+
+\section{Deterministic finite automata}
+
+\begin{definition}
+A \textbf{DFA} is a 5-tuple $(\Sigma, Q, q_0, A, \delta)$: alphabet $\Sigma$, finite set of
+states $Q$, start state $q_0\in Q$, accepting states $A\subseteq Q$, and transition function
+$\delta : Q\times\Sigma \to Q$.
+\end{definition}
+
+Extend $\delta$ to words: $\delta^*(q,\varepsilon) = q$ and $\delta^*(q, aw) =
+\delta^*(\delta(q,a), w)$. The DFA accepts $w$ iff $\delta^*(q_0, w) \in A$, and
+$L(M) = \{w : \delta^*(q_0,w)\in A\}$.
+
+\paragraph{Convention.} We usually draw only useful transitions; any missing transition
+goes to an implicit non-accepting \emph{error} (trap) state.
+
+\begin{example}[Binary numbers with no leading zeros that are divisible by 3]
+Track the value mod 3: reading bit $b$ maps remainder $r$ to $(2r+b) \bmod 3$. State $z$
+means the input was exactly \code{0}; state $r_i$ means a number with no leading zero and
+remainder $i$.
+\begin{center}
+\begin{tikzpicture}[shorten >=1pt,node distance=2.2cm,on grid,auto,>=Stealth]
+  \node[state,initial] (s) {$s$};
+  \node[state] (r1) [right=2.6cm of s] {$r_1$};
+  \node[state] (r2) [right=2.6cm of r1] {$r_2$};
+  \node[state,accepting] (r0) [below=2.2cm of r1] {$r_0$};
+  \node[state,accepting] (z) [above=1.8cm of r1] {$z$};
+  \path[->]
+    (s) edge node {0} (z)
+    (s) edge node {1} (r1)
+    (r0) edge[loop left] node {0} ()
+    (r0) edge[bend left] node {1} (r1)
+    (r1) edge[bend left] node {1} (r0)
+    (r1) edge[bend left] node {0} (r2)
+    (r2) edge[bend left] node {0} (r1)
+    (r2) edge[loop right] node {1} ();
+\end{tikzpicture}
+\end{center}
+(Check: from $r_2$, bit 0 gives $4\bmod 3 = 1$, bit 1 gives $5 \bmod 3 = 2$. From $r_1$:
+bit 0 gives 2, bit 1 gives 0. From $r_0$: bit 0 gives 0, bit 1 gives 1.)
+\end{example}
+
+\paragraph{Implementation.} A DFA is trivially simulated in $\Theta(|w|)$ time:
+\begin{lstlisting}[style=cpp]
+int state = start;
+for (char c : w) {
+    state = delta[state][c];
+    if (state == ERROR) return false;
+}
+return accepting[state];
+\end{lstlisting}
+
+\section{Nondeterministic finite automata}
+
+\begin{definition}
+An \textbf{NFA} is like a DFA but $\delta : Q\times\Sigma \to 2^Q$: from a state, a symbol
+may lead to zero, one or several states. Define $\delta^*(S,\varepsilon) = S$ and
+$\delta^*(S, aw) = \delta^*\big(\bigcup_{q\in S}\delta(q,a), w\big)$. The NFA accepts $w$
+iff $\delta^*(\{q_0\}, w)\cap A \ne \emptyset$, i.e.\ \emph{some} sequence of choices leads to
+acceptance.
+\end{definition}
+
+NFAs are often much easier to design. Example: strings over $\{a,b\}$ ending in $abb$.
+\begin{center}
+\begin{tikzpicture}[shorten >=1pt,node distance=2.2cm,on grid,auto,>=Stealth]
+  \node[state,initial] (0) {$0$};
+  \node[state] (1) [right=of 0] {$1$};
+  \node[state] (2) [right=of 1] {$2$};
+  \node[state,accepting] (3) [right=of 2] {$3$};
+  \path[->]
+    (0) edge[loop above] node {$a,b$} ()
+    (0) edge node {$a$} (1)
+    (1) edge node {$b$} (2)
+    (2) edge node {$b$} (3);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Simulating an NFA}
+Keep the set of current states:
+\begin{lstlisting}[style=cpp]
+std::set<int> S = {start};
+for (char c : w) {
+    std::set<int> T;
+    for (int q : S) for (int r : delta[q][c]) T.insert(r);
+    S = T;
+}
+return intersects(S, accepting);
+\end{lstlisting}
+
+\subsection{Subset construction (NFA \texorpdfstring{$\to$}{to} DFA)}
+\begin{theorem}
+For every NFA there is a DFA accepting the same language.
+\end{theorem}
+\emph{Construction.} DFA states are \emph{sets} of NFA states. Start state $\{q_0\}$; from
+set $S$ on $a$ go to $\bigcup_{q\in S}\delta(q,a)$; a set is accepting iff it contains an
+accepting NFA state. Only reachable sets need be built. In the worst case the DFA has
+$2^{|Q|}$ states, but usually far fewer.
+
+\begin{example}[Subset construction for ``ends in $abb$'']
+Starting from $\{0\}$ and building only the reachable sets:
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+DFA state & on $a$ & on $b$ \\
+\midrule
+$\{0\}$ & $\{0,1\}$ & $\{0\}$ \\
+$\{0,1\}$ & $\{0,1\}$ & $\{0,2\}$ \\
+$\{0,2\}$ & $\{0,1\}$ & $\{0,3\}$ \\
+$\{0,3\}^\ast$ & $\{0,1\}$ & $\{0\}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tikzpicture}[shorten >=1pt,node distance=2.6cm,on grid,auto,>=Stealth,every state/.style={minimum size=1.1cm,font=\small}]
+  \node[state,initial] (A) {$\{0\}$};
+  \node[state] (B) [right=of A] {$\{0,1\}$};
+  \node[state] (C) [right=of B] {$\{0,2\}$};
+  \node[state,accepting] (D) [right=of C] {$\{0,3\}$};
+  \path[->]
+    (A) edge[loop above] node {$b$} ()
+    (A) edge node {$a$} (B)
+    (B) edge[loop above] node {$a$} ()
+    (B) edge node {$b$} (C)
+    (C) edge[bend left] node {$a$} (B)
+    (C) edge node {$b$} (D)
+    (D) edge[bend left=40] node {$a$} (B)
+    (D) edge[bend left=50] node {$b$} (A);
+\end{tikzpicture}
+\end{center}
+\end{example}
+
+\section{\texorpdfstring{$\varepsilon$}{Epsilon}-NFAs}
+
+An \textbf{$\varepsilon$-NFA} additionally allows transitions labelled $\varepsilon$ that may be
+taken without consuming input. The \textbf{$\varepsilon$-closure} $E(S)$ of a set $S$ is all
+states reachable from $S$ using only $\varepsilon$-moves (computed by DFS/BFS). Modify the
+definitions: start in $E(\{q_0\})$, and after each symbol take the $\varepsilon$-closure:
+\[
+  \delta^*(S, aw) = \delta^*\Big(E\big(\textstyle\bigcup_{q\in S}\delta(q,a)\big), w\Big).
+\]
+Subset construction works the same way with closures, so $\varepsilon$-NFAs, NFAs and DFAs
+all recognise exactly the same languages.
+
+\section{Kleene's theorem}
+
+\begin{theorem}[Kleene]
+A language is regular if and only if it is accepted by some DFA.
+\end{theorem}
+
+\paragraph{Regex $\Rightarrow$ $\varepsilon$-NFA (Thompson's construction).} By structural
+induction, build an $\varepsilon$-NFA with one start and one accepting state:
+\begin{itemize}
+  \item $\emptyset$: start state, separate accepting state, no transitions.
+  \item $\varepsilon$: a single state that is both start and accepting.
+  \item $a$: start $\xrightarrow{a}$ accept.
+  \item $E_1\mid E_2$: new start with $\varepsilon$-edges to both machines' starts; both old
+        accept states $\xrightarrow{\varepsilon}$ a new accept state.
+  \item $E_1E_2$: $\varepsilon$-edge from $M_1$'s accept to $M_2$'s start.
+  \item $E^*$: new start state that is also accepting, with $\varepsilon$ to $M$'s start;
+        $\varepsilon$ from $M$'s accept back to the new start.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[shorten >=1pt,node distance=1.8cm,on grid,auto,>=Stealth,every state/.style={minimum size=0.7cm}]
+  \node[state,initial] (s) {};
+  \node[state] (a1) [above right=1.1cm and 2cm of s] {};
+  \node[state] (a2) [right=of a1] {};
+  \node[state] (b1) [below right=1.1cm and 2cm of s] {};
+  \node[state] (b2) [right=of b1] {};
+  \node[state,accepting] (f) [below right=1.1cm and 2cm of a2] {};
+  \path[->]
+    (s) edge node {$\varepsilon$} (a1)
+    (s) edge[swap] node {$\varepsilon$} (b1)
+    (a1) edge[dashed] node {$M_1$} (a2)
+    (b1) edge[dashed] node {$M_2$} (b2)
+    (a2) edge node {$\varepsilon$} (f)
+    (b2) edge[swap] node {$\varepsilon$} (f);
+\end{tikzpicture}
+
+\small Thompson construction for $E_1 \mid E_2$.
+\end{center}
+
+\paragraph{DFA $\Rightarrow$ regex.} By state elimination (or the dynamic-programming
+$R^{(k)}_{ij}$ construction): repeatedly remove a state, relabelling edges with regular
+expressions that account for paths through it, until only start and accept remain. CS 241
+mentions this direction but does not drill it.
+
+\paragraph{Closure properties.} Regular languages are closed under union, concatenation,
+star (by definition), and also complement (swap accepting/non-accepting states of a
+\emph{complete} DFA) and intersection (product construction, or De Morgan).
+
+\section{Summary}
+\begin{itemize}
+  \item Alphabet, word, language; $\emptyset \ne \{\varepsilon\}$.
+  \item Regular languages: built from finite pieces with $\cup$, concatenation, $^*$; written as regexes.
+  \item DFA: one transition per state/symbol, linear-time recognition; missing edges go to an error state.
+  \item NFA and $\varepsilon$-NFA: easier to build; convert with the subset construction
+        (worst case $2^n$ states), using $\varepsilon$-closures.
+  \item Kleene: regex $\Leftrightarrow$ $\varepsilon$-NFA $\Leftrightarrow$ NFA $\Leftrightarrow$ DFA.
+  \item $\{a^nb^n\}$ is not regular, motivating context-free grammars.
+\end{itemize}

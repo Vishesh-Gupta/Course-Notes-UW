@@ -1,0 +1,54 @@
+\chapter{Tutorial 1: Getting Set Up}
+\begin{center}
+\textit{January 3, 2018}
+\end{center}
+
+Welcome to tutorial 1! (This surprisingly happened even before the first day of
+classes.)
+
+\section{Course Infrastructure}
+CS 246 course content is distributed through \code{git}, so we will need some
+\code{git} commands; they are explained as we go through the course.
+
+A Linux environment is preferred (and recommended) for all work. All course
+material is available on the Linux student server, and assignments are tested
+there, so code should always be checked on the server before submitting.
+
+\section{Logging In to the Student Server}
+\begin{lstlisting}[style=bash]
+ssh username@linux.student.cs.uwaterloo.ca
+# then enter the password for this account
+\end{lstlisting}
+If you do not have any clue what your \code{linux.student.cs} password was
+from CS 136, it can be reset through the CS Computing Facility account web page.
+
+This method works directly on:
+\begin{enumerate}
+  \item Linux,
+  \item macOS,
+  \item Bash on Ubuntu on Windows (Windows Subsystem for Linux; Windows 10
+        Creators Update or later). Setup instructions:
+        \url{https://docs.microsoft.com/en-us/windows/wsl/about}.
+\end{enumerate}
+Otherwise, download the \textbf{PuTTY} client (a free \code{.exe}) or
+\textbf{SuperPuTTY}.
+
+\subsection*{Copying files}
+Files can be copied to and from the server with \code{scp}:
+\begin{lstlisting}[style=bash]
+scp a1q1.cc username@linux.student.cs.uwaterloo.ca:~/cs246/a1/
+scp username@linux.student.cs.uwaterloo.ca:~/cs246/a1/out.txt .
+\end{lstlisting}
+
+\section{Course Directory and A0}
+The course account has a directory (\code{/u/cs246/}) that holds the current
+term's material; older terms' material is kept in older directories. A0 has been
+posted (Piazza has hints about where A0 lives each term).
+
+\begin{important}[Advice]
+Start the assignments early.
+\end{important}
+
+\section*{Summary}
+Use the Linux student server (via \code{ssh}/PuTTY), get course material with
+\code{git}, and complete A0 (which is required) early.

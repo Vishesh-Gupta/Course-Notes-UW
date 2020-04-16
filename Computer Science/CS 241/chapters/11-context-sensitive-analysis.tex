@@ -1,0 +1,195 @@
+\chapter{Context-Sensitive Analysis}
+
+\section{Beyond context-free}
+
+Many rules of a programming language cannot be expressed by a CFG (or would make it
+hopelessly complicated):
+\begin{itemize}
+  \item a variable must be declared before use, and not declared twice in the same scope;
+  \item a procedure must be called with the right number and types of arguments;
+  \item operands must have compatible types.
+\end{itemize}
+The language $\{ wcw : w\in\{a,b\}^*\}$ (``declare $w$, then use $w$'') is not context-free.
+So after parsing, the compiler performs \textbf{context-sensitive (semantic) analysis} by
+traversing the parse tree with auxiliary data structures. A program that passes all checks is
+a valid WLP4 program; only valid programs are given to the code generator.
+
+\section{The WLP4 language}
+
+WLP4 is a tiny subset of C++:
+\begin{itemize}
+  \item Two types: \code{int} (32-bit signed) and \code{int*} (pointer to int).
+  \item Procedures return \code{int}; the last procedure is \code{wain}, which takes two
+        parameters (the second must be \code{int}) and is the entry point.
+  \item All local declarations appear at the top of a procedure, before any statements, and
+        must be initialised: \code{int x = 5;} or \code{int* p = NULL;}.
+  \item Statements: assignment; \code{if} with a mandatory \code{else} (braces required
+        around both branches); \code{while}; printing with \code{println}; and freeing
+        with \code{delete []}.
+  \item Expressions: \code{+ - * / \%}, comparisons \code{== != < <= > >=} (only in tests),
+        address-of \code{\&}, dereference \code{*}, \code{new int[n]}, \code{NULL}, and
+        procedure calls.
+  \item No globals, no nested procedures; a procedure must be declared before it is called.
+\end{itemize}
+
+\begin{lstlisting}[style=cpp]
+int sum(int* a, int n) {
+    int i = 0;
+    int s = 0;
+    while (i < n) {
+        s = s + *(a + i);
+        i = i + 1;
+    }
+    return s;
+}
+int wain(int* a, int n) {
+    return sum(a, n);
+}
+\end{lstlisting}
+
+\section{Symbol tables}
+
+\begin{definition}
+A \textbf{symbol table} maps identifiers to their attributes: for variables, the type (and
+later the stack offset); for procedures, the signature (parameter types).
+\end{definition}
+
+WLP4 has two levels of scope:
+\begin{itemize}
+  \item a \textbf{global} table of procedures: name $\mapsto$ (signature, local table);
+  \item one \textbf{local} table per procedure: parameter and variable names $\mapsto$ type.
+\end{itemize}
+A variable and a procedure may share a name; inside a procedure a local variable shadows a
+procedure name for the purpose of calls (\code{f()} where \code{f} is a local variable is an
+error).
+
+\paragraph{Building it.} Traverse the parse tree:
+\begin{itemize}
+  \item At \code{procedure}: error if the name is already in the global table; create a new
+        local table; collect the parameter types into the signature.
+  \item At each \code{dcl}: error if the name is already in the current local table;
+        otherwise insert it with its type (\code{type -> INT} gives \code{int},
+        \code{type -> INT STAR} gives \code{int*}).
+  \item At each use (\code{factor -> ID}, \code{lvalue -> ID}): error if not in the current
+        local table.
+  \item At each call \code{ID(...)}: error if the name is a local variable or not a
+        previously declared procedure (recursion is allowed, so the current procedure is in
+        the table as soon as its signature is read).
+\end{itemize}
+
+\begin{lstlisting}[style=cpp]
+struct ProcInfo { std::vector<Type> params; std::map<std::string, Type> locals; };
+std::map<std::string, ProcInfo> procs;
+
+void collectDcl(Tree *dcl, ProcInfo &p) {
+    std::string name = dcl->children[1]->lexeme;
+    Type t = (dcl->children[0]->children.size() == 2) ? INTSTAR : INT;
+    if (p.locals.count(name)) throw SemanticError("duplicate " + name);
+    p.locals[name] = t;
+}
+\end{lstlisting}
+
+\section{Type checking}
+
+We compute a type for each expression bottom-up (a post-order traversal), and check that
+statements are \textbf{well-typed}. The rules can be written as inference rules; here as a
+table.
+
+\subsection{Expressions}
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+expression & requirement & type \\
+\midrule
+\code{NUM} & & \code{int} \\
+\code{NULL} & & \code{int*} \\
+\code{ID} & declared & declared type \\
+\code{(E)} & & type of $E$ \\
+\code{\&E} & $E$ an lvalue of type \code{int} & \code{int*} \\
+\code{*E} & $E : $ \code{int*} & \code{int} \\
+\code{new int[E]} & $E :$ \code{int} & \code{int*} \\
+\code{E1 * E2}, \code{/}, \code{\%} & both \code{int} & \code{int} \\
+\code{E1 + E2} & \code{int + int} & \code{int} \\
+ & \code{int* + int} or \code{int + int*} & \code{int*} \\
+\code{E1 - E2} & \code{int - int} & \code{int} \\
+ & \code{int* - int} & \code{int*} \\
+ & \code{int* - int*} & \code{int} \\
+\code{f(E1,...,En)} & arity and each type match the signature & \code{int} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The pointer rules mirror C: adding an integer to a pointer moves it by that many
+\emph{elements}; subtracting two pointers gives the distance in elements. \code{int* + int*}
+is an error.
+
+\subsection{Statements and tests}
+\begin{itemize}
+  \item \code{lvalue = expr;} : both sides have the same type.
+  \item \code{println(E);} : $E$ is \code{int}.
+  \item \code{delete [] E;} : $E$ is \code{int*}.
+  \item tests \code{E1 op E2} : $E_1$ and $E_2$ have the same type (comparing pointers is
+        allowed, comparing a pointer to an int is not).
+  \item \code{if}/\code{while}: the test is well-typed and the bodies are well-typed.
+\end{itemize}
+
+\subsection{Declarations and procedures}
+\begin{itemize}
+  \item \code{int x = NUM;} requires \code{int}; \code{int* p = NULL;} requires \code{int*}.
+  \item The \code{return} expression of every procedure (including \code{wain}) must be \code{int}.
+  \item The second parameter of \code{wain} must be \code{int}.
+\end{itemize}
+
+\begin{lstlisting}[style=cpp]
+Type typeOf(Tree *t) {
+    const std::string &r = t->rule;
+    if (r == "factor NUM")  return INT;
+    if (r == "factor NULL") return INTSTAR;
+    if (r == "factor ID")   return lookup(t->children[0]->lexeme);
+    if (r == "factor STAR factor") {
+        if (typeOf(t->children[1]) != INTSTAR) throw SemanticError("deref non-pointer");
+        return INT;
+    }
+    if (r == "expr expr PLUS term") {
+        Type a = typeOf(t->children[0]), b = typeOf(t->children[2]);
+        if (a == INT && b == INT) return INT;
+        if (a != b) return INTSTAR;        // exactly one pointer
+        throw SemanticError("int* + int*");
+    }
+    // ... remaining rules ...
+}
+\end{lstlisting}
+
+It is convenient to store the computed type in each tree node, because the code generator
+needs it later (e.g.\ to scale pointer arithmetic by 4).
+
+\section{Attribute grammars (brief)}
+\begin{aside}
+More generally, semantic analysis can be described by an \emph{attribute grammar}: each
+grammar symbol carries attributes (like \emph{type}) and each production has rules for computing
+them. \emph{Synthesized} attributes flow up the tree (types of expressions); \emph{inherited}
+attributes flow down (the current symbol table). WLP4 type checking uses mostly synthesized
+attributes plus a symbol table passed down.
+\end{aside}
+
+\section{Errors and pitfalls}
+\begin{itemize}
+  \item Check both ``declared twice'' and ``used but not declared'', and do it per procedure.
+  \item Recursion: insert the procedure into the global table before checking its body.
+  \item A call to an undeclared (or later-declared) procedure is an error: WLP4 requires
+        declaration before use.
+  \item Remember \code{\&} needs an lvalue: \code{\&(x)} is fine (parenthesised lvalue), \code{\&5} is not
+        parseable anyway.
+  \item Do not stop at the first type of each subtree: the whole tree must be checked, even
+        statements whose value is never used.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item Context-sensitive rules (declarations, types, arity) are checked by traversing the parse tree.
+  \item Symbol tables: one global table of procedure signatures and one local table per procedure.
+  \item WLP4 types are \code{int} and \code{int*}; pointer arithmetic follows C rules.
+  \item Compute expression types bottom-up; check statements, tests, declarations and returns.
+  \item Annotate the tree with types; the code generator will use them.
+\end{itemize}

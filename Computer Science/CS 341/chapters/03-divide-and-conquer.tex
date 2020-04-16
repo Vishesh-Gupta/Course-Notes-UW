@@ -1,0 +1,175 @@
+\chapter{Divide and Conquer}
+
+\begin{important}[Paradigm]
+\textbf{Divide} the instance into smaller instances of the same problem,
+\textbf{conquer} them recursively, and \textbf{combine} the sub-solutions.
+Correctness is by (strong) induction on the size; runtime is from a recurrence.
+\end{important}
+
+\section{Mergesort and counting inversions}
+
+\subsection{Mergesort}
+\begin{lstlisting}[style=pseudo]
+MergeSort(A[1..n]):
+    if n <= 1 then return A
+    L = MergeSort(A[1..n/2]);  R = MergeSort(A[n/2+1..n])
+    return Merge(L, R)
+
+Merge(L, R):              // L, R sorted
+    i = 1; j = 1; out = []
+    while i <= |L| and j <= |R| do
+        if L[i] <= R[j] then append L[i] to out; i = i + 1
+        else                 append R[j] to out; j = j + 1
+    append the rest of L and R to out
+    return out
+\end{lstlisting}
+\code{Merge} takes $\Theta(|L|+|R|)$, so $T(n)=2T(n/2)+\Theta(n)\in\Theta(n\log n)$.
+Correctness of \code{Merge}: invariant ``\code{out} holds the $i+j-2$ smallest elements of $L\cup R$, in sorted order''.
+
+\subsection{Counting inversions}
+\begin{definition}
+An \emph{inversion} in $A[1..n]$ is a pair $(i,j)$ with $i<j$ and $A[i]>A[j]$.
+\end{definition}
+The number of inversions measures how far $A$ is from sorted (between $0$ and $\binom n2$);
+it is used, e.g., to compare two rankings. Brute force is $\Theta(n^2)$.
+
+Divide and conquer: inversions are of three types: both indices in the left half,
+both in the right half, or \emph{split} ($i$ in the left, $j$ in the right).
+The first two are counted recursively. To count split inversions quickly, sort both halves
+(which doesn't change the split count) and count during the merge:
+when $R[j]$ is output before the remaining elements $L[i..|L|]$, it forms an inversion with
+each of them, i.e.\ with $|L|-i+1$ elements.
+
+\begin{lstlisting}[style=pseudo]
+SortCount(A):                    // returns (sorted A, #inversions)
+    if |A| <= 1 then return (A, 0)
+    (L, a) = SortCount(left half);  (R, b) = SortCount(right half)
+    i = 1; j = 1; c = 0; out = []
+    while i <= |L| and j <= |R| do
+        if L[i] <= R[j] then append L[i]; i = i + 1
+        else append R[j]; c = c + (|L| - i + 1); j = j + 1
+    append leftovers
+    return (out, a + b + c)
+\end{lstlisting}
+Same recurrence as mergesort: $\Theta(n\log n)$.
+
+\section{Integer multiplication: Karatsuba}
+Multiplying two $n$-bit integers by the grade-school method takes $\Theta(n^2)$ bit operations.
+Split $x=x_1 2^{n/2}+x_0$ and $y=y_1 2^{n/2}+y_0$. Then
+\[
+xy = x_1y_1 2^n + (x_1y_0+x_0y_1)2^{n/2}+x_0y_0.
+\]
+Four recursive multiplications of $n/2$-bit numbers plus $\Theta(n)$ for shifts/additions gives
+$T(n)=4T(n/2)+\Theta(n)\in\Theta(n^2)$: no gain.
+
+\textbf{Karatsuba's trick} (1960): the middle term is
+\[
+x_1y_0+x_0y_1=(x_1+x_0)(y_1+y_0)-x_1y_1-x_0y_0,
+\]
+so three multiplications suffice: $P_1=x_1y_1$, $P_2=x_0y_0$, $P_3=(x_1+x_0)(y_1+y_0)$, and
+$xy=P_1 2^n+(P_3-P_1-P_2)2^{n/2}+P_2$.
+\begin{lstlisting}[style=pseudo]
+Karatsuba(x, y, n):
+    if n <= threshold then return x * y        // grade school
+    split x = (x1, x0), y = (y1, y0) at n/2 bits
+    P1 = Karatsuba(x1, y1, n/2)
+    P2 = Karatsuba(x0, y0, n/2)
+    P3 = Karatsuba(x1 + x0, y1 + y0, n/2 + 1)
+    return P1 * $2^n$ + (P3 - P1 - P2) * $2^{n/2}$ + P2
+\end{lstlisting}
+$T(n)=3T(n/2)+\Theta(n)$, so $T(n)\in\Theta(n^{\log_2 3})\approx\Theta(n^{1.585})$ by Master case 1.
+(The extra bit in $x_1+x_0$ does not affect the asymptotics.)
+Toom--Cook and FFT-based methods do better (down to $\bigO(n\log n)$, Harvey--van der Hoeven 2019).
+
+\section{Matrix multiplication: Strassen}
+Naive multiplication of $n\times n$ matrices is $\Theta(n^3)$. Splitting into $n/2\times n/2$ blocks,
+\[
+\begin{pmatrix}A&B\\C&D\end{pmatrix}\begin{pmatrix}E&F\\G&H\end{pmatrix}
+=\begin{pmatrix}AE+BG & AF+BH\\ CE+DG & CF+DH\end{pmatrix}
+\]
+uses 8 block products: $T(n)=8T(n/2)+\Theta(n^2)=\Theta(n^3)$.
+\textbf{Strassen} (1969) uses 7 products:
+\begin{align*}
+M_1&=(A+D)(E+H), & M_2&=(C+D)E, & M_3&=A(F-H), & M_4&=D(G-E),\\
+M_5&=(A+B)H, & M_6&=(C-A)(E+F), & M_7&=(B-D)(G+H),
+\end{align*}
+and then
+\begin{align*}
+AE+BG&=M_1+M_4-M_5+M_7, & AF+BH&=M_3+M_5,\\
+CE+DG&=M_2+M_4, & CF+DH&=M_1-M_2+M_3+M_6.
+\end{align*}
+(You are not expected to memorize these; check one entry, e.g.\ $M_3+M_5=AF-AH+AH+BH$.)
+$T(n)=7T(n/2)+\Theta(n^2)\in\Theta(n^{\log_2 7})\approx\Theta(n^{2.81})$.
+The point: \emph{reducing the number of recursive calls} changes the exponent; extra additions only affect the $f(n)$ term.
+
+\section{Closest pair of points}
+\begin{definition}
+Given $n$ points in the plane, find a pair with minimum Euclidean distance.
+\end{definition}
+Brute force is $\Theta(n^2)$. In 1D, sort and check neighbours: $\Theta(n\log n)$.
+
+\paragraph{Algorithm.} Presort the points by $x$ (array $P_x$) and by $y$ (array $P_y$).
+\begin{enumerate}
+  \item Split by the median $x$-coordinate into $Q$ (left) and $R$ (right), each of size $n/2$.
+        Also split $P_y$ into $Q_y$, $R_y$ in linear time (preserving $y$-order).
+  \item Recursively find $\delta_Q$, $\delta_R$; let $\delta=\min(\delta_Q,\delta_R)$.
+  \item Any closer pair must be split, with both points within $\delta$ of the dividing line $x=x^*$.
+        Let $S_y$ be the points of $P_y$ with $\abs{x-x^*}<\delta$, in $y$-order.
+  \item For each point in $S_y$, compare it with the next 7 points in $S_y$. Return the best found.
+\end{enumerate}
+
+\begin{lemma}
+If $p,q\in S_y$ and $d(p,q)<\delta$, then $p$ and $q$ are within 7 positions of each other in $S_y$.
+\end{lemma}
+\begin{proof}
+Consider the $2\delta\times\delta$ rectangle above $p$ (from $p$'s $y$ up to $y+\delta$, spanning the strip).
+Divide it into 8 squares of side $\delta/2$, four on each side of the line. Each square lies entirely on one side,
+and any two points in a square are at distance at most $\delta/\sqrt2<\delta$, contradicting the definition of
+$\delta$ (they would be on the same side). So each square holds at most one point, and the rectangle holds at most 8
+points including $p$. Hence any $q$ above $p$ with $d(p,q)<\delta$ is among the next 7 entries.
+\end{proof}
+
+Runtime: presorting $\bigO(n\log n)$ once; then $T(n)=2T(n/2)+\Theta(n)\in\Theta(n\log n)$.
+(Re-sorting by $y$ at each level would give $\Theta(n\log^2n)$.)
+
+\section{Selection: median of medians}
+\textbf{Selection problem}: given an unsorted array $A$ of $n$ distinct numbers and $k$, return the $k$-th smallest.
+Sorting gives $\Theta(n\log n)$; we want $\Theta(n)$.
+
+\textbf{Quickselect}: pick a pivot $p$, partition into $L=\{x<p\}$, $G=\{x>p\}$; if $|L|=k-1$ return $p$,
+if $k\le|L|$ recurse on $L$, else recurse on $G$ with $k-|L|-1$.
+With a random pivot the expected time is $\Theta(n)$, but the worst case is $\Theta(n^2)$.
+
+\textbf{Median of medians} (Blum, Floyd, Pratt, Rivest, Tarjan 1973) chooses a pivot guaranteed to be good:
+\begin{lstlisting}[style=pseudo]
+Select(A, k):
+    if |A| <= 5 then sort A and return A[k]
+    divide A into $\lceil n/5\rceil$ groups of 5; find each group's median   // $\Theta(n)$
+    M = list of these medians
+    p = Select(M, $\lceil |M|/2 \rceil$)           // median of medians
+    partition A around p into L, {p}, G
+    if k == |L| + 1 then return p
+    elif k <= |L| then return Select(L, k)
+    else return Select(G, k - |L| - 1)
+\end{lstlisting}
+
+\begin{lemma}
+$|L|\le \frac{7n}{10}+\bigO(1)$ and $|G|\le\frac{7n}{10}+\bigO(1)$.
+\end{lemma}
+\begin{proof}
+About half of the $n/5$ groups, i.e.\ at least $\ceil{\frac12\ceil{n/5}}$ groups, have median $\ge p$.
+Each such group (except possibly $p$'s own group and a final partial group) contributes 3 elements $\ge p$
+(its median and the two larger ones). So at least $3(\frac{n}{10}-2)=\frac{3n}{10}-6$ elements are $\ge p$,
+hence $|L|\le\frac{7n}{10}+6$. Symmetrically for $G$.
+\end{proof}
+
+So $T(n)\le T(n/5)+T(7n/10+6)+\Theta(n)$. Since $\frac15+\frac7{10}=\frac9{10}<1$, the theorem from Chapter 2 gives
+$T(n)\in\Theta(n)$. (With groups of 3 the fractions sum to $1$ and we only get $\Theta(n\log n)$; groups of 7 also work.)
+
+\section*{Summary}
+\begin{itemize}
+  \item Inversions: count split inversions during the merge; $\Theta(n\log n)$.
+  \item Karatsuba: 3 half-size products, $\Theta(n^{\log_23})$. Strassen: 7 products, $\Theta(n^{\log_27})$.
+  \item Closest pair: strip argument, each point checks $\le7$ neighbours in $y$-order; $\Theta(n\log n)$.
+  \item Median of medians: pivot is guaranteed to discard $\approx 3n/10$ elements, giving $T(n)=T(n/5)+T(7n/10)+\Theta(n)=\Theta(n)$.
+\end{itemize}

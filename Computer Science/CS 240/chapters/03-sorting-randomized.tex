@@ -1,0 +1,286 @@
+\chapter{Sorting and Randomized Algorithms}
+
+\section{The Selection Problem}
+
+\begin{definition}
+\emph{Selection}: given an array $A$ of $n$ numbers and $0 \le k < n$, find the
+item that would be at index $k$ if $A$ were sorted. Special cases: $k = 0$
+(minimum), $k = n-1$ (maximum), $k = \floor{n/2}$ (median).
+\end{definition}
+
+Easy solutions: sort ($\Theta(n \log n)$), or use a heap ($\bigO(n + k\log n)$).
+We want $\Theta(n)$.
+
+\subsection{Partition}
+
+Both QuickSelect and QuickSort rely on two subroutines:
+\begin{itemize}
+  \item \code{choose-pivot(A)}: return an index $p$ (simplest: the last index).
+  \item \code{partition(A, p)}: rearrange $A$ so that all items $\le A[p]$ come
+        first, then the pivot at index $i$, then all items $> A[p]$; return $i$.
+\end{itemize}
+
+An efficient in-place partition (Hoare-style, as in the course):
+\begin{lstlisting}
+partition(A, p):
+  swap A[n-1] and A[p]          // pivot now at the end
+  v <- A[n-1]
+  i <- -1; j <- n-1
+  loop
+    do i <- i+1 while i < n and A[i] < v
+    do j <- j-1 while j > 0 and A[j] > v
+    if i >= j then break
+    swap A[i] and A[j]
+  swap A[n-1] and A[i]          // put pivot in place
+  return i
+\end{lstlisting}
+Invariant: $A[0..i-1] \le v$ and $A[j+1..n-2] \ge v$. Runs in $\Theta(n)$ time
+with $\bigO(1)$ extra space.
+
+\subsection{QuickSelect}
+
+\begin{lstlisting}
+quick-select(A, k):
+  p <- choose-pivot(A)
+  i <- partition(A, p)
+  if i = k then return A[i]
+  else if i > k then return quick-select(A[0..i-1], k)
+  else return quick-select(A[i+1..n-1], k - i - 1)
+\end{lstlisting}
+
+\paragraph{Worst case.} If the pivot is always the largest item and $k = 0$, we
+recurse on size $n-1$ every time: $T(n) = T(n-1) + cn$, so $\Theta(n^2)$.
+
+\paragraph{Best case.} The first pivot is the answer: $\Theta(n)$.
+
+\paragraph{Average case.} Assume all $n!$ input permutations are equally likely
+(equivalently, the pivot's final position $i$ is uniform on $\{0,\ldots,n-1\}$
+and the subarrays are again random). Then
+\[
+T^{\text{avg}}(n) \le cn + \frac1n \sum_{i=0}^{n-1} \max\{T(i), T(n-i-1)\}.
+\]
+
+\begin{theorem}
+$T^{\text{avg}}(n) \in \Theta(n)$ for QuickSelect.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Call the pivot \emph{good} if $n/4 \le i < 3n/4$; this happens with probability
+$1/2$. After a good pivot the recursion has size at most $3n/4$; after a bad one,
+at most $n$. Then
+$T(n) \le cn + \tfrac12 T(3n/4) + \tfrac12 T(n)$, so $T(n) \le 2cn + T(3n/4)$,
+which unrolls to $T(n) \le 2cn \sum_{j\ge0} (3/4)^j = 8cn$.
+\end{proof}
+
+\section{Randomized Algorithms}
+
+The average-case analysis assumes the input is random, which we cannot control
+(an adversary could feed sorted data). Instead we make the \emph{algorithm} random.
+
+\begin{definition}
+A \emph{randomized algorithm} uses random bits. For a fixed instance $I$ and
+random outcome $R$, the running time is $T(I, R)$. The \emph{expected running
+time} is $T^{\text{exp}}(I) = \mathbb E_R[T(I,R)] = \sum_R T(I,R)\Pr[R]$, and the
+\emph{worst-case expected time} is $T^{\text{exp}}(n) = \max_{|I|=n} T^{\text{exp}}(I)$.
+\end{definition}
+
+Two approaches:
+\begin{enumerate}
+  \item Shuffle the input randomly first (in $\Theta(n)$ by Fisher--Yates), then run
+        the deterministic algorithm.
+  \item Choose the pivot uniformly at random: \code{p <- random(n)}.
+\end{enumerate}
+With a random pivot, \emph{every} input has the same expected behaviour as the
+average-case analysis, so randomized QuickSelect has expected time $\Theta(n)$
+on every instance. The worst case is still $\Theta(n^2)$ but occurs with tiny
+probability and not for any particular input.
+
+\begin{lstlisting}
+shuffle(A):
+  for i <- n-1 down to 1 do
+    swap A[i] and A[random(i+1)]    // random(m) uniform in {0..m-1}
+\end{lstlisting}
+
+\begin{aside}
+There is also a deterministic $\Theta(n)$ worst-case selection algorithm
+(median-of-medians, choosing a pivot from medians of groups of 5). It is mostly
+of theoretical interest because of its large constant; CS 341 covers it.
+\end{aside}
+
+\section{QuickSort}
+
+\begin{lstlisting}
+quick-sort(A):
+  if n <= 1 then return
+  p <- choose-pivot(A)
+  i <- partition(A, p)
+  quick-sort(A[0..i-1])
+  quick-sort(A[i+1..n-1])
+\end{lstlisting}
+
+\begin{itemize}
+  \item Worst case: $T(n) = T(n-1) + \Theta(n) \in \Theta(n^2)$ (e.g.\ sorted
+        input with last-element pivot).
+  \item Best case: pivot always the median: $T(n) = 2T(n/2) + \Theta(n) \in
+        \Theta(n \log n)$.
+\end{itemize}
+
+\subsection{Average-Case Analysis}
+
+Let $T(n)$ be the average number of comparisons. Each pivot position $i$ is
+equally likely, so
+\[
+T(n) = (n - 1) + \frac1n \sum_{i=0}^{n-1} \big(T(i) + T(n-1-i)\big)
+     = (n-1) + \frac2n \sum_{i=0}^{n-1} T(i).
+\]
+
+\begin{theorem}
+The average (and randomized expected) running time of QuickSort is
+$\Theta(n \log n)$; precisely, the expected number of comparisons is
+$2(n+1)H_n - 4n \approx 1.39\, n \log_2 n$.
+\end{theorem}
+
+\begin{proof}[Proof sketch 1: the recurrence]
+Multiply by $n$: $nT(n) = n(n-1) + 2\sum_{i<n} T(i)$. Subtract the same identity
+for $n-1$: $nT(n) - (n-1)T(n-1) = 2(n-1) + 2T(n-1)$, so
+$nT(n) = (n+1)T(n-1) + 2(n-1)$. Divide by $n(n+1)$:
+\[
+\frac{T(n)}{n+1} = \frac{T(n-1)}{n} + \frac{2(n-1)}{n(n+1)}
+\le \frac{T(n-1)}{n} + \frac{2}{n+1}.
+\]
+Telescoping gives $T(n)/(n+1) \le 2 H_{n+1}$, so $T(n) \in \bigO(n\log n)$.
+\end{proof}
+
+\begin{proof}[Proof sketch 2: indicator variables]
+Let $z_1 < \cdots < z_n$ be the items in sorted order. Two items are compared at
+most once, and only if one of them is the pivot. Items $z_i$ and $z_j$ ($i<j$)
+are compared iff the first pivot chosen from $\{z_i, \ldots, z_j\}$ is $z_i$ or
+$z_j$, which has probability $\frac{2}{j - i + 1}$. By linearity of expectation,
+\[
+\mathbb E[\#\text{comparisons}] = \sum_{i<j} \frac{2}{j-i+1}
+\le \sum_{i=1}^{n} \sum_{d=2}^{n} \frac{2}{d} \le 2n H_n \in \bigO(n \log n).
+\]
+\end{proof}
+
+\subsection{Practical Improvements}
+\begin{itemize}
+  \item Random pivot, or median-of-three, to avoid sorted-input worst case.
+  \item Recurse on the \emph{smaller} side first and loop on the larger side, so
+        the stack depth is $\bigO(\log n)$ worst case.
+  \item Stop recursing at small sizes (e.g.\ $n \le 10$) and finish with one
+        pass of insertion sort.
+  \item Handle many duplicates with three-way partition ($<$, $=$, $>$).
+\end{itemize}
+
+\section{Lower Bound for Comparison Sorting}
+
+\begin{definition}
+A \emph{comparison-based} sorting algorithm accesses keys only by comparing pairs
+(\code{A[i] < A[j]?}).
+\end{definition}
+
+\begin{theorem}
+Every comparison-based sorting algorithm requires $\Omega(n \log n)$ comparisons
+in the worst case (and also on average).
+\end{theorem}
+\begin{proof}
+Model any such algorithm on inputs of size $n$ as a \emph{decision tree}: each
+internal node is a comparison, each branch an outcome, each leaf an output
+permutation. Each of the $n!$ input orderings of distinct keys must reach a
+different leaf (otherwise two different inputs get the same rearrangement, and
+one of them is sorted wrongly). A binary tree with at least $n!$ leaves has
+height at least $\log_2(n!)$. Finally
+\[
+\log(n!) = \sum_{i=1}^n \log i \ge \sum_{i=n/2}^{n} \log\frac n2
+\ge \frac n2 \log \frac n2 \in \Omega(n \log n).
+\]
+The worst-case number of comparisons is the height, so it is $\Omega(n\log n)$.
+\end{proof}
+
+So MergeSort and HeapSort are asymptotically optimal among comparison sorts. To
+beat $n \log n$ we must use more than comparisons, e.g.\ the digits of the keys.
+
+\section{Non-Comparison Sorting}
+
+Assume keys are integers in $\{0, \ldots, R-1\}$ (or strings of $m$ digits in
+radix $R$).
+
+\subsection{Counting Sort (Key-Indexed Sort)}
+
+\begin{lstlisting}
+counting-sort(A, R):           // keys in 0..R-1
+  C[0..R-1] <- all 0
+  for i <- 0 to n-1 do C[A[i]] <- C[A[i]] + 1
+  I[0] <- 0                    // I[k] = first index for key k
+  for k <- 1 to R-1 do I[k] <- I[k-1] + C[k-1]
+  B <- copy of A
+  for i <- 0 to n-1 do
+    A[I[B[i]]] <- B[i]
+    I[B[i]] <- I[B[i]] + 1
+\end{lstlisting}
+Time $\Theta(n + R)$, space $\Theta(n + R)$. It is \emph{stable}: equal keys
+keep their relative order, because we scan $B$ left to right.
+
+\subsection{LSD Radix Sort}
+
+Keys have $m$ digits in base $R$. Sort by the least significant digit first,
+using a stable sort (counting sort) at each step.
+\begin{lstlisting}
+LSD-radix-sort(A):
+  for d <- m down to 1 do      // digit m is least significant
+    counting-sort A by digit d
+\end{lstlisting}
+Correctness (by induction): after processing digits $d..m$, the array is sorted
+by the last $m - d + 1$ digits; stability ensures ties on digit $d$ keep the
+order given by the less significant digits. Time $\Theta(m(n + R))$, space
+$\Theta(n + R)$.
+
+\begin{example}
+Sort $\{123, 230, 21, 320, 210, 232, 101\}$ ($R = 10$, $m = 3$, pad 21 as 021):
+\begin{itemize}
+  \item by last digit: 230, 320, 210, 021, 101, 232, 123;
+  \item by middle digit: 101, 210, 320, 021, 123, 230, 232;
+  \item by first digit: 021, 101, 123, 210, 230, 232, 320.
+\end{itemize}
+\end{example}
+
+\subsection{MSD Radix Sort}
+
+Sort by the most significant digit, then recursively sort each group by the
+remaining digits.
+\begin{lstlisting}
+MSD-radix-sort(A, l, r, d):
+  if l < r then
+    counting-sort A[l..r] by digit d
+    if d < m then
+      for each digit value k with a nonempty group A[l_k..r_k] do
+        MSD-radix-sort(A, l_k, r_k, d+1)
+\end{lstlisting}
+Time $\bigO(m n R)$ in the worst case due to many tiny subproblems that each pay
+$\Theta(R)$; in practice one switches to another sort for small groups. MSD can
+stop early on distinct prefixes, and handles variable-length strings naturally.
+
+\section{Summary of Sorting Algorithms}
+
+\begin{center}
+\begin{tabular}{lllll}
+\toprule
+Algorithm & Worst & Average/Expected & Space & Stable?\\
+\midrule
+Selection sort & $\Theta(n^2)$ & $\Theta(n^2)$ & $\Theta(1)$ & no\\
+Insertion sort & $\Theta(n^2)$ & $\Theta(n^2)$ (best $\Theta(n)$) & $\Theta(1)$ & yes\\
+MergeSort & $\Theta(n\log n)$ & $\Theta(n\log n)$ & $\Theta(n)$ & yes\\
+HeapSort & $\Theta(n\log n)$ & $\Theta(n\log n)$ & $\Theta(1)$ & no\\
+QuickSort (random) & $\Theta(n^2)$ & $\Theta(n\log n)$ expected & $\Theta(\log n)$ & no\\
+Counting sort & $\Theta(n+R)$ & $\Theta(n+R)$ & $\Theta(n+R)$ & yes\\
+LSD radix sort & $\Theta(m(n+R))$ & $\Theta(m(n+R))$ & $\Theta(n+R)$ & yes\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+  \item QuickSelect solves selection in $\Theta(n)$ expected (randomized) time.
+  \item Randomization moves the average case from ``random input'' to ``random
+        choices'', giving guarantees for every input.
+  \item Comparison sorts need $\Omega(n \log n)$ by the decision-tree argument;
+        radix sorts sidestep this by looking at digits.
+\end{itemize}

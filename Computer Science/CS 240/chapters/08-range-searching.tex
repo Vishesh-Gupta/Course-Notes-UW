@@ -1,0 +1,198 @@
+\chapter{Range Searching and Multidimensional Data}
+
+\section{Range Queries}
+
+\begin{definition}
+A \emph{range query} \code{RangeSearch(x1, x2)} asks for all KVPs with key $k$
+satisfying $x_1 \le k \le x_2$. The output size is denoted $s$.
+\end{definition}
+
+Hash tables cannot answer range queries efficiently (they scatter nearby keys).
+Sorted arrays and balanced BSTs can.
+\begin{itemize}
+  \item \textbf{Sorted array:} binary search for $x_1$ and $x_2$, report what lies
+        between: $\bigO(\log n + s)$.
+  \item \textbf{BST:} described next: $\bigO(h + s)$.
+\end{itemize}
+
+\subsection{Range Search in a BST}
+
+\begin{lstlisting}
+BST-RangeSearch(T, x1, x2):
+  if T is empty then return
+  if T.key < x1 then BST-RangeSearch(T.right, x1, x2)
+  else if T.key > x2 then BST-RangeSearch(T.left, x1, x2)
+  else
+    BST-RangeSearch(T.left, x1, x2)
+    report T.key
+    BST-RangeSearch(T.right, x1, x2)
+\end{lstlisting}
+
+Classify the nodes visited: perform a BST search for $x_1$ (path $P_1$) and for
+$x_2$ (path $P_2$). Then each visited node is
+\begin{itemize}
+  \item a \emph{boundary node} (on $P_1$ or $P_2$): $\bigO(h)$ of these;
+  \item an \emph{inside node} (between the paths): all are reported, so $\le s$;
+  \item outside nodes are never visited, apart from children of boundary nodes.
+\end{itemize}
+So the time is $\bigO(h + s)$, i.e.\ $\bigO(\log n + s)$ in an AVL tree.
+
+\section{Multidimensional Data}
+
+Now each item is a point in $\R^d$ (e.g.\ a laptop with price, weight, screen
+size). An \emph{orthogonal range query} is an axis-aligned box
+$[x_1, x_1'] \times \cdots \times [x_d, x_d']$; report all points in it.
+We mostly study $d = 2$. Assume for simplicity that points are in \emph{general
+position} (no two share an $x$- or $y$-coordinate), or handle ties carefully.
+
+Naive: scan all points, $\Theta(n)$. Or use $d$ separate 1D structures and
+intersect: can cost $\Theta(n)$ even when $s$ is tiny.
+
+\section{Quadtrees}
+
+Assume points lie in a square bounding box $R = [0, 2^k) \times [0, 2^k)$.
+\begin{definition}
+A \emph{quadtree} recursively splits a region into four equal quadrants NE, NW,
+SW, SE. A region with at most one point is a leaf (storing that point or empty);
+otherwise it is an internal node with four children.
+\end{definition}
+
+\begin{itemize}
+  \item \code{search}: descend into the quadrant containing the point.
+  \item \code{insert}: search to a leaf; if it already holds a point, split
+        repeatedly until the two points are in different quadrants.
+  \item \code{delete}: remove the point; if a node then has at most one point in
+        its subtree, collapse it into a leaf.
+\end{itemize}
+
+\begin{lstlisting}
+QTree-RangeSearch(v, A):     // v: node with region R(v), A: query box
+  if R(v) is disjoint from A then return
+  if R(v) is inside A then report all points below v; return
+  if v is a leaf then
+    if v's point is in A then report it
+    return
+  for each child w of v do QTree-RangeSearch(w, A)
+\end{lstlisting}
+
+\paragraph{Analysis.} The height is not bounded in terms of $n$; it depends on
+the \emph{spread factor} $\beta = \frac{\text{side length of } R}{\text{min distance
+between two points}}$: height $h \in \Theta(\log \beta)$. Building takes
+$\Theta(nh)$; range search can take $\Theta(nh)$ in the worst case even if
+$s = 0$. Two points very close together force a long chain.
+
+Pros: very simple, easy to generalise to $d$ dimensions (octrees for $d = 3$),
+good for images (each pixel region) and uniform data. Cons: wasted space, height
+depends on geometry.
+
+\section{kd-Trees}
+
+Quadtrees split the \emph{space} evenly; kd-trees split the \emph{points} evenly.
+
+\begin{definition}
+A \emph{kd-tree} (2D) is built by splitting the point set at the median
+$x$-coordinate into two halves by a vertical line, then splitting each half at
+its median $y$-coordinate by a horizontal line, and so on, alternating
+directions. Each internal node stores its splitting line; leaves store single
+points.
+\end{definition}
+
+\begin{lstlisting}
+build-kdtree(P, dir):
+  if |P| <= 1 then return leaf(P)
+  m <- median of P by coordinate dir        // QuickSelect: Theta(|P|) expected
+  P_low  <- points with coordinate <= m
+  P_high <- points with coordinate >  m
+  v <- node with split line (dir = m)
+  v.left  <- build-kdtree(P_low,  other(dir))
+  v.right <- build-kdtree(P_high, other(dir))
+  return v
+\end{lstlisting}
+Build time $T(n) = 2T(n/2) + \Theta(n) \in \Theta(n \log n)$ expected (or by
+presorting). Height $\Theta(\log n)$ (assuming general position), space
+$\Theta(n)$.
+
+Range search is the same as for quadtrees: each node has a region; skip disjoint
+regions, report whole subtrees for contained regions, recurse otherwise.
+
+\begin{theorem}
+Range search in a 2D kd-tree takes $\bigO(\sqrt n + s)$ time.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Time is $\bigO(s + Q(n))$ where $Q(n)$ counts nodes whose region intersects the
+boundary of the query box without being contained in it. Any such region is
+crossed by one of the four sides of the box; consider an axis-parallel line
+$\ell$. Going down two levels, a node's region splits into four grandchildren,
+and a vertical (say) line can intersect at most two of them. So
+$Q(n) \le 2Q(n/4) + \bigO(1)$, which solves to $Q(n) \in \bigO(\sqrt n)$.
+\end{proof}
+
+In $d$ dimensions: build $\bigO(n \log n)$, space $\bigO(n)$, range query
+$\bigO(n^{1 - 1/d} + s)$.
+
+\section{Range Trees}
+
+To get polylogarithmic queries, trade space.
+
+\begin{definition}
+A 2D \emph{range tree} consists of a balanced BST $T$ (the \emph{primary
+structure}) on the $x$-coordinates, where every node $v$ additionally stores an
+\emph{associated structure} $T(v)$: a balanced BST on the $y$-coordinates of all
+points in $v$'s subtree.
+\end{definition}
+
+\paragraph{Space.} Each point appears in the associated structure of each of its
+$\bigO(\log n)$ ancestors, so total space is $\bigO(n \log n)$.
+
+\paragraph{Range search} for $[x_1, x_2] \times [y_1, y_2]$:
+\begin{enumerate}
+  \item Search for $x_1$ and $x_2$ in $T$, giving boundary paths $P_1$, $P_2$.
+        Check each boundary node individually: $\bigO(\log n)$.
+  \item The \emph{topmost inside nodes} are the children of boundary nodes that
+        lie strictly between the paths: $\bigO(\log n)$ of them, and their
+        subtrees cover exactly the points with $x$ in range (apart from boundary
+        nodes).
+  \item For each topmost inside node $v$, run a 1D range search for
+        $[y_1, y_2]$ in $T(v)$: $\bigO(\log n + s_v)$.
+\end{enumerate}
+\begin{lstlisting}
+RangeTree-Search(T, x1, x2, y1, y2):
+  P1 <- search path for x1;  P2 <- search path for x2
+  for each node v on P1 or P2 do
+    if v's point is in the box then report it
+  for each topmost inside node v do
+    BST-RangeSearch(T(v), y1, y2)
+\end{lstlisting}
+Total query time $\bigO(\log^2 n + s)$. Build in $\bigO(n \log n)$ by building
+associated trees bottom-up from sorted lists. (With fractional cascading, a
+CS 240 aside, the query drops to $\bigO(\log n + s)$.)
+
+Insert/delete are awkward: the primary tree cannot be rotated cheaply because
+rotation changes associated structures. Instead allow imbalance and rebuild
+subtrees occasionally.
+
+In $d$ dimensions: space $\bigO(n \log^{d-1} n)$, query $\bigO(\log^d n + s)$.
+
+\section{Comparison}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Structure & Space & Build & 2D range query\\
+\midrule
+Quadtree & $\Theta(nh)$ & $\Theta(nh)$ & $\Theta(nh)$ worst\\
+kd-tree & $\Theta(n)$ & $\Theta(n\log n)$ & $\bigO(\sqrt n + s)$\\
+Range tree & $\Theta(n\log n)$ & $\Theta(n\log n)$ & $\bigO(\log^2 n + s)$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Here $h \in \Theta(\log \beta)$ for the quadtree.
+
+\section{Summary}
+\begin{itemize}
+  \item 1D range search in a balanced BST: $\bigO(\log n + s)$ via boundary/inside
+        node classification.
+  \item Quadtrees: split space into quadrants; simple but height depends on spread.
+  \item kd-trees: alternate median splits; linear space, $\bigO(\sqrt n + s)$ queries.
+  \item Range trees: BST of BSTs; $\bigO(n\log n)$ space, $\bigO(\log^2 n + s)$ queries.
+\end{itemize}

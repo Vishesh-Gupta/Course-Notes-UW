@@ -1,0 +1,186 @@
+\chapter{Types of Recursion}
+
+Structural recursion is the default, but some problems need more. CS 135
+classifies recursive functions as follows:
+
+\begin{itemize}
+  \item \textbf{Pure structural}: recursive calls only on the self-referential parts; other parameters unchanged.
+  \item \textbf{Accumulative} (structural with an accumulator): recursion is structural on one parameter, but extra parameters \emph{accumulate} information about what has been seen so far.
+  \item \textbf{Mutual}: two or more functions call each other.
+  \item \textbf{Generative}: recursive calls are on values \emph{computed} from the input, not just its parts (Chapter~\ref{ch:generative}).
+\end{itemize}
+
+\section{Accumulative recursion}
+
+\subsection{Motivation: reversing a list}
+A structural solution:
+\begin{lstlisting}[style=racket]
+;; (my-reverse lst) produces lst in reverse order.
+;; my-reverse: (listof Any) -> (listof Any)
+(define (my-reverse lst)
+  (cond [(empty? lst) empty]
+        [else (append (my-reverse (rest lst)) (list (first lst)))]))
+\end{lstlisting}
+Each \code{append} walks the entire reversed rest, so the total work is
+$1 + 2 + \cdots + n = \Theta(n^2)$. With an accumulator we can do it in linear
+time:
+
+\begin{lstlisting}[style=racket]
+;; (my-reverse lst) produces lst in reverse order.
+;; Examples:
+(check-expect (my-reverse '(1 2 3)) '(3 2 1))
+(check-expect (my-reverse empty) empty)
+
+;; my-reverse: (listof Any) -> (listof Any)
+(define (my-reverse lst) (rev/acc lst empty))
+
+;; (rev/acc lst acc) produces the elements of lst in reverse order
+;;   followed by acc.
+;; rev/acc: (listof Any) (listof Any) -> (listof Any)
+(define (rev/acc lst acc)
+  (cond [(empty? lst) acc]
+        [else (rev/acc (rest lst) (cons (first lst) acc))]))
+\end{lstlisting}
+
+\paragraph{Trace.}
+\begin{lstlisting}[style=racket]
+(my-reverse (list 1 2 3))
+=> (rev/acc (list 1 2 3) empty)
+=> (rev/acc (list 2 3) (list 1))
+=> (rev/acc (list 3) (list 2 1))
+=> (rev/acc empty (list 3 2 1))
+=> (list 3 2 1)
+\end{lstlisting}
+
+\begin{important}[Accumulative recursion recipe]
+\begin{itemize}
+  \item A \textbf{wrapper} function calls the helper with the \emph{initial} accumulator value.
+  \item The helper's purpose explains what the accumulator \emph{means} (the accumulator invariant).
+  \item In the recursive call the structural parameter moves to the rest, and the accumulator is updated to reflect the element just processed.
+  \item In the base case the answer is usually (computed from) the accumulator.
+\end{itemize}
+\end{important}
+
+\subsection{Template}
+\begin{lstlisting}[style=racket]
+;; acc-template: (listof X) Y -> Any
+(define (acc-template lst acc)
+  (cond [(empty? lst) (... acc ...)]
+        [else (acc-template (rest lst)
+                            (... (first lst) ... acc ...))]))
+\end{lstlisting}
+
+\subsection{Maximum with an accumulator}
+\begin{lstlisting}[style=racket]
+;; (list-max lon) produces the largest element of lon.
+;; list-max: (ne-listof Num) -> Num
+(check-expect (list-max '(1 7 3)) 7)
+(define (list-max lon) (max/acc (rest lon) (first lon)))
+
+;; (max/acc lon best) produces the max of best and all elements of lon.
+;; max/acc: (listof Num) Num -> Num
+(define (max/acc lon best)
+  (cond [(empty? lon) best]
+        [(> (first lon) best) (max/acc (rest lon) (first lon))]
+        [else (max/acc (rest lon) best)]))
+\end{lstlisting}
+
+\subsection{Average in one pass}
+Two accumulators can track several quantities at once:
+\begin{lstlisting}[style=racket]
+;; (average lon) produces the mean of lon.
+;; average: (ne-listof Num) -> Num
+(check-expect (average '(1 2 3 6)) 3)
+(define (average lon) (avg/acc lon 0 0))
+
+;; (avg/acc lon total count): total and count are the sum and number
+;;   of elements already processed.
+;; avg/acc: (listof Num) Num Nat -> Num
+(define (avg/acc lon total count)
+  (cond [(empty? lon) (/ total count)]
+        [else (avg/acc (rest lon) (+ total (first lon)) (add1 count))]))
+\end{lstlisting}
+
+\begin{aside}
+Accumulative functions are often \emph{tail recursive}: the recursive call is
+the whole answer, so nothing waits to be done after it returns. In the stepper
+the expression stays the same size, unlike \code{(+ 2 (+ 3 (sum ...)))}, which
+grows. This matters for space efficiency in real implementations.
+\end{aside}
+
+\subsection{Context-dependent processing}
+Accumulators also give the helper access to context such as the position of an
+element or the previous element:
+\begin{lstlisting}[style=racket]
+;; (increasing? lon) produces true if each element is larger than the
+;;   one before it.
+;; increasing?: (listof Num) -> Bool
+(check-expect (increasing? '(1 3 8)) true)
+(check-expect (increasing? '(1 3 3)) false)
+(define (increasing? lon)
+  (or (empty? lon) (inc/acc (rest lon) (first lon))))
+
+;; inc/acc: (listof Num) Num -> Bool
+(define (inc/acc lon prev)
+  (cond [(empty? lon) true]
+        [else (and (> (first lon) prev)
+                   (inc/acc (rest lon) (first lon)))]))
+\end{lstlisting}
+
+\section{Mutual recursion}
+
+Mutual recursion arises naturally from mutually recursive data definitions
+(Chapter~\ref{ch:trees}), but even simple examples exist:
+
+\begin{lstlisting}[style=racket]
+;; (is-even? n) produces true if n is even.
+;; is-even?: Nat -> Bool
+(define (is-even? n)
+  (cond [(zero? n) true]
+        [else (is-odd? (sub1 n))]))
+
+;; (is-odd? n) produces true if n is odd.
+;; is-odd?: Nat -> Bool
+(define (is-odd? n)
+  (cond [(zero? n) false]
+        [else (is-even? (sub1 n))]))
+\end{lstlisting}
+
+\begin{example}[Alternating elements]
+Keep the elements in odd positions (1st, 3rd, \ldots):
+\begin{lstlisting}[style=racket]
+;; keep-alternates: (listof Any) -> (listof Any)
+(check-expect (keep-alternates '(a b c d e)) '(a c e))
+(define (keep-alternates lst)
+  (cond [(empty? lst) empty]
+        [else (cons (first lst) (skip-one (rest lst)))]))
+
+;; skip-one: (listof Any) -> (listof Any)
+(define (skip-one lst)
+  (cond [(empty? lst) empty]
+        [else (keep-alternates (rest lst))]))
+\end{lstlisting}
+Each function corresponds to a ``state'': keeping or skipping.
+\end{example}
+
+\section{Generative recursion (preview)}
+In generative recursion the argument to the recursive call is generated by
+some computation, e.g.\ \code{(gcd m (remainder n m))}. Termination is no
+longer automatic and requires an argument. Chapter~\ref{ch:generative} covers
+this in depth.
+
+\section{Choosing a kind of recursion}
+\begin{itemize}
+  \item Start with structural recursion; it is simplest and terminates automatically.
+  \item Add an accumulator when the answer depends on what came \emph{before} (context), or to avoid repeated work like \code{append} in reverse.
+  \item Use mutual recursion when the data definition is mutually recursive or the problem has distinct states.
+  \item Use generative recursion only when the problem's structure, not the data's, dictates the decomposition.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item Accumulators carry information about the already-processed part; document what they mean.
+  \item A wrapper supplies the initial accumulator.
+  \item Accumulative reverse is $\Theta(n)$ versus $\Theta(n^2)$ structural.
+  \item Mutual recursion: functions that call each other, often mirroring states or data definitions.
+\end{itemize}

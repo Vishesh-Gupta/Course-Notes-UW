@@ -1,0 +1,183 @@
+\chapter{Structures}
+
+Atomic data cannot represent compound information such as a point $(x,y)$, a
+student record, or a date. \textbf{Structures} bundle a fixed number of values
+into one value.
+
+\section{Defining a structure}
+
+\begin{lstlisting}[style=racket]
+(define-struct posn (x y))
+\end{lstlisting}
+(In fact \code{posn} is built into the teaching languages, but this is how it
+would be defined.) A single \code{define-struct} creates several functions:
+\begin{itemize}
+  \item \textbf{constructor} \code{make-posn}: \code{Num Num -> Posn};
+  \item \textbf{selectors} \code{posn-x} and \code{posn-y}: \code{Posn -> Num};
+  \item \textbf{type predicate} \code{posn?}: \code{Any -> Bool}.
+\end{itemize}
+
+\begin{lstlisting}[style=racket]
+(define p (make-posn 3 4))
+(posn-x p)        ; => 3
+(posn-y p)        ; => 4
+(posn? p)         ; => true
+(posn? 7)         ; => false
+\end{lstlisting}
+
+A value such as \code{(make-posn 3 4)} is itself a \emph{value}: it cannot be
+simplified further. Structures are immutable in CS 135; to ``change'' a field
+you construct a new structure.
+
+\subsection{Substitution rules for structures}
+\begin{important}[Structure rules]
+For \code{(define-struct sname (f1 ... fn))}:
+\begin{itemize}
+  \item \code{(sname-fi (make-sname v1 ... vn))} $\Rightarrow$ \code{vi}
+  \item \code{(sname? (make-sname v1 ... vn))} $\Rightarrow$ \code{true}
+  \item \code{(sname? v)} $\Rightarrow$ \code{false} for any other value \code{v}
+\end{itemize}
+\end{important}
+
+\section{Data definitions and structure definitions}
+
+Every \code{define-struct} is accompanied by a comment called the
+\textbf{structure definition} (field names and types) and a \textbf{data
+definition} giving the type a capitalized name:
+
+\begin{lstlisting}[style=racket]
+(define-struct student (name id avg))
+;; A Student is a (make-student Str Nat Num)
+;;   requires: 0 <= avg <= 100
+\end{lstlisting}
+
+\section{Templates for structures}
+
+A template for a function consuming a structure selects each field, since a
+function consuming a Student will usually need some subset of its fields:
+
+\begin{lstlisting}[style=racket]
+;; student-template: Student -> Any
+(define (student-template s)
+  (... (student-name s) ...
+       (student-id s) ...
+       (student-avg s) ...))
+\end{lstlisting}
+
+\begin{example}[Distance between points]
+\begin{lstlisting}[style=racket]
+;; (distance p1 p2) produces the Euclidean distance between p1 and p2.
+;; Examples:
+(check-expect (distance (make-posn 0 0) (make-posn 3 4)) 5)
+(check-expect (distance (make-posn 1 1) (make-posn 1 1)) 0)
+
+;; distance: Posn Posn -> Num
+(define (distance p1 p2)
+  (sqrt (+ (sqr (- (posn-x p1) (posn-x p2)))
+           (sqr (- (posn-y p1) (posn-y p2))))))
+
+;; Tests:
+(check-within (distance (make-posn 0 0) (make-posn 1 1)) (sqrt 2) 0.0001)
+\end{lstlisting}
+\end{example}
+
+\begin{example}[Producing a new structure]
+\begin{lstlisting}[style=racket]
+;; (curve-avg s bonus) produces a copy of s with bonus added to the
+;;   average, capped at 100.
+;; curve-avg: Student Num -> Student
+(check-expect (curve-avg (make-student "Ada" 1 70) 5)
+              (make-student "Ada" 1 75))
+(check-expect (curve-avg (make-student "Bo" 2 98) 5)
+              (make-student "Bo" 2 100))
+(define (curve-avg s bonus)
+  (make-student (student-name s)
+                (student-id s)
+                (min 100 (+ (student-avg s) bonus))))
+\end{lstlisting}
+\end{example}
+
+\paragraph{Trace.}
+\begin{lstlisting}[style=racket]
+(curve-avg (make-student "Ada" 1 70) 5)
+=> (make-student (student-name (make-student "Ada" 1 70))
+                 (student-id (make-student "Ada" 1 70))
+                 (min 100 (+ (student-avg (make-student "Ada" 1 70)) 5)))
+=> (make-student "Ada"
+                 (student-id (make-student "Ada" 1 70))
+                 (min 100 (+ (student-avg (make-student "Ada" 1 70)) 5)))
+=> (make-student "Ada" 1 (min 100 (+ (student-avg (make-student "Ada" 1 70)) 5)))
+=> (make-student "Ada" 1 (min 100 (+ 70 5)))
+=> (make-student "Ada" 1 (min 100 75))
+=> (make-student "Ada" 1 75)
+\end{lstlisting}
+
+\section{Nested structures}
+
+Fields can themselves be structures. The template then calls the template of
+the inner type (or a helper) on that field.
+
+\begin{lstlisting}[style=racket]
+(define-struct circle (centre radius))
+;; A Circle is a (make-circle Posn Num)
+;;   requires: radius > 0
+
+;; circle-template: Circle -> Any
+(define (circle-template c)
+  (... (posn-template (circle-centre c)) ...
+       (circle-radius c) ...))
+
+;; (inside? c p) produces true if p lies inside or on circle c.
+;; inside?: Circle Posn -> Bool
+(check-expect (inside? (make-circle (make-posn 0 0) 5) (make-posn 3 4)) true)
+(check-expect (inside? (make-circle (make-posn 0 0) 5) (make-posn 4 4)) false)
+(define (inside? c p)
+  (<= (distance (circle-centre c) p) (circle-radius c)))
+\end{lstlisting}
+
+\section{Mixed data with structures}
+
+A type may be one of several structure types. The data definition uses
+\code{anyof} and the template uses the type predicates in a \code{cond}:
+
+\begin{lstlisting}[style=racket]
+(define-struct rect (corner width height))
+;; A Rect is a (make-rect Posn Num Num)
+;; A Shape is (anyof Circle Rect)
+
+;; shape-template: Shape -> Any
+(define (shape-template sh)
+  (cond [(circle? sh) (... (circle-centre sh) ... (circle-radius sh) ...)]
+        [(rect? sh) (... (rect-corner sh) ... (rect-width sh) ...
+                         (rect-height sh) ...)]))
+
+;; (area sh) produces the area of shape sh.
+;; area: Shape -> Num
+(check-expect (area (make-rect (make-posn 0 0) 2 3)) 6)
+(define (area sh)
+  (cond [(circle? sh) (* pi (sqr (circle-radius sh)))]
+        [(rect? sh) (* (rect-width sh) (rect-height sh))]))
+\end{lstlisting}
+
+\begin{aside}
+Racket is \emph{dynamically typed}: nothing stops you from writing
+\code{(make-posn "a" 'b)}. Contracts and data definitions are comments that
+document intended use. Selectors do check their argument's structure type,
+so \code{(posn-x 5)} is a run-time error.
+\end{aside}
+
+\section{Common pitfalls}
+\begin{itemize}
+  \item Forgetting the data definition comment or field types.
+  \item Writing \code{(x p)} instead of \code{(posn-x p)}.
+  \item Trying to mutate a field; construct a new structure instead.
+  \item Comparing structures with \code{=}; use \code{equal?} (and \code{check-expect} compares structurally).
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item \code{define-struct} creates a constructor, selectors and a predicate.
+  \item Every structure has a structure definition and a data definition comment.
+  \item The structure template selects every field; nested structures lead to nested template calls.
+  \item Mixed data uses \code{anyof} and type predicates in a \code{cond}.
+\end{itemize}

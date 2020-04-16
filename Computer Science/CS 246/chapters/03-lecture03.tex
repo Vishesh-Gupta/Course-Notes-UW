@@ -1,0 +1,223 @@
+\chapter{Lecture 3: Regular Expressions, Permissions, Variables and Scripts}
+\begin{center}
+\textit{January 11, 2018}
+\end{center}
+
+\section{Regular Expressions (continued)}
+Last time: \code{egrep pattern file(s)}. For example
+\begin{lstlisting}[style=bash]
+egrep "(cs|CS)246" index.html
+\end{lstlisting}
+This is \emph{not} the same as \code{"(c|C)(s|S)246"} (which also matches
+\code{cS246} and \code{Cs246}); that one can also be written
+\code{"[cC][sS]246"}.
+
+\begin{center}
+\begin{tabular}{@{}lp{0.68\textwidth}@{}}
+\toprule
+Pattern & Matches \\
+\midrule
+\code{[abc]} & one character from the set, i.e.\ \code{(a|b|c)} \\
+\code{[\^{}abc]} & one character \emph{not} from the set \\
+\code{[a-z]} & one character in the range \\
+\code{?} & 0 or 1 occurrences of the preceding expression \\
+\code{*} & 0 or more occurrences of the preceding expression \\
+\code{+} & 1 or more occurrences of the preceding expression \\
+\code{.} & any one character \\
+\code{.*} & any number of any characters \\
+\code{\textbackslash.} & a literal \code{.} (backslash escapes a special symbol) \\
+\code{\^{}} & forces the match to start at the beginning of the line \\
+\code{\$} & forces the match to end at the end of the line \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Examples:
+\begin{itemize}
+  \item \code{"cs ?246"} matches \code{cs246} and \code{cs 246}.
+  \item \code{"(cs)?246"} matches \code{cs246} or just \code{246}.
+  \item \code{"\^{}cs246"}: lines starting with \code{cs246};
+        \code{"\^{}cs246\$"}: lines containing exactly \code{cs246}.
+\end{itemize}
+
+\begin{example}
+Print all words in \code{/usr/share/dict/words} that start with an \code{e} and
+have length 5.
+\begin{lstlisting}[style=bash]
+egrep "^e....$" /usr/share/dict/words
+\end{lstlisting}
+\end{example}
+
+\begin{example}
+Lines of even length:
+\begin{lstlisting}[style=bash]
+egrep "^(..)*$" filename
+\end{lstlisting}
+\end{example}
+
+\begin{important}[Anchors]
+When a pattern must \emph{count} characters (exact length, exactly one
+occurrence, \dots), anchor it with \code{\^{}} and \code{\$}. Otherwise
+\code{egrep} happily matches a substring of the line.
+\end{important}
+
+\begin{example}
+List the file names in the current directory that contain exactly one \code{a}.
+\begin{lstlisting}[style=bash]
+ls -a | egrep "^[^a]*a[^a]*$"
+\end{lstlisting}
+\end{example}
+
+\section{File Permissions}
+\code{ls -l} gives a long listing:
+\begin{lstlisting}[style=bash]
+-rwxr-xr--  1 nanaeem  staff  2048 Jan 11 10:00 script.sh
+\end{lstlisting}
+The columns are: type and permissions, number of links, owner, group, size,
+last-modified date, and file name. The first character is \code{-} for an
+ordinary file and \code{d} for a directory. The next nine characters are three
+groups of three:
+
+\begin{center}
+\begin{tabular}{@{}ccc@{}}
+\toprule
+\code{rwx} & \code{r-x} & \code{r--} \\
+user (owner) & group & other \\
+\midrule
+the file's owner & users in the file's group & everyone else \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{@{}clp{0.42\textwidth}@{}}
+\toprule
+Bit & On an ordinary file & On a directory \\
+\midrule
+\code{r} & read the file & list the directory's contents (e.g.\ globbing) \\
+\code{w} & modify the file & add/remove files in the directory \\
+\code{x} & run the file as a program & enter the directory (\code{cd}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Only the owner can change a file's permissions, using \code{chmod mode file(s)}.
+A mode consists of
+\begin{enumerate}
+  \item an ownership class: \code{u}ser, \code{g}roup, \code{o}ther, \code{a}ll;
+  \item an operator: \code{+} (add), \code{-} (remove), \code{=} (set exactly);
+  \item permissions: \code{r}, \code{w}, \code{x}.
+\end{enumerate}
+\begin{lstlisting}[style=bash]
+chmod a+r final.pdf     # give everyone read permission
+chmod g-rw final.pdf    # remove read and write from the group
+chmod o=rx final.pdf    # set others to exactly read/execute
+chmod u+x myscript      # make a script executable by me
+\end{lstlisting}
+
+\section{Shell Variables}
+\begin{lstlisting}[style=bash]
+x=1          # no spaces around = !  variables store strings
+echo $x
+echo ${x}    # recommended
+\end{lstlisting}
+When you \emph{write} a variable, no \code{\$}; when you \emph{read} it, use
+\code{\$}. It is good practice to use curly braces around variable names:
+\code{\$\{x\}abc} is unambiguous, \code{\$xabc} refers to a variable named
+\code{xabc}.
+
+\begin{itemize}
+  \item Double quotes allow variable expansion; single quotes suppress it:
+        \code{echo '\$\{x\}'} prints \code{\$\{x\}}.
+  \item Variables last for the current session only. To set something
+        permanently, put it in \code{\textasciitilde/.bash\_profile} (or
+        \code{.bashrc}).
+\end{itemize}
+
+\subsection*{PATH}
+\code{echo \$\{PATH\}} prints a list of directories separated by colons. When you
+type a command, the shell searches these directories (in order) for a program
+with that name.
+\begin{lstlisting}[style=bash]
+PATH=mypath:${PATH}    # search mypath first
+PATH=${PATH}:mypath    # search mypath last
+\end{lstlisting}
+
+\section{Shell Scripts}
+\begin{definition}
+A \textbf{shell script} is a text file containing a sequence of shell commands
+that can be executed as a program.
+\end{definition}
+\begin{itemize}
+  \item The first line should be \code{\#!/bin/bash}, the \emph{shebang} (``hash
+        bang'') line. It tells the OS to run the script with bash.
+  \item Give the script executable permission: \code{chmod u+x script}.
+  \item Run it with \code{./script} (the current directory is usually not in
+        \code{PATH}).
+\end{itemize}
+
+\begin{lstlisting}[style=bash]
+#!/bin/bash
+date
+whoami
+pwd
+\end{lstlisting}
+
+\subsection{Arguments to a Script}
+\begin{lstlisting}[style=bash]
+./script arg1 arg2 ...
+#  $0     $1   $2
+\end{lstlisting}
+\code{\$0} is the script's name, \code{\$1}, \code{\$2}, \dots{} are its arguments,
+and \code{\$\#} is the number of arguments.
+
+\begin{example}
+Is a given word a valid word in the dictionary?
+\begin{lstlisting}[style=bash]
+#!/bin/bash
+egrep "^$1$" /usr/share/dict/words
+\end{lstlisting}
+\end{example}
+
+\subsection{Status Codes}
+Every Linux command sets a \textbf{status code}, stored in \code{\$?}:
+\code{0} means success, non-zero means failure. For \code{egrep}, success means
+``found a match''.
+
+\begin{aside}
+To throw away output we don't care about, send it to \code{/dev/null}, a special
+file that discards everything written to it.
+\end{aside}
+
+\subsection{Evaluating Conditions}
+Conditions are evaluated with the \code{test} program, which can also be written
+as \code{[ ... ]}. The spaces inside the brackets are mandatory, because
+\code{[} is literally the name of a program and the rest are its arguments.
+
+\begin{example}
+A good password is a word that is \emph{not} in the dictionary. Is a given word a
+good password?
+\begin{lstlisting}[style=bash]
+#!/bin/bash
+# The answer is the script's own status code.
+egrep "^$1$" /usr/share/dict/words > /dev/null
+[ $? -ne 0 ]
+\end{lstlisting}
+The status of a script is the status of its last command, so the script
+succeeds exactly when \code{egrep} failed to find the word.
+\end{example}
+
+\code{\#} starts a comment. \code{[ -e basic ]} checks whether a file named
+\code{basic} exists.
+
+\section*{Summary}
+\begin{itemize}
+  \item Regex: \code{[...]}, \code{[\^{}...]}, \code{?}, \code{*}, \code{+},
+        \code{.}, \code{|}, grouping, and the anchors \code{\^{}} and \code{\$}.
+  \item \code{ls -l} shows \code{rwx} permissions for user/group/other;
+        \code{chmod} changes them.
+  \item Variables: \code{x=1}, read with \code{\$\{x\}}; \code{PATH} is where
+        commands are found.
+  \item Scripts start with \code{\#!/bin/bash}, receive \code{\$1, \$2, ...}, and
+        communicate success through status codes; \code{[ ]} tests conditions.
+\end{itemize}
