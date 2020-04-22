@@ -8,6 +8,7 @@ Some files are latex, some files are markdown. I also have the pdf files there f
 
 Each CS course has a `main.tex` with one file per chapter/lecture in `chapters/`, sharing `Computer Science/common/preamble.tex`.
 Build from inside the course folder with `latexmk -pdf main.tex`.
+The notes are also published as a website (see `website/`).
 
 | Course | Title |
 |---|---|
