@@ -223,8 +223,7 @@ all $n$ cyclic shifts of $S$, sort them lexicographically, and output the
 \begin{example}
 $S = \texttt{banana\$}$. Sorted cyclic shifts:
 \begin{center}
-\texttt{
-\begin{tabular}{l}
+\begin{tabular}{>{\ttfamily}l}
 \$banan\textbf{a}\\
 a\$bana\textbf{n}\\
 ana\$ba\textbf{n}\\
@@ -232,7 +231,7 @@ anana\$\textbf{b}\\
 banana\textbf{\$}\\
 na\$ban\textbf{a}\\
 nana\$b\textbf{a}
-\end{tabular}}
+\end{tabular}
 \end{center}
 $C = \texttt{annb\$aa}$. Note the first column is the sorted text, and the
 cyclic shifts are in the same order as the suffix array $[6,5,3,1,0,4,2]$: the
