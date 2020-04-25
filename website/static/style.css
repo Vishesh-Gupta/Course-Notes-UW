@@ -155,7 +155,9 @@ a:hover { text-decoration: underline; }
   color: var(--text);
   font-size: 14px;
 }
-.dropdown-item b { display: inline-block; min-width: 56px; }
+.dropdown-item b { display: inline-block; min-width: 72px; }
+.dropdown-label { padding: 8px 10px 2px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+.dropdown-menu { max-height: calc(100vh - var(--navbar-h) - 24px); overflow-y: auto; }
 .dropdown-item:hover, .dropdown-item.active { background: var(--primary-soft); text-decoration: none; }
 
 .search { width: 260px; }
@@ -363,6 +365,7 @@ code .er, code .al { color: #dc2626; font-weight: 600; }
 /* ---------- home & course pages ---------- */
 .hero { padding: 40px 0 24px; }
 .hero h1 { font-size: 2.8rem; margin: 0 0 8px; letter-spacing: -0.02em; }
+.subject { font-size: 1.3rem; margin: 32px 0 14px; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 .card {
   display: block;

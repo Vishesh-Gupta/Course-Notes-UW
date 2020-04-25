@@ -13,7 +13,7 @@ local code_lang = {
 
 local theorem_like = {
   definition = true, example = true, theorem = true, lemma = true,
-  corollary = true, remark = true,
+  corollary = true, proposition = true, remark = true,
 }
 
 local function escape_html(s)

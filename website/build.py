@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the course notes website from the LaTeX sources.
 
-Each "Computer Science/CS XXX/main.tex" becomes a course; every \\include'd
+Each "<Subject>/<Course>/main.tex" becomes a course; every \\include'd
 chapter becomes one page. Chapters are converted with pandoc (filter.lua),
 math is rendered in the browser by KaTeX and TikZ pictures are compiled to
 SVG with pdflatex + pdftocairo (cached in website/.cache).
@@ -13,6 +13,7 @@ Needs: pandoc, pdflatex (TeX Live with latex-extra), pdftocairo.
 import argparse
 import hashlib
 import html
+import json
 import re
 import shutil
 import subprocess
@@ -22,8 +23,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE_SRC = ROOT / "website"
-CS_DIR = ROOT / "Computer Science"
-PREAMBLE = CS_DIR / "common" / "preamble.tex"
+SUBJECTS = ["Computer Science", "Mathematics", "Statistics"]
+PREAMBLE = ROOT / "common" / "preamble.tex"
 CACHE = SITE_SRC / ".cache" / "tikz"
 REPO_URL = "https://github.com/Vishesh-Gupta/Course-Notes-UW"
 SITE_TITLE = "Course Notes UW"
@@ -81,9 +82,22 @@ def strip_comments(text):
 
 def course_chunk(main_tex):
     """Course-specific preamble lines between the shared preamble and \\title."""
-    m = re.search(r"\\input\{\.\./common/preamble\}(.*?)\\title\{", main_tex, re.S)
+    m = re.search(r"\\input\{(?:\.\./)+common/preamble\}(.*?)\\title\{", main_tex, re.S)
     chunk = m.group(1) if m else ""
     return re.sub(r"\\makeatletter.*?\\makeatother", "", chunk, flags=re.S)
+
+
+# Text-mode commands KaTeX lacks, mapped to close equivalents.
+KATEX_EXTRA = {"\\textsc": "\\textrm{#1}", "\\textup": "\\textrm{#1}"}
+
+
+def katex_macros(defs):
+    """\\newcommand definitions as KaTeX macros, for math pandoc leaves unexpanded
+    (e.g. inside pseudocode listings)."""
+    macros = dict(KATEX_EXTRA)
+    for m in re.finditer(r"\\(?:re)?newcommand\{(\\[A-Za-z]+)\}(?:\[\d\])?(?=\{)", defs):
+        macros[m.group(1)] = defs[m.end() + 1:skip_group(defs, m.end()) - 1]
+    return macros
 
 
 def pandoc_defs(main_tex):
@@ -155,6 +169,7 @@ class Chapter:
 class Course:
     def __init__(self, folder):
         self.folder = folder
+        self.subject = folder.parent.name
         self.main_tex = (folder / "main.tex").read_text()
         m = re.search(r"\\title\{(.*?)\}", self.main_tex)
         title = m.group(1) if m else folder.name
@@ -169,9 +184,19 @@ class Course:
         self.pdf = pdfs[0] if pdfs else None
 
 
+def course_sort_key(folder):
+    m = re.search(r"(\d+)", folder.name)
+    return (folder.name.split()[0], int(m.group(1)) if m else 0)
+
+
 def find_courses():
-    return [Course(d) for d in sorted(CS_DIR.iterdir())
-            if (d / "main.tex").exists()]
+    courses = []
+    for subject in SUBJECTS:
+        d = ROOT / subject
+        if d.is_dir():
+            courses += [Course(c) for c in sorted(d.iterdir(), key=course_sort_key)
+                        if (c / "main.tex").exists()]
+    return courses
 
 
 # --------------------------------------------------------------------------
@@ -262,10 +287,16 @@ def convert_chapter(ch, defs, out_dir, warnings):
 # Page rendering
 
 def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_class=""):
-    course_links = "\n".join(
-        f'<a class="dropdown-item{" active" if c is current else ""}" '
-        f'href="{root}{c.slug}/index.html"><b>{c.code}</b> {html.escape(c.name)}</a>'
-        for c in courses)
+    macros = json.dumps(current.macros if current else KATEX_EXTRA).replace("</", "<\\/")
+    course_links, subject = [], None
+    for c in courses:
+        if c.subject != subject:
+            subject = c.subject
+            course_links.append(f'<div class="dropdown-label">{subject}</div>')
+        course_links.append(
+            f'<a class="dropdown-item{" active" if c is current else ""}" '
+            f'href="{root}{c.slug}/index.html"><b>{c.code}</b> {html.escape(c.name)}</a>')
+    course_links = "\n".join(course_links)
     toc_html = (f'<aside class="toc"><div class="toc-inner"><div class="toc-title">On this page</div>'
                 f'<ul>{toc}</ul></div></aside>') if toc else ""
     sidebar_html = (f'<nav class="sidebar" id="sidebar"><div class="sidebar-inner">{sidebar}</div></nav>'
@@ -305,6 +336,7 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
 </div>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="{root}pagefind/pagefind-ui.js"></script>
+<script>window.KATEX_MACROS = {macros};</script>
 <script defer src="{root}assets/app.js"></script>
 </body>
 </html>
@@ -354,7 +386,7 @@ def render_course(course, courses, out):
         f'<li><a href="{ch.slug}.html"><span class="num">{ch.number}</span>'
         f'<span>{ch.title_html}</span></a></li>' for ch in course.chapters)
     pdf = (f'<a class="button" href="{pdf_name(course)}">Download PDF</a>' if course.pdf else "")
-    src = f"{REPO_URL}/tree/main/Computer%20Science/{course.folder.name.replace(' ', '%20')}"
+    src = f"{REPO_URL}/tree/main/{course.subject}/{course.folder.name}".replace(" ", "%20")
     body = f"""<div class="breadcrumbs"><a href="../index.html">Courses</a> / {course.code}</div>
 <h1 class="chapter-title">{course.code} <span class="muted">&mdash; {html.escape(course.name)}</span></h1>
 <p class="lead">{len(course.chapters)} chapters, generated from the LaTeX notes.</p>
@@ -371,23 +403,48 @@ def render_course(course, courses, out):
 
 
 def render_index(courses, out):
-    cards = "\n".join(
-        f'<a class="card" href="{c.slug}/index.html"><div class="card-code">{c.code}</div>'
-        f'<div class="card-name">{html.escape(c.name)}</div>'
-        f'<div class="card-meta">{len(c.chapters)} chapters</div></a>' for c in courses)
+    sections = []
+    for subject in SUBJECTS:
+        group = [c for c in courses if c.subject == subject]
+        if not group:
+            continue
+        cards = "\n".join(
+            f'<a class="card" href="{c.slug}/index.html"><div class="card-code">{c.code}</div>'
+            f'<div class="card-name">{html.escape(c.name)}</div>'
+            f'<div class="card-meta">{len(c.chapters)} chapters</div></a>' for c in group)
+        sections.append(f'<h2 class="subject">{subject}</h2>\n<div class="cards">{cards}</div>')
     body = f"""<section class="hero">
 <h1>{SITE_TITLE}</h1>
-<p class="lead">Notes for the core University of Waterloo Computer Science courses, written in LaTeX and split by chapter.</p>
+<p class="lead">Notes for the core University of Waterloo Computer Science, Mathematics and Statistics courses, written in LaTeX and split by chapter.</p>
 </section>
-<div class="cards">{cards}</div>"""
+{"".join(sections)}"""
     (out / "index.html").write_text(page(SITE_TITLE, body, "", courses=courses,
                                          page_class="home"))
+
+
+def check_output(out):
+    """Sanity checks on the generated pages: images exist, no raw LaTeX left."""
+    problems = []
+    for f in sorted(out.glob("*/*.html")):
+        text = f.read_text()
+        main = text[text.find("<main"):text.find("</main>")]
+        for src in re.findall(r'<img src="([^"]+)"', main):
+            if not (f.parent / src).exists():
+                problems.append(f"{f.relative_to(out)}: missing image {src}")
+        prose = re.sub(r'<span class="math[^"]*">.*?</span>', "", main, flags=re.S)
+        prose = re.sub(r"<(pre|code)[^>]*>.*?</\1>", "", prose, flags=re.S)
+        prose = re.sub(r'<div class="code-block.*?</div>', "", prose, flags=re.S)
+        leftovers = sorted(set(re.findall(r"\\[A-Za-z]+", prose)))
+        if leftovers:
+            problems.append(f"{f.relative_to(out)}: unconverted LaTeX {' '.join(leftovers[:8])}")
+    return problems
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(SITE_SRC / "_site"))
     ap.add_argument("--course", action="append", help="only build these (e.g. 'CS 246')")
+    ap.add_argument("--strict", action="store_true", help="exit with an error on any warning (CI)")
     args = ap.parse_args()
     out = Path(args.out)
     if out.exists():
@@ -404,6 +461,7 @@ def main():
     for course in courses:
         course.tikz_pre = tikz_preamble(course.main_tex)
         defs = pandoc_defs(course.main_tex)
+        course.macros = katex_macros(defs)
         cdir = out / course.slug
         cdir.mkdir(parents=True)
         for ch in course.chapters:
@@ -412,9 +470,12 @@ def main():
     for course in courses:
         render_course(course, courses, out)
     render_index(courses, out)
+    warnings += check_output(out)
     for w in warnings:
         print("warning:", w, file=sys.stderr)
     print(f"Site written to {out}")
+    if args.strict and warnings:
+        raise SystemExit(f"{len(warnings)} warning(s); failing because of --strict")
 
 
 if __name__ == "__main__":

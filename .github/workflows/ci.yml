@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TEX_PACKAGES: >-
+    texlive-latex-base texlive-latex-recommended texlive-latex-extra
+    texlive-fonts-recommended texlive-pictures lmodern latexmk
+
+jobs:
+  latex:
+    name: Compile LaTeX notes
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install TeX Live
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends $TEX_PACKAGES
+
+      - name: Compile every course
+        run: python3 scripts/check_latex.py --pdf-dir pdfs
+
+      - name: Upload PDFs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: notes-pdfs
+          path: pdfs
+          if-no-files-found: ignore
+
+  site:
+    name: Build website
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pandoc and TeX Live
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pandoc poppler-utils $TEX_PACKAGES
+
+      - name: Check Python scripts
+        run: python3 -m py_compile website/build.py scripts/check_latex.py
+
+      - name: Cache compiled TikZ figures
+        uses: actions/cache@v4
+        with:
+          path: website/.cache
+          key: tikz-${{ hashFiles('common/preamble.tex', '*/*/main.tex', '*/*/chapters/*.tex') }}
+          restore-keys: tikz-
+
+      - name: Build site (fails on any conversion warning)
+        run: python3 website/build.py --strict
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check every formula renders with KaTeX
+        run: |
+          npm install --no-save --no-audit --no-fund --prefix website katex@0.16.9
+          node website/check_math.mjs website/_site
+
+      - name: Build search index
+        run: npx -y pagefind@1.1.1 --site website/_site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/_site
+
+  deploy:
+    name: Deploy website
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [latex, site]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

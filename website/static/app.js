@@ -42,6 +42,7 @@
       try {
         katex.render(el.textContent, el, {
           displayMode: el.classList.contains("display"),
+          macros: Object.assign({}, window.KATEX_MACROS || {}),
           throwOnError: false,
         });
       } catch (e) {}
