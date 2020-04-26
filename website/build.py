@@ -88,7 +88,7 @@ def course_chunk(main_tex):
 
 
 # Text-mode commands KaTeX lacks, mapped to close equivalents.
-KATEX_EXTRA = {"\\textsc": "\\textrm{#1}", "\\textup": "\\textrm{#1}"}
+KATEX_EXTRA = {"\\textsc": "\\textrm{#1}", "\\textup": "\\textrm{#1}", "\\emph": "\\textit{#1}"}
 
 
 def katex_macros(defs):
