@@ -4,11 +4,13 @@ This repository contains course notes for the UW courses that I have taken.
 
 Some files are latex, some files are markdown. I also have the pdf files there for easier access.
 
-## Computer Science (LaTeX)
+## LaTeX notes
 
-Each CS course has a `main.tex` with one file per chapter/lecture in `chapters/`, sharing `Computer Science/common/preamble.tex`.
+Each course has a `main.tex` with one file per chapter/lecture in `chapters/`, sharing `common/preamble.tex`.
 Build from inside the course folder with `latexmk -pdf main.tex`.
-The notes are also published as a website (see `website/`).
+The notes are also published as a website (see `website/`), and CI compiles every course and checks the website build on each pull request.
+
+### Computer Science
 
 | Course | Title |
 |---|---|
@@ -21,3 +23,17 @@ The notes are also published as a website (see `website/`).
 | CS 251 | Computer Organization and Design |
 | CS 341 | Algorithms |
 | CS 350 | Operating Systems |
+
+### Mathematics
+
+| Course | Title |
+|---|---|
+| Math 135 | Algebra for Honours Mathematics |
+| Math 136 | Linear Algebra 1 for Honours Mathematics |
+
+### Statistics
+
+| Course | Title |
+|---|---|
+| Stat 230 | Probability |
+| Stat 231 | Statistics |
