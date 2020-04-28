@@ -1,0 +1,133 @@
+\chapter{Linear Diophantine Equations}
+
+A \emph{Diophantine equation} is an equation where we look only for integer solutions. The
+simplest kind is the linear equation in two variables
+\[ ax + by = c, \qquad a,b,c \in \Z, \]
+which is answered completely by the gcd machinery of Chapter 6.
+
+\section{When is there a solution?}
+
+\begin{theorem}[Linear Diophantine Equation Theorem, Part 1 (LDET 1)]
+Let $a,b,c \in \Z$ with $a,b$ not both zero, and $d = \gcd(a,b)$. The equation $ax + by = c$
+has an integer solution if and only if $d \mid c$.
+\end{theorem}
+\begin{proof}
+($\Rightarrow$) If $ax_0 + by_0 = c$, then since $d \mid a$ and $d\mid b$, DIC gives $d \mid c$.
+
+($\Leftarrow$) Write $c = kd$. By Bezout there are $x',y'$ with $ax' + by' = d$. Then
+$a(kx') + b(ky') = kd = c$.
+\end{proof}
+
+The proof is constructive: \emph{run the EEA, then scale by $c/d$}.
+
+\begin{example}
+$6x + 15y = 4$ has no integer solution because $\gcd(6,15) = 3 \nmid 4$. (Indeed the left side is
+always a multiple of $3$.) But $6x + 15y = 9$ does: $6(-2) + 15(1) = 3$, so
+$6(-6) + 15(3) = 9$.
+\end{example}
+
+\section{Finding all solutions}
+
+\begin{theorem}[Linear Diophantine Equation Theorem, Part 2 (LDET 2)]
+Let $a,b$ be non-zero, $d = \gcd(a,b)$, and suppose $(x_0, y_0)$ is one integer solution of
+$ax + by = c$. Then the set of all integer solutions is
+\[ \left\{ \left(x_0 + \frac bd n,\ \ y_0 - \frac ad n\right) : n \in \Z \right\}. \]
+\end{theorem}
+
+\begin{proof}
+\emph{These are solutions:}
+$a\left(x_0 + \tfrac bd n\right) + b\left(y_0 - \tfrac ad n\right) = ax_0 + by_0 + \tfrac{ab}{d}n
+- \tfrac{ab}{d}n = c$.
+
+\emph{Every solution has this form:} let $(x,y)$ be a solution. Subtracting,
+$a(x - x_0) + b(y - y_0) = 0$, so
+\[ \frac ad (x - x_0) = -\frac bd (y - y_0). \]
+Now $\frac bd$ divides the left side, and $\gcd(\frac ad, \frac bd) = 1$ (DB GCD), so by CAD
+$\frac bd \mid x - x_0$. Write $x - x_0 = \frac bd n$. Substituting,
+$\frac ad\cdot\frac bd n = -\frac bd(y - y_0)$, and cancelling $\frac bd \ne 0$ gives
+$y - y_0 = -\frac ad n$.
+\end{proof}
+
+\begin{important}[Divide by the gcd]
+The step sizes are $b/d$ and $a/d$, not $b$ and $a$. Using $b$ and $a$ produces only some of the
+solutions. Also note the opposite signs: when $x$ goes up, $y$ goes down (if $a,b > 0$).
+\end{important}
+
+\section{Worked examples}
+
+\begin{example}
+Find all integer solutions to $1386x + 322y = 70$.
+
+From the EEA table in Chapter 6, $\gcd(1386, 322) = 14$ and $1386(10) + 322(-43) = 14$. Since
+$14 \mid 70$ (with $70 = 5\cdot 14$), solutions exist. Multiply by $5$:
+\[ 1386(50) + 322(-215) = 70. \]
+Check: $69300 - 69230 = 70$. Here $b/d = 322/14 = 23$ and $a/d = 1386/14 = 99$, so by LDET 2
+all solutions are
+\[ x = 50 + 23n,\qquad y = -215 - 99n,\qquad n\in\Z. \]
+Taking $n = -2$ gives the small solution $(4, -17)$: $5544 - 5474 = 70$.
+\end{example}
+
+\begin{example}[A word problem with constraints]
+Stamps cost $7$ and $11$ cents. In how many ways can one pay exactly $100$ cents?
+
+We need non-negative integers $x,y$ with $7x + 11y = 100$. Euclid: $11 = 1\cdot 7 + 4$,
+$7 = 1\cdot 4 + 3$, $4 = 1 \cdot 3 + 1$. EEA table:
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+$x$ & $y$ & $r$ & $q$\\
+\midrule
+$1$ & $0$ & $7$ & \\
+$0$ & $1$ & $11$ & \\
+$1$ & $0$ & $7$ & $0$\\
+$-1$ & $1$ & $4$ & $1$\\
+$2$ & $-1$ & $3$ & $1$\\
+$-3$ & $2$ & $1$ & $1$\\
+\bottomrule
+\end{tabular}
+\end{center}
+(The first step with $q = 0$ just swaps the order; you may also simply start with the larger
+number first.) So $7(-3) + 11(2) = 1$ and $7(-300) + 11(200) = 100$. All integer solutions:
+\[ x = -300 + 11n,\qquad y = 200 - 7n. \]
+Now impose $x \ge 0$: $n \ge 300/11 \approx 27.3$, so $n \ge 28$; and $y \ge 0$:
+$n \le 200/7 \approx 28.6$, so $n \le 28$. Hence $n = 28$, giving the unique answer
+$(x,y) = (8, 4)$: $56 + 44 = 100$.
+\end{example}
+
+\begin{example}
+Find all solutions of $15x - 21y = 39$ with $x$ between $-10$ and $10$.
+
+$\gcd(15,21) = 3$ and $3 \mid 39$. A Bezout relation: $15\cdot 3 - 21\cdot 2 = 45 - 42 = 3$. Times
+$13$: $15(39) - 21(26) = 39$, so $(x_0,y_0) = (39, 26)$ solves $15x - 21y = 39$. Writing the
+equation as $15x + (-21)y = 39$, LDET 2 gives $x = 39 + \frac{-21}{3}n = 39 - 7n$ and
+$y = 26 - \frac{15}{3}n = 26 - 5n$. For $-10 \le 39 - 7n \le 10$ we need $29/7 \le n \le 7$,
+i.e.\ $n \in \{5,6,7\}$, giving $(4,1)$, $(-3,-4)$, $(-10,-9)$. Check $(4,1)$: $60 - 21 = 39$.
+\end{example}
+
+\begin{aside}
+Geometrically, the integer solutions of $ax + by = c$ are the lattice points on a line;
+consecutive ones are separated by the vector $(b/d, -a/d)$.
+\end{aside}
+
+\section{Connection with congruences}
+
+$ax + by = c$ has a solution in $x$ exactly when $ax \equiv c$ has a solution modulo $b$
+(Chapter 8): the $y$ just absorbs a multiple of $b$. Thus LDET 1 and 2 will give us the theory of
+linear congruences.
+
+\section{Common pitfalls}
+\begin{itemize}
+  \item Forgetting to check $d \mid c$ before trying to solve.
+  \item Using $x_0 + bn$ instead of $x_0 + \frac bd n$.
+  \item Sign errors when $a$ or $b$ is negative; rewrite the equation as $ax + by = c$ with the
+        signs inside $a,b$ and apply the formula literally.
+  \item Not verifying the particular solution by substitution.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item LDET 1: $ax + by = c$ is solvable $\iff \gcd(a,b) \mid c$.
+  \item To find a particular solution: EEA for $ax+by = d$, then multiply by $c/d$.
+  \item LDET 2: all solutions are $x = x_0 + \frac bd n$, $y = y_0 - \frac ad n$, $n\in\Z$.
+  \item Constraints (non-negativity, ranges) become inequalities on the parameter $n$.
+\end{itemize}

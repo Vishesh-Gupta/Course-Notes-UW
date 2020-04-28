@@ -1,0 +1,156 @@
+\chapter{RSA Public-Key Cryptography}
+
+RSA (Rivest, Shamir, Adleman, 1977) is the payoff of the number theory so far: it uses the
+Euclidean algorithm, modular inverses, Fermat's Little Theorem and the splitting modulus
+theorem.
+
+\section{Public-key cryptography}
+
+In \emph{symmetric} (private-key) cryptography, sender and receiver share a secret key used
+both to encrypt and decrypt; the problem is agreeing on that key securely. In
+\emph{public-key} cryptography, each receiver has two keys:
+\begin{itemize}
+  \item a \emph{public key}, published to everyone and used to \emph{encrypt} messages to her;
+  \item a \emph{private key}, kept secret and used to \emph{decrypt}.
+\end{itemize}
+Security rests on the belief that computing the private key from the public key is
+infeasible. For RSA, this is (essentially) the difficulty of factoring a large $n = pq$.
+
+\section{The RSA scheme}
+
+\begin{important}[RSA key generation]
+\begin{enumerate}
+  \item Choose two distinct large primes $p$ and $q$ (hundreds of digits in practice).
+  \item Compute $n = pq$ and $\varphi = (p-1)(q-1)$.
+  \item Choose $e$ with $1 < e < \varphi$ and $\gcd(e,\varphi) = 1$.
+  \item Compute $d$ with $1 < d < \varphi$ and $ed \equiv 1 \Mod{\varphi}$ (EEA).
+  \item Public key: $(e, n)$. Private key: $(d, n)$. Keep $p$, $q$, $\varphi$ secret.
+\end{enumerate}
+\end{important}
+
+\begin{important}[Encryption and decryption]
+A message is an integer $M$ with $0 \le M < n$.
+\begin{itemize}
+  \item Encrypt: $C \equiv M^e \Mod n$, with $0 \le C < n$.
+  \item Decrypt: $R \equiv C^d \Mod n$, with $0 \le R < n$. Then $R = M$.
+\end{itemize}
+\end{important}
+
+Why it is (believed) secure: an eavesdropper knows $n$, $e$ and $C$. To find $d$ she needs
+$\varphi$; but knowing $n$ and $\varphi = n - (p+q) + 1$ is equivalent to knowing $p + q$ and
+$pq$, hence $p$ and $q$ (roots of $t^2 - (p+q)t + pq$). So recovering $d$ this way is as hard as
+factoring $n$.
+
+All the steps for the legitimate users are fast: primality testing, the EEA, and modular
+exponentiation by repeated squaring each take a number of steps polynomial in the number of
+digits.
+
+\section{A small worked example}
+
+\begin{example}[Key generation]
+Take $p = 11$, $q = 13$. Then $n = 143$ and $\varphi = 10 \cdot 12 = 120$. Choose $e = 7$;
+$\gcd(7, 120) = 1$ since $120 = 2^3\cdot 3\cdot 5$. To find $d$, run the EEA on $120$ and $7$:
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+$x$ & $y$ & $r$ & $q$\\
+\midrule
+$1$ & $0$ & $120$ & \\
+$0$ & $1$ & $7$ & \\
+$1$ & $-17$ & $1$ & $17$\\
+\bottomrule
+\end{tabular}
+\end{center}
+So $120(1) + 7(-17) = 1$, i.e.\ $7\cdot(-17) \equiv 1 \Mod{120}$, and
+$d \equiv -17 \equiv 103 \Mod{120}$. Check: $7 \cdot 103 = 721 = 6\cdot 120 + 1$.
+
+Public key $(e,n) = (7, 143)$; private key $(d,n) = (103, 143)$.
+\end{example}
+
+\begin{example}[Encryption]
+Encrypt $M = 9$: compute $9^7 \bmod 143$ by repeated squaring.
+\begin{align*}
+9^2 &= 81,\\
+9^4 &= 81^2 = 6561 = 45\cdot 143 + 126 \equiv 126 \equiv -17,\\
+9^7 &= 9^4\cdot 9^2\cdot 9 \equiv (-17)(81)(9) = (-17)(729).
+\end{align*}
+Since $729 = 5\cdot 143 + 14$, this is $(-17)(14) = -238 \equiv -238 + 2\cdot 143 = 48$.
+So the ciphertext is $C = 48$.
+\end{example}
+
+\begin{example}[Decryption]
+Compute $48^{103} \bmod 143$. The receiver knows $p,q$, so she may use SMT and FLT.
+
+\emph{Mod $11$:} $48 \equiv 4$. By FLT exponents reduce mod $10$: $103 \equiv 3$, so
+$48^{103} \equiv 4^3 = 64 \equiv 9 \Mod{11}$.
+
+\emph{Mod $13$:} $48 \equiv 9$. Exponents reduce mod $12$: $103 = 8\cdot 12 + 7$, so we need
+$9^7$. $9^2 = 81 \equiv 3$, $9^4 \equiv 9$, $9^7 = 9^4\cdot 9^2\cdot 9 \equiv 9 \cdot 3\cdot 9 = 243 =
+18\cdot 13 + 9\equiv 9 \Mod{13}$.
+
+So $R \equiv 9 \Mod{11}$ and $R \equiv 9 \Mod{13}$; by CRT/SMT, $R \equiv 9 \Mod{143}$. We recover
+$M = 9$. (Without knowing $p,q$, the same result follows from repeated squaring mod $143$
+directly, just with more work.)
+\end{example}
+
+\section{Proof of correctness}
+
+\begin{theorem}[RSA works]
+With $n, e, d$ as above and $0 \le M < n$, if $C \equiv M^e \Mod n$ and $R \equiv C^d\Mod n$
+with $0 \le R < n$, then $R = M$.
+\end{theorem}
+
+\begin{proof}
+Since $ed \equiv 1 \Mod{\varphi}$, write $ed = 1 + k(p-1)(q-1)$ for some integer $k\ge 0$. Then
+\[ R \equiv C^d \equiv M^{ed} \Mod n. \]
+We show $M^{ed} \equiv M \Mod p$.
+\begin{itemize}
+  \item If $p \nmid M$: by FLT $M^{p-1} \equiv 1 \Mod p$, so
+        $M^{ed} = M\cdot\bigl(M^{p-1}\bigr)^{k(q-1)} \equiv M\cdot 1 = M \Mod p$.
+  \item If $p \mid M$: both $M^{ed}$ and $M$ are $\equiv 0 \Mod p$.
+\end{itemize}
+By the same argument, $M^{ed} \equiv M \Mod q$. Since $p \neq q$ are primes,
+$\gcd(p,q) = 1$, and SMT gives $M^{ed} \equiv M \Mod{pq}$. So $R \equiv M \Mod n$, and since both
+$R$ and $M$ lie in $\{0, 1, \dots, n-1\}$, CISR gives $R = M$.
+\end{proof}
+
+\begin{important}[Why $p \ne q$ and $\gcd(e,\varphi) = 1$]
+$\gcd(e,\varphi) = 1$ is exactly what makes the inverse $d$ exist (INV $\Zm m$). Distinctness
+of $p$ and $q$ is used when we apply SMT; with $p = q$, $n = p^2$ is trivially factored
+anyway.
+\end{important}
+
+\section{Digital signatures}
+
+RSA also gives signatures. To sign $M$, Alice computes $S \equiv M^{d} \Mod{n}$ with her
+\emph{private} key. Anyone can verify by checking $S^{e} \equiv M \Mod n$ with her public key;
+only someone knowing $d$ could have produced $S$. Correctness is the same theorem with the roles
+of $e$ and $d$ swapped (since $ed = de$).
+
+\begin{example}
+With Alice's keys above, signing $M = 2$: $S \equiv 2^{103} \Mod{143}$. Mod $11$: $2^{3} = 8$.
+Mod $13$: $2^{7} = 128 = 9\cdot 13 + 11 \equiv 11$. Solve $S\equiv 8 \Mod{11}$,
+$S \equiv 11 \Mod{13}$: $S = 11 + 13k$, $11 + 2k \equiv 8 \Mod{11}$, so $2k \equiv 8$ and
+$k \equiv 4$, giving $S = 63$. Verify: $63^7 \bmod 143$. Mod $11$: $63 \equiv 8$, and
+$8^7 \equiv 8^{-3} \equiv 2$ (as $8^3 = 512 = 46\cdot 11 + 6$ and $6\cdot 2 = 12 \equiv 1$).
+Mod $13$: $63 \equiv 11 \equiv -2$, $(-2)^7 = -128 \equiv -128 + 130 = 2$. So $63^7 \equiv 2$,
+as required.
+\end{example}
+
+\section{Common pitfalls}
+\begin{itemize}
+  \item Inverting $e$ modulo $n$ instead of modulo $\varphi = (p-1)(q-1)$.
+  \item Choosing $e$ with $\gcd(e,\varphi) \ne 1$ (e.g.\ any even $e$, since $\varphi$ is even).
+  \item Forgetting the case $p \mid M$ in the correctness proof.
+  \item Arithmetic errors in repeated squaring; reduce after every multiplication and use
+        negative representatives to keep numbers small.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item Keys: $n = pq$, $\varphi = (p-1)(q-1)$, $\gcd(e,\varphi) = 1$, $ed \equiv 1 \Mod \varphi$;
+        public $(e,n)$, private $(d,n)$.
+  \item $C \equiv M^e$, $M \equiv C^d \Mod n$.
+  \item Correctness: FLT modulo $p$ and $q$ separately, then SMT.
+  \item Security relies on the difficulty of factoring $n$; legitimate operations are fast.
+\end{itemize}

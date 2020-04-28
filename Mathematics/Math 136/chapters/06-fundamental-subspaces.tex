@@ -1,0 +1,164 @@
+\chapter{The Four Fundamental Subspaces}
+
+\section{Definitions}
+
+\begin{definition}
+Let $A$ be an $m\times n$ matrix. The four \emph{fundamental subspaces} of $A$ are
+\begin{align*}
+  \Col(A) &= \{A\vec x:\vec x\in\R^n\} = \Span\{\text{columns of }A\}\subseteq\R^m &&\text{(column space)}\\
+  \Row(A) &= \Col(A^T) = \Span\{\text{rows of }A\}\subseteq\R^n &&\text{(row space)}\\
+  \Null(A) &= \{\vec x\in\R^n : A\vec x=\vec 0\}\subseteq\R^n &&\text{(null space)}\\
+  \Null(A^T) &= \{\vec y\in\R^m : A^T\vec y=\vec 0\}\subseteq\R^m &&\text{(left null space)}
+\end{align*}
+\end{definition}
+
+If $L(\vec x)=A\vec x$ then $\Col(A)=\Range(L)$ and $\Null(A)=\Ker(L)$. All four are subspaces (they
+are spans or solution spaces of homogeneous systems).
+
+\section{Dimension of a subspace of $\R^n$}
+
+\begin{theorem}
+If $S$ is a non-trivial subspace of $\R^n$, then $S$ has a basis, and every basis of $S$ has the same
+number of vectors.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Start with a non-zero vector of $S$ and keep adding vectors of $S$ not in the current span; each
+addition keeps the set independent (Chapter 1), and by Chapter 3 an independent set in $\R^n$ has
+at most $n$ vectors, so the process stops with a basis. If $\{\vec v_1,\dots,\vec v_k\}$ spans $S$
+and $\{\vec w_1,\dots,\vec w_\ell\}\subseteq S$ with $\ell>k$, write each $\vec w_j$ in terms of the
+$\vec v_i$: $W = VC$ with $C$ a $k\times\ell$ matrix. Since $\ell>k$ there is $\vec c\neq\vec0$
+with $C\vec c=\vec0$, so $W\vec c=\vec0$ and the $\vec w_j$ are dependent. Applying this both ways shows
+two bases have the same size.
+\end{proof}
+
+\begin{definition}[Dimension]
+The \emph{dimension} $\dim S$ of a subspace $S$ is the number of vectors in any basis; $\dim\{\vec0\}=0$.
+\end{definition}
+
+\begin{theorem}
+If $\dim S=k$, then any $k$ linearly independent vectors in $S$ form a basis, and any $k$ vectors that
+span $S$ form a basis. If $S\subseteq T$ are subspaces then $\dim S\le\dim T$, with equality iff $S=T$.
+\end{theorem}
+
+\section{Finding bases}
+
+The key observation: row operations change the columns of $A$, but they preserve every linear
+relation among the columns (since $A\vec c=\vec0$ iff $R\vec c=\vec0$ when $A$ and $R$ are row
+equivalent). They also do not change the row space (new rows are combinations of old rows and vice
+versa).
+
+\begin{theorem}
+Let $R$ be the RREF of $A$ (or any REF).
+\begin{enumerate}
+  \item The pivot columns \emph{of $A$} (not of $R$) form a basis for $\Col(A)$.
+  \item The non-zero rows of $R$ form a basis for $\Row(A)$.
+  \item The vectors obtained from the parametric vector form of the solution to $A\vec x=\vec0$
+        (one per free variable) form a basis for $\Null(A)$.
+\end{enumerate}
+Consequently $\dim\Col(A)=\dim\Row(A)=\rank A$ and $\dim\Null(A)=n-\rank A$.
+\end{theorem}
+\begin{proof}[Proof sketch]
+(1) In $R$ the pivot columns are distinct standard basis vectors, hence independent, and every
+non-pivot column is a combination of them. These relations transfer to the columns of $A$.
+(2) The non-zero rows of $R$ span $\Row(R)=\Row(A)$ and are independent because each has a leading one
+in a column where the others have zeros. (3) Each basic vector has a $1$ in its own free variable's
+position and $0$ in the other free positions, giving independence; spanning is the parametric
+form itself.
+\end{proof}
+
+\begin{important}[Pitfall]
+Row operations \emph{change} the column space. The columns of $R$ tell you \emph{which} columns
+to take, but the basis vectors must come from $A$ itself. Conversely, for the row space you may use
+the rows of $R$ (and the rows of $A$ in the pivot positions are \emph{not} necessarily a basis if
+you swapped rows).
+\end{important}
+
+\begin{example}
+Let $A=\begin{bmatrix}1&2&0&1\\2&4&1&4\\1&2&1&3\end{bmatrix}$. As in Chapter 3,
+\[
+A\xrightarrow{\substack{R_2-2R_1\\R_3-R_1}}
+\begin{bmatrix}1&2&0&1\\0&0&1&2\\0&0&1&2\end{bmatrix}
+\xrightarrow{R_3-R_2}
+\begin{bmatrix}1&2&0&1\\0&0&1&2\\0&0&0&0\end{bmatrix}=R .
+\]
+$\rank A=2$, with pivots in columns $1$ and $3$.
+\begin{itemize}
+  \item $\Col(A)$: basis $\{(1,2,1),(0,1,1)\}$ (columns 1 and 3 of $A$), dimension $2$.
+  \item $\Row(A)$: basis $\{(1,2,0,1),(0,0,1,2)\}$, dimension $2$.
+  \item $\Null(A)$: $x_2=s$, $x_4=t$, $x_1=-2s-t$, $x_3=-2t$, so the basis is
+        $\{(-2,1,0,0),(-1,0,-2,1)\}$, dimension $2=4-2$.
+  \item $\Null(A^T)$: row reduce $A^T$:
+  \[
+  \begin{bmatrix}1&2&1\\2&4&2\\0&1&1\\1&4&3\end{bmatrix}
+  \xrightarrow{\substack{R_2-2R_1\\R_4-R_1}}
+  \begin{bmatrix}1&2&1\\0&0&0\\0&1&1\\0&2&2\end{bmatrix}
+  \xrightarrow{\substack{R_4-2R_3\\R_2\leftrightarrow R_3}}
+  \begin{bmatrix}1&2&1\\0&1&1\\0&0&0\\0&0&0\end{bmatrix}
+  \xrightarrow{R_1-2R_2}
+  \begin{bmatrix}1&0&-1\\0&1&1\\0&0&0\\0&0&0\end{bmatrix}.
+  \]
+  So $y_3=t$, $y_1=t$, $y_2=-t$: basis $\{(1,-1,1)\}$, dimension $1=3-2$.
+\end{itemize}
+Sanity check: $(1,-1,1)$ is orthogonal to both basis vectors of $\Col(A)$: $1-2+1=0$ and
+$0-1+1=0$. Likewise $(1,2,0,1)\cdot(-2,1,0,0)=0$, $(1,2,0,1)\cdot(-1,0,-2,1)=0$,
+$(0,0,1,2)\cdot(-2,1,0,0)=0$, $(0,0,1,2)\cdot(-1,0,-2,1)=0$.
+\end{example}
+
+\section{The Rank--Nullity Theorem}
+
+\begin{definition}
+The \emph{nullity} of $A$ is $\nullity A=\dim\Null(A)$.
+\end{definition}
+
+\begin{theorem}[Rank--Nullity / Dimension Theorem]
+For any $m\times n$ matrix $A$,
+\[
+  \rank A + \nullity A = n .
+\]
+Equivalently, for linear $L:\R^n\to\R^m$, $\dim\Range(L)+\dim\Ker(L)=n$.
+\end{theorem}
+\begin{proof}
+In the RREF, each of the $n$ columns is either a pivot column (there are $\rank A$ of them) or
+corresponds to a free variable (each contributing one basis vector of $\Null(A)$).
+\end{proof}
+
+\begin{theorem}
+$\rank A = \rank A^T$. Hence $\dim\Null(A^T)=m-\rank A$.
+\end{theorem}
+\begin{proof}
+$\rank A^T=\dim\Col(A^T)=\dim\Row(A)=\rank A$.
+\end{proof}
+
+\begin{example}
+A $5\times 7$ matrix $A$ with $\rank A=3$ has $\dim\Col A=\dim\Row A=3$, $\nullity A=7-3=4$ and
+$\dim\Null(A^T)=5-3=2$. It cannot have rank $6$, since $\rank A\le\min(5,7)$.
+\end{example}
+
+\section{Orthogonality of the fundamental subspaces}
+
+\begin{definition}
+For a subspace $S$ of $\R^n$, its \emph{orthogonal complement} is
+$S^\perp=\{\vec x\in\R^n:\vec x\cdot\vec s=0 \text{ for all } \vec s\in S\}$.
+\end{definition}
+
+\begin{theorem}
+$\Null(A)=\Row(A)^\perp$ in $\R^n$, and $\Null(A^T)=\Col(A)^\perp$ in $\R^m$.
+\end{theorem}
+\begin{proof}
+$A\vec x=\vec0$ says exactly that $\vec x$ has dot product zero with every row of $A$, hence with
+every linear combination of rows. Apply this to $A^T$ for the second statement.
+\end{proof}
+
+Together with rank--nullity this says $\R^n$ is split into two orthogonal pieces of dimensions
+$\rank A$ and $n-\rank A$, and similarly $\R^m$. This also gives a test for consistency:
+$A\vec x=\vec b$ is consistent iff $\vec b\in\Col(A)$ iff $\vec b$ is orthogonal to every vector in
+$\Null(A^T)$. In the example above, $A\vec x=\vec b$ is consistent iff $b_1-b_2+b_3=0$.
+
+\section*{Summary}
+\begin{itemize}
+  \item $\Col A$, $\Row A$, $\Null A$, $\Null A^T$; $\Col A=\Range$, $\Null A=\Ker$.
+  \item Basis of $\Col A$: pivot columns of $A$. Basis of $\Row A$: non-zero rows of the RREF.
+        Basis of $\Null A$: vectors from the free variables.
+  \item $\dim\Col A=\dim\Row A=\rank A$; rank--nullity: $\rank A+\nullity A=n$.
+  \item $\Null A\perp\Row A$ and $\Null A^T\perp\Col A$.
+\end{itemize}

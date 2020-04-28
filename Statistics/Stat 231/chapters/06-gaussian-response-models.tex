@@ -1,0 +1,269 @@
+\chapter{Gaussian Response Models}
+
+\section{Introduction}
+
+A \emph{Gaussian response model} has independent responses
+\[
+Y_i\sim\Gau\big(\mu(x_i),\ \sigma\big),\qquad i=1,\dots,n,
+\]
+where the mean $\mu(x_i)$ depends on explanatory variate(s) $x_i$ through unknown
+parameters and the standard deviation $\sigma$ is the same for all units. Equivalently
+$Y_i = \mu(x_i) + R_i$ with $R_i\sim\Gau(0,\sigma)$ independent errors. Important
+special cases:
+\begin{itemize}
+  \item $\mu(x_i) = \mu$: the single Gaussian sample of Chapters 4--5;
+  \item $\mu(x_i) = \alpha+\beta x_i$: \textbf{simple linear regression};
+  \item two groups with means $\mu_1,\mu_2$: the \textbf{two-sample} problem.
+\end{itemize}
+
+\section{Simple linear regression}
+
+\begin{definition}[Model]
+$Y_i\sim\Gau(\alpha+\beta x_i,\sigma)$ independently, with the $x_i$ treated as known
+constants. $\beta$ is the change in mean response per unit increase in $x$; $\alpha$ is
+the mean response at $x=0$.
+\end{definition}
+
+Notation: $S_{xx} = \sum(x_i-\bar x)^2$, $S_{xy} = \sum(x_i-\bar x)(y_i-\ybar)$,
+$S_{yy} = \sum(y_i-\ybar)^2$.
+
+\begin{theorem}[Least squares $=$ maximum likelihood]
+The MLEs of $\alpha$ and $\beta$ minimize the sum of squared deviations
+$\sum(y_i - \alpha-\beta x_i)^2$ and are
+\[
+\hat\beta = \frac{S_{xy}}{S_{xx}},\qquad \hat\alpha = \ybar - \hat\beta\bar x.
+\]
+The MLE of $\sigma^2$ is $\frac1n\sum \hat r_i^2$ with residuals
+$\hat r_i = y_i - \hat\alpha - \hat\beta x_i$; we use instead the unbiased estimate
+\[
+s_e^2 = \frac{1}{n-2}\sum_{i=1}^n \hat r_i^2 = \frac{S_{yy} - \hat\beta S_{xy}}{n-2}.
+\]
+\end{theorem}
+\begin{proof}
+$\ell(\alpha,\beta,\sigma) = -n\log\sigma - \frac{1}{2\sigma^2}\sum(y_i-\alpha-\beta x_i)^2$,
+so for every $\sigma$, maximizing over $(\alpha,\beta)$ is the same as minimizing
+$Q = \sum(y_i-\alpha-\beta x_i)^2$. Setting
+$\partial Q/\partial\alpha = -2\sum(y_i-\alpha-\beta x_i) = 0$ gives $\alpha = \ybar - \beta\bar x$.
+Substituting and setting $\partial Q/\partial\beta = -2\sum x_i(y_i-\alpha-\beta x_i) = 0$
+gives $\sum x_i\big[(y_i-\ybar) - \beta(x_i-\bar x)\big] = 0$, i.e.\ $S_{xy} = \beta S_{xx}$
+(since $\sum\bar x(y_i-\ybar) = 0$ etc.). For the residual sum of squares,
+$\sum\hat r_i^2 = \sum[(y_i-\ybar)-\hat\beta(x_i-\bar x)]^2 = S_{yy} - 2\hat\beta S_{xy} +
+\hat\beta^2S_{xx} = S_{yy}-\hat\beta S_{xy}$.
+\end{proof}
+
+The divisor $n-2$ reflects the two estimated mean parameters, just as $n-1$ does for
+a single sample.
+
+\section{Inference for the slope, intercept and mean response}
+
+\begin{theorem}[Sampling distributions]
+Writing $\tilde\beta = \sum (x_i-\bar x)Y_i/S_{xx}$, a linear combination of independent
+Gaussians,
+\[
+\tilde\beta\sim\Gau\Big(\beta,\ \frac{\sigma}{\sqrt{S_{xx}}}\Big),\qquad
+\tilde\alpha\sim\Gau\Big(\alpha,\ \sigma\sqrt{\tfrac1n + \tfrac{\bar x^2}{S_{xx}}}\Big),
+\qquad
+\frac{(n-2)S_e^2}{\sigma^2}\sim\chi^2(n-2),
+\]
+with $S_e^2$ independent of $(\tilde\alpha,\tilde\beta)$. Hence
+\[
+\frac{\tilde\beta-\beta}{S_e/\sqrt{S_{xx}}}\sim t(n-2).
+\]
+More generally, the estimator $\tilde\mu(x) = \tilde\alpha+\tilde\beta x$ of the mean
+response $\mu(x) = \alpha+\beta x$ satisfies
+\[
+\frac{\tilde\mu(x)-\mu(x)}{S_e\sqrt{\frac1n + \frac{(x-\bar x)^2}{S_{xx}}}}\sim t(n-2).
+\]
+\end{theorem}
+
+Consequently, with $a$ chosen so that $\Prob(T\le a) = (1+p)/2$ for $T\sim t(n-2)$:
+\begin{itemize}
+  \item CI for $\beta$: $\hat\beta\pm a\,s_e/\sqrt{S_{xx}}$; test $H_0:\beta=\beta_0$ with
+        $d = |\hat\beta-\beta_0|/(s_e/\sqrt{S_{xx}})$. The test of $\beta=0$ asks whether
+        there is any (linear) relationship at all.
+  \item CI for $\alpha$: $\hat\alpha\pm a\,s_e\sqrt{1/n + \bar x^2/S_{xx}}$.
+  \item CI for the mean response at $x$: $\hat\mu(x)\pm a\,s_e\sqrt{\frac1n +
+        \frac{(x-\bar x)^2}{S_{xx}}}$.
+\end{itemize}
+
+\begin{theorem}[Prediction interval]
+A new response at $x$ is $Y = \mu(x) + R$ with $R$ independent of the data. Then
+$Y - \tilde\mu(x)\sim\Gau\big(0,\sigma\sqrt{1 + \frac1n+\frac{(x-\bar x)^2}{S_{xx}}}\big)$,
+and a $100p\%$ \emph{prediction interval} for $Y$ is
+\[
+\hat\mu(x)\pm a\,s_e\sqrt{1+\frac1n + \frac{(x-\bar x)^2}{S_{xx}}}.
+\]
+\end{theorem}
+
+The extra ``$1+$'' accounts for the variability of the individual new unit about its mean;
+a prediction interval is always wider than the CI for the mean response and does not shrink
+to zero width as $n\to\infty$. Both intervals are narrowest at $x=\bar x$. Predicting far
+outside the range of observed $x$ (\emph{extrapolation}) is risky because the linear
+model may not hold there.
+
+\begin{example}[A complete regression analysis]
+\label{ex:reg}
+A chemical process was run at $n=10$ temperature settings $x$ (in units of $10^\circ$C)
+and the yield $y$ (grams) recorded:
+\begin{center}
+\begin{tabular}{l*{10}{c}}
+\toprule
+$x$ & 2 & 3 & 5 & 6 & 8 & 9 & 11 & 12 & 14 & 15\\
+$y$ & 5.1 & 6.0 & 8.3 & 8.9 & 11.2 & 12.0 & 14.6 & 15.1 & 17.8 & 18.4\\
+\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Summaries.} $\sum x = 85$, $\sum y = 117.4$, $\sum x^2 = 905$, $\sum y^2 = 1576.12$,
+$\sum xy = 1187.7$, so $\bar x = 8.5$, $\ybar = 11.74$ and
+\[
+S_{xx} = 905 - \tfrac{85^2}{10} = 182.5,\quad
+S_{xy} = 1187.7 - \tfrac{85(117.4)}{10} = 189.8,\quad
+S_{yy} = 1576.12 - \tfrac{117.4^2}{10} = 197.844.
+\]
+\textbf{Estimates.} $\hat\beta = 189.8/182.5 = 1.04$, $\hat\alpha = 11.74 - 1.04(8.5) = 2.90$,
+so the fitted line is $\hat y = 2.90 + 1.04x$. Residual sum of squares
+$197.844 - 1.04(189.8) = 0.452$, so $s_e^2 = 0.452/8 = 0.0565$ and $s_e = 0.2377$.
+
+\textbf{Slope.} $\Prob(T\le 2.306) = 0.975$ for $T\sim t(8)$. Standard error
+$s_e/\sqrt{S_{xx}} = 0.2377/13.509 = 0.01760$. $95\%$ CI:
+$1.04\pm 2.306(0.01760) = 1.04\pm 0.0406 = [0.999,\ 1.081]$. For $H_0:\beta = 0$,
+$d = 1.04/0.0176 = 59.1$: $p$ is essentially $0$, overwhelming evidence of a relationship.
+For $H_0:\beta=1$, $d = 0.04/0.0176 = 2.27$; since $\Prob(T\le1.860)=0.95$ and
+$\Prob(T\le 2.306) = 0.975$, $0.05<p<0.10$ (software: $0.053$), weak evidence against
+$\beta = 1$, consistent with $1$ being just inside the $95\%$ CI.
+
+\textbf{Intercept.} Standard error $0.2377\sqrt{0.1 + 72.25/182.5} = 0.1674$; CI
+$2.90\pm2.306(0.1674) = [2.514,\ 3.286]$.
+
+\textbf{Mean response at $x=10$.} $\hat\mu(10) = 2.90 + 10.4 = 13.30$, standard error
+\[ 0.2377\sqrt{0.1 + 2.25/182.5} = 0.2377(0.3352) = 0.0797; \]
+$95\%$ CI
+$13.30\pm 0.184 = [13.12,\ 13.48]$.
+
+\textbf{Prediction at $x=10$.} Standard error $0.2377\sqrt{1.1123} = 0.2507$; $95\%$ PI
+$13.30\pm 0.578 = [12.72,\ 13.88]$, much wider than the CI for the mean.
+\end{example}
+
+\section{Checking the model: residual plots}
+
+The model assumes (1) linearity of the mean in $x$, (2) constant $\sigma$, (3)
+Gaussian errors, (4) independence. Check using the residuals $\hat r_i$ or the
+\emph{standardized residuals} $\hat r_i/s_e$:
+\begin{itemize}
+  \item \textbf{Residuals vs $x_i$ (or vs fitted values $\hat\mu_i$):} should look like
+        a horizontal band of random scatter around $0$. A curved pattern indicates
+        non-linearity; a funnel shape indicates non-constant variance.
+  \item \textbf{QQ plot of residuals:} roughly a straight line if errors are Gaussian.
+  \item \textbf{Residuals vs time order:} trends or runs suggest dependence.
+  \item About $95\%$ of standardized residuals should lie in $[-2,2]$; values beyond
+        $\pm3$ are possible outliers.
+\end{itemize}
+
+\begin{example}
+In Example~\ref{ex:reg} the residuals are
+\[ 0.12,\ -0.02,\ 0.20,\ -0.24,\ -0.02,\ -0.26,\ 0.26,\ -0.28,\ 0.34,\ -0.10. \]
+They sum to $0$ (as least
+squares residuals always do), show no curvature or funnel, and all standardized
+residuals are within $\pm1.5$. The model looks adequate (though with $n=10$ only gross
+violations would be visible).
+\end{example}
+
+\section{Comparing two population means}
+
+\subsection{Two independent samples}
+
+\begin{definition}[Two-sample model]
+$Y_{1j}\sim\Gau(\mu_1,\sigma)$, $j=1,\dots,n_1$ and $Y_{2j}\sim\Gau(\mu_2,\sigma)$,
+$j=1,\dots,n_2$, all independent, with a \emph{common} $\sigma$.
+\end{definition}
+
+\begin{theorem}
+With the \emph{pooled} variance estimate
+$s_p^2 = \dfrac{(n_1-1)s_1^2 + (n_2-1)s_2^2}{n_1+n_2-2}$,
+\[
+\frac{(\Ybar_1-\Ybar_2) - (\mu_1-\mu_2)}{S_p\sqrt{\frac1{n_1}+\frac1{n_2}}}\sim t(n_1+n_2-2).
+\]
+So a CI for $\mu_1-\mu_2$ is $\ybar_1-\ybar_2\pm a\,s_p\sqrt{1/n_1+1/n_2}$, and
+$H_0:\mu_1=\mu_2$ is tested with $d = |\ybar_1-\ybar_2|/(s_p\sqrt{1/n_1+1/n_2})$.
+\end{theorem}
+
+If the variances look very different, use the approximate pivotal quantity with
+$\sqrt{s_1^2/n_1 + s_2^2/n_2}$ in the denominator (approximately $\Gau(0,1)$ for large
+samples).
+
+\begin{example}[Two fertilizers]
+Plant heights (cm) after six weeks, $8$ plants per fertilizer, randomly assigned:
+\begin{center}
+\begin{tabular}{l*{8}{c}}
+\toprule
+A & 24.1 & 22.8 & 25.6 & 23.9 & 26.2 & 24.7 & 23.3 & 25.0\\
+B & 21.9 & 23.4 & 22.1 & 20.8 & 23.0 & 22.6 & 21.5 & 22.3\\
+\bottomrule
+\end{tabular}
+\end{center}
+$\ybar_1 = 195.6/8 = 24.45$, $\ybar_2 = 177.6/8 = 22.20$; $\sum(y_{1j}-\ybar_1)^2 = 9.22$,
+$\sum(y_{2j}-\ybar_2)^2 = 4.80$. Pooled: $s_p^2 = (9.22+4.80)/14 = 1.0014$, $s_p = 1.0007$.
+Standard error $s_p\sqrt{1/8+1/8} = 0.5004$. For $t(14)$, $\Prob(T\le 2.145) = 0.975$:
+\[
+95\%\text{ CI for }\mu_1-\mu_2:\ 2.25\pm 2.145(0.5004) = 2.25\pm1.073 = [1.18,\ 3.32].
+\]
+For $H_0:\mu_1=\mu_2$, $d = 2.25/0.5004 = 4.50$; since $\Prob(T\le 4.140) = 0.9995$ for
+$T\sim t(14)$, $p<0.001$ (software: $p = 0.0005$). Very strong evidence that fertilizer A
+gives taller plants on average.
+\end{example}
+
+\subsection{Paired data}
+
+When each unit is measured twice (before/after) or units come in natural matched pairs
+(twins, left/right eye), the two measurements are \emph{not} independent. Analyze the
+differences $d_i = y_{1i} - y_{2i}$ as a single Gaussian sample $D_i\sim\Gau(\mu_d,\sigma_d)$:
+\[
+\frac{\bar D - \mu_d}{S_d/\sqrt n}\sim t(n-1).
+\]
+
+\begin{example}[Paired vs unpaired analysis]
+Systolic blood pressure of $8$ patients before and after a drug:
+\begin{center}
+\begin{tabular}{l*{8}{c}}
+\toprule
+before & 142 & 138 & 151 & 147 & 135 & 160 & 144 & 149\\
+after & 136 & 135 & 144 & 145 & 131 & 152 & 141 & 142\\
+difference & 6 & 3 & 7 & 2 & 4 & 8 & 3 & 7\\
+\bottomrule
+\end{tabular}
+\end{center}
+$\bar d = 40/8 = 5$, $\sum(d_i-\bar d)^2 = 36$, $s_d^2 = 36/7 = 5.143$, $s_d = 2.268$,
+standard error $2.268/\sqrt8 = 0.802$. For $t(7)$, $\Prob(T\le2.365)=0.975$:
+CI $5\pm2.365(0.802) = 5\pm1.90 = [3.10,\ 6.90]$. For $H_0:\mu_d=0$, $d=5/0.802 = 6.24$;
+$\Prob(T\le 5.408) = 0.9995$ so $p<0.001$ (software $0.0004$).
+
+\emph{Wrong analysis:} treating before and after as independent samples gives means $145.75$
+and $140.75$, $s_p = 7.285$, standard error $7.285\sqrt{2/8} = 3.643$, $d = 5/3.643 = 1.37$
+on $14$ degrees of freedom, $p = 0.19$: no evidence! The large patient-to-patient
+variation swamps the effect. Pairing removes this variation; this is why paired designs
+are so efficient.
+\end{example}
+
+\begin{important}[Common pitfalls]
+\begin{itemize}
+  \item Paired data must be analyzed as differences; independent samples must not be.
+        Decide from the \emph{design}, not from which gives the smaller p-value.
+  \item Use $n-2$ degrees of freedom in regression, $n_1+n_2-2$ for pooled two-sample,
+        $n-1$ for paired.
+  \item A CI for the mean response is not a prediction interval for an individual.
+  \item A significant slope in observational data does not show that changing $x$
+        causes $y$ to change (Chapter 8).
+\end{itemize}
+\end{important}
+
+\section*{Summary}
+\begin{itemize}
+  \item $Y_i\sim\Gau(\alpha+\beta x_i,\sigma)$: $\hat\beta = S_{xy}/S_{xx}$,
+        $\hat\alpha = \ybar-\hat\beta\bar x$, $s_e^2 = (S_{yy}-\hat\beta S_{xy})/(n-2)$.
+  \item Inference uses $t(n-2)$ with standard errors $s_e/\sqrt{S_{xx}}$ (slope),
+        $s_e\sqrt{1/n+(x-\bar x)^2/S_{xx}}$ (mean response), and
+        $s_e\sqrt{1+1/n+(x-\bar x)^2/S_{xx}}$ (prediction).
+  \item Check assumptions with residual plots and QQ plots.
+  \item Two independent samples: pooled $t(n_1+n_2-2)$. Paired: one-sample $t(n-1)$ on
+        differences.
+\end{itemize}
