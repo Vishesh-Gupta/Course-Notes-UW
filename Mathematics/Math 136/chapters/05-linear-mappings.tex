@@ -1,0 +1,176 @@
+\chapter{Linear Mappings}
+
+\section{Matrix mappings}
+
+\begin{definition}[Matrix mapping]
+For an $m\times n$ matrix $A$, the function $f_A:\R^n\to\R^m$ defined by $f_A(\vec x)=A\vec x$ is the
+\emph{matrix mapping} corresponding to $A$. $\R^n$ is the \emph{domain} and $\R^m$ the
+\emph{codomain}.
+\end{definition}
+
+By linearity of matrix--vector multiplication, every matrix mapping satisfies
+$f_A(b\vec x+c\vec y)=bf_A(\vec x)+cf_A(\vec y)$. This property is what we abstract.
+
+\begin{definition}[Linear mapping]
+A function $L:\R^n\to\R^m$ is a \emph{linear mapping} if for all $\vec x,\vec y\in\R^n$ and
+$b,c\in\R$,
+\[
+  L(b\vec x + c\vec y) = bL(\vec x)+cL(\vec y).
+\]
+A linear mapping $L:\R^n\to\R^n$ is called a \emph{linear operator}.
+\end{definition}
+
+Immediate consequences: $L(\vec 0)=\vec 0$ (take $b=c=0$), and
+$L(c_1\vec v_1+\dots+c_k\vec v_k)=c_1L(\vec v_1)+\dots+c_kL(\vec v_k)$.
+
+\begin{example}
+$L(x_1,x_2,x_3)=(x_1+2x_2,\ 3x_2-x_3)$ is linear: for $\vec x,\vec y$ and $b,c$,
+\[
+L(b\vec x+c\vec y)=\big(bx_1+cy_1+2bx_2+2cy_2,\ 3bx_2+3cy_2-bx_3-cy_3\big)=bL(\vec x)+cL(\vec y).
+\]
+In contrast, $M(x_1,x_2)=(x_1+1,x_2)$ is not linear since $M(\vec0)=(1,0)\neq\vec 0$, and
+$N(x_1,x_2)=(x_1x_2, 0)$ is not linear since $N(2(1,1))=(4,0)\ne 2N(1,1)=(2,0)$.
+\end{example}
+
+\section{The standard matrix}
+
+\begin{theorem}
+Every linear mapping $L:\R^n\to\R^m$ is a matrix mapping: $L(\vec x)=[L]\vec x$ where
+\[
+  [L] = \big[L(\vec e_1)\ \ L(\vec e_2)\ \cdots\ L(\vec e_n)\big]
+\]
+is the \emph{standard matrix} of $L$. It is the unique matrix with this property.
+\end{theorem}
+\begin{proof}
+$L(\vec x)=L(x_1\vec e_1+\dots+x_n\vec e_n)=x_1L(\vec e_1)+\dots+x_nL(\vec e_n)=[L]\vec x$ by the
+definition of matrix--vector multiplication. Uniqueness is the Matrices Equal Theorem.
+\end{proof}
+
+\begin{example}
+For $L(x_1,x_2,x_3)=(x_1+2x_2,\ 3x_2-x_3)$: $L(\vec e_1)=(1,0)$, $L(\vec e_2)=(2,3)$,
+$L(\vec e_3)=(0,-1)$, so
+$[L]=\begin{bmatrix}1&2&0\\0&3&-1\end{bmatrix}$.
+\end{example}
+
+So ``linear mapping $\R^n\to\R^m$'' and ``$m\times n$ matrix'' are two views of the same object.
+
+\section{Geometric transformations}
+
+\subsection*{Rotations}
+$R_\theta:\R^2\to\R^2$ rotates counter-clockwise by $\theta$. Rotation sends $\vec e_1$ to
+$(\cos\theta,\sin\theta)$ and $\vec e_2$ to $(-\sin\theta,\cos\theta)$, and (geometrically) preserves
+sums and scalings, so it is linear with
+\[
+  [R_\theta]=\begin{bmatrix}\cos\theta&-\sin\theta\\ \sin\theta&\cos\theta\end{bmatrix}.
+\]
+For example $[R_{\pi/2}]=\begin{bmatrix}0&-1\\1&0\end{bmatrix}$.
+
+\subsection*{Projections}
+For $\vec d\ne\vec 0$, $\proj_{\vec d}$ is linear (Chapter 2). For $\vec d=(1,2)$,
+$\proj_{\vec d}\vec e_1=\frac15(1,2)$ and $\proj_{\vec d}\vec e_2=\frac25(1,2)$, so
+\[
+  [\proj_{\vec d}]=\frac15\begin{bmatrix}1&2\\2&4\end{bmatrix}.
+\]
+In general $[\proj_{\vec d}]=\dfrac{1}{\norm{\vec d}^2}\vec d\vec d^{\,T}$.
+
+\subsection*{Reflections}
+Reflecting $\vec x$ in the line $\Span\{\vec d\}$ keeps the projection and flips the perpendicular part:
+$\refl_{\vec d}\vec x = \proj_{\vec d}\vec x-\perpp_{\vec d}\vec x = 2\proj_{\vec d}\vec x-\vec x$. For
+$\vec d=(1,2)$,
+\[
+  [\refl_{\vec d}] = \frac25\begin{bmatrix}1&2\\2&4\end{bmatrix}-I = \frac15\begin{bmatrix}-3&4\\4&3\end{bmatrix}.
+\]
+Check: $\frac15(-3+8,\ 4+6)=(1,2)$, so $\vec d$ is fixed, and $(2,-1)\mapsto\frac15(-6-4,\ 8-3)=(-2,1)$
+is flipped. A reflection in a plane through the origin in $\R^3$ with normal $\vec n$ is
+$\refl_P\vec x = \vec x - 2\proj_{\vec n}\vec x$.
+
+\subsection*{Stretches and shears}
+$\begin{bmatrix}t&0\\0&1\end{bmatrix}$ stretches horizontally by $t$; $\begin{bmatrix}1&s\\0&1\end{bmatrix}$
+is a horizontal shear, $(x_1,x_2)\mapsto(x_1+sx_2,x_2)$.
+
+\section{Operations on linear mappings and composition}
+
+\begin{definition}
+For $L,M:\R^n\to\R^m$ and $c\in\R$, define $(L+M)(\vec x)=L(\vec x)+M(\vec x)$ and
+$(cL)(\vec x)=cL(\vec x)$. For $M:\R^n\to\R^m$ and $L:\R^m\to\R^p$, the \emph{composition} is
+$(L\circ M)(\vec x)=L(M(\vec x))$.
+\end{definition}
+
+\begin{theorem}
+These are linear, and $[L+M]=[L]+[M]$, $[cL]=c[L]$, $[L\circ M]=[L][M]$.
+\end{theorem}
+\begin{proof}[Proof for composition]
+$(L\circ M)(\vec x)=[L]([M]\vec x)=([L][M])\vec x$ by associativity, so $L\circ M$ is the matrix
+mapping of $[L][M]$, which is linear.
+\end{proof}
+
+\begin{example}
+Rotate by $\pi/2$ and then reflect in the $x_1$-axis ($F=\begin{bmatrix}1&0\\0&-1\end{bmatrix}$):
+\[
+  [F\circ R_{\pi/2}] = \begin{bmatrix}1&0\\0&-1\end{bmatrix}\begin{bmatrix}0&-1\\1&0\end{bmatrix}
+  = \begin{bmatrix}0&-1\\-1&0\end{bmatrix},
+\]
+which is the reflection in the line $x_2=-x_1$. In the other order,
+$[R_{\pi/2}][F]=\begin{bmatrix}0&1\\1&0\end{bmatrix}$, the reflection in $x_2=x_1$; order matters.
+Also $[R_\alpha][R_\beta]=[R_{\alpha+\beta}]$, which (multiplying out) re-proves the angle-sum formulas.
+\end{example}
+
+\section{Range and kernel}
+
+\begin{definition}
+For a linear mapping $L:\R^n\to\R^m$,
+\[
+  \Range(L)=\{L(\vec x):\vec x\in\R^n\}\subseteq\R^m, \qquad
+  \Ker(L)=\{\vec x\in\R^n : L(\vec x)=\vec 0\}\subseteq\R^n.
+\]
+\end{definition}
+
+\begin{theorem}
+$\Range(L)$ is a subspace of $\R^m$ and $\Ker(L)$ is a subspace of $\R^n$. If $A=[L]$,
+$\Range(L)=\Span\{\vec a_1,\dots,\vec a_n\}$ (the column space of $A$) and $\Ker(L)$ is the solution
+space of $A\vec x=\vec 0$.
+\end{theorem}
+\begin{proof}
+$L(\vec0)=\vec0$ puts $\vec 0$ in both. If $L(\vec x)=L(\vec y)=\vec 0$ then
+$L(\vec x+c\vec y)=\vec 0+c\vec 0=\vec 0$. If $\vec u=L(\vec x),\vec v=L(\vec y)$ then
+$\vec u+c\vec v=L(\vec x+c\vec y)\in\Range(L)$. The descriptions follow from
+$L(\vec x)=A\vec x = x_1\vec a_1+\dots+x_n\vec a_n$.
+\end{proof}
+
+\begin{example}
+$L(\vec x)=A\vec x$ with $A=\begin{bmatrix}1&1&2\\1&2&3\end{bmatrix}$.
+\[
+\begin{bmatrix}1&1&2\\1&2&3\end{bmatrix}\xrightarrow{R_2-R_1}\begin{bmatrix}1&1&2\\0&1&1\end{bmatrix}
+\xrightarrow{R_1-R_2}\begin{bmatrix}1&0&1\\0&1&1\end{bmatrix}.
+\]
+Kernel: $x_3=t$, $x_1=x_2=-t$, so $\Ker(L)=\Span\{(-1,-1,1)\}$. Since $\rank A=2=m$, $A\vec x=\vec b$
+is consistent for all $\vec b$, so $\Range(L)=\R^2$.
+\end{example}
+
+\begin{example}
+$L(x_1,x_2)=(x_1+x_2,\ 2x_1+2x_2,\ x_1+x_2)$ has $[L]=\begin{bmatrix}1&1\\2&2\\1&1\end{bmatrix}$, so
+$\Range(L)=\Span\{(1,2,1)\}$ (a line in $\R^3$) and $\Ker(L)=\Span\{(1,-1)\}$.
+\end{example}
+
+\begin{important}[Geometric kernels and ranges]
+For $\proj_{\vec d}$ on $\R^2$: range = the line $\Span\{\vec d\}$, kernel = the line orthogonal to
+$\vec d$. Rotations and reflections have kernel $\{\vec0\}$ and range all of $\R^2$.
+\end{important}
+
+\begin{theorem}
+$L$ is one-to-one iff $\Ker(L)=\{\vec 0\}$. $L:\R^n\to\R^m$ is onto iff $\rank[L]=m$.
+\end{theorem}
+\begin{proof}[Proof of the first claim]
+If $L$ is one-to-one and $L(\vec x)=\vec 0=L(\vec 0)$ then $\vec x=\vec 0$. Conversely if the kernel
+is trivial and $L(\vec x)=L(\vec y)$, then $L(\vec x-\vec y)=\vec 0$ so $\vec x=\vec y$.
+\end{proof}
+
+\section*{Summary}
+\begin{itemize}
+  \item Linear: $L(b\vec x+c\vec y)=bL(\vec x)+cL(\vec y)$; then $L(\vec0)=\vec0$.
+  \item Every linear $L:\R^n\to\R^m$ is $\vec x\mapsto[L]\vec x$ with $[L]=[L(\vec e_1)\cdots L(\vec e_n)]$.
+  \item $[R_\theta]$, $[\proj_{\vec d}]=\vec d\vec d^T/\norm{\vec d}^2$, $[\refl_{\vec d}]=2[\proj_{\vec d}]-I$.
+  \item $[L\circ M]=[L][M]$: composition is matrix multiplication (order matters).
+  \item $\Range(L)$ = span of the columns of $[L]$; $\Ker(L)$ = solutions of $[L]\vec x=\vec0$; both
+        are subspaces. One-to-one iff trivial kernel.
+\end{itemize}

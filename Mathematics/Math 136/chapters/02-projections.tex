@@ -1,0 +1,152 @@
+\chapter{Projections and Minimum Distance}
+
+\section{Projection onto a vector}
+
+A basic geometric problem: given $\vec u$ and a non-zero $\vec v$ in $\R^n$, split $\vec u$ into a
+piece parallel to $\vec v$ and a piece orthogonal to $\vec v$. We look for
+$\vec u = c\vec v + \vec w$ with $\vec w\cdot\vec v=0$. Dotting both sides with $\vec v$ gives
+$\vec u\cdot\vec v = c\norm{\vec v}^2$, so $c$ is forced to be $\frac{\vec u\cdot\vec v}{\norm{\vec v}^2}$.
+
+\begin{definition}[Projection and perpendicular]
+For $\vec u,\vec v\in\R^n$ with $\vec v\ne\vec 0$, the \emph{projection of $\vec u$ onto $\vec v$} is
+\[
+  \proj_{\vec v}\vec u = \frac{\vec u\cdot\vec v}{\norm{\vec v}^2}\,\vec v ,
+\]
+and the \emph{perpendicular of $\vec u$ onto $\vec v$} is $\perpp_{\vec v}\vec u = \vec u - \proj_{\vec v}\vec u$.
+\end{definition}
+
+\begin{theorem}[Orthogonal decomposition]
+For $\vec v\ne\vec 0$: $\vec u = \proj_{\vec v}\vec u + \perpp_{\vec v}\vec u$, where
+$\proj_{\vec v}\vec u$ is a scalar multiple of $\vec v$ and $\perpp_{\vec v}\vec u$ is orthogonal
+to $\vec v$. This decomposition is unique.
+\end{theorem}
+\begin{proof}
+$\perpp_{\vec v}\vec u\cdot\vec v = \vec u\cdot\vec v - \frac{\vec u\cdot\vec v}{\norm{\vec v}^2}\vec v\cdot\vec v
+= \vec u\cdot\vec v-\vec u\cdot\vec v=0$. Uniqueness was shown in the derivation above: $c$ is forced.
+\end{proof}
+
+\begin{example}
+Let $\vec u=(2,3,1)$ and $\vec v=(1,1,0)$. Then $\vec u\cdot\vec v = 2+3+0=5$ and
+$\norm{\vec v}^2=2$, so
+\[
+  \proj_{\vec v}\vec u = \tfrac52(1,1,0) = \left(\tfrac52,\tfrac52,0\right),\qquad
+  \perpp_{\vec v}\vec u = (2,3,1)-\left(\tfrac52,\tfrac52,0\right) = \left(-\tfrac12,\tfrac12,1\right).
+\]
+Check: $\left(-\frac12,\frac12,1\right)\cdot(1,1,0) = -\frac12+\frac12+0 = 0$.
+\end{example}
+
+\begin{theorem}[Properties of $\proj$]
+For $\vec v\ne\vec0$, $\vec x,\vec y\in\R^n$, $c\in\R$:
+\begin{enumerate}
+  \item $\proj_{\vec v}(\vec x+\vec y)=\proj_{\vec v}\vec x+\proj_{\vec v}\vec y$ and
+        $\proj_{\vec v}(c\vec x) = c\proj_{\vec v}\vec x$ (it is linear; see Chapter 5);
+  \item $\proj_{\vec v}(\proj_{\vec v}\vec x)=\proj_{\vec v}\vec x$ (projecting twice changes nothing);
+  \item $\proj_{\vec v}(\perpp_{\vec v}\vec x)=\vec 0$;
+  \item $\proj_{c\vec v}\vec x = \proj_{\vec v}\vec x$ for $c\ne 0$ (only the line matters).
+\end{enumerate}
+\end{theorem}
+
+\begin{important}[Pitfall]
+$\proj_{\vec v}\vec u$ and $\proj_{\vec u}\vec v$ are generally different: the first is a multiple of
+$\vec v$, the second a multiple of $\vec u$. Also, the denominator is $\norm{\vec v}^2$, not
+$\norm{\vec v}$. If $\vec v$ is a unit vector, the formula simplifies to $(\vec u\cdot\vec v)\vec v$.
+\end{important}
+
+\section{Projection onto a plane}
+
+For a plane through the origin in $\R^3$ with normal $\vec n$, the part of $\vec x$ \emph{in} the
+plane is what remains after removing the component along $\vec n$:
+\[
+  \proj_{P}\vec x = \perpp_{\vec n}\vec x = \vec x - \frac{\vec x\cdot\vec n}{\norm{\vec n}^2}\vec n.
+\]
+
+\begin{example}
+Project $\vec x=(1,1,1)$ onto the plane $P: x_1+2x_2-x_3=0$. Here $\vec n=(1,2,-1)$,
+$\vec x\cdot\vec n = 1+2-1 = 2$, $\norm{\vec n}^2=6$, so
+\[
+\proj_{\vec n}\vec x=\tfrac{2}{6}(1,2,-1)=\left(\tfrac13,\tfrac23,-\tfrac13\right),\qquad
+\proj_P\vec x = (1,1,1)-\left(\tfrac13,\tfrac23,-\tfrac13\right) = \left(\tfrac23,\tfrac13,\tfrac43\right).
+\]
+Check it lies in $P$: $\frac23+2\cdot\frac13-\frac43=0$.
+\end{example}
+
+\section{Minimum distance problems}
+
+\begin{theorem}
+Let $\vec v\ne\vec0$. Among all points $t\vec v$ on the line $\Span\{\vec v\}$, the one closest to
+$\vec u$ is $\proj_{\vec v}\vec u$, and the minimum distance is $\norm{\perpp_{\vec v}\vec u}$.
+\end{theorem}
+\begin{proof}
+Write $\vec w=\perpp_{\vec v}\vec u$, so $\vec u - t\vec v = \vec w + (\proj_{\vec v}\vec u-t\vec v)$, where
+the second term is a multiple of $\vec v$, hence orthogonal to $\vec w$. By Pythagoras,
+$\norm{\vec u - t\vec v}^2 = \norm{\vec w}^2 + \norm{\proj_{\vec v}\vec u - t\vec v}^2\ge\norm{\vec w}^2$,
+with equality exactly when $t\vec v=\proj_{\vec v}\vec u$.
+\end{proof}
+
+The same idea handles lines and planes not through the origin: translate so that a known
+point of the object becomes the origin.
+
+\begin{important}[Recipes]
+\textbf{Point $Q$ to line $\vec x=\vec p+t\vec d$}: let $\vec{PQ}=\vec q-\vec p$. The distance is
+$\norm{\perpp_{\vec d}\vec{PQ}}$; the closest point is $\vec p+\proj_{\vec d}\vec{PQ}$.
+
+\textbf{Point $Q$ to plane $\vec n\cdot\vec x = d$ in $\R^3$}: pick any point $P$ on the plane.
+The distance is $\norm{\proj_{\vec n}\vec{PQ}} = \dfrac{\abs{\vec n\cdot\vec q - d}}{\norm{\vec n}}$;
+the closest point is $\vec q - \proj_{\vec n}\vec{PQ}$.
+\end{important}
+
+\begin{example}[Point to line]
+Find the distance from $Q(3,1,2)$ to the line $\vec x = (1,0,0)+t(1,1,1)$.
+Here $\vec{PQ}=(2,1,2)$, $\vec d=(1,1,1)$, $\vec{PQ}\cdot\vec d = 5$, $\norm{\vec d}^2=3$, so
+\[
+  \proj_{\vec d}\vec{PQ} = \tfrac53(1,1,1),\qquad
+  \perpp_{\vec d}\vec{PQ} = (2,1,2)-\left(\tfrac53,\tfrac53,\tfrac53\right)=\left(\tfrac13,-\tfrac23,\tfrac13\right).
+\]
+The distance is $\sqrt{\frac19+\frac49+\frac19}=\frac{\sqrt6}{3}$, and the closest point is
+$(1,0,0)+\frac53(1,1,1)=\left(\frac83,\frac53,\frac53\right)$. Check:
+$Q-\left(\frac83,\frac53,\frac53\right)=\left(\frac13,-\frac23,\frac13\right)$, which is orthogonal to $\vec d$.
+\end{example}
+
+\begin{example}[Point to plane]
+Find the point on the plane $2x_1-x_2+2x_3=5$ closest to $Q(1,2,3)$. Take $P(0,-5,0)$ on the
+plane (check: $0+5+0=5$). Then $\vec{PQ}=(1,7,3)$, $\vec n=(2,-1,2)$,
+$\vec{PQ}\cdot\vec n = 2-7+6 = 1$, $\norm{\vec n}^2 = 9$. So
+\[
+  \proj_{\vec n}\vec{PQ} = \tfrac19(2,-1,2), \qquad \text{distance} = \tfrac19\norm{\vec n}=\tfrac13,
+\]
+and the closest point is $R = (1,2,3)-\frac19(2,-1,2) = \left(\frac79,\frac{19}9,\frac{25}9\right)$.
+Check: $2\cdot\frac79-\frac{19}9+2\cdot\frac{25}9 = \frac{14-19+50}{9}=\frac{45}{9}=5$. Also the shortcut
+formula gives $\abs{2-2+6-5}/3 = 1/3$.
+\end{example}
+
+\begin{example}[Distance between parallel planes]
+The planes $x_1+2x_2+2x_3=1$ and $x_1+2x_2+2x_3=7$ are parallel (same normal $(1,2,2)$).
+The point $(1,0,0)$ is on the first, so the distance is $\abs{1-7}/\norm{(1,2,2)} = 6/3 = 2$.
+\end{example}
+
+\begin{aside}
+\textbf{Skew lines.} For two non-parallel lines $\vec x=\vec p+s\vec d_1$, $\vec x=\vec q+t\vec d_2$
+in $\R^3$, the vector $\vec n=\vec d_1\times\vec d_2$ is orthogonal to both, and the distance
+between the lines is $\norm{\proj_{\vec n}(\vec q-\vec p)}$.
+\end{aside}
+
+\section{Projection onto a subspace (preview)}
+
+If $\{\vec v_1,\dots,\vec v_k\}$ is an \emph{orthogonal} basis of a subspace $S$, then the point of $S$
+closest to $\vec x$ is
+\[
+  \proj_S\vec x = \proj_{\vec v_1}\vec x+\dots+\proj_{\vec v_k}\vec x,
+\]
+and $\vec x - \proj_S\vec x$ is orthogonal to every vector in $S$. Constructing orthogonal bases
+(Gram--Schmidt) and the general theory of orthogonal projections is done in Math 235;
+here we only need the one-vector and plane cases.
+
+\section*{Summary}
+\begin{itemize}
+  \item $\proj_{\vec v}\vec u = \frac{\vec u\cdot\vec v}{\norm{\vec v}^2}\vec v$ and
+        $\perpp_{\vec v}\vec u=\vec u-\proj_{\vec v}\vec u$ give the unique decomposition of $\vec u$
+        into parts parallel and orthogonal to $\vec v$.
+  \item Projection onto a plane through $\vec 0$ with normal $\vec n$ is $\perpp_{\vec n}$.
+  \item The closest point on a line/plane is found by a projection; distances are lengths of
+        the perpendicular part. Point-to-plane distance is $\abs{\vec n\cdot\vec q-d}/\norm{\vec n}$.
+\end{itemize}

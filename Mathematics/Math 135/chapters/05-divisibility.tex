@@ -1,0 +1,152 @@
+\chapter{Divisibility and the Division Algorithm}
+
+From here on the course becomes elementary number theory: the integers, divisibility, and
+eventually modular arithmetic and cryptography.
+
+\section{Divisibility}
+
+\begin{definition}
+For $a, b \in \Z$, $a$ \emph{divides} $b$, written $a \mid b$, if there exists $k \in \Z$ such
+that $b = ka$. We also say $a$ is a \emph{divisor} (factor) of $b$ and $b$ is a
+\emph{multiple} of $a$. We write $a \nmid b$ otherwise.
+\end{definition}
+
+\begin{example}
+$3 \mid 12$, $-3 \mid 12$, $5 \nmid 12$, $7 \mid 0$ (since $0 = 0\cdot 7$), and $0 \mid b$ only
+for $b = 0$. Every integer divides $0$, and $\pm1$ divide everything.
+\end{example}
+
+\begin{important}[Divides is a statement, not a number]
+$a \mid b$ is a statement (true or false); $a / b$ is a number. Never write things like
+``$3 \mid 12 = 4$''.
+\end{important}
+
+\begin{proposition}[Transitivity of Divisibility, TD]
+For $a,b,c\in\Z$: if $a \mid b$ and $b \mid c$ then $a \mid c$.
+\end{proposition}
+\begin{proof}
+Write $b = ka$ and $c = \ell b$. Then $c = (\ell k) a$ with $\ell k \in \Z$.
+\end{proof}
+
+\begin{proposition}[Divisibility of Integer Combinations, DIC]
+For $a,b,c \in \Z$: if $a \mid b$ and $a \mid c$, then $a \mid (bx + cy)$ for all $x,y\in\Z$.
+\end{proposition}
+\begin{proof}
+Write $b = ka$ and $c = \ell a$. Then $bx + cy = (kx + \ell y)a$, and $kx + \ell y \in \Z$.
+\end{proof}
+
+DIC is used constantly. A typical use: if $a$ divides two numbers, it divides their sum and
+difference.
+
+\begin{example}
+Let $n \in \Z$. Prove that if $d \mid (5n + 3)$ and $d \mid (3n+2)$ then $d = \pm1$.
+By DIC with $x = 3$, $y = -5$: $d \mid 3(5n+3) - 5(3n+2) = 15n + 9 - 15n - 10 = -1$, and the only divisors of $-1$ are $\pm 1$.
+\end{example}
+
+\begin{proposition}[Bounds by Divisibility, BBD]
+If $a \mid b$ and $b \ne 0$, then $\abs a \le \abs b$.
+\end{proposition}
+\begin{proof}
+$b = ka$ with $k \ne 0$ (since $b \ne 0$), so $\abs k \ge 1$ and $\abs b = \abs k\abs a \ge \abs a$.
+\end{proof}
+
+\begin{corollary}
+If $a \mid b$ and $b \mid a$ then $a = \pm b$.
+\end{corollary}
+
+\section{The division algorithm}
+
+\begin{theorem}[Division Algorithm]
+For all $a \in \Z$ and $b \in \N$, there exist \emph{unique} integers $q$ (quotient) and $r$
+(remainder) such that
+\[ a = qb + r, \qquad 0 \le r < b. \]
+\end{theorem}
+
+\begin{proof}
+\emph{Existence.} Consider $S = \{a - qb : q \in \Z,\ a - qb \ge 0\}$. $S$ is non-empty: take
+$q = -\abs a$, then $a - qb = a + \abs a b \ge a + \abs a \ge 0$. By the well-ordering principle
+(applied to the non-negative integers, which works the same way as for $\N$) $S$ has a smallest
+element $r = a - qb \ge 0$. If $r \ge b$ then $r - b = a - (q+1)b \ge 0$ would be a smaller
+element of $S$, contradiction. So $0 \le r < b$.
+
+\emph{Uniqueness.} Suppose $a = q_1b + r_1 = q_2b + r_2$ with $0 \le r_1, r_2 < b$. Then
+$(q_1 - q_2)b = r_2 - r_1$, so $b \mid r_2 - r_1$. But $-b < r_2 - r_1 < b$, and the only
+multiple of $b$ strictly between $-b$ and $b$ is $0$. So $r_1 = r_2$, and then $q_1 = q_2$.
+\end{proof}
+
+\begin{example}
+\begin{itemize}
+  \item $a = 47$, $b = 6$: $47 = 7\cdot 6 + 5$, so $q = 7$, $r = 5$.
+  \item $a = -17$, $b = 5$: $-17 = (-4)\cdot 5 + 3$, so $q = -4$, $r = 3$. (Not $q = -3$,
+        $r = -2$: the remainder must be non-negative.)
+  \item $a = 30$, $b = 5$: $q = 6$, $r = 0$. In general $b \mid a \iff r = 0$.
+\end{itemize}
+\end{example}
+
+\begin{example}[Using the division algorithm for cases]
+Prove that the square of any integer has the form $4k$ or $4k + 1$.
+By the division algorithm with $b = 2$, $n = 2m$ or $n = 2m+1$. Then $n^2 = 4m^2$ or
+$n^2 = 4(m^2+m) + 1$. Consequently no integer of the form $4k + 3$ (such as $2023$) is a
+perfect square, and a sum of two squares is never $\equiv 3$ on division by $4$.
+\end{example}
+
+\begin{example}
+Prove that $n^3 - n$ is divisible by $3$ for every integer $n$.
+Write $n = 3m + r$ with $r \in \{0,1,2\}$. Since $n^3 - n = (n-1)n(n+1)$, one of the three
+consecutive integers $n-1, n, n+1$ is a multiple of $3$: if $r = 0$ it is $n$, if $r = 1$ it is
+$n - 1 = 3m$, if $r = 2$ it is $n+1 = 3(m+1)$. By DIC (or directly) $3 \mid n^3 - n$.
+\end{example}
+
+\section{Primes}
+
+\begin{definition}
+An integer $p > 1$ is \emph{prime} if its only positive divisors are $1$ and $p$. An integer
+$n > 1$ that is not prime is \emph{composite}: $n = ab$ with $1 < a,b < n$.
+\end{definition}
+
+\begin{proposition}
+Every integer $n > 1$ has a prime divisor. Moreover, if $n$ is composite it has a prime
+divisor $p \le \sqrt n$.
+\end{proposition}
+\begin{proof}
+Let $p$ be the smallest divisor of $n$ with $p > 1$ (exists by WOP; $n$ itself is one). If $p$
+were composite, $p = ab$ with $1 < a < p$, and $a \mid p \mid n$ would contradict minimality
+(by TD). So $p$ is prime. If $n = ab$ is composite with $1 < a \le b$, then $a^2 \le ab = n$, so
+$a \le \sqrt n$, and any prime divisor of $a$ is at most $\sqrt n$ and divides $n$.
+\end{proof}
+
+\begin{example}[Primality test]
+Is $221$ prime? $\sqrt{221} < 15$, so test primes $2,3,5,7,11,13$: $221 = 13\cdot 17$. Composite.
+Is $223$ prime? It is odd; digit sum $7$, so $3 \nmid 223$; it does not end in $0$ or $5$;
+$223 = 7\cdot 31 + 6$, $223 = 11\cdot 20 + 3$, $223 = 13 \cdot 17 + 2$. No prime up to
+$\sqrt{223}\approx 14.9$ divides it, so $223$ is prime.
+\end{example}
+
+\begin{theorem}[Euclid]
+There are infinitely many primes.
+\end{theorem}
+(Proof in Chapter 2.)
+
+\begin{aside}
+Divisibility tests in base $10$ follow from DIC: since $10 = 9 + 1$, $10^k$ leaves remainder $1$
+when divided by $9$, so $n$ and its digit sum have the same remainder mod $9$ (and mod $3$).
+These are cleanest with congruences (Chapter 8).
+\end{aside}
+
+\section{Common pitfalls}
+\begin{itemize}
+  \item Forgetting that the remainder must satisfy $0\le r<b$, especially for negative $a$.
+  \item Writing $a \mid b$ when you mean $b / a$, or using $\mid$ as an operation.
+  \item Concluding $a \mid b$ or $a \mid c$ from $a \mid bc$; this needs $a$ prime (Euclid's lemma,
+        Chapter 6). For example $6 \mid 4\cdot 9$ but $6 \nmid 4$ and $6 \nmid 9$.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item $a \mid b \iff b = ka$ for some integer $k$.
+  \item TD: $a\mid b$, $b \mid c \Rightarrow a \mid c$. DIC: $a \mid b$, $a \mid c \Rightarrow
+        a \mid bx + cy$. BBD: $a\mid b \neq 0 \Rightarrow \abs a \le \abs b$.
+  \item Division algorithm: unique $q, r$ with $a = qb + r$, $0 \le r < b$.
+  \item Every $n > 1$ has a prime factor, and composite $n$ has one at most $\sqrt n$;
+        there are infinitely many primes.
+\end{itemize}

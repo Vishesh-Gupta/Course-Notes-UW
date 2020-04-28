@@ -1,0 +1,215 @@
+\chapter{Moment Generating Functions}
+
+\section{Definition and moments}
+
+\begin{definition}[Moments]
+The $k$th \emph{moment} of $X$ (about the origin) is $\E(X^k)$. The mean is the first
+moment, and $\Var(X) = \E(X^2) - [\E(X)]^2$ uses the first two.
+\end{definition}
+
+\begin{definition}[Moment generating function]
+The \emph{moment generating function} (m.g.f.) of $X$ is
+\[
+  M(t) = M_X(t) = \E\left(e^{tX}\right) = \begin{cases} \sum_x e^{tx}f(x) & \text{discrete},\\
+  \int_{-\infty}^{\infty}e^{tx}f(x)\,dx & \text{continuous},\end{cases}
+\]
+defined for those $t$ where the sum or integral converges. We say the m.g.f.\ exists if it
+is finite on an open interval $(-h, h)$ around $0$.
+\end{definition}
+
+Note $M(0) = \E(1) = 1$ always.
+
+\begin{theorem}[Moments from the m.g.f.]
+If $M_X(t)$ exists on $(-h,h)$, then
+\[
+  M_X^{(k)}(0) = \E(X^k), \qquad k = 1,2,\dots,
+\]
+and $M_X(t) = \sum_{k=0}^\infty \E(X^k)\dfrac{t^k}{k!}$.
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Expand $e^{tX} = \sum_k \frac{(tX)^k}{k!}$ and take expectations term by term (justified
+when the m.g.f.\ exists): $M(t) = \sum_k \E(X^k)t^k/k!$. The coefficient of $t^k/k!$ in a
+Taylor series is the $k$th derivative at $0$. Alternatively, differentiate under the sum:
+$M^{(k)}(t) = \E(X^ke^{tX})$, then set $t=0$.
+\end{proof}
+
+So $\E(X) = M'(0)$ and $\Var(X) = M''(0) - [M'(0)]^2$.
+
+\begin{theorem}[Linear transformations]
+$M_{aX+b}(t) = e^{bt}M_X(at)$.
+\end{theorem}
+
+\begin{proof}
+$\E(e^{t(aX+b)}) = e^{bt}\E(e^{(at)X})$.
+\end{proof}
+
+\section{M.g.f.s of the common distributions}
+
+\begin{example}[Binomial]
+For $X\sim\Bin(n,p)$, by the binomial theorem,
+\[
+  M(t) = \sum_{x=0}^n e^{tx}\binom nx p^x(1-p)^{n-x} = \sum_{x=0}^n\binom nx(pe^t)^x
+  (1-p)^{n-x} = (pe^t + 1 - p)^n.
+\]
+Then $M'(t) = npe^t(pe^t+1-p)^{n-1}$, so $\E(X) = M'(0) = np$, and
+\[
+  M''(t) = npe^t(pe^t+1-p)^{n-1} + n(n-1)p^2e^{2t}(pe^t+1-p)^{n-2},
+\]
+so $\E(X^2) = np + n(n-1)p^2$ and $\Var(X) = np + n(n-1)p^2 - n^2p^2 = np(1-p)$.
+\end{example}
+
+\begin{example}[Poisson]
+For $X\sim\Poi(\mu)$,
+\[
+  M(t) = \sum_{x=0}^\infty e^{tx}\frac{e^{-\mu}\mu^x}{x!} = e^{-\mu}\sum_{x=0}^\infty
+  \frac{(\mu e^t)^x}{x!} = e^{-\mu}e^{\mu e^t} = e^{\mu(e^t-1)}.
+\]
+$M'(t) = \mu e^tM(t)$ gives $\E(X) = \mu$; $M''(t) = (\mu e^t + \mu^2e^{2t})M(t)$ gives
+$\E(X^2) = \mu+\mu^2$, so $\Var(X) = \mu$.
+\end{example}
+
+\begin{example}[Geometric]
+For $X\sim\Geo(p)$ and $q = 1-p$,
+\[
+  M(t) = \sum_{x=0}^\infty e^{tx}pq^x = p\sum_{x=0}^\infty(qe^t)^x = \frac{p}{1-qe^t},
+  \qquad t < -\ln q.
+\]
+\end{example}
+
+\begin{example}[Exponential]
+For $X\sim\Exp(\theta)$ and $t<1/\theta$,
+\[
+  M(t) = \int_0^\infty e^{tx}\frac1\theta e^{-x/\theta}\,dx = \frac{1}{\theta}\int_0^\infty
+  e^{-x(1/\theta - t)}\,dx = \frac{1}{\theta(1/\theta - t)} = \frac{1}{1-\theta t}.
+\]
+Then $M'(t) = \theta(1-\theta t)^{-2}$ and $M''(t) = 2\theta^2(1-\theta t)^{-3}$, so
+$\E(X) = \theta$, $\E(X^2) = 2\theta^2$ and $\Var(X) = \theta^2$. (Equivalently,
+$\frac{1}{1-\theta t} = \sum_k \theta^kt^k$, so $\E(X^k) = k!\,\theta^k$.)
+\end{example}
+
+\begin{example}[Normal]
+For $Z\sim\Norm(0,1)$, completing the square $tz - z^2/2 = -\frac12(z-t)^2 + \frac{t^2}{2}$:
+\[
+  M_Z(t) = \int_{-\infty}^\infty\frac{1}{\sqrt{2\pi}}e^{tz - z^2/2}\,dz =
+  e^{t^2/2}\int_{-\infty}^\infty\frac{1}{\sqrt{2\pi}}e^{-(z-t)^2/2}\,dz = e^{t^2/2},
+\]
+since the last integrand is the $\Norm(t,1)$ density. For $X = \mu + \sigma Z\sim\Norm(\mu,
+\sigma^2)$, the linear transformation rule gives
+\[
+  M_X(t) = e^{\mu t}M_Z(\sigma t) = e^{\mu t + \sigma^2t^2/2}.
+\]
+\end{example}
+
+\begin{example}[Continuous uniform]
+For $X\sim\Unif(a,b)$, $M(t) = \dfrac{e^{bt} - e^{at}}{(b-a)t}$ for $t\ne0$, and $M(0)=1$.
+\end{example}
+
+\section{Uniqueness}
+
+\begin{theorem}[Uniqueness theorem]
+If $X$ and $Y$ have m.g.f.s that exist and are equal on some open interval around $0$,
+then $X$ and $Y$ have the same distribution.
+\end{theorem}
+
+(The proof is beyond the course.) This makes the m.g.f.\ a ``fingerprint'' of a
+distribution: to identify the distribution of some r.v., compute its m.g.f.\ and recognise
+it.
+
+\begin{example}[Recognising an m.g.f.]
+Each of the following m.g.f.s identifies a distribution:
+\begin{itemize}
+  \item If $M_X(t) = (0.3e^t + 0.7)^{10}$, then $X\sim\Bin(10, 0.3)$, so
+        $P(X = 3) \approx 0.2668$ (Chapter 5).
+  \item If $M_Y(t) = e^{2t + 8t^2}$, matching $\mu t + \sigma^2t^2/2$ gives $\mu = 2$ and
+        $\sigma^2 = 16$, so $Y\sim\Norm(2, 16)$ and $P(Y > 6) = P(Z > 1) = 0.1587$.
+  \item If $M_W(t) = e^{4(e^t - 1)}$, then $W\sim\Poi(4)$ and
+        $P(W = 0) = e^{-4}\approx 0.0183$.
+\end{itemize}
+\end{example}
+
+\begin{example}[A discrete m.g.f.\ read directly]
+If $M(t) = \frac{1}{6} + \frac{1}{3}e^{t} + \frac{1}{2}e^{3t}$, then $X$ takes the values
+$0$, $1$, $3$ with probabilities $1/6$, $1/3$, $1/2$ (the coefficient of $e^{tx}$ is
+$f(x)$). Then $\E(X) = M'(0) = \frac13 + \frac32 = \frac{11}{6}$.
+\end{example}
+
+\section{Sums of independent random variables}
+
+\begin{theorem}
+If $X$ and $Y$ are independent, then
+\[
+  M_{X+Y}(t) = M_X(t)\,M_Y(t).
+\]
+More generally, for independent $X_1,\dots,X_n$,
+$M_{X_1+\cdots+X_n}(t) = \prod_{i=1}^n M_{X_i}(t)$.
+\end{theorem}
+
+\begin{proof}
+$\E(e^{t(X+Y)}) = \E(e^{tX}e^{tY}) = \E(e^{tX})\E(e^{tY})$, since functions of
+independent r.v.s are independent and the expectation of a product of independent r.v.s
+factors (Chapter 8).
+\end{proof}
+
+Combined with uniqueness, this gives quick proofs of the ``closure'' results.
+
+\begin{theorem}[Closure under sums]
+For independent r.v.s:
+\begin{enumerate}
+  \item $X_i\sim\Poi(\mu_i)$ $\Rightarrow$ $\sum X_i\sim\Poi(\sum\mu_i)$.
+  \item $X_i\sim\Bin(n_i, p)$ (same $p$) $\Rightarrow$ $\sum X_i\sim\Bin(\sum n_i, p)$.
+  \item $X_1,\dots,X_k\sim\Geo(p)$ $\Rightarrow$ $\sum X_i\sim\NB(k,p)$.
+  \item $X_i\sim\Norm(\mu_i,\sigma_i^2)$ $\Rightarrow$ $\sum a_iX_i + b \sim
+        \Norm(\sum a_i\mu_i + b, \sum a_i^2\sigma_i^2)$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+(1) $\prod_i e^{\mu_i(e^t-1)} = e^{(\sum\mu_i)(e^t-1)}$, the $\Poi(\sum \mu_i)$ m.g.f.
+
+(2) $\prod_i(pe^t+1-p)^{n_i} = (pe^t+1-p)^{\sum n_i}$.
+
+(3) The product is $\left(\frac{p}{1-qe^t}\right)^k$. Using the negative binomial series
+$\sum_{x\ge0}\binom{x+k-1}{x}s^x = (1-s)^{-k}$ with $s = qe^t$, this is exactly the
+$\NB(k,p)$ m.g.f.\ $\sum_x e^{tx}\binom{x+k-1}{x}p^kq^x$.
+
+(4) $M(t) = e^{bt}\prod_i M_{X_i}(a_it) = e^{bt}\prod_i e^{\mu_ia_it + \sigma_i^2a_i^2t^2/2}
+= \exp\left((\textstyle\sum a_i\mu_i + b)t + (\sum a_i^2\sigma_i^2)t^2/2\right)$.
+\end{proof}
+
+\begin{example}
+Accidents at three intersections are independent Poisson with means $1.2$, $0.5$ and
+$0.3$ per week. The total is $\Poi(2)$, so the probability of no accidents at all in a
+week is $e^{-2}\approx 0.1353$ and the probability of at most one is $3e^{-2}\approx
+0.4060$.
+\end{example}
+
+\begin{important}[Pitfall]
+The product rule $M_{X+Y} = M_XM_Y$ requires independence. Also, the sum of independent
+binomials is binomial only when they share the same $p$; e.g.\ $\Bin(5, 0.2) +
+\Bin(5, 0.6)$ is not binomial, since $(0.2e^t+0.8)^5(0.6e^t+0.4)^5$ is not of the form
+$(pe^t + 1-p)^{10}$.
+\end{important}
+
+\section{Why the CLT holds (sketch)}
+
+Let $X_i$ be i.i.d.\ with mean $0$, variance $1$ and m.g.f.\ $M$, and let
+$Z_n = S_n/\sqrt n$. Then $M(s) = 1 + \frac{s^2}{2} + o(s^2)$, so
+\[
+  M_{Z_n}(t) = \left[M\left(\frac{t}{\sqrt n}\right)\right]^n =
+  \left[1 + \frac{t^2}{2n} + o\left(\frac1n\right)\right]^n \to e^{t^2/2},
+\]
+the $\Norm(0,1)$ m.g.f. A continuity theorem (convergence of m.g.f.s implies convergence
+of c.d.f.s) then gives the CLT. The general case reduces to this one by standardising.
+
+\section{Summary}
+
+\begin{itemize}
+  \item $M(t) = \E(e^{tX})$; $M(0)=1$; $\E(X^k) = M^{(k)}(0)$.
+  \item $M_{aX+b}(t) = e^{bt}M_X(at)$; for independent r.v.s,
+        $M_{X+Y}(t) = M_X(t)M_Y(t)$.
+  \item Uniqueness: equal m.g.f.s near $0$ means equal distributions; use this to identify
+        distributions of sums.
+  \item Key m.g.f.s: binomial $(pe^t+q)^n$, Poisson $e^{\mu(e^t-1)}$, geometric
+        $p/(1-qe^t)$, exponential $1/(1-\theta t)$, normal $e^{\mu t + \sigma^2t^2/2}$.
+\end{itemize}

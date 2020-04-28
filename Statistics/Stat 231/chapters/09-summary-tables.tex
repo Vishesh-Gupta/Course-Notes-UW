@@ -1,0 +1,105 @@
+\chapter{Summary Tables and References}
+
+This chapter collects the formulas used throughout the course for quick reference.
+
+\section{Models and maximum likelihood estimates}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Model & MLE & Approx.\ pivotal / standard error & Notes \\
+\midrule
+$\Bin(n,\theta)$ & $y/n$ & $\sqrt{\thetahat(1-\thetahat)/n}$ & CLT \\
+$\Poi(\theta)$, $n$ obs.\ & $\ybar$ & $\sqrt{\thetahat/n}$ & CLT \\
+$\Expo(\theta)$, $n$ obs.\ & $\ybar$ & $2\sum Y_i/\theta\sim\chi^2(2n)$ & exact \\
+$\Gau(\mu,\sigma)$ & $\ybar$, $\frac1n\sum(y_i-\ybar)^2$ & see below & exact \\
+Multinomial & $y_j/n$ & --- & GOF tests \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Pivotal quantities for Gaussian models}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Setting & Pivotal quantity & Distribution \\
+\midrule
+mean, $\sigma$ known & $\dfrac{\Ybar-\mu}{\sigma/\sqrt n}$ & $\Gau(0,1)$ \\[2ex]
+mean, $\sigma$ unknown & $\dfrac{\Ybar-\mu}{S/\sqrt n}$ & $t(n-1)$ \\[2ex]
+variance & $\dfrac{(n-1)S^2}{\sigma^2}$ & $\chi^2(n-1)$ \\[2ex]
+regression slope & $\dfrac{\tilde\beta-\beta}{S_e/\sqrt{S_{xx}}}$ & $t(n-2)$ \\[2ex]
+mean response at $x$ & $\dfrac{\tilde\mu(x)-\mu(x)}{S_e\sqrt{\frac1n+\frac{(x-\bar x)^2}{S_{xx}}}}$ & $t(n-2)$ \\[2ex]
+new response at $x$ & $\dfrac{Y-\tilde\mu(x)}{S_e\sqrt{1+\frac1n+\frac{(x-\bar x)^2}{S_{xx}}}}$ & $t(n-2)$ \\[2ex]
+two samples, common $\sigma$ & $\dfrac{\Ybar_1-\Ybar_2-(\mu_1-\mu_2)}{S_p\sqrt{1/n_1+1/n_2}}$ & $t(n_1+n_2-2)$ \\[2ex]
+paired differences & $\dfrac{\bar D-\mu_d}{S_d/\sqrt n}$ & $t(n-1)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Likelihood-based results}
+
+\begin{itemize}
+  \item Relative likelihood $R(\theta) = L(\theta)/L(\thetahat)$; $100p\%$ likelihood
+        interval $\{\theta: R(\theta)\ge p\}$.
+  \item $\Lambda(\theta) = -2\log R(\theta)\approx\chi^2(1)$; $15\%$ LI $\approx$ $95\%$ CI,
+        $10\%$ LI $\approx$ $96.8\%$ CI, $1\%$ LI $\approx$ $99.8\%$ CI.
+  \item LRT of $H_0:\theta=\theta_0$: $p\approx\Prob(W\ge\lambda) =
+        2[1-\Phi(\sqrt\lambda)]$, $W\sim\chi^2(1)$.
+  \item Goodness of fit: $\Lambda = 2\sum y_j\log(y_j/e_j)$, $D = \sum(y_j-e_j)^2/e_j$,
+        $\chi^2(k-1-p)$; independence: $e_{ij} = r_ic_j/n$, $\chi^2((a-1)(b-1))$.
+\end{itemize}
+
+\section{Frequently used table values}
+
+\textbf{Standard normal}: $\Prob(Z\le z)$ for $z = 1.282, 1.645, 1.960, 2.326, 2.576$ is
+$0.90, 0.95, 0.975, 0.99, 0.995$.
+
+\textbf{Student $t$}: values $a$ with $\Prob(T\le a) = 0.975$.
+\begin{center}
+\begin{tabular}{l*{9}{c}}
+\toprule
+df & 7 & 8 & 9 & 10 & 14 & 19 & 29 & 60 & $\infty$\\
+\midrule
+$a$ & 2.365 & 2.306 & 2.262 & 2.228 & 2.145 & 2.093 & 2.045 & 2.000 & 1.960\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Chi-squared}: quantiles $c$ with $\Prob(W\le c) = q$.
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+df & $q=0.025$ & $q=0.05$ & $q=0.10$ & $q=0.90$ & $q=0.95$ & $q=0.975$\\
+\midrule
+1 & 0.001 & 0.004 & 0.016 & 2.706 & 3.841 & 5.024\\
+2 & 0.051 & 0.103 & 0.211 & 4.605 & 5.991 & 7.378\\
+3 & 0.216 & 0.352 & 0.584 & 6.251 & 7.815 & 9.348\\
+4 & 0.484 & 0.711 & 1.064 & 7.779 & 9.488 & 11.143\\
+5 & 0.831 & 1.145 & 1.610 & 9.236 & 11.070 & 12.833\\
+9 & 2.700 & 3.325 & 4.168 & 14.684 & 16.919 & 19.023\\
+16 & 6.908 & 7.962 & 9.312 & 23.542 & 26.296 & 28.845\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Workflow reminders}
+
+\begin{enumerate}
+  \item Problem and Plan: identify target and study populations, variates, sampling
+        protocol; anticipate study, sample and measurement error.
+  \item Plot the data; choose a model; estimate by maximum likelihood; check the fit.
+  \item Report estimates with confidence or likelihood intervals; test hypotheses with
+        p-values interpreted on the evidence scale.
+  \item Draw conclusions in context, distinguishing association from causation.
+\end{enumerate}
+
+\section*{References}
+\begin{itemize}
+  \item University of Waterloo, Department of Statistics and Actuarial Science,
+        \emph{Stat 231 Course Notes} (editions used 2016--2021).
+  \item J.~G.~Kalbfleisch, \emph{Probability and Statistical Inference}, Vol.~2,
+        Springer.
+  \item A.~B.~Hill, ``The environment and disease: association or causation?'',
+        \emph{Proceedings of the Royal Society of Medicine}, 1965.
+\end{itemize}

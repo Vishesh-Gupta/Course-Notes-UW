@@ -1,0 +1,168 @@
+\chapter{Causal Relationships}
+
+\section{Association versus causation}
+
+\begin{definition}
+Variates $x$ and $y$ are \emph{associated} if the distribution of $y$ differs for
+different values of $x$ (e.g.\ a non-zero correlation, a non-zero regression slope, or
+dependence in a two-way table). We say $x$ \emph{causes} $y$ if, other things being held
+fixed, changing the value of $x$ for a unit changes the (distribution of the) value of $y$
+for that unit.
+\end{definition}
+
+Association is about what we \emph{observe}; causation is about what would happen if we
+\emph{intervened}. All the tests of Chapters 5--7 detect association. Whether we may
+interpret it causally depends on how the data were collected.
+
+\begin{example}[Associations that are not causal]
+\begin{itemize}
+  \item Cities with more firefighters have more fire damage (both are driven by city
+        size and number of fires).
+  \item Ice cream sales and drownings are positively correlated (both increase in hot
+        weather).
+  \item Students who use the tutoring centre have lower grades (weaker students are more
+        likely to seek help: \emph{reverse causation} / selection).
+\end{itemize}
+\end{example}
+
+\section{Confounding}
+
+\begin{definition}[Confounding variate]
+A variate $z$ is a \emph{confounder} for the relationship between $x$ and $y$ if $z$ is
+associated with $x$ and also affects $y$. Then an observed association between $x$ and
+$y$ may be partly or wholly due to $z$, and the effects of $x$ and $z$ cannot be separated
+from the data.
+\end{definition}
+
+\begin{center}
+\begin{tikzpicture}[node distance=2.2cm, v/.style={draw, circle, minimum size=0.9cm}]
+  \node[v] (z) {$z$};
+  \node[v, below left=1.2cm and 1.4cm of z] (x) {$x$};
+  \node[v, below right=1.2cm and 1.4cm of z] (y) {$y$};
+  \draw[-{Stealth}] (z) -- (x);
+  \draw[-{Stealth}] (z) -- (y);
+  \draw[-{Stealth}, dashed] (x) -- node[below] {\small causal effect?} (y);
+\end{tikzpicture}
+\end{center}
+
+Strategies for dealing with confounding:
+\begin{itemize}
+  \item \textbf{Randomization} (in experiments): breaks any link between $x$ and every
+        possible confounder, known or unknown.
+  \item \textbf{Stratification/matching}: compare $x$-groups within levels of a known
+        confounder $z$ (e.g.\ within age groups); pairing (Chapter 6) is an example.
+  \item \textbf{Including $z$ in the model} (multiple regression, beyond Stat 231).
+\end{itemize}
+Only randomization handles \emph{unknown} confounders.
+
+\section{Experimental versus observational studies}
+
+\begin{definition}
+In an \emph{experimental study} the investigator controls (assigns) the value of the
+explanatory variate $x$ for each unit. In an \emph{observational study} the values of $x$
+are not controlled; they are just recorded as they occur.
+\end{definition}
+
+\begin{important}[Principles of a good experiment]
+\begin{itemize}
+  \item \textbf{Control/comparison}: compare the treatment with a control group (e.g.\
+        placebo), keeping other conditions the same.
+  \item \textbf{Randomization}: assign treatments to units at random, so that the groups
+        are alike on average in all other respects; then a difference in $y$ can be
+        attributed to $x$ (or chance, which the p-value quantifies).
+  \item \textbf{Replication}: use enough units to make the sample error small.
+  \item \textbf{Blinding}: if possible, neither units (single-blind) nor evaluators
+        (double-blind) know which treatment was received, avoiding placebo effects and
+        measurement bias.
+\end{itemize}
+\end{important}
+
+For many important questions (smoking and cancer, pollution and asthma) experiments are
+unethical or impossible, so we must rely on observational studies: \emph{cohort} studies
+(follow exposed and unexposed groups forward in time) and \emph{case-control} studies
+(compare past exposure of people with and without the disease). Such studies can be very
+informative but are always open to confounding.
+
+\section{Simpson's paradox}
+
+\begin{definition}
+\emph{Simpson's paradox} occurs when an association between two variates in the
+combined data has the opposite direction from the association within every subgroup
+defined by a third variate. It is an extreme form of confounding.
+\end{definition}
+
+\begin{example}[Kidney stone treatments]
+Success rates of two treatments in an observational study:
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+ & small stones & large stones & all patients\\
+\midrule
+Treatment A & $81/87 = 93\%$ & $192/263 = 73\%$ & $273/350 = 78\%$\\
+Treatment B & $234/270 = 87\%$ & $55/80 = 69\%$ & $289/350 = 83\%$\\
+\bottomrule
+\end{tabular}
+\end{center}
+A is better for small stones and better for large stones, yet B looks better overall. The
+explanation: stone size is a confounder. Large stones are harder to treat (lower success
+for both treatments), and doctors gave A mostly to large-stone patients ($263$ of $350$)
+and B mostly to small-stone patients ($270$ of $350$). The overall comparison mixes the
+treatment effect with the severity effect. The stratified comparison (within stone size) is
+the relevant one, and a randomized trial would avoid the problem.
+\end{example}
+
+\begin{remark}
+Algebraically, the overall rate is a weighted average of the subgroup rates, with weights
+equal to the fraction of each group's patients in each subgroup:
+$0.78 = \frac{87}{350}(0.931) + \frac{263}{350}(0.730)$ and
+$0.826 = \frac{270}{350}(0.867) + \frac{80}{350}(0.688)$. Different weights can reverse
+the order.
+\end{remark}
+
+\section{Establishing causation from observational data: Hill's criteria}
+
+When experiments are impossible, the epidemiologist Austin Bradford Hill (1965) proposed
+considerations that strengthen the case for a causal interpretation of an association.
+Stat 231 emphasizes:
+\begin{enumerate}
+  \item \textbf{Strength}: the association is large (e.g.\ heavy smokers have many times
+        the lung cancer rate of non-smokers); a strong association is harder to explain
+        away by confounding.
+  \item \textbf{Consistency}: the association is found repeatedly in different studies,
+        populations, designs and by different investigators.
+  \item \textbf{Specificity}: the cause leads to a specific effect rather than many
+        unrelated ones.
+  \item \textbf{Temporality}: the cause precedes the effect.
+  \item \textbf{Dose--response (biological gradient)}: more exposure leads to more
+        effect.
+  \item \textbf{Plausibility}: there is a credible mechanism (e.g.\ carcinogens in
+        smoke).
+  \item \textbf{Coherence}: the causal interpretation does not conflict with known facts
+        about the disease.
+  \item \textbf{Experimental evidence}: e.g.\ animal experiments, or the effect diminishes
+        when exposure is removed (people who quit smoking have reduced risk).
+  \item \textbf{Analogy}: similar causes are known to have similar effects.
+\end{enumerate}
+No single criterion is decisive (except temporality, which is necessary), but together they
+built the overwhelming case that smoking causes lung cancer without a randomized trial.
+
+\begin{important}[Common pitfalls]
+\begin{itemize}
+  \item A small p-value says an association is unlikely to be due to chance alone; it
+        says nothing about whether it is causal.
+  \item Random \emph{sampling} lets you generalize to a population; random
+        \emph{assignment} lets you conclude causation. Neither implies the other.
+  \item Always ask ``what else differs between the groups?''
+\end{itemize}
+\end{important}
+
+\section*{Summary}
+\begin{itemize}
+  \item Association $\ne$ causation; confounders, reverse causation and selection can
+        produce associations.
+  \item Randomized controlled experiments are the gold standard for causal conclusions
+        because randomization balances all confounders on average.
+  \item Simpson's paradox: aggregating over a confounder can reverse an association.
+  \item For observational data, Hill's criteria (strength, consistency, temporality,
+        dose--response, plausibility, \ldots) support but never prove causation.
+\end{itemize}

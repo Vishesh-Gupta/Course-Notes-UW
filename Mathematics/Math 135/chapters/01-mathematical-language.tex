@@ -1,0 +1,257 @@
+\chapter{Introduction to Mathematical Language}
+
+Math 135 is, for most people, the first course where the \emph{proof} matters more than the
+answer. Before we can prove anything we need a precise language: what a statement is, how
+statements combine, and how quantifiers such as ``for all'' and ``there exists'' behave.
+This chapter sets up that vocabulary.
+
+\section{Statements}
+
+\begin{definition}[Statement]
+A \emph{statement} (or proposition) is a sentence that is either true or false, but not both.
+\end{definition}
+
+\begin{example}
+\begin{itemize}
+  \item ``$7$ is prime'' is a true statement.
+  \item ``$2^{10} < 1000$'' is a false statement ($2^{10} = 1024$).
+  \item ``Every even integer greater than $2$ is a sum of two primes'' (Goldbach) is a
+        statement; nobody knows its truth value, but it has one.
+  \item ``$x^2 = 4$'' is \emph{not} a statement: its truth depends on $x$. It is an
+        \emph{open sentence}, written $P(x)$.
+  \item ``Prove the theorem.'' is not a statement (it is a command).
+\end{itemize}
+\end{example}
+
+An open sentence $P(x)$ becomes a statement once we substitute a value for $x$ or once we
+\emph{quantify} $x$ (see below). The set of values $x$ is allowed to range over is the
+\emph{domain} (or universe of discourse).
+
+\section{Compound statements and truth tables}
+
+Given statements $A$ and $B$ we form new statements with the logical connectives:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Symbol & Name & Read as \\
+\midrule
+$\neg A$ & negation & ``not $A$'' \\
+$A \wedge B$ & conjunction & ``$A$ and $B$'' \\
+$A \vee B$ & disjunction & ``$A$ or $B$'' (inclusive) \\
+$A \Rightarrow B$ & implication & ``if $A$ then $B$'' \\
+$A \Leftrightarrow B$ & biconditional & ``$A$ if and only if $B$'' \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Their meanings are fixed by the truth table:
+
+\begin{center}
+\begin{tabular}{cc|ccccc}
+$A$ & $B$ & $\neg A$ & $A\wedge B$ & $A \vee B$ & $A\Rightarrow B$ & $A\Leftrightarrow B$\\
+\hline
+$\TT$ & $\TT$ & $\FF$ & $\TT$ & $\TT$ & $\TT$ & $\TT$ \\
+$\TT$ & $\FF$ & $\FF$ & $\FF$ & $\TT$ & $\FF$ & $\FF$ \\
+$\FF$ & $\TT$ & $\TT$ & $\FF$ & $\TT$ & $\TT$ & $\FF$ \\
+$\FF$ & $\FF$ & $\TT$ & $\FF$ & $\FF$ & $\TT$ & $\TT$ \\
+\end{tabular}
+\end{center}
+
+\begin{important}[The implication is only false in one row]
+$A \Rightarrow B$ is false \emph{only} when $A$ is true and $B$ is false. In particular,
+an implication with a false hypothesis is \emph{vacuously true}: ``if $1 = 2$ then I am the
+Pope'' is a true statement.
+\end{important}
+
+In $A \Rightarrow B$, $A$ is the \emph{hypothesis} and $B$ the \emph{conclusion}. Equivalent
+English phrasings: ``$A$ implies $B$'', ``$B$ whenever $A$'', ``$A$ is sufficient for $B$'',
+``$B$ is necessary for $A$'', ``$A$ only if $B$''.
+
+\subsection{Logical equivalence}
+
+\begin{definition}
+Two compound statements are \emph{logically equivalent}, written $S_1 \equiv S_2$, if they
+have the same truth value for every assignment of truth values to their component
+statements. A statement that is true in every row is a \emph{tautology}; one that is false
+in every row is a \emph{contradiction}.
+\end{definition}
+
+\begin{proposition}[Useful equivalences]
+For statements $A,B,C$:
+\begin{enumerate}
+  \item $\neg(\neg A) \equiv A$ (double negation);
+  \item $\neg(A\wedge B) \equiv \neg A \vee \neg B$ and $\neg(A \vee B) \equiv \neg A
+        \wedge \neg B$ (De Morgan's laws);
+  \item $A \wedge (B \vee C) \equiv (A\wedge B)\vee(A\wedge C)$ and
+        $A \vee (B \wedge C) \equiv (A\vee B)\wedge(A\vee C)$ (distributive laws);
+  \item $A \Rightarrow B \equiv \neg A \vee B$;
+  \item $\neg(A \Rightarrow B) \equiv A \wedge \neg B$;
+  \item $A \Leftrightarrow B \equiv (A\Rightarrow B)\wedge(B \Rightarrow A)$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}[Proof of (4)]
+Compare columns:
+\begin{center}
+\begin{tabular}{cc|cc|c}
+$A$ & $B$ & $\neg A$ & $\neg A \vee B$ & $A \Rightarrow B$ \\
+\hline
+$\TT$ & $\TT$ & $\FF$ & $\TT$ & $\TT$\\
+$\TT$ & $\FF$ & $\FF$ & $\FF$ & $\FF$\\
+$\FF$ & $\TT$ & $\TT$ & $\TT$ & $\TT$\\
+$\FF$ & $\FF$ & $\TT$ & $\TT$ & $\TT$\\
+\end{tabular}
+\end{center}
+The last two columns agree in every row. The rest are checked the same way.
+\end{proof}
+
+\begin{example}
+Show $(A \Rightarrow B)\wedge(A \Rightarrow C) \equiv A \Rightarrow (B\wedge C)$ without a
+table:
+\begin{align*}
+(A \Rightarrow B)\wedge(A \Rightarrow C)
+  &\equiv (\neg A \vee B)\wedge(\neg A \vee C) \\
+  &\equiv \neg A \vee (B \wedge C) &&\text{(distributive law)}\\
+  &\equiv A \Rightarrow (B \wedge C).
+\end{align*}
+\end{example}
+
+\section{Converse and contrapositive}
+
+\begin{definition}
+For the implication $A \Rightarrow B$:
+\begin{itemize}
+  \item the \emph{converse} is $B \Rightarrow A$;
+  \item the \emph{contrapositive} is $\neg B \Rightarrow \neg A$;
+  \item the \emph{inverse} is $\neg A \Rightarrow \neg B$.
+\end{itemize}
+\end{definition}
+
+\begin{theorem}
+An implication is logically equivalent to its contrapositive:
+$A \Rightarrow B \equiv \neg B \Rightarrow \neg A$.
+\end{theorem}
+
+\begin{proof}
+$\neg B \Rightarrow \neg A \equiv \neg(\neg B) \vee \neg A \equiv B \vee \neg A \equiv
+\neg A \vee B \equiv A \Rightarrow B$.
+\end{proof}
+
+\begin{important}[Converse is not equivalent]
+The converse is \emph{not} equivalent to the original. ``If $n = 4$ then $n$ is even'' is
+true; its converse ``if $n$ is even then $n = 4$'' is false (take $n = 2$).
+The inverse is the contrapositive of the converse, so the inverse is equivalent to the
+converse.
+\end{important}
+
+\section{Quantifiers}
+
+\begin{definition}
+Let $P(x)$ be an open sentence with domain $S$.
+\begin{itemize}
+  \item The \emph{universal} statement $\forall x \in S,\ P(x)$ is true if $P(x)$ is true for
+        every $x \in S$.
+  \item The \emph{existential} statement $\exists x \in S,\ P(x)$ is true if $P(x)$ is true
+        for at least one $x \in S$.
+\end{itemize}
+\end{definition}
+
+\begin{example}
+\begin{itemize}
+  \item $\forall x \in \R,\ x^2 \geq 0$ is true.
+  \item $\exists x \in \R,\ x^2 = -1$ is false; but $\exists x \in \C,\ x^2 = -1$ is true.
+        The domain matters.
+  \item $\forall n \in \N,\ n^2 + n + 41$ is prime is false: at $n = 40$ we get
+        $40^2 + 40 + 41 = 1681 = 41^2$.
+\end{itemize}
+\end{example}
+
+\subsection{Nested quantifiers}
+
+The order of quantifiers of different types matters.
+
+\begin{example}
+\begin{itemize}
+  \item $\forall x \in \R,\ \exists y \in \R,\ x + y = 0$ is true: given $x$, choose
+        $y = -x$. Here $y$ may depend on $x$.
+  \item $\exists y \in \R,\ \forall x \in \R,\ x + y = 0$ is false: a single $y$ would have
+        to satisfy $1 + y = 0$ and $2 + y = 0$ at once.
+\end{itemize}
+Quantifiers of the \emph{same} type can be swapped: $\forall x\, \forall y$ is the same as
+$\forall y\, \forall x$.
+\end{example}
+
+\subsection{Negating quantified statements}
+
+\begin{theorem}
+\[
+\neg\bigl(\forall x \in S,\ P(x)\bigr) \equiv \exists x \in S,\ \neg P(x),
+\qquad
+\neg\bigl(\exists x \in S,\ P(x)\bigr) \equiv \forall x \in S,\ \neg P(x).
+\]
+\end{theorem}
+
+To negate a long statement, move the negation from left to right, flipping each quantifier
+and finally negating the innermost open sentence (using De Morgan's laws and
+$\neg(A\Rightarrow B)\equiv A \wedge \neg B$).
+
+\begin{example}
+Negate ``for every $\varepsilon > 0$ there is a $\delta > 0$ such that for all $x\in\R$, if
+$\abs{x} < \delta$ then $\abs{f(x)} < \varepsilon$''.
+\begin{align*}
+&\neg\bigl(\forall \varepsilon > 0,\ \exists \delta > 0,\ \forall x \in \R,\
+  (\abs{x} < \delta \Rightarrow \abs{f(x)} < \varepsilon)\bigr)\\
+&\equiv \exists \varepsilon > 0,\ \forall \delta > 0,\ \exists x \in \R,\
+  \neg(\abs{x} < \delta \Rightarrow \abs{f(x)} < \varepsilon)\\
+&\equiv \exists \varepsilon > 0,\ \forall \delta > 0,\ \exists x \in \R,\
+  (\abs{x} < \delta \wedge \abs{f(x)} \geq \varepsilon).
+\end{align*}
+\end{example}
+
+\begin{example}
+Negate ``every integer greater than $1$ has a prime divisor'': ``there exists an integer
+greater than $1$ that has no prime divisor''. Note the negation is \emph{not} ``no integer
+greater than $1$ has a prime divisor''.
+\end{example}
+
+\section{Reading and writing mathematics}
+
+A theorem typically has the shape ``for all $x$ in $S$, if $H(x)$ then $C(x)$'', even when the
+quantifier is hidden: ``if $n$ is odd then $n^2$ is odd'' really means
+$\forall n \in \Z,\ (n \text{ odd} \Rightarrow n^2 \text{ odd})$. Before proving something,
+identify:
+\begin{enumerate}
+  \item the quantifiers and the domain;
+  \item the hypothesis (what we may assume);
+  \item the conclusion (what we must show).
+\end{enumerate}
+
+\begin{aside}
+Common notation: $\N = \{1,2,3,\dots\}$ (in Math 135 the natural numbers start at $1$),
+$\Z$ integers, $\Q$ rationals, $\R$ reals, $\C$ complex numbers. ``Such that'' is often
+abbreviated ``s.t.''; $\therefore$ means ``therefore''.
+\end{aside}
+
+\section{Common pitfalls}
+\begin{itemize}
+  \item Treating ``or'' as exclusive. In mathematics $A \vee B$ is true when both are true.
+  \item Thinking a false hypothesis makes an implication false. It makes it (vacuously) true.
+  \item Proving the converse instead of the statement.
+  \item Negating $\forall x,\ P(x)$ as $\forall x,\ \neg P(x)$. The correct negation needs only
+        one counterexample.
+  \item Swapping $\forall\exists$ to $\exists\forall$, which usually makes a statement much
+        stronger.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item A statement is true or false; an open sentence becomes a statement when its variables
+        are assigned or quantified.
+  \item Connectives $\neg,\wedge,\vee,\Rightarrow,\Leftrightarrow$ are defined by truth tables;
+        $A \Rightarrow B$ is false only when $A$ is true and $B$ false.
+  \item $A\Rightarrow B \equiv \neg A \vee B \equiv \neg B \Rightarrow \neg A$ (contrapositive);
+        the converse $B \Rightarrow A$ is a different statement.
+  \item Negation flips quantifiers: $\neg \forall \equiv \exists \neg$ and
+        $\neg\exists \equiv \forall \neg$; the order of mixed quantifiers matters.
+\end{itemize}

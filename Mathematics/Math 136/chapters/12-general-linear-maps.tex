@@ -1,0 +1,212 @@
+\chapter{General Linear Maps and Change of Basis}
+
+\section{Linear maps between vector spaces}
+
+\begin{definition}
+Let $\mathbb V,\mathbb W$ be vector spaces. $L:\mathbb V\to\mathbb W$ is \emph{linear} if
+$L(b\vec x+c\vec y)=bL(\vec x)+cL(\vec y)$ for all $\vec x,\vec y\in\mathbb V$, $b,c\in\R$. Its \emph{range} is
+$\Range(L)=\{L(\vec x):\vec x\in\mathbb V\}$ and its \emph{kernel} is $\Ker(L)=\{\vec x\in\mathbb V:L(\vec x)=\vec 0\}$.
+\end{definition}
+
+\begin{example}
+\begin{itemize}
+  \item Differentiation $D:\Poly n\to\Poly{n-1}$, $D(p)=p'$.
+  \item Transpose $T:\Mat mn\to\Mat nm$, $T(A)=A^T$.
+  \item Trace $\tr:\Mat nn\to\R$.
+  \item Evaluation $L:\Poly2\to\R^2$, $L(p)=(p(0),p(1))$.
+  \item The coordinate map $\vec x\mapsto[\vec x]_{\mathcal B}$.
+\end{itemize}
+The determinant $\det:\Mat nn\to\R$ is \emph{not} linear for $n\ge2$ ($\det(2I)=2^n\ne2\det I$).
+\end{example}
+
+As before, $\Ker L$ is a subspace of $\mathbb V$, $\Range L$ is a subspace of $\mathbb W$, and $L$ is one-to-one iff
+$\Ker L=\{\vec 0\}$. The \emph{rank} of $L$ is $\dim\Range L$ and the \emph{nullity} is $\dim\Ker L$.
+
+\begin{theorem}[Rank--Nullity]
+If $\mathbb V$ is finite-dimensional and $L:\mathbb V\to\mathbb W$ is linear, then
+$\rank L+\nullity L=\dim\mathbb V$.
+\end{theorem}
+\begin{proof}
+Let $\{\vec v_1,\dots,\vec v_k\}$ be a basis of $\Ker L$ and extend it to a basis
+$\{\vec v_1,\dots,\vec v_k,\vec v_{k+1},\dots,\vec v_n\}$ of $\mathbb V$. We claim
+$\{L(\vec v_{k+1}),\dots,L(\vec v_n)\}$ is a basis of $\Range L$. Spanning: any $L(\vec x)=\sum c_iL(\vec v_i)$, and the
+terms with $i\le k$ vanish. Independence: if $\sum_{i>k}c_iL(\vec v_i)=\vec0$ then $\sum_{i>k}c_i\vec v_i\in\Ker L$,
+so it equals some $\sum_{i\le k}d_i\vec v_i$; independence of the full basis forces all $c_i=0$. Hence
+$\rank L=n-k$.
+\end{proof}
+
+\begin{example}
+For $D:\Poly3\to\Poly2$: $\Ker D$ = constants (dimension $1$) and $\Range D=\Poly2$ (dimension $3$); $1+3=4=\dim\Poly3$.
+For $\tr:\Mat22\to\R$ (onto, rank $1$), the kernel (trace-zero matrices) has dimension $4-1=3$.
+\end{example}
+
+\section{The matrix of a linear map}
+
+Fix bases $\mathcal B=\{\vec v_1,\dots,\vec v_n\}$ of $\mathbb V$ and $\mathcal C$ of $\mathbb W$ (with $\dim\mathbb W=m$). Taking
+coordinates converts $L$ into a map $\R^n\to\R^m$, which must be given by a matrix.
+
+\begin{definition}
+The \emph{matrix of $L$ with respect to $\mathcal B$ and $\mathcal C$} is the $m\times n$ matrix
+\[
+  {}_{\mathcal C}[L]_{\mathcal B}=\Big[\,[L(\vec v_1)]_{\mathcal C}\ \ [L(\vec v_2)]_{\mathcal C}\ \cdots\ [L(\vec v_n)]_{\mathcal C}\,\Big].
+\]
+When $\mathbb V=\mathbb W$ and $\mathcal C=\mathcal B$ we write $[L]_{\mathcal B}$ (the \emph{$\mathcal B$-matrix} of $L$).
+\end{definition}
+
+\begin{theorem}
+For all $\vec x\in\mathbb V$: $[L(\vec x)]_{\mathcal C}={}_{\mathcal C}[L]_{\mathcal B}\,[\vec x]_{\mathcal B}$.
+\end{theorem}
+\begin{proof}
+If $[\vec x]_{\mathcal B}=(c_1,\dots,c_n)$ then $L(\vec x)=\sum c_iL(\vec v_i)$, so by linearity of coordinates
+$[L(\vec x)]_{\mathcal C}=\sum c_i[L(\vec v_i)]_{\mathcal C}$, which is the matrix--vector product.
+\end{proof}
+
+When $\mathbb V=\R^n$, $\mathbb W=\R^m$ and both bases are standard, this is the standard matrix $[L]$ of Chapter 5.
+
+\begin{example}
+$D:\Poly2\to\Poly1$ with standard bases $\{1,x,x^2\}$ and $\{1,x\}$: $D(1)=0$, $D(x)=1$, $D(x^2)=2x$, so
+\[
+  [D]=\begin{bmatrix}0&1&0\\0&0&2\end{bmatrix}.
+\]
+For $p=5-3x+4x^2$: $[D]\,(5,-3,4)=(-3,8)$, i.e.\ $p'=-3+8x$. Correct.
+\end{example}
+
+\begin{example}
+Let $L:\Poly2\to\R^2$, $L(p)=(p(0),p(1))$, with $\mathcal B=\{1,x,x^2\}$ and $\mathcal C=\{(1,0),(1,1)\}$. Then
+$L(1)=(1,1)$, $L(x)=(0,1)$, $L(x^2)=(0,1)$. In $\mathcal C$-coordinates, $a(1,0)+b(1,1)=(a+b,b)$, so
+$[(1,1)]_{\mathcal C}=(0,1)$ and $[(0,1)]_{\mathcal C}=(-1,1)$. Hence
+\[
+  {}_{\mathcal C}[L]_{\mathcal B}=\begin{bmatrix}0&-1&-1\\1&1&1\end{bmatrix}.
+\]
+Check with $p=2+3x+x^2$: ${}_{\mathcal C}[L]_{\mathcal B}(2,3,1)=(-4,6)$, and $-4(1,0)+6(1,1)=(2,6)=(p(0),p(1))$.
+\end{example}
+
+\begin{example}[A well-chosen basis]
+Let $L=\proj_{\vec d}$ on $\R^2$ with $\vec d=(1,2)$, and $\mathcal B=\{(1,2),(-2,1)\}$. Since $L(1,2)=(1,2)$ and
+$L(-2,1)=\vec 0$,
+\[
+  [L]_{\mathcal B}=\begin{bmatrix}1&0\\0&0\end{bmatrix},
+\]
+far simpler than the standard matrix $\frac15\begin{bmatrix}1&2\\2&4\end{bmatrix}$. Choosing a basis adapted to the
+geometry is exactly what diagonalization does.
+\end{example}
+
+\section{Change of coordinates}
+
+\begin{definition}
+Let $\mathcal B=\{\vec v_1,\dots,\vec v_n\}$ and $\mathcal C$ be bases of $\mathbb V$. The \emph{change of coordinates matrix
+from $\mathcal B$ to $\mathcal C$} is
+\[
+  {}_{\mathcal C}P_{\mathcal B}=\Big[\,[\vec v_1]_{\mathcal C}\ \cdots\ [\vec v_n]_{\mathcal C}\,\Big],
+\]
+i.e.\ the matrix of the identity map with respect to $\mathcal B$ and $\mathcal C$.
+\end{definition}
+
+\begin{theorem}
+$[\vec x]_{\mathcal C}={}_{\mathcal C}P_{\mathcal B}[\vec x]_{\mathcal B}$ for all $\vec x$, and ${}_{\mathcal C}P_{\mathcal B}$ is invertible with
+$({}_{\mathcal C}P_{\mathcal B})^{-1}={}_{\mathcal B}P_{\mathcal C}$.
+\end{theorem}
+\begin{proof}
+The first statement is the previous theorem applied to the identity map. Then
+${}_{\mathcal B}P_{\mathcal C}\,{}_{\mathcal C}P_{\mathcal B}[\vec x]_{\mathcal B}=[\vec x]_{\mathcal B}$ for every coordinate vector, so the
+product is $I$.
+\end{proof}
+
+\begin{important}[In $\R^n$]
+If $\mathcal S$ is the standard basis and $\mathcal B=\{\vec v_1,\dots,\vec v_n\}$, then
+${}_{\mathcal S}P_{\mathcal B}=[\vec v_1\ \cdots\ \vec v_n]$ (just write the basis vectors as columns), and
+${}_{\mathcal B}P_{\mathcal S}=[\vec v_1\ \cdots\ \vec v_n]^{-1}$.
+\end{important}
+
+\begin{example}
+In $\Poly2$ let $\mathcal S=\{1,x,x^2\}$ and $\mathcal B=\{1,\ 1+x,\ 1+x+x^2\}$. Then
+\[
+  {}_{\mathcal S}P_{\mathcal B}=\begin{bmatrix}1&1&1\\0&1&1\\0&0&1\end{bmatrix}.
+\]
+Invert it:
+\[
+\left[\begin{array}{ccc|ccc}1&1&1&1&0&0\\0&1&1&0&1&0\\0&0&1&0&0&1\end{array}\right]
+\xrightarrow{R_2-R_3}
+\left[\begin{array}{ccc|ccc}1&1&1&1&0&0\\0&1&0&0&1&-1\\0&0&1&0&0&1\end{array}\right]
+\xrightarrow{R_1-R_2-R_3}
+\left[\begin{array}{ccc|ccc}1&0&0&1&-1&0\\0&1&0&0&1&-1\\0&0&1&0&0&1\end{array}\right].
+\]
+(The last step subtracts the current $R_2$ and $R_3$ from $R_1$: $(1,1,1\mid1,0,0)-(0,1,0\mid0,1,-1)-(0,0,1\mid0,0,1)
+=(1,0,0\mid1,-1,0)$.) So ${}_{\mathcal B}P_{\mathcal S}=\begin{bmatrix}1&-1&0\\0&1&-1\\0&0&1\end{bmatrix}$. For
+$p=3+2x+x^2$, $[p]_{\mathcal B}={}_{\mathcal B}P_{\mathcal S}(3,2,1)=(1,1,1)$. Check:
+$1+(1+x)+(1+x+x^2)=3+2x+x^2$.
+\end{example}
+
+\section{Change of basis for linear operators}
+
+\begin{theorem}
+Let $L:\mathbb V\to\mathbb V$ be linear and $\mathcal B,\mathcal C$ bases of $\mathbb V$, with $P={}_{\mathcal C}P_{\mathcal B}$. Then
+\[
+  [L]_{\mathcal B}=P^{-1}[L]_{\mathcal C}P .
+\]
+In particular, for an operator on $\R^n$ with $\mathcal B=\{\vec v_1,\dots,\vec v_n\}$ and $P=[\vec v_1\cdots\vec v_n]$,
+$[L]_{\mathcal B}=P^{-1}[L]P$.
+\end{theorem}
+\begin{proof}
+For every $\vec x$: $P^{-1}[L]_{\mathcal C}P[\vec x]_{\mathcal B}=P^{-1}[L]_{\mathcal C}[\vec x]_{\mathcal C}=P^{-1}[L(\vec x)]_{\mathcal C}
+=[L(\vec x)]_{\mathcal B}$. Read right to left: convert to $\mathcal C$-coordinates, apply $L$, convert back.
+\end{proof}
+
+So matrices of the same operator in different bases are \emph{similar}, and conversely similar matrices represent
+the same operator. Diagonalizing $A$ means finding a basis $\mathcal B$ in which the operator $\vec x\mapsto A\vec x$ has a
+diagonal matrix, namely an eigenvector basis.
+
+\begin{example}
+Verify the projection example: with $P=\begin{bmatrix}1&-2\\2&1\end{bmatrix}$, $P^{-1}=\frac15\begin{bmatrix}1&2\\-2&1\end{bmatrix}$,
+\[
+P[L]_{\mathcal B}P^{-1}=\begin{bmatrix}1&-2\\2&1\end{bmatrix}\begin{bmatrix}1&0\\0&0\end{bmatrix}\frac15\begin{bmatrix}1&2\\-2&1\end{bmatrix}
+=\begin{bmatrix}1&0\\2&0\end{bmatrix}\frac15\begin{bmatrix}1&2\\-2&1\end{bmatrix}=\frac15\begin{bmatrix}1&2\\2&4\end{bmatrix}=[L].
+\]
+\end{example}
+
+\section{Isomorphisms}
+
+\begin{definition}
+A linear map $L:\mathbb V\to\mathbb W$ is an \emph{isomorphism} if it is one-to-one and onto. Then $\mathbb V$ and $\mathbb W$ are
+\emph{isomorphic}, written $\mathbb V\cong\mathbb W$.
+\end{definition}
+
+An isomorphism has a linear inverse $L^{-1}:\mathbb W\to\mathbb V$, and it carries bases to bases, independent sets to
+independent sets, and subspaces to subspaces of the same dimension. Isomorphic spaces are ``the same space with
+different names for the vectors''.
+
+\begin{theorem}
+Finite-dimensional vector spaces $\mathbb V,\mathbb W$ are isomorphic if and only if $\dim\mathbb V=\dim\mathbb W$. In
+particular, every $n$-dimensional space is isomorphic to $\R^n$ via $\vec x\mapsto[\vec x]_{\mathcal B}$.
+\end{theorem}
+\begin{proof}
+If $L$ is an isomorphism, $\nullity L=0$ and $\rank L=\dim\mathbb W$, so rank--nullity gives $\dim\mathbb V=\dim\mathbb W$.
+Conversely, if both have dimension $n$ with bases $\{\vec v_i\}$ and $\{\vec w_i\}$, define
+$L(\sum c_i\vec v_i)=\sum c_i\vec w_i$; it is linear, onto (hits every combination of the $\vec w_i$) and one-to-one
+(the kernel is trivial by independence of the $\vec w_i$).
+\end{proof}
+
+\begin{theorem}
+If $\dim\mathbb V=\dim\mathbb W=n$ and $L:\mathbb V\to\mathbb W$ is linear, then $L$ is one-to-one iff $L$ is onto iff
+$L$ is an isomorphism iff ${}_{\mathcal C}[L]_{\mathcal B}$ is invertible (for any bases).
+\end{theorem}
+\begin{proof}
+By rank--nullity, $\nullity L=0$ iff $\rank L=n=\dim\mathbb W$.
+\end{proof}
+
+\begin{example}
+$\Poly3\cong\Mat22\cong\R^4$ (all dimension $4$); e.g.\ $a+bx+cx^2+dx^3\mapsto\begin{bmatrix}a&b\\c&d\end{bmatrix}$. But
+$\Poly2\not\cong\R^4$. The map $L:\Poly2\to\R^3$, $L(p)=(p(0),p(1),p(2))$ is an isomorphism: its kernel consists of
+polynomials of degree at most $2$ with three roots, so only the zero polynomial; one-to-one between spaces of the
+same dimension implies onto. (This is the reason quadratic interpolation through three points always works.)
+\end{example}
+
+\section*{Summary}
+\begin{itemize}
+  \item Linear maps between general spaces have kernels and ranges; $\rank L+\nullity L=\dim\mathbb V$.
+  \item ${}_{\mathcal C}[L]_{\mathcal B}$ has columns $[L(\vec v_i)]_{\mathcal C}$ and satisfies
+        $[L(\vec x)]_{\mathcal C}={}_{\mathcal C}[L]_{\mathcal B}[\vec x]_{\mathcal B}$.
+  \item ${}_{\mathcal C}P_{\mathcal B}$ has columns $[\vec v_i]_{\mathcal C}$; its inverse is ${}_{\mathcal B}P_{\mathcal C}$.
+  \item $[L]_{\mathcal B}=P^{-1}[L]_{\mathcal C}P$: matrices of one operator in different bases are similar.
+  \item Isomorphism = bijective linear map; finite-dimensional spaces are isomorphic iff same dimension.
+\end{itemize}

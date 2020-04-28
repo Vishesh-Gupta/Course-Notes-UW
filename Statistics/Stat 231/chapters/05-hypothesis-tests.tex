@@ -1,0 +1,199 @@
+\chapter{Tests of Hypotheses}
+
+\section{The logic of a test}
+
+A \emph{test of hypothesis} asks whether the data are consistent with a specific claim
+about the model. The claim being tested is the \emph{null hypothesis} $H_0$, e.g.\
+$H_0:\theta=\theta_0$. The approach is a kind of proof by contradiction: assume $H_0$ is
+true and ask how surprising the observed data would be. If very surprising, we have
+evidence against $H_0$.
+
+\begin{definition}[Test statistic / discrepancy measure]
+A \emph{test statistic} (or \emph{discrepancy measure}) $D = D(\mathbf Y)$ is a
+function of the data, constructed so that $D\ge 0$, $D=0$ (or small) indicates the best
+agreement with $H_0$, and large values indicate disagreement. Its distribution under $H_0$
+must be known (exactly or approximately). The observed value is $d = D(y)$.
+\end{definition}
+
+\begin{definition}[p-value]
+The \emph{p-value} (observed significance level) is
+\[
+p = \Prob(D\ge d;\ H_0),
+\]
+the probability, computed assuming $H_0$ is true, of observing a discrepancy at least as
+large as the one actually observed.
+\end{definition}
+
+\begin{important}[Interpreting p-values]
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+p-value & interpretation \\
+\midrule
+$p > 0.10$ & no evidence against $H_0$ \\
+$0.05 < p\le 0.10$ & weak evidence against $H_0$ \\
+$0.01 < p\le 0.05$ & evidence against $H_0$ \\
+$0.001 < p\le 0.01$ & strong evidence against $H_0$\\
+$p\le 0.001$ & very strong evidence against $H_0$\\
+\bottomrule
+\end{tabular}
+\end{center}
+A small p-value means the data are unlikely if $H_0$ is true. A large p-value does
+\emph{not} prove $H_0$; it means the data are consistent with it (we never ``accept''
+$H_0$). The p-value is not the probability that $H_0$ is true.
+\end{important}
+
+\begin{remark}
+Many texts phrase tests as decisions: reject $H_0$ at level $\alpha$ if $p\le\alpha$.
+A \emph{type I error} is rejecting a true $H_0$ (probability $\alpha$); a \emph{type II
+error} is failing to reject a false $H_0$. Stat 231 emphasizes reporting the p-value as a
+measure of evidence, together with a confidence interval for the size of the effect.
+Statistical significance is not practical significance: with a huge $n$ a tiny,
+unimportant effect can produce a tiny p-value.
+\end{remark}
+
+\section{Tests for binomial and Poisson parameters}
+
+\textbf{Binomial.} For $Y\sim\Bin(n,\theta)$ and $H_0:\theta=\theta_0$, use
+$D = |Y - n\theta_0|$. Exact p-value: $\Prob(|Y-n\theta_0|\ge d)$ summing binomial
+probabilities. Normal approximation: $p\approx\Prob\big(|Z|\ge
+d/\sqrt{n\theta_0(1-\theta_0)}\big)$.
+
+\begin{example}[Binomial test]
+In the survey of Chapter 2, $y=58$ of $n=200$ students work part time. A report claims
+$25\%$ do. Test $H_0:\theta = 0.25$. Under $H_0$, $\E(Y) = 50$ and $\sd(Y) =
+\sqrt{200(0.25)(0.75)} = \sqrt{37.5} = 6.124$. Observed $d = |58-50| = 8$, so
+\[
+p\approx\Prob(|Z|\ge 8/6.124) = \Prob(|Z|\ge 1.306) = 2(1-0.9043) = 0.19.
+\]
+(The exact binomial sum gives $p = 0.220$.) No evidence against $H_0$: the data are
+consistent with $\theta=0.25$.
+\end{example}
+
+\textbf{Poisson.} For $Y_1,\dots,Y_n$ independent $\Poi(\theta)$ and $H_0:\theta=\theta_0$,
+$\sum Y_i\sim\Poi(n\theta_0)$ under $H_0$; use $D = |\sum Y_i - n\theta_0|$ with either exact
+Poisson probabilities or the approximation $\sum Y_i\approx\Gau(n\theta_0,\sqrt{n\theta_0})$.
+
+\begin{example}[Poisson test]
+The help desk was designed for $\theta_0=2.5$ calls per period. Observed $\sum y_i = 35$
+in $n=10$ periods; under $H_0$, $\sum Y_i\sim\Poi(25)$. Then $d = |35-25| = 10$ and
+$p\approx\Prob(|Z|\ge 10/5) = \Prob(|Z|\ge 2) = 0.0455$: evidence against $H_0$; the call
+rate seems higher than designed for. (The likelihood ratio test below gives $p\approx
+0.059$, weak evidence: with only $n=10$ the approximations differ, so the conclusion is
+``borderline'' evidence.)
+\end{example}
+
+\section{Tests for Gaussian parameters}
+
+For a $\Gau(\mu,\sigma)$ sample:
+\begin{itemize}
+  \item $H_0:\mu=\mu_0$: use $D = \dfrac{|\Ybar-\mu_0|}{S/\sqrt n}$; under $H_0$,
+        $\frac{\Ybar-\mu_0}{S/\sqrt n}\sim t(n-1)$, so $p = 2\big(1-\Prob(T\le d)\big)$.
+  \item $H_0:\sigma=\sigma_0$: use $U = (n-1)S^2/\sigma_0^2\sim\chi^2(n-1)$ under $H_0$.
+        For observed $u$, the two-sided p-value is
+        $p = 2\min\big\{\Prob(U\le u),\ \Prob(U\ge u)\big\}$.
+\end{itemize}
+
+\begin{example}[$t$ test for a mean]
+Fill weights: $n=10$, $\ybar=12.52$, $s=0.6197$. The label says $12$ g on average; test
+$H_0:\mu = 12$.
+\[
+d = \frac{|12.52-12|}{0.6197/\sqrt{10}} = \frac{0.52}{0.19596} = 2.654.
+\]
+From $t(9)$ tables, $\Prob(T\le 2.262) = 0.975$ and $\Prob(T\le 2.821) = 0.99$, so
+$0.01 < \Prob(T\ge 2.654) < 0.025$ and $0.02<p<0.05$ (software: $p=0.026$). There is
+evidence against $H_0$: the mean fill weight appears to exceed $12$ g.
+\end{example}
+
+\begin{example}[Test for a standard deviation]
+The machine is supposed to have $\sigma = 1$. Here $u = (n-1)s^2/1^2 = 3.456$. From
+$\chi^2(9)$ tables, $\Prob(U\le 3.325) = 0.05$ and $\Prob(U\le 4.168) = 0.10$, so
+$0.05<\Prob(U\le 3.456)<0.10$ and $0.10 < p < 0.20$ (software: $\Prob(U\le3.456) =
+0.0566$, $p = 0.113$). No evidence against $\sigma=1$, despite $s=0.62$, because $n$ is
+small.
+\end{example}
+
+\section{The likelihood ratio test}
+
+\begin{definition}[Likelihood ratio test statistic]
+For $H_0:\theta=\theta_0$ with a single parameter,
+\[
+\Lambda = -2\log\frac{L(\theta_0)}{L(\tilde\theta)} = -2\log R(\theta_0).
+\]
+Large $\Lambda$ (small $R(\theta_0)$) is evidence against $H_0$. Under $H_0$,
+$\Lambda\approx\chi^2(1)$ for large $n$, so with observed $\lambda$,
+\[
+p\approx\Prob(W\ge\lambda) = 2\big(1-\Phi(\sqrt\lambda)\big),\qquad W\sim\chi^2(1).
+\]
+More generally, if $H_0$ fixes $k$ of the parameters (reducing the dimension of the
+parameter space by $k$), $\Lambda = -2\log\big(\max_{H_0}L/\max L\big)\approx\chi^2(k)$.
+\end{definition}
+
+\begin{example}[LRT for the binomial and Poisson examples]
+\textbf{Binomial}, $H_0:\theta=0.25$, $\thetahat=0.29$:
+\[
+\lambda = 2\left[58\log\frac{0.29}{0.25} + 142\log\frac{0.71}{0.75}\right]
+= 2[8.6085 - 7.7827] = 1.651,
+\]
+$p\approx\Prob(|Z|\ge\sqrt{1.651}) = \Prob(|Z|\ge 1.285) = 0.199$, matching the earlier
+conclusion.
+
+\textbf{Poisson}, $H_0:\theta=2.5$, $\thetahat = 3.5$, $\ell(\theta) = 35\log\theta -
+10\theta$:
+\[
+\lambda = 2\big[35\log(3.5/2.5) + 10(2.5-3.5)\big] = 2[11.777-10] = 3.553,
+\]
+$p\approx\Prob(|Z|\ge 1.885) = 0.059$.
+\end{example}
+
+\begin{example}[LRT for a Gaussian mean]
+For $H_0:\mu=\mu_0$ with $\sigma$ unknown, the maximized likelihoods give
+$\Lambda = n\log(\hat\sigma_0^2/\hat\sigma^2)$, where $\hat\sigma_0^2 = \frac1n\sum(y_i-\mu_0)^2
+= \hat\sigma^2 + (\ybar-\mu_0)^2$. Thus $\Lambda = n\log\big(1 + \frac{t^2}{n-1}\big)$
+where $t$ is the $t$ statistic: the LRT is equivalent to the $t$ test. For the fill
+weights: $\lambda = 10\log(1 + 2.654^2/9) = 10\log(1.7824) = 5.78$, $p\approx 0.016$.
+The exact $t$ test ($p=0.026$) is preferred for small $n$.
+\end{example}
+
+\section{Tests and confidence intervals}
+
+\begin{theorem}[Duality]
+Suppose $[L,U]$ is a $100p\%$ CI built from a pivotal quantity $Q(\mathbf Y;\theta)$
+and the test of $H_0:\theta=\theta_0$ uses the discrepancy based on the same
+$Q(\mathbf Y;\theta_0)$. Then the p-value is at least $1-p$ if and only if $\theta_0$
+lies in the $100p\%$ CI. In particular, $H_0:\theta=\theta_0$ has $p\text{-value}\ge 0.05$
+exactly when $\theta_0$ is inside the $95\%$ CI.
+\end{theorem}
+\begin{proof}[Proof sketch for the $t$ case]
+$\mu_0\in\ybar\pm a s/\sqrt n$ $\iff$ $|\ybar-\mu_0|/(s/\sqrt n)\le a$ $\iff$
+$d\le a$ $\iff$ $\Prob(|T|\ge d)\ge\Prob(|T|\ge a) = 1-p$.
+\end{proof}
+
+\begin{example}
+The $95\%$ CI for the mean fill weight was $[12.077,12.963]$, which excludes $12$:
+consistent with $p=0.026<0.05$. The approximate $95\%$ CI $[0.227, 0.353]$ for the
+binomial proportion contains $0.25$: consistent with $p\approx0.19$. Equivalently, the
+set of $\theta_0$ whose LRT p-value is at least $0.05$ is (approximately) the $15\%$
+likelihood interval.
+\end{example}
+
+\begin{important}[Common pitfalls]
+\begin{itemize}
+  \item Never say ``we accept $H_0$'' or ``$H_0$ is true''; say the data provide no
+        evidence against it.
+  \item The p-value is computed \emph{assuming} $H_0$; it is not $\Prob(H_0\mid\text{data})$.
+  \item Formulate $H_0$ before looking at the data; testing many hypotheses and reporting
+        the smallest p-value is misleading.
+  \item Report a CI alongside the p-value to show the size of the effect.
+\end{itemize}
+\end{important}
+
+\section*{Summary}
+\begin{itemize}
+  \item Test statistic $D$, observed $d$, p-value $=\Prob(D\ge d;H_0)$; interpret on the
+        evidence scale.
+  \item Binomial/Poisson: $D = |Y-\E_0(Y)|$ with exact or normal-approximation
+        p-values. Gaussian mean: $t(n-1)$; variance: $\chi^2(n-1)$.
+  \item LRT: $\Lambda = -2\log R(\theta_0)\approx\chi^2(1)$ (or $\chi^2(k)$).
+  \item $p\ge 0.05$ iff $\theta_0$ is in the corresponding $95\%$ CI.
+\end{itemize}
