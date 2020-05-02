@@ -1,0 +1,201 @@
+\chapter{Introduction and Counting Basics}
+
+Math 239 has two halves. The first half is \emph{enumeration}: given a set of objects
+described by some rule, how many objects of each ``size'' are there? The second half is an
+introduction to \emph{graph theory}. This chapter collects the basic counting tools that the
+rest of the enumeration half is built on: sums and products of sets, binomial coefficients,
+bijections and combinatorial proofs.
+
+\section{Sets, sums and products}
+
+All sets in this course are finite unless stated otherwise. For a finite set $S$ we write
+$\abs{S}$ for its number of elements, and $[n] = \{1, 2, \dots, n\}$.
+
+\begin{definition}[Disjoint union, Cartesian product]
+Sets $A$ and $B$ are \emph{disjoint} if $A \cap B = \emptyset$; we then call $A \cup B$ a
+\emph{disjoint union}. The \emph{Cartesian product} of $A$ and $B$ is
+$A \times B = \{(a,b) : a \in A,\ b \in B\}$, and more generally
+$A_1 \times \cdots \times A_k$ is the set of $k$-tuples $(a_1,\dots,a_k)$ with $a_i \in A_i$.
+We write $A^k$ for $A \times \cdots \times A$ ($k$ factors).
+\end{definition}
+
+\begin{theorem}[Sum and product rules]
+\begin{enumerate}
+  \item If $A$ and $B$ are disjoint, then $\abs{A \cup B} = \abs{A} + \abs{B}$. In general,
+        $\abs{A\cup B} = \abs{A} + \abs{B} - \abs{A \cap B}$.
+  \item $\abs{A \times B} = \abs{A}\cdot\abs{B}$, and so $\abs{A^k} = \abs{A}^k$.
+\end{enumerate}
+\end{theorem}
+
+\begin{example}
+The number of subsets of $[n]$ is $2^n$: a subset $S$ is determined by the $n$-tuple
+$(s_1,\dots,s_n) \in \{0,1\}^n$ where $s_i = 1$ iff $i \in S$, and $\abs{\{0,1\}^n} = 2^n$.
+\end{example}
+
+\section{Permutations and binomial coefficients}
+
+\begin{definition}[Permutation]
+A \emph{permutation} of a set $S$ with $n$ elements is an ordered list of the elements of $S$
+in which every element appears exactly once. More generally a $k$-permutation is an ordered
+list of $k$ distinct elements of $S$.
+\end{definition}
+
+\begin{proposition}
+The number of permutations of an $n$-set is $n! = n(n-1)\cdots 1$, and the number of
+$k$-permutations is $n(n-1)\cdots(n-k+1) = \dfrac{n!}{(n-k)!}$ for $0 \le k \le n$.
+\end{proposition}
+\begin{proof}
+There are $n$ choices for the first entry, then $n-1$ for the second (anything not yet used),
+and so on; after $k$ entries we have $n(n-1)\cdots(n-k+1)$ lists.
+\end{proof}
+
+\begin{definition}[Binomial coefficient]
+For integers $n, k \ge 0$, $\binom{n}{k}$ is the number of $k$-element subsets of an $n$-element
+set. (So $\binom{n}{k} = 0$ when $k > n$.)
+\end{definition}
+
+\begin{theorem}
+For $0 \le k \le n$,
+\[
+\binom{n}{k} = \frac{n!}{k!\,(n-k)!} = \frac{n(n-1)\cdots(n-k+1)}{k!}.
+\]
+\end{theorem}
+\begin{proof}
+Count $k$-permutations of $[n]$ in two ways. Directly there are $n!/(n-k)!$. Alternatively,
+first choose the set of $k$ elements that appear ($\binom{n}{k}$ ways), then order them
+($k!$ ways). Hence $\binom{n}{k}\, k! = n!/(n-k)!$.
+\end{proof}
+
+The second formula $\frac{n(n-1)\cdots(n-k+1)}{k!}$ makes sense for \emph{any} $n$ (even
+negative or non-integer) and we use it to \emph{define} $\binom{n}{k}$ in general; this is
+needed later for the negative binomial theorem.
+
+\begin{theorem}[Binomial theorem]
+For $n \ge 0$, $\displaystyle (1+x)^n = \sum_{k=0}^{n} \binom{n}{k} x^k$.
+\end{theorem}
+\begin{proof}
+Expand $(1+x)(1+x)\cdots(1+x)$: each term of the expansion picks either $1$ or $x$ from each of
+the $n$ factors. The term $x^k$ arises once for each choice of the $k$ factors that contribute
+$x$, i.e.\ $\binom{n}{k}$ times.
+\end{proof}
+
+\section{Bijections}
+
+\begin{definition}[Bijection]
+A function $f : A \to B$ is a \emph{bijection} (one-to-one correspondence) if it is both
+injective ($f(a) = f(a') \Rightarrow a = a'$) and surjective (every $b \in B$ is $f(a)$ for some
+$a$). Equivalently, $f$ has an inverse $g : B \to A$ with $g\circ f = \mathrm{id}_A$ and
+$f \circ g = \mathrm{id}_B$.
+\end{definition}
+
+\begin{theorem}
+For finite sets, $\abs{A} = \abs{B}$ if and only if there exists a bijection $A \to B$.
+\end{theorem}
+
+In practice, to prove a map is a bijection it is usually easiest to write down the candidate
+inverse and check both compositions are identities.
+
+\begin{example}
+Complementation $S \mapsto [n] \setminus S$ is a bijection from $k$-subsets of $[n]$ to
+$(n-k)$-subsets of $[n]$ (it is its own inverse). Hence $\binom{n}{k} = \binom{n}{n-k}$.
+\end{example}
+
+\begin{example}
+Let $A$ be the set of subsets of $[n]$ of even size and $B$ the set of subsets of odd size,
+$n \ge 1$. The map $f(S) = S \triangle \{1\}$ (add $1$ if absent, remove it if present) changes
+the size by exactly one, so it maps $A$ to $B$, and $f\circ f = \mathrm{id}$. So $\abs{A} = \abs{B}
+= 2^{n-1}$, which gives $\sum_k (-1)^k \binom{n}{k} = 0$.
+\end{example}
+
+\section{Combinatorial proofs}
+
+A \emph{combinatorial proof} of an identity $L = R$ finds a set $S$ and counts it in two
+different ways, one giving $L$ and the other $R$ (or exhibits a bijection between a set of
+size $L$ and a set of size $R$). Such proofs usually explain \emph{why} an identity holds better
+than algebra does.
+
+\begin{theorem}[Pascal's identity]
+For $n, k \ge 1$, $\displaystyle \binom{n}{k} = \binom{n-1}{k-1} + \binom{n-1}{k}$.
+\end{theorem}
+\begin{proof}
+Count $k$-subsets of $[n]$. Those containing $n$ correspond to $(k-1)$-subsets of $[n-1]$
+(remove $n$); those not containing $n$ are exactly the $k$-subsets of $[n-1]$. The two kinds
+are disjoint, so the sum rule gives the identity.
+\end{proof}
+
+\begin{theorem}
+$\displaystyle \sum_{k=0}^n \binom{n}{k} = 2^n$.
+\end{theorem}
+\begin{proof}
+Both sides count all subsets of $[n]$: the left side sorts them by size.
+\end{proof}
+
+\begin{theorem}
+For $n \ge 1$, $\displaystyle \sum_{k=0}^n k\binom{n}{k} = n2^{n-1}$.
+\end{theorem}
+\begin{proof}
+Count pairs $(S, x)$ where $S \subseteq [n]$ and $x \in S$ (a ``committee with a chair'').
+Choosing $S$ first with $\abs{S} = k$ and then $x$ gives $\sum_k k\binom{n}{k}$. Choosing $x$
+first ($n$ ways) and then any subset of the remaining $n-1$ elements to join it ($2^{n-1}$ ways)
+gives $n2^{n-1}$.
+\end{proof}
+
+\begin{theorem}[Vandermonde's identity]
+$\displaystyle \binom{m+n}{k} = \sum_{i=0}^{k} \binom{m}{i}\binom{n}{k-i}$.
+\end{theorem}
+\begin{proof}
+Choose $k$ people from a group of $m$ women and $n$ men. Sorting the choices by the number $i$
+of women chosen, there are $\binom{m}{i}\binom{n}{k-i}$ choices with exactly $i$ women.
+\end{proof}
+
+\begin{theorem}[Hockey stick]
+$\displaystyle \sum_{i=k}^{n} \binom{i}{k} = \binom{n+1}{k+1}$.
+\end{theorem}
+\begin{proof}
+Count $(k+1)$-subsets of $[n+1]$ by their largest element. If the largest element is $i+1$,
+the other $k$ elements form a $k$-subset of $[i]$, which can be chosen in $\binom{i}{k}$ ways,
+and $i$ ranges from $k$ to $n$.
+\end{proof}
+
+\begin{important}[Writing a combinatorial proof]
+State clearly (1) the set being counted, (2) the first way of counting it, and (3) the second
+way. Each way must count every element exactly once. An argument of the form ``the left side
+counts this, and the right side obviously counts the same thing'' without justification of the
+second count is not a proof.
+\end{important}
+
+\section{Multisets}
+
+\begin{definition}[Multiset]
+A \emph{multiset} of size $n$ with elements of $t$ types is a selection of $n$ objects where
+objects of the same type are indistinguishable and repetition is allowed. Equivalently it is a
+$t$-tuple $(m_1, \dots, m_t)$ of non-negative integers with $m_1 + \cdots + m_t = n$
+($m_i$ = number of objects of type $i$).
+\end{definition}
+
+\begin{theorem}
+The number of multisets of size $n$ with $t \ge 1$ types is
+$\displaystyle \binom{n+t-1}{t-1}$.
+\end{theorem}
+\begin{proof}[Proof (stars and bars)]
+Represent $(m_1,\dots,m_t)$ as a row of $n$ stars and $t-1$ bars: $m_1$ stars, a bar, $m_2$
+stars, a bar, \dots, $m_t$ stars. This is a bijection between multisets and arrangements of
+$n+t-1$ symbols of which $t-1$ are bars, and such an arrangement is determined by the positions
+of the bars: $\binom{n+t-1}{t-1}$ choices.
+\end{proof}
+
+\begin{example}
+The number of non-negative integer solutions of $a+b+c = 7$ is $\binom{7+2}{2} = 36$. The
+number of \emph{positive} solutions is found by substituting $a' = a-1$ etc.:
+$a'+b'+c' = 4$ has $\binom{6}{2} = 15$ non-negative solutions.
+\end{example}
+
+\section{Summary}
+\begin{itemize}
+  \item Sum rule for disjoint unions, product rule for Cartesian products; $2^n$ subsets of $[n]$.
+  \item $n!$ permutations, $\binom{n}{k} = \frac{n!}{k!(n-k)!}$ subsets of size $k$; binomial theorem.
+  \item Two finite sets have the same size iff there is a bijection between them.
+  \item Combinatorial proofs: count one set two ways (Pascal, Vandermonde, hockey stick,
+        $\sum k\binom{n}{k} = n2^{n-1}$).
+  \item Multisets of size $n$ from $t$ types: $\binom{n+t-1}{t-1}$ (stars and bars).
+\end{itemize}
