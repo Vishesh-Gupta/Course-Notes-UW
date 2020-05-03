@@ -8,6 +8,9 @@ directory (nothing is written next to the sources) and fails on:
   - missing characters in the font,
   - chapter files in chapters/ that main.tex never \\include's (and the reverse).
 
+With --pdf-dir, the PDFs are saved there as <slug>.pdf (e.g. cs-246.pdf); CI
+publishes them on the website and in the "notes-latest" GitHub release.
+
 Usage: python3 scripts/check_latex.py [--pdf-dir DIR] [COURSE ...]
        e.g. python3 scripts/check_latex.py "CS 246" "Math 135"
 """
@@ -21,7 +24,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SUBJECTS = ["Computer Science", "Mathematics", "Statistics"]
+SUBJECTS = ["Computer Science", "Mathematics", "Statistics", "Economics"]
 
 LOG_PROBLEMS = [
     (re.compile(r"^! .*", re.M), "error"),
@@ -29,6 +32,11 @@ LOG_PROBLEMS = [
     (re.compile(r"LaTeX Warning: Citation `[^']*' on page \d+ undefined.*", re.M), "undefined citation"),
     (re.compile(r"Missing character: There is no .*", re.M), "missing character"),
 ]
+
+
+def slugify(text):
+    """Same names as the website uses: "CS 246" -> "cs-246"."""
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
 
 
 def find_courses():
@@ -71,7 +79,7 @@ def compile_course(course, pdf_dir):
             m = re.search(r"Output written on .*?\((\d+) pages?", log)
             pages = int(m.group(1)) if m else None
             if pdf_dir:
-                shutil.copy(pdf, Path(pdf_dir) / f"{course.name}.pdf")
+                shutil.copy(pdf, Path(pdf_dir) / f"{slugify(course.name)}.pdf")
         return problems, pages
 
 

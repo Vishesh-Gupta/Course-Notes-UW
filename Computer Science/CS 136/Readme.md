@@ -3,8 +3,8 @@
 Study notes for UW CS 136 (taught in C99, with Racket for comparison; Seashell environment;
 textbook *C Programming: A Modern Approach* by K. N. King).
 
-The original single-file Markdown notes (`CS 136 - Elementary Algorithm Design and Data Abstraction.mdwn`
-and its PDF) are kept as-is; the LaTeX version below supersedes them.
+The original single-file Markdown notes (`CS 136 - Elementary Algorithm Design and Data Abstraction.mdwn`)
+are kept as-is, and the website shows them under "Original notes"; the LaTeX version below supersedes them.
 
 ## Building
 
