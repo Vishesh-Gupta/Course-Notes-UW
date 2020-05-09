@@ -89,7 +89,8 @@ def course_chunk(main_tex):
 
 
 # Text-mode commands KaTeX lacks, mapped to close equivalents.
-KATEX_EXTRA = {"\\textsc": "\\textrm{#1}", "\\textup": "\\textrm{#1}", "\\emph": "\\textit{#1}"}
+KATEX_EXTRA = {"\\textsc": "\\textrm{#1}", "\\textup": "\\textrm{#1}", "\\emph": "\\textit{#1}",
+               "\\break": "{}"}  # LaTeX line-break hint; nothing to do on the web
 
 
 def katex_macros(defs):
@@ -362,7 +363,13 @@ def convert_original(orig, out_dir, warnings):
 # --------------------------------------------------------------------------
 # Page rendering
 
-def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_class=""):
+PEN_ICON = ('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+            'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/>'
+            '<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>')
+
+
+def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_class="",
+         page_title=None, kind="page"):
     macros = json.dumps(current.macros if current else KATEX_EXTRA).replace("</", "<\\/")
     course_links, subject = [], None
     for c in courses:
@@ -377,6 +384,9 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
                 f'<ul>{toc}</ul></div></aside>') if toc else ""
     sidebar_html = (f'<nav class="sidebar" id="sidebar"><div class="sidebar-inner">{sidebar}</div></nav>'
                     if sidebar else "")
+    meta = (f'data-root="{root}" data-kind="{kind}" data-course="{current.slug if current else ""}" '
+            f'data-course-code="{html.escape(current.code) if current else ""}" '
+            f'data-page-title="{html.escape(page_title or title)}"')
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -390,7 +400,7 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
 <link rel="stylesheet" href="{root}pagefind/pagefind-ui.css">
 <link rel="stylesheet" href="{root}assets/style.css">
 </head>
-<body class="{page_class}">
+<body class="{page_class}" {meta}>
 <header class="navbar">
   <button class="nav-toggle" id="nav-toggle" aria-label="Toggle chapters">&#9776;</button>
   <a class="brand" href="{root}index.html"><span class="brand-mark">&#8721;</span> {SITE_TITLE}</a>
@@ -400,8 +410,10 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
   </div>
   <div class="nav-spacer"></div>
   <div id="search" class="search"></div>
+  <button class="notes-btn" id="notes-toggle" aria-label="Notes (n)" title="Notes (n)">{PEN_ICON}<span class="notes-btn-label">Notes</span><span class="notes-count" id="notes-count" hidden></span></button>
   <a class="nav-link" href="{REPO_URL}" aria-label="GitHub">GitHub</a>
   <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></button>
+  <div class="progress" id="progress"></div>
 </header>
 <div class="layout">
 {sidebar_html}
@@ -414,9 +426,26 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
 <script defer src="{root}pagefind/pagefind-ui.js"></script>
 <script>window.KATEX_MACROS = {macros};</script>
 <script defer src="{root}assets/app.js"></script>
+<script defer src="{root}assets/notes.js"></script>
 </body>
 </html>
 """
+
+
+LECTURE_TITLE_RE = re.compile(r"^(Lecture|Tutorial)\s+0*(\d+)\s*[:.\u2013\u2014-]\s*(.+)$", re.S)
+
+
+def chapter_label(ch):
+    """(short label, title without the 'Lecture N:' prefix) for sidebars and lists."""
+    m = LECTURE_TITLE_RE.match(ch.title_html)
+    if m:
+        return f"{m.group(1)[0]}{m.group(2)}", m.group(3).strip()
+    return str(ch.number), ch.title_html
+
+
+def chapter_crumb(ch):
+    m = LECTURE_TITLE_RE.match(ch.title_html)
+    return f"{m.group(1)} {m.group(2)}" if m else f"Chapter {ch.number}"
 
 
 def view_toggle(course, latex_href, original_href, mode):
@@ -440,14 +469,18 @@ def sidebar_for(course, active=None, mode="latex", base="", toggle=""):
         items.append('<div class="sidebar-label">Chapters</div>')
         for ch in course.chapters:
             cls = " active" if ch is active else ""
-            items.append(f'<a class="sidebar-link{cls}" href="{base}{ch.slug}.html">'
-                         f'<span class="num">{ch.number}</span><span>{ch.title_html}</span></a>')
+            label, short = chapter_label(ch)
+            items.append(f'<a class="sidebar-link{cls}" href="{base}{ch.slug}.html" '
+                         f'title="{html.escape(ch.title_text)}">'
+                         f'<span class="num">{label}</span><span>{short}</span></a>')
     else:
         items.append('<div class="sidebar-label">Original notes</div>')
         for o in course.originals:
             cls = " active" if o is active else ""
+            sub = original_subtitle(course, o)
+            sub_html = f"<small>{sub}</small>" if sub else ""
             items.append(f'<a class="sidebar-link{cls}" href="{base}original/{o.slug}.html">'
-                         f'<span>{html.escape(o.title)}</span></a>')
+                         f'<span>{html.escape(o.title)}{sub_html}</span></a>')
     return "\n".join(items)
 
 
@@ -472,6 +505,15 @@ def chapter_for(course, orig):
     return next((ch for ch in course.chapters if orig.key and ch.key == orig.key), None)
 
 
+def original_subtitle(course, orig):
+    """Topic of an original lecture, taken from the matching LaTeX chapter's title."""
+    ch = chapter_for(course, orig)
+    if not ch:
+        return ""
+    short = chapter_label(ch)[1]
+    return "" if strip_tags(short).lower() == orig.title.lower() else short
+
+
 def render_course(course, courses, out):
     cdir = out / course.slug
     for ch in course.chapters:
@@ -480,34 +522,40 @@ def render_course(course, courses, out):
                   if course.originals else "")
         nav = pager(course.chapters, ch.number - 1, lambda c: f"{c.slug}.html", lambda c: c.title_html)
         body = (f'<div class="breadcrumbs"><a href="index.html">{course.code}</a> / '
-                f'Chapter {ch.number}</div>'
+                f'{chapter_crumb(ch)}</div>'
                 f'<h1 class="chapter-title">{ch.title_html}</h1>\n{ch.body}\n{nav}')
         (cdir / f"{ch.slug}.html").write_text(page(
             f"{ch.title_text} | {course.code} | {SITE_TITLE}", body, "../",
-            sidebar_for(course, ch, toggle=toggle), ch.toc, courses, course, "doc"))
+            sidebar_for(course, ch, toggle=toggle), ch.toc, courses, course, "doc",
+            page_title=ch.title_text, kind="chapter"))
 
     for i, orig in enumerate(course.originals):
         ch = chapter_for(course, orig)
         toggle = view_toggle(course, f"../{ch.slug}.html" if ch else "../index.html",
                              f"{orig.slug}.html", "original")
         nav = pager(course.originals, i, lambda o: f"{o.slug}.html", lambda o: html.escape(o.title))
+        sub = original_subtitle(course, orig)
         body = (f'<div class="breadcrumbs"><a href="../index.html">{course.code}</a> / '
                 f'Original notes</div>'
                 f'<h1 class="chapter-title">{html.escape(orig.title)}</h1>'
+                + (f'<p class="chapter-subtitle">{sub}</p>' if sub else "") +
                 f'<p class="original-note">Original notes from the term, as written in '
                 f'<code>{html.escape(orig.path.name)}</code></p>\n'
                 f'<div class="original-body">{orig.body}</div>\n{nav}')
         (cdir / "original" / f"{orig.slug}.html").write_text(page(
             f"{orig.title} (original) | {course.code} | {SITE_TITLE}", body, "../../",
-            sidebar_for(course, orig, "original", "../", toggle), orig.toc, courses, course, "doc"))
+            sidebar_for(course, orig, "original", "../", toggle), orig.toc, courses, course, "doc",
+            page_title=f"{orig.title} (original)", kind="original"))
 
     rows = "\n".join(
-        f'<li><a href="{ch.slug}.html"><span class="num">{ch.number}</span>'
-        f'<span>{ch.title_html}</span></a></li>' for ch in course.chapters)
+        f'<li><a href="{ch.slug}.html"><span class="num">{chapter_label(ch)[0]}</span>'
+        f'<span>{chapter_label(ch)[1]}</span></a></li>' for ch in course.chapters)
     originals = ""
     if course.originals:
         orig_rows = "\n".join(
-            f'<li><a href="original/{o.slug}.html"><span>{html.escape(o.title)}</span></a></li>'
+            f'<li><a href="original/{o.slug}.html"><span>{html.escape(o.title)}'
+            + (f' <span class="muted">&middot; {original_subtitle(course, o)}</span>'
+               if original_subtitle(course, o) else "") + '</span></a></li>'
             for o in course.originals)
         originals = (f'<h2 class="list-heading">Original notes</h2>\n'
                      f'<p class="muted">The notes as originally written during the term.</p>\n'
@@ -520,12 +568,14 @@ def render_course(course, courses, out):
 <h1 class="chapter-title">{course.code} <span class="muted">&mdash; {html.escape(course.name)}</span></h1>
 <p class="lead">{len(course.chapters)} chapters, generated from the LaTeX notes.</p>
 <div class="actions">{pdf}<a class="button secondary" href="{src}">LaTeX source</a></div>
+<div id="continue-reading"></div>
 <h2 class="list-heading">Chapters</h2>
 <ol class="chapter-list">{rows}</ol>
 {originals}"""
     (cdir / "index.html").write_text(page(
         f"{course.code} — {course.name} | {SITE_TITLE}", body, "../",
-        sidebar_for(course, toggle=toggle), "", courses, course, "doc"))
+        sidebar_for(course, toggle=toggle), "", courses, course, "doc",
+        page_title=f"{course.code} overview", kind="overview"))
     if course.pdf:
         shutil.copy(course.pdf, cdir / f"{course.slug}.pdf")
     figs = course.folder / "figures"
@@ -540,9 +590,11 @@ def render_index(courses, out):
         if not group:
             continue
         cards = "\n".join(
-            f'<a class="card" href="{c.slug}/index.html"><div class="card-code">{c.code}</div>'
+            f'<div class="card" data-course="{c.slug}">'
+            f'<a class="card-link" href="{c.slug}/index.html"><span class="card-code">{c.code}</span></a>'
             f'<div class="card-name">{html.escape(c.name)}</div>'
-            f'<div class="card-meta">{len(c.chapters)} chapters</div></a>' for c in group)
+            f'<div class="card-meta">{len(c.chapters)} chapters'
+            f'{" &middot; original notes" if c.originals else ""}</div></div>' for c in group)
         sections.append(f'<h2 class="subject">{subject}</h2>\n<div class="cards">{cards}</div>')
     body = f"""<section class="hero">
 <h1>{SITE_TITLE}</h1>
