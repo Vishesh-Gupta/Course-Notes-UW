@@ -399,6 +399,7 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <link rel="stylesheet" href="{root}pagefind/pagefind-ui.css">
 <link rel="stylesheet" href="{root}assets/style.css">
+<script type="speculationrules">{{"prefetch":[{{"where":{{"href_matches":"*.html"}},"eagerness":"moderate"}}]}}</script>
 </head>
 <body class="{page_class}" {meta}>
 <header class="navbar">
@@ -409,8 +410,10 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
     <div class="dropdown-menu">{course_links}</div>
   </div>
   <div class="nav-spacer"></div>
+  <button class="jump-btn" id="jump-open" aria-label="Jump to (Ctrl+K)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="jump-label">Jump to&hellip;</span><kbd class="jump-kbd">Ctrl K</kbd></button>
   <div id="search" class="search"></div>
   <button class="notes-btn" id="notes-toggle" aria-label="Notes (n)" title="Notes (n)">{PEN_ICON}<span class="notes-btn-label">Notes</span><span class="notes-count" id="notes-count" hidden></span></button>
+  <button class="icon-nav" id="focus-toggle" aria-label="Focus mode (f)" title="Focus mode (f)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   <a class="nav-link" href="{REPO_URL}" aria-label="GitHub">GitHub</a>
   <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></button>
   <div class="progress" id="progress"></div>
@@ -427,6 +430,7 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
 <script>window.KATEX_MACROS = {macros};</script>
 <script defer src="{root}assets/app.js"></script>
 <script defer src="{root}assets/notes.js"></script>
+<script defer src="{root}assets/nav.js"></script>
 </body>
 </html>
 """
@@ -459,6 +463,10 @@ def view_toggle(course, latex_href, original_href, mode):
             f'</div>')
 
 
+SIDEBAR_FILTER = ('<input class="sidebar-filter" type="search" placeholder="Filter&hellip;" '
+                  'aria-label="Filter this list">')
+
+
 def sidebar_for(course, active=None, mode="latex", base="", toggle=""):
     """Course sidebar. base is the path from the current page to the course folder."""
     items = [f'<a class="sidebar-course" href="{base}index.html">{course.code}'
@@ -467,6 +475,7 @@ def sidebar_for(course, active=None, mode="latex", base="", toggle=""):
         items.append(f'<a class="sidebar-link{" active" if active is None else ""}" '
                      f'href="{base}index.html">Overview</a>')
         items.append('<div class="sidebar-label">Chapters</div>')
+        items.append(SIDEBAR_FILTER)
         for ch in course.chapters:
             cls = " active" if ch is active else ""
             label, short = chapter_label(ch)
@@ -475,6 +484,7 @@ def sidebar_for(course, active=None, mode="latex", base="", toggle=""):
                          f'<span class="num">{label}</span><span>{short}</span></a>')
     else:
         items.append('<div class="sidebar-label">Original notes</div>')
+        items.append(SIDEBAR_FILTER)
         for o in course.originals:
             cls = " active" if o is active else ""
             sub = original_subtitle(course, o)
@@ -508,8 +518,8 @@ def chapter_for(course, orig):
 def original_subtitle(course, orig):
     """Topic of an original lecture, taken from the matching LaTeX chapter's title."""
     ch = chapter_for(course, orig)
-    if not ch:
-        return ""
+    if not ch or not re.fullmatch(r"(lecture|tutorial)\s*\d+", orig.title.strip().lower()):
+        return ""  # only bare "Lecture 10" style titles need the topic added
     short = chapter_label(ch)[1]
     return "" if strip_tags(short).lower() == orig.title.lower() else short
 
@@ -600,9 +610,27 @@ def render_index(courses, out):
 <h1>{SITE_TITLE}</h1>
 <p class="lead">Notes for the core University of Waterloo Computer Science, Mathematics, Statistics and Economics courses, written in LaTeX and split by chapter, alongside the original notes from each term.</p>
 </section>
+<div id="recent-pages"></div>
 {"".join(sections)}"""
     (out / "index.html").write_text(page(SITE_TITLE, body, "", courses=courses,
                                          page_class="home"))
+
+
+def write_nav_index(courses, out):
+    """Every course, chapter and original-notes page, for the Ctrl+K quick jump."""
+    entries = []
+    for c in courses:
+        entries.append({"t": f"{c.code} \u2014 {c.name}", "h": f"{c.slug}/index.html",
+                        "c": c.code, "k": "course"})
+        for ch in c.chapters:
+            label = chapter_label(ch)[0]
+            entries.append({"t": ch.title_text, "h": f"{c.slug}/{ch.slug}.html", "c": c.code,
+                            "k": "chapter", "l": label if not label.isdigit() else f"Ch {label}"})
+        for o in c.originals:
+            sub = strip_tags(original_subtitle(c, o))
+            entries.append({"t": o.title + (f" \u00b7 {sub}" if sub else ""),
+                            "h": f"{c.slug}/original/{o.slug}.html", "c": c.code, "k": "original"})
+    (out / "assets" / "nav.json").write_text(json.dumps(entries, ensure_ascii=False))
 
 
 def check_output(out):
@@ -665,6 +693,7 @@ def main():
     for course in courses:
         render_course(course, courses, out)
     render_index(courses, out)
+    write_nav_index(courses, out)
     warnings += check_output(out)
     for w in warnings:
         print("warning:", w, file=sys.stderr)
