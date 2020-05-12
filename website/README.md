@@ -7,10 +7,6 @@ course, "On this page" navigation, dark mode and search.
 - `build.py` reads each course's `main.tex`, converts every `\include`d chapter
   with pandoc (`filter.lua`), compiles TikZ pictures to SVG and writes the site
   to `website/_site`.
-- Original notes in a course folder (`.md`, `.mdwn`, `.docx`, or a `.tex`
-  other than `main.tex`) are converted too and shown under "Original notes",
-  with a toggle on every page; lectures are paired by lecture, tutorial or
-  textbook chapter number.
 - With `--pdf-dir`, PDFs built by `scripts/check_latex.py` are linked from each
   course page (CI does this; PDFs are not committed).
 - Math is rendered in the browser with KaTeX; search is built with Pagefind.

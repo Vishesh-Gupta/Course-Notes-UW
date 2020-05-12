@@ -2,9 +2,9 @@
 
 This repository contains course notes for the UW courses that I have taken.
 
-Every course is a LaTeX book split into one file per chapter/lecture. The original notes I wrote during each term (Markdown, Word and LaTeX) are kept next to them.
+Every course is a LaTeX book split into one file per chapter/lecture. The original notes I wrote during each term (Markdown, Word and LaTeX) are kept next to them for reference; their content is part of the LaTeX books, which are the one version on the website and in the PDFs.
 
-- **Website:** https://course-notes-uw.pages.dev — every chapter as a page, with a toggle between the LaTeX notes and the original notes (hosted free on Cloudflare Pages, so this repository can stay private).
+- **Website:** https://course-notes-uw.pages.dev — every chapter as a page (hosted free on Cloudflare Pages, so this repository can stay private).
 - **PDFs:** built by CI on every change and attached to the [`notes-latest` release](https://github.com/Vishesh-Gupta/Course-Notes-UW/releases/tag/notes-latest) (also linked from each course page on the website).
 
 ## Courses
@@ -35,7 +35,7 @@ Every course is a LaTeX book split into one file per chapter/lecture. The origin
   chapters/NN-*.tex   one file per chapter or lecture
   figures/            images used by the chapters (optional)
   Readme.md           chapter list for the course
-  *.md, *.docx, ...   original notes from the term (shown under "Original notes")
+  *.md, *.docx, ...   original notes from the term (their content is in the LaTeX book)
 common/preamble.tex   packages, theorem environments, boxes and macros shared by every book
 scripts/              check_latex.py (compile + checks), new_course.py (scaffold a course)
 website/              static site generator (pandoc + KaTeX + TikZ->SVG)

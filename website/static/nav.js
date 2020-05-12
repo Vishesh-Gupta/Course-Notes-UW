@@ -32,7 +32,7 @@
 
   var RECENT = "cnuw:v1:recent";
   var kind = body.dataset.kind;
-  if (store && (kind === "chapter" || kind === "original")) {
+  if (store && kind === "chapter") {
     var recent = get(RECENT, []).filter(function (r) { return r.h !== pageId; });
     recent.unshift({ h: pageId, t: body.dataset.pageTitle, c: body.dataset.courseCode, k: kind });
     set(RECENT, recent.slice(0, 12));
@@ -159,8 +159,6 @@
       { t: "Open notes", k: "action", run: function () { var b = document.getElementById("notes-toggle"); if (b) b.click(); } },
       { t: "Toggle focus mode", k: "action", run: function () { setFocus(!body.classList.contains("focus-mode")); } },
     ];
-    var other = document.querySelector(".view-toggle a:not(.active)");
-    if (other) list.push({ t: "Switch to " + other.textContent, k: "action", h: other.href });
     return list;
   }
 
@@ -208,7 +206,7 @@
       var row = el("div", "jump-item");
       row.setAttribute("role", "option");
       row.dataset.index = i;
-      var tag = entry.k === "chapter" ? (entry.l || "") : entry.k === "original" ? "Original"
+      var tag = entry.k === "chapter" ? (entry.l || "")
               : entry.k === "course" ? "Course" : entry.k === "search" ? "Search" : entry.k === "action" ? "Action" : "";
       row.appendChild(el("span", "jump-tag", tag || entry.c || ""));
       row.appendChild(el("span", "jump-title", entry.t));

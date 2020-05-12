@@ -17,7 +17,7 @@
   var rootUrl = new URL(body.dataset.root || "./", location.href);
   var pageId = decodeURIComponent(location.pathname.slice(rootUrl.pathname.length)) || "index.html";
   if (/\/$/.test(pageId) || pageId === "") pageId += "index.html";
-  var annotatable = body.dataset.kind === "chapter" || body.dataset.kind === "original";
+  var annotatable = body.dataset.kind === "chapter";
 
   // ---------------------------------------------------------------- storage
 

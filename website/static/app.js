@@ -129,7 +129,7 @@
   try { store = window.localStorage; } catch (e) {}
   var course = document.body.dataset.course;
   var kind = document.body.dataset.kind;
-  if (store && course && (kind === "chapter" || kind === "original")) {
+  if (store && course && kind === "chapter") {
     try {
       store.setItem("cnuw:v1:last:" + course, JSON.stringify({
         href: location.pathname + location.search, title: document.body.dataset.pageTitle,
