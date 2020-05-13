@@ -19,6 +19,27 @@ $v_0v_1\cdots v_{k-1}v_0$ with $k\ge3$ and $v_0,\dots,v_{k-1}$ distinct. Its len
 \emph{girth} of $G$ is the length of a shortest cycle (infinite if $G$ has no cycle).
 \end{definition}
 
+\begin{center}
+\begin{tikzpicture}[hl/.style={very thick,red!70!black},every label/.style={font=\scriptsize}]
+  \foreach \s/\title in {0/{walk $abcdbe$},4/{path $abde$},8/{cycle $bcdb$}} {
+    \begin{scope}[xshift=\s cm]
+      \node[vtx,label=left:$a$] (a\s) at (0,1.2) {};
+      \node[vtx,label=above:$b$] (b\s) at (1.2,1.2) {};
+      \node[vtx,label=above:$c$] (c\s) at (2.4,1.2) {};
+      \node[vtx,label=below:$d$] (d\s) at (2.4,0) {};
+      \node[vtx,label=below:$e$] (e\s) at (1.2,0) {};
+      \draw[gray!60] (a\s)--(b\s)--(c\s)--(d\s)--(e\s)--(b\s)--(d\s);
+      \node[font=\small] at (1.2,-0.9) {\title};
+    \end{scope}
+  }
+  \draw[hl] (a0)--(b0)--(c0)--(d0)--(b0)--(e0);
+  \draw[hl] (a4)--(b4)--(d4)--(e4);
+  \draw[hl] (b8)--(c8)--(d8)--(b8);
+\end{tikzpicture}
+\end{center}
+The walk repeats the vertex $b$, so it is not a path; the path $abde$ uses distinct vertices; the
+cycle closes up without repeating any other vertex.
+
 \begin{theorem}
 If there is a walk from $u$ to $v$ in $G$, then there is a path from $u$ to $v$.
 \end{theorem}
@@ -47,6 +68,18 @@ be a longer path. So $w = v_i$ for some $i \le k-2$, and $v_iv_{i+1}\cdots v_kv_
 
 The ``longest path'' trick is used over and over in graph theory: the end of a longest path has
 all its neighbours on the path.
+
+\begin{center}
+\begin{tikzpicture}[every label/.style={font=\small}]
+  \foreach \i/\l in {0/v_0,1/v_1,2/v_i,3/v_{i+1},4/{},5/v_{k-1},6/v_k} {
+    \node[vtx,label=below:$\l$] (p\i) at (1.3*\i,0) {};
+  }
+  \draw[very thick] (p0)--(p1) (p2)--(p3) (p5)--(p6);
+  \draw[very thick,dotted] (p1)--(p2) (p3)--(p4)--(p5);
+  \draw[thick,red!70!black] (p6) to[bend right=40] node[above,font=\scriptsize] {the other neighbour $w = v_i$} (p2);
+  \draw[thick,dashed,gray] (p6) -- ++(1,0.7) node[right,font=\scriptsize] {off the path: longer path!};
+\end{tikzpicture}
+\end{center}
 
 \section{Connectedness}
 
@@ -103,6 +136,21 @@ followed by the edge $xy$ is a walk to $y$, so $y \in X$. Thus $\delta(X) = \emp
 Let $V = [6]$ and $E = \{12, 23, 31, 45, 56\}$. Then $X = \{1,2,3\}$ has $\delta(X) = \emptyset$,
 so the graph is disconnected; its components have vertex sets $\{1,2,3\}$ and $\{4,5,6\}$.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[every label/.style={font=\small}]
+  \draw[dashed,blue!70!black,rounded corners] (-0.6,-0.6) rectangle (1.8,1.6);
+  \node[blue!70!black] at (-0.3,1.85) {$X$};
+  \node[vtx,label=above:$1$] (1) at (0.6,1.1) {};
+  \node[vtx,label=left:$2$] (2) at (0,0) {};
+  \node[vtx,label=right:$3$] (3) at (1.2,0) {};
+  \node[vtx,label=above:$4$] (4) at (3,1.1) {};
+  \node[vtx,label=below:$5$] (5) at (3.6,0) {};
+  \node[vtx,label=above:$6$] (6) at (4.2,1.1) {};
+  \draw (1)--(2)--(3)--(1) (4)--(5)--(6);
+  \node[font=\scriptsize] at (2.1,-1.0) {no edge crosses the dashed boundary: $\delta(X)=\emptyset$};
+\end{tikzpicture}
+\end{center}
 
 \section{Eulerian circuits}
 

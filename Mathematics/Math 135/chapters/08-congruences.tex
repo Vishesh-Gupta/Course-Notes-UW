@@ -64,6 +64,22 @@ Find the remainder when $2^{100}$ is divided by $7$. Since $2^3 = 8 \equiv 1 \Mo
 The remainder is $2$.
 \end{example}
 
+Powers of $2$ modulo $7$ go round a cycle of length $3$, which is why only $100 \bmod 3$
+matters:
+\begin{center}
+\begin{tikzpicture}
+  \foreach \k in {0,...,6} {
+    \node[draw,circle,minimum size=0.75cm,inner sep=0pt] (r\k) at ({90-360/7*\k}:1.9) {$\k$};
+  }
+  \foreach \k in {1,2,4} { \node[draw,circle,minimum size=0.75cm,inner sep=0pt,fill=blue!20] at ({90-360/7*\k}:1.9) {$\k$}; }
+  \draw[->,thick,blue!70!black] (r1) to[bend left=12] node[auto,swap,font=\scriptsize] {$\times 2$} (r2);
+  \draw[->,thick,blue!70!black] (r2) to[bend left=12] node[auto,swap,font=\scriptsize] {$\times 2$} (r4);
+  \draw[->,thick,blue!70!black] (r4) to[bend left=12] node[auto,swap,font=\scriptsize] {$\times 2$} (r1);
+  \node[align=left,font=\small,right] at (2.8,0) {$2^0 \equiv 2^3 \equiv 2^6 \equiv \cdots \equiv 1$\\
+    $2^1 \equiv 2^4 \equiv \cdots \equiv 2^{100} \equiv 2$\\ $2^2 \equiv 2^5 \equiv \cdots \equiv 4$};
+\end{tikzpicture}
+\end{center}
+
 \begin{example}
 Find the last digit of $7^{2022}$ (i.e.\ the remainder mod $10$). $7^2 = 49 \equiv -1 \Mod{10}$,
 so $7^4 \equiv 1$. Then $7^{2022} = (7^4)^{505}\cdot 7^2 \equiv 49 \equiv 9 \Mod{10}$. Last
@@ -104,6 +120,19 @@ By CAM these operations are well defined (independent of the representatives cho
 CISR the $m$ listed classes are distinct and cover $\Z$. $\Zm m$ satisfies the usual rules of
 arithmetic (commutative, associative, distributive, identities $\cls 0$ and $\cls 1$, additive
 inverses $-\cls a = \cls{-a}$).
+
+For $m = 5$, wrapping the integer line around a circle of circumference $5$ puts each class
+on one spoke:
+\begin{center}
+\begin{tikzpicture}
+  \draw[gray] (0,0) circle (1.3);
+  \foreach \k/\an/\lab in {0/south/{\dots,-10,-5,0,5,10,\dots},1/west/{\dots,-9,-4,1,6,11,\dots},2/north west/{\dots,-8,-3,2,7,12,\dots},3/north east/{\dots,-7,-2,3,8,13,\dots},4/east/{\dots,-6,-1,4,9,14,\dots}} {
+    \fill[blue!70!black] ({90-72*\k}:1.3) circle (2.5pt);
+    \node at ({90-72*\k}:0.95) {\small $\cls{\k}$};
+    \node[font=\scriptsize,anchor=\an] at ({90-72*\k}:1.45) {$\{\lab\}$};
+  }
+\end{tikzpicture}
+\end{center}
 
 \begin{example}[Multiplication table of $\Zm 6$, non-zero part]
 \begin{center}

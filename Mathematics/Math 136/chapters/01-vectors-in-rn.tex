@@ -23,6 +23,31 @@ For $\vec x,\vec y\in\R^n$ and $c\in\R$,
 We write $-\vec x = (-1)\vec x$ and $\vec x - \vec y = \vec x + (-\vec y)$.
 \end{definition}
 
+In $\R^2$, addition is the parallelogram (tip-to-tail) rule and scalar multiplication
+stretches, shrinks or reverses a vector along its own line. For $\vec x = (3,1)$ and
+$\vec y = (1,2)$:
+\begin{center}
+\begin{tikzpicture}[scale=0.8,>={Stealth}]
+  \draw[very thin,gray!30] (-0.5,-0.5) grid (4.5,3.5);
+  \draw[->] (-0.5,0) -- (4.8,0) node[right] {$x_1$};
+  \draw[->] (0,-0.5) -- (0,3.8) node[above] {$x_2$};
+  \draw[->,thick,blue!70!black] (0,0) -- (3,1) node[below right] {$\vec x$};
+  \draw[->,thick,green!50!black] (0,0) -- (1,2) node[above left] {$\vec y$};
+  \draw[->,dashed,green!50!black] (3,1) -- (4,3);
+  \draw[->,dashed,blue!70!black] (1,2) -- (4,3);
+  \draw[->,very thick,red!70!black] (0,0) -- (4,3) node[above right] {$\vec x+\vec y = (4,3)$};
+  \begin{scope}[xshift=10cm,yshift=1.2cm]
+    \draw[very thin,gray!30] (-3.5,-1.5) grid (3.5,2.5);
+    \draw[->] (-3.5,0) -- (3.8,0) node[right] {$x_1$};
+    \draw[->] (0,-1.5) -- (0,2.8) node[above] {$x_2$};
+    \draw[gray,dashed] (-3.5,-7/6) -- (3.5,7/6);
+    \draw[->,very thick,orange!80!black] (0,0) -- (3,1) node[above] {$\vec x$};
+    \draw[->,thick,blue!70!black] (0,0) -- (1.5,0.5) node[below right] {$\frac12\vec x$};
+    \draw[->,thick,red!70!black] (0,0) -- (-3,-1) node[above left] {$-\vec x$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
 \begin{theorem}[Properties of $\R^n$]\label{thm:rn-props}
 For all $\vec x,\vec y,\vec w\in\R^n$ and $c,d\in\R$:
 \begin{enumerate}[label=V\arabic*.]
@@ -70,6 +95,26 @@ $c_1=1$, $c_2=2$, and then $c_1+c_2=3$ agrees with the third component. So yes:
 $\vec x = 1(1,0,1)+2(0,1,1)$. On the other hand $(1,2,4)$ is \emph{not} in the span, since
 $c_1+c_2=3\ne 4$.
 \end{example}
+
+Geometrically, $\Span\{(1,0,1),(0,1,1)\}$ is a plane through the origin in $\R^3$, and
+$(1,2,3)$ lies in it because it is reached by going $1$ step along the first vector and $2$
+steps along the second:
+\begin{center}
+\begin{tikzpicture}[x={(-0.55cm,-0.45cm)},y={(1cm,0cm)},z={(0cm,1cm)},scale=1.25,>={Stealth}]
+  \fill[blue!10] (-0.6,-0.6,-1.2) -- (1.8,-0.6,1.2) -- (1.8,2.6,4.4) -- (-0.6,2.6,2.0) -- cycle;
+  \draw[blue!40] (-0.6,-0.6,-1.2) -- (1.8,-0.6,1.2) -- (1.8,2.6,4.4) -- (-0.6,2.6,2.0) -- cycle;
+  \draw[->] (0,0,0) -- (2.4,0,0) node[below left] {$x_1$};
+  \draw[->] (0,0,0) -- (0,3.2,0) node[right] {$x_2$};
+  \draw[->] (0,0,0) -- (0,0,4.6) node[above] {$x_3$};
+  \draw[->,thick,blue!70!black] (0,0,0) -- (1,0,1) node[left] {$\vec v_1$};
+  \draw[->,thick,green!50!black] (0,0,0) -- (0,1,1) node[above left] {$\vec v_2$};
+  \draw[->,dashed,green!50!black] (1,0,1) -- (1,1,2);
+  \draw[->,dashed,green!50!black] (1,1,2) -- (1,2,3);
+  \draw[->,very thick,red!70!black] (0,0,0) -- (1,2,3) node[right] {$(1,2,3) = \vec v_1 + 2\vec v_2$};
+  \node[blue!60!black,font=\small] at (1.5,0.4,1.9) {$\Span\{\vec v_1,\vec v_2\}$};
+\end{tikzpicture}
+\end{center}
+The point $(1,2,4)$ sits directly above $(1,2,3)$, off the plane.
 
 \begin{theorem}[Removing redundant vectors]\label{thm:span-reduce}
 Let $\vec v_1,\dots,\vec v_k\in\R^n$. If $\vec v_k$ is a linear combination of
@@ -291,6 +336,22 @@ For $\vec u,\vec v,\vec w\in\R^3$ and $c\in\R$:
 $\vec u\cdot(\vec u\times\vec v)= u_1(u_2v_3-u_3v_2)+u_2(u_3v_1-u_1v_3)+u_3(u_1v_2-u_2v_1)$;
 the six terms cancel in pairs. Similarly for $\vec v$.
 \end{proof}
+
+\begin{center}
+\begin{tikzpicture}[>={Stealth},scale=1.1]
+  \fill[blue!12] (0,0) -- (2.6,-0.5) -- (3.6,0.6) -- (1,1.1) -- cycle;
+  \draw[->,thick,blue!70!black] (0,0) -- (2.6,-0.5) node[below right] {$\vec u$};
+  \draw[->,thick,green!50!black] (0,0) -- (1,1.1) node[left] {$\vec v$};
+  \draw[dashed,gray] (2.6,-0.5) -- (3.6,0.6) -- (1,1.1);
+  \draw[->,very thick,red!70!black] (0,0) -- (0,2.6) node[above] {$\vec u\times\vec v$};
+  \draw[->,thick,red!40] (0,0) -- (0,-1.4) node[below] {$\vec v\times\vec u$};
+  \draw (0,0.25) -- (0.24,0.2) -- (0.24,-0.05);
+  \node[blue!60!black,font=\scriptsize,align=center] at (1.9,0.3) {area $= \norm{\vec u\times\vec v}$};
+  \draw[green!50!black] (0.5,-0.096) arc (-11:48:0.5); \node[font=\scriptsize] at (0.75,0.25) {$\theta$};
+\end{tikzpicture}
+\end{center}
+The direction of $\vec u\times\vec v$ follows the right-hand rule (curl the fingers from $\vec u$
+to $\vec v$); swapping the factors reverses it.
 
 \begin{important}[Pitfall]
 The cross product is \emph{not} associative: $\vec e_1\times(\vec e_1\times\vec e_2) =

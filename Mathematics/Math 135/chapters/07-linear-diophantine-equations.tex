@@ -94,6 +94,22 @@ $n \le 200/7 \approx 28.6$, so $n \le 28$. Hence $n = 28$, giving the unique ans
 $(x,y) = (8, 4)$: $56 + 44 = 100$.
 \end{example}
 
+In the picture, the segment of $7x + 11y = 100$ in the first quadrant is short enough to
+contain only one lattice point; its neighbours $(8 \mp 11, 4 \pm 7)$ fall outside:
+\begin{center}
+\begin{tikzpicture}[scale=0.32]
+  \draw[very thin,gray!30] (-4,-4) grid (20,12);
+  \draw[->] (-4,0) -- (20.5,0) node[right] {$x$};
+  \draw[->] (0,-4) -- (0,12.5) node[above] {$y$};
+  \draw[thick,blue!70!black] (-4,128/11) -- (20,-40/11);
+  \draw[line width=3pt,blue!40,opacity=0.6] (0,100/11) -- (100/7,0);
+  \fill[red!70!black] (8,4) circle (8pt) node[above right,font=\scriptsize] {$(8,4)$};
+  \foreach \p in {(-3,11),(19,-3)} { \draw[red!70!black,thick] \p circle (8pt); }
+  \node[right,font=\scriptsize] at (-2.6,11) {$(-3,11)$};
+  \node[above,font=\scriptsize] at (19,-2.6) {$(19,-3)$};
+\end{tikzpicture}
+\end{center}
+
 \begin{example}
 Find all solutions of $15x - 21y = 39$ with $x$ between $-10$ and $10$.
 
@@ -103,6 +119,26 @@ equation as $15x + (-21)y = 39$, LDET 2 gives $x = 39 + \frac{-21}{3}n = 39 - 7n
 $y = 26 - \frac{15}{3}n = 26 - 5n$. For $-10 \le 39 - 7n \le 10$ we need $29/7 \le n \le 7$,
 i.e.\ $n \in \{5,6,7\}$, giving $(4,1)$, $(-3,-4)$, $(-10,-9)$. Check $(4,1)$: $60 - 21 = 39$.
 \end{example}
+
+The three solutions are the lattice points of the line $15x - 21y = 39$ inside the strip
+$-10 \le x \le 10$; consecutive ones differ by $(7, 5) = (\frac{21}{3}, \frac{15}{3})$:
+\begin{center}
+\begin{tikzpicture}[scale=0.3]
+  \fill[blue!6] (-10,-12) rectangle (10,6);
+  \draw[very thin,gray!30] (-12,-12) grid (12,6);
+  \draw[->] (-12,0) -- (12.5,0) node[right] {$x$};
+  \draw[->] (0,-12) -- (0,6.5) node[above] {$y$};
+  \draw[dashed,blue!50] (-10,-12) -- (-10,6) (10,-12) -- (10,6);
+  \draw[thick,blue!70!black] (-12,-73/7) -- (12,47/7);
+  \foreach \p in {(4,1),(-3,-4),(-10,-9)} { \fill[red!70!black] \p circle (7pt); }
+  \node[right,font=\scriptsize] at (4.3,0.7) {$(4,1)$};
+  \node[right,font=\scriptsize] at (-2.7,-4.5) {$(-3,-4)$};
+  \node[right,font=\scriptsize] at (-9.7,-9.6) {$(-10,-9)$};
+  \draw[->,thick,red!70!black] (-10,-9) -- node[above left,font=\scriptsize] {$(7,5)$} (-3,-4);
+  \node[font=\scriptsize] at (5,-11) {$x = 10$};
+  \node[font=\scriptsize] at (-7,4.5) {$x = -10$};
+\end{tikzpicture}
+\end{center}
 
 \begin{aside}
 Geometrically, the integer solutions of $ax + by = c$ are the lattice points on a line;
