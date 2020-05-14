@@ -64,6 +64,24 @@ Merge O and E (weight 2); merge L with that (weight 4); merge S with that
 (weight 8). One resulting code: S = \texttt{0}, L = \texttt{10}, O = \texttt{110},
 E = \texttt{111}. Encoded length: $4\cdot1 + 2\cdot2 + 1\cdot3 + 1\cdot3 = 14$ bits,
 versus 16 for a fixed 2-bit code.
+\begin{center}
+\begin{tikzpicture}[level distance=10mm,level 1/.style={sibling distance=26mm},
+  level 2/.style={sibling distance=18mm},level 3/.style={sibling distance=12mm},
+  inn/.style={circle,draw,fill=blue!6,minimum size=6mm,inner sep=0pt,font=\scriptsize},
+  lf/.style={draw,rounded corners,fill=green!10,font=\small,inner sep=2pt},
+  el/.style={font=\scriptsize\ttfamily,inner sep=1pt}]
+  \node[inn] {8}
+    child {node[lf] {S: 4} edge from parent node[el,left] {0}}
+    child {node[inn] {4}
+      child {node[lf] {L: 2} edge from parent node[el,left] {0}}
+      child {node[inn] {2}
+        child {node[lf] {O: 1} edge from parent node[el,left] {0}}
+        child {node[lf] {E: 1} edge from parent node[el,right] {1}}
+        edge from parent node[el,right] {1}}
+      edge from parent node[el,right] {1}};
+  \node[font=\scriptsize,align=left,anchor=west] at (2.6,-1.2) {internal nodes show\\merged weights; read a\\codeword along the path:\\E = \texttt{111}};
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \paragraph{Analysis.} With $|\Sigma_S| = \sigma$ distinct characters, building
@@ -115,7 +133,16 @@ RLE-encoding(S):            // S a bit string
 \begin{example}
 $S = \texttt{00000111000}$: first bit 0, runs 5, 3, 3, so
 $C = \texttt{0}\,\texttt{00101}\,\texttt{011}\,\texttt{011}$ (12 bits vs.\ 11 ---
-no gain here). For $S = 0^{100}$, $C$ is $1 + 13 = 14$ bits.
+no gain here).
+\begin{center}
+\begin{tikzpicture}[b/.style={draw,minimum width=5.5mm,minimum height=6mm,inner sep=0pt,font=\small\ttfamily}]
+  \foreach \v/\f [count=\i from 0] in {0/blue!10,0/blue!10,0/blue!10,0/blue!10,0/blue!10,1/orange!20,1/orange!20,1/orange!20,0/blue!10,0/blue!10,0/blue!10}
+    \node[b,fill=\f] at (\i*0.55,0) {\v};
+  \foreach \a/\b/\t in {0/4/{run 5: \texttt{00101}},5/7/{run 3: \texttt{011}},8/10/{run 3: \texttt{011}}}
+    \draw[decorate,decoration={brace,mirror,amplitude=3pt}] (\a*0.55-0.25,-0.4) -- (\b*0.55+0.25,-0.4)
+      node[midway,below=4pt,font=\scriptsize] {\t};
+\end{tikzpicture}
+\end{center} For $S = 0^{100}$, $C$ is $1 + 13 = 14$ bits.
 \end{example}
 
 A run of length $k$ costs $2\floor{\log k} + 1$ bits, so RLE wins when runs are
@@ -187,6 +214,28 @@ Output: 65, 66, 128, 130. Decoding: 65 $\to$ A; 66 $\to$ B (add AB = 128);
 128 $\to$ AB (add BA = 129); 130 is not yet known, so it is
 $\text{AB} + \text{A} = \text{ABA}$ (add ABA = 130). Result ABABABA.
 \end{example}
+
+The dictionary is naturally a trie: each new entry extends an existing entry by
+one character. After encoding \texttt{ABABABA} it contains
+\begin{center}
+\begin{tikzpicture}[level distance=10mm,level 1/.style={sibling distance=30mm},
+  level 2/.style={sibling distance=15mm},
+  dn/.style={draw,rounded corners,fill=blue!6,font=\scriptsize,inner sep=2pt},
+  nw/.style={draw,rounded corners,fill=green!10,font=\scriptsize,inner sep=2pt},
+  el/.style={font=\scriptsize\ttfamily,inner sep=1pt}]
+  \node[circle,draw,inner sep=1.5pt] {}
+    child {node[dn] {A: 65}
+      child {node[nw] {AB: 128}
+        child {node[nw] {ABA: 130} edge from parent node[el,left] {A}}
+        edge from parent node[el,left] {B}}
+      edge from parent node[el,above left] {A}}
+    child {node[dn] {B: 66}
+      child {node[nw] {BA: 129} edge from parent node[el,right] {A}}
+      edge from parent node[el,above right] {B}};
+\end{tikzpicture}
+\end{center}
+(only the ASCII entries for A and B are drawn). The encoder walks down this trie to find the longest
+match $w$, outputs its code, and adds one child below it.
 
 Both directions run in $\bigO(|S|)$ time. In practice codes are fixed-width
 (e.g.\ 12 bits), and the dictionary is reset or frozen when full. LZW (and
@@ -278,6 +327,44 @@ $A[3] = (a,6)$ outputs \texttt{a}; $A[6] = (n,2)$: \texttt{n}; $A[2] = (a,5)$:
 \texttt{a}; $A[5] = (n,1)$: \texttt{n}; $A[1] = (a,0)$: \texttt{a};
 $A[0] = (\$,4)$: \texttt{\$}, stop. Result: \texttt{banana\$}.
 \end{example}
+
+The pairs in $A$ match each occurrence in the first column $F$ with the same
+occurrence in the last column $L = C$; the $i$-th \texttt{a} of $F$ is joined to the
+$i$-th \texttt{a} of $L$, and so on:
+\begin{center}
+\begin{tikzpicture}[fc/.style={draw,minimum size=5mm,inner sep=0pt,font=\small\ttfamily}]
+  \node[fc] (f0) at (0,0.00) {\$};
+  \node[fc] (l0) at (3.2,0.00) {a};
+  \node[font=\tiny,gray] at (3.7,0.00) {0};
+  \node[fc] (f1) at (0,-0.55) {a};
+  \node[fc] (l1) at (3.2,-0.55) {n};
+  \node[font=\tiny,gray] at (3.7,-0.55) {1};
+  \node[fc] (f2) at (0,-1.10) {a};
+  \node[fc] (l2) at (3.2,-1.10) {n};
+  \node[font=\tiny,gray] at (3.7,-1.10) {2};
+  \node[fc] (f3) at (0,-1.65) {a};
+  \node[fc] (l3) at (3.2,-1.65) {b};
+  \node[font=\tiny,gray] at (3.7,-1.65) {3};
+  \node[fc] (f4) at (0,-2.20) {b};
+  \node[fc] (l4) at (3.2,-2.20) {\$};
+  \node[font=\tiny,gray] at (3.7,-2.20) {4};
+  \node[fc] (f5) at (0,-2.75) {n};
+  \node[fc] (l5) at (3.2,-2.75) {a};
+  \node[font=\tiny,gray] at (3.7,-2.75) {5};
+  \node[fc] (f6) at (0,-3.30) {n};
+  \node[fc] (l6) at (3.2,-3.30) {a};
+  \node[font=\tiny,gray] at (3.7,-3.30) {6};
+  \draw[gray,thick] (f0.east) -- (l4.west);
+  \draw[red!70!black,thick] (f1.east) -- (l0.west);
+  \draw[red!70!black,thick] (f2.east) -- (l5.west);
+  \draw[red!70!black,thick] (f3.east) -- (l6.west);
+  \draw[green!50!black,thick] (f4.east) -- (l3.west);
+  \draw[blue!60!black,thick] (f5.east) -- (l1.west);
+  \draw[blue!60!black,thick] (f6.east) -- (l2.west);
+  \node[font=\scriptsize] at (0,0.5) {$F$};
+  \node[font=\scriptsize] at (3.2,0.5) {$L$};
+\end{tikzpicture}
+\end{center}
 
 Decoding runs in $\bigO(n)$ time (counting sort for the stable sort). The
 \texttt{bzip2} pipeline is: BWT $\to$ MTF $\to$ RLE $\to$ Huffman.

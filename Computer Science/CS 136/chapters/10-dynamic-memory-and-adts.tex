@@ -1,5 +1,11 @@
 \chapter{Dynamic Memory and ADTs in C}
 
+\tikzset{
+  hcell/.style={draw,minimum width=0.9cm,minimum height=0.7cm,font=\small},
+  hptr/.style={-{Stealth[length=2mm]},thick},
+  sect/.style={font=\scriptsize\bfseries}
+}
+
 \textbf{Readings:} CP:AMA 17.1--17.4, 19.
 
 \section{Motivation}
@@ -98,6 +104,21 @@ and not yet freed. \code{free(NULL)} does nothing.
 int *p = malloc(sizeof(int));
 p = malloc(sizeof(int));     // leak: the first block is unreachable
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}
+  \node[sect] at (0,1.0) {stack};
+  \node[sect] at (4,1.0) {heap};
+  \node[hcell,minimum width=1.2cm] (p) at (0,0) {}; \node[left=1mm of p] {\code{p}};
+  \fill (p.center) circle (1.5pt);
+  \node[hcell,fill=red!12,draw=red!70!black] (b1) at (4,0.3) {?};
+  \node[hcell,fill=blue!8] (b2) at (4,-0.7) {?};
+  \draw[hptr,dashed,gray] (p.center) -- (b1.west);
+  \draw[hptr] (p.center) -- (b2.west);
+  \node[font=\scriptsize,red!70!black,anchor=west] at (4.6,0.3) {leaked: nothing points here};
+  \node[font=\scriptsize,anchor=west] at (4.6,-0.7) {second block};
+\end{tikzpicture}
+\end{center}
+
   \item \textbf{Dangling pointer (use after free):} using a pointer after its block has been
     freed. The memory may have been reused for something else.
 \begin{lstlisting}[style=c]
@@ -160,6 +181,24 @@ must no longer be used.
     size of the block.
 \end{itemize}
 
+\begin{center}
+\begin{tikzpicture}
+  \node[sect] at (-0.6,1.0) {before};
+  \node[font=\small\ttfamily,anchor=east] at (-0.6,0) {a};
+  \foreach \v [count=\i from 0] in {3,1,4} \node[hcell,fill=gray!10,dashed,text=gray] (o\i) at (1+\i*0.9,0) {\v};
+  \node[font=\scriptsize,anchor=west] at (3.9,0) {old block (3 ints), now freed};
+  \node[sect] at (-0.6,-1.4) {after};
+  \node[font=\small\ttfamily,anchor=east] at (-0.6,-2.4) {a};
+  \foreach \v [count=\i from 0] in {3,1,4} \node[hcell,fill=green!10] (n\i) at (1+\i*0.9,-2.4) {\v};
+  \foreach \i in {3,4,5} \node[hcell] at (1+\i*0.9,-2.4) {?};
+  \foreach \i in {0,1,2} \draw[-{Stealth},gray] (o\i.south) -- (n\i.north);
+  \node[font=\scriptsize,gray,anchor=west] at (3.9,-1.2) {contents copied, old block freed};
+  \node[font=\scriptsize,anchor=west] at (6.45,-2.4) {\code{a = realloc(a, 6 * sizeof(int))}};
+\end{tikzpicture}
+\end{center}
+The new block may be at a different address, so any other pointer into the old block is now
+dangling.
+
 \subsection{Reading a string of unknown length}
 
 \begin{lstlisting}[style=c]
@@ -211,6 +250,21 @@ expensive copy happens only when the length reaches $1, 2, 4, 8, \dots$. Appendi
 copies at most
 \[ 1 + 2 + 4 + \dots + 2^{\floor{\log_2 n}} < 2n \]
 elements in total, plus $\bigO(1)$ work per append, so the total is $\bigO(n)$.
+
+\begin{center}
+\begin{tikzpicture}[x=6mm]
+  \foreach \cap/\used/\y/\lab in {1/1/0/{append 1st},2/2/-0.9/{append 2nd: copy 1},4/3/-1.8/{append 3rd: copy 2},8/5/-2.7/{append 5th: copy 4}} {
+    \foreach \k in {1,...,\cap} {
+      \pgfmathsetmacro{\f}{\k<=\used ? 1 : 0}
+      \ifdim\f pt>0pt \fill[blue!20] (\k-1,\y-0.3) rectangle (\k,\y+0.3); \fi
+      \draw (\k-1,\y-0.3) rectangle (\k,\y+0.3);
+    }
+    \node[font=\scriptsize,anchor=east] at (-0.3,\y) {\code{maxlen = \cap}};
+    \node[font=\scriptsize,anchor=west] at (8.5,\y) {\lab};
+  }
+  \node[font=\scriptsize,anchor=west,gray] at (8.5,-3.5) {appends 1, 4, 6, 7, 8 copy nothing};
+\end{tikzpicture}
+\end{center}
 
 \begin{definition}
 The \emph{amortized} running time of an operation is the total time of a sequence of $n$
@@ -347,6 +401,27 @@ int main(void) {
 The client cannot write \code{s->len} or \code{struct stack x;} because the structure is not
 defined in \code{stack.h}; the compiler enforces the abstraction. We can later replace the
 dynamic array by a linked list (Unit~11) without changing any client.
+
+\begin{center}
+\begin{tikzpicture}[fld/.style={draw,minimum width=1.9cm,minimum height=6mm,font=\scriptsize\ttfamily}]
+  \node[sect] at (0,1.2) {stack (client)};
+  \node[sect] at (4.4,1.2) {heap};
+  \node[hcell,minimum width=1.2cm] (s) at (0,0) {}; \node[left=1mm of s] {\code{s}};
+  \fill (s.center) circle (1.5pt);
+  \node[fld] (len) at (4.4,0.3) {len: 3};
+  \node[fld,below=0pt of len] (mx) {maxlen: 4};
+  \node[fld,below=0pt of mx] (dt) {data:};
+  \node[font=\scriptsize,above=0pt of len] {\code{struct stack}};
+  \foreach \v [count=\i from 0] in {7,2,5} \node[hcell,fill=blue!8] (d\i) at (7.2+\i*0.9,-0.9) {\v};
+  \node[hcell] (d3) at (7.2+3*0.9,-0.9) {?};
+  \fill ($(dt.east)+(-0.3,0)$) circle (1.5pt);
+  \draw[hptr] ($(dt.east)+(-0.3,0)$) -- (d0.west);
+  \draw[hptr] (s.center) -- (len.west);
+  \node[font=\scriptsize,anchor=south] at (d2.north) {top};
+\end{tikzpicture}
+\end{center}
+The client holds only the pointer \code{s}; both the structure and its array live on the heap,
+which is why \code{stack\_destroy} must free two blocks.
 
 \begin{important}[Freeing nested structures]
 Free memory ``inside out'': free what a structure points to before freeing the structure itself.

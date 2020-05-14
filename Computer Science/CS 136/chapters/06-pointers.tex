@@ -82,6 +82,20 @@ int **pp = &p;     // pointer to pointer to int
 **pp = 6;          // i is now 6
 \end{lstlisting}
 
+\begin{center}
+\begin{tikzpicture}
+  \node[cell] (pp) at (0,0) {0x5008}; \node[above=0mm of pp] {\code{pp}};
+  \node[below=0mm of pp,font=\scriptsize] {0x5010};
+  \node[cell] (p) at (3.4,0) {0x5000}; \node[above=0mm of p] {\code{p}};
+  \node[below=0mm of p,font=\scriptsize] {0x5008};
+  \node[cell] (i) at (6.8,0) {6}; \node[above=0mm of i] {\code{i}};
+  \node[below=0mm of i,font=\scriptsize] {0x5000};
+  \draw[ptr] (pp.east) -- (p.west);
+  \draw[ptr] (p.east) -- (i.west);
+  \node[font=\scriptsize,anchor=west,align=left] at (7.7,0) {\code{*pp} is \code{p}\\\code{**pp} is \code{i}};
+\end{tikzpicture}
+\end{center}
+
 \section{The \code{NULL} Pointer}
 
 \code{NULL} (defined in \code{<stdlib.h>} and \code{<stdio.h>}, among others) is a special
@@ -222,6 +236,22 @@ Once the function returns, its stack frame is gone; the pointer now points at me
 be reused by the next call. Using it is undefined behaviour.
 \end{important}
 
+\begin{center}
+\begin{tikzpicture}[fr/.style={draw,minimum width=4.2cm,align=left,text width=4cm,inner sep=4pt,font=\small}]
+  \node[font=\scriptsize\bfseries] at (0,2.3) {during \code{bad()}};
+  \node[fr] (b) at (0,1.35) {\textbf{bad}\\ x: 5};
+  \node[fr,below=0pt of b] (m) {\textbf{main}\\ p: ???};
+  \node[font=\scriptsize\bfseries] at (6,2.3) {after \code{p = bad();}};
+  \node[fr,draw=gray,dashed,text=gray] (b2) at (6,1.35) {(popped frame)\\ x: 5 \emph{(stale)}};
+  \node[fr,below=0pt of b2] (m2) {\textbf{main}\\ p:};
+  \coordinate (d) at ($(m2.south west)+(0.75,0.3)$);
+  \fill (d) circle (1.5pt);
+  \draw[ptr,red!70!black] (d) -- ($(m2.east |- d)+(0.4,0)$) |- (b2.east);
+  \node[font=\scriptsize,red!70!black,anchor=west] at ($(m2.east)+(0.5,0.45)$) {dangling};
+\end{tikzpicture}
+\end{center}
+The next function call reuses the popped frame's memory, overwriting whatever \code{p} points at.
+
 \section{Passing Structures}
 
 Passing a structure by value copies the entire structure into the new stack frame. For large
@@ -314,6 +344,18 @@ int apply_twice(int (*f)(int), int x) {
 }
 apply_twice(my_sqr, 3);   // 81
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[fn/.style={draw,rounded corners,fill=gray!8,font=\scriptsize\ttfamily,minimum width=2.4cm,minimum height=7mm}]
+  \node[font=\scriptsize\bfseries] at (5,1.15) {code section};
+  \draw[gray] (3.4,-1.75) rectangle (6.6,0.85);
+  \node[fn] (sq) at (5,0.25) {my\_sqr: ...};
+  \node[fn] (ng) at (5,-1.05) {my\_neg: ...};
+  \node[cell] (f) at (0,-0.4) {}; \node[left=1mm of f] {\code{f}};
+  \fill (f.center) circle (1.5pt);
+  \draw[ptr,dashed,gray] (f.center) -- node[above,font=\scriptsize]{before} (sq.west);
+  \draw[ptr] (f.center) -- node[below,font=\scriptsize]{after \code{f = my\_neg}} (ng.west);
+\end{tikzpicture}
+\end{center}
 The syntax \code{int (*f)(int)} reads: ``\code{f} is a pointer to a function taking an
 \code{int} and returning an \code{int}''. The parentheses around \code{*f} are needed:
 \code{int *f(int)} would declare a function returning an \code{int *}. We use function pointers

@@ -168,6 +168,33 @@ step & stack & remaining input & action \\
 The sequence of expansions (0,1,4,8,6,2,4,8,5,8,6,3) is exactly the leftmost derivation.
 \end{example}
 
+The parse tree the trace builds, root first (leaves read left to right give the input):
+\begin{center}
+\begin{tikzpicture}[level distance=0.8cm,every node/.style={font=\small},
+  level 1/.style={sibling distance=3.5cm},
+  level 2/.style={sibling distance=3cm},
+  level 3/.style={sibling distance=1.5cm},
+  level 4/.style={sibling distance=1.6cm},
+  level 5/.style={sibling distance=0.9cm}]
+\node {$S'$}
+  child {node {$\vdash$}}
+  child {node {$E$}
+    child {node {$T$}
+      child {node {$F$} child {node {id}}}
+      child {node {$T'$} child {node {$\varepsilon$}}}}
+    child {node {$E'$}
+      child {node {$+$}}
+      child {node {$T$}
+        child {node {$F$} child {node {id}}}
+        child {node {$T'$}
+          child {node {$*$}}
+          child {node {$F$} child {node {id}}}
+          child {node {$T'$} child {node {$\varepsilon$}}}}}
+      child {node {$E'$} child {node {$\varepsilon$}}}}}
+  child {node {$\dashv$}};
+\end{tikzpicture}
+\end{center}
+
 \section{When a grammar is not LL(1)}
 
 \subsection{Left recursion}
@@ -184,6 +211,24 @@ The rewritten grammar's parse tree for $a-b-c$ hangs to the right. A compiler mu
 re-associate when building the abstract syntax tree (or evaluate with an accumulator) to
 preserve left associativity. This is one reason LR parsing is preferred for expressions.
 \end{important}
+
+\begin{center}
+\begin{tikzpicture}[level distance=0.8cm,level 1/.style={sibling distance=2.2cm},
+  level 2/.style={sibling distance=1.4cm},level 3/.style={sibling distance=0.85cm},every node/.style={font=\small}]
+\node {$E$}
+  child {node {$T$} child {node {$a$}}}
+  child {node {$E'$}
+    child {node {$-$}}
+    child {node {$T$} child {node {$b$}}}
+    child {node {$E'$}
+      child {node {$-$}}
+      child {node {$T$} child {node {$c$}}}
+      child {node {$E'$} child {node {$\varepsilon$}}}}};
+\end{tikzpicture}
+
+\small $a-b-c$ with $E\to TE'$, $E'\to -TE'\mid\varepsilon$: the tree hangs to the right,
+so a naive walk would compute $a-(b-c)$.
+\end{center}
 
 \subsection{Common prefixes: left factoring}
 $A \to \alpha\beta_1 \mid \alpha\beta_2$ conflicts on $\mathrm{First}(\alpha)$. Factor out

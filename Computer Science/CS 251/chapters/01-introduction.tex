@@ -51,6 +51,21 @@ the processor understands only one language, a low-level \emph{machine
 language}. A compiler translates high-level code to assembly, and an
 assembler translates assembly into binary machine code.
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[>=Stealth, thick, font=\small, node distance=0.5cm and 1.5cm,
+  lang/.style={draw, rounded corners, align=center, minimum height=1.2cm, text width=2.6cm},
+  tool/.style={font=\scriptsize\itshape, above}]
+  \node[lang] (hl) {High-level code\\[-1pt]{\scriptsize\ttfamily f = (g+h)-(i+j);}};
+  \node[lang, right=of hl] (asm) {Assembly\\[-1pt]{\scriptsize\ttfamily add \$t0,\$s2,\$s3}};
+  \node[lang, right=of asm] (mc) {Machine code\\[-1pt]{\scriptsize\ttfamily 0000 0010 0101\ldots}};
+  \draw[->] (hl) -- node[tool]{compiler} (asm);
+  \draw[->] (asm) -- node[tool]{assembler} (mc);
+  \draw[->] (mc.south) -- ++(0,-0.6) node[below, font=\scriptsize]{executed by the processor};
+\end{tikzpicture}
+\caption{From source code to the processor's machine language.}
+\end{figure}
+
 \begin{definition}
 An \textbf{instruction} is a single operation the processor knows how to
 perform, for example \code{add}, \code{sub}, a branch or a jump. The
@@ -112,6 +127,19 @@ The execution of an instruction in hardware is divided into five steps:
 instruction fetch, instruction decode/register read, execute (ALU), memory
 access, and register write-back. This five-way split will reappear when we
 pipeline the processor.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth, thick, font=\small, node distance=0.45cm,
+  st/.style={draw, fill=blue!6, rounded corners, align=center, minimum height=1cm, text width=1.9cm}]
+  \node[st] (if) {Fetch\\[-2pt]{\scriptsize read instr.}};
+  \node[st, right=of if] (id) {Decode\\[-2pt]{\scriptsize read regs}};
+  \node[st, right=of id] (ex) {Execute\\[-2pt]{\scriptsize ALU}};
+  \node[st, right=of ex] (mem) {Memory\\[-2pt]{\scriptsize load/store}};
+  \node[st, right=of mem] (wb) {Write-back\\[-2pt]{\scriptsize write reg}};
+  \foreach \a/\b in {if/id, id/ex, ex/mem, mem/wb} \draw[->] (\a) -- (\b);
+  \draw[->] (wb.south) -- ++(0,-0.35) -| node[pos=0.25, below, font=\scriptsize]{next instruction ($PC+4$)} (if.south);
+\end{tikzpicture}
+\end{center}
 
 \subsection{Registers}
 

@@ -149,6 +149,27 @@ $A \backslash BC$ & 00 & 01 & 11 & 10 \\
 \end{center}
 Three groups of two: the column $BC = 11$ gives $BC$; cells $(1,01),(1,11)$
 give $AC$; cells $(1,11),(1,10)$ give $AB$. So $F = AB + AC + BC$.
+
+\begin{center}
+\begin{tikzpicture}[x=1cm, y=0.8cm, font=\small]
+  \foreach \c/\lab in {0/00, 1/01, 2/11, 3/10} \node at (\c+0.5,0.35) {\lab};
+  \foreach \r in {0,1} \node at (-0.35,-\r-0.5) {\r};
+  \node at (-0.45,0.35) {\scriptsize $A\backslash BC$};
+  \foreach \c in {0,...,4} \draw (\c,0) -- (\c,-2);
+  \foreach \r in {0,1,2} \draw (0,-\r) -- (4,-\r);
+  \foreach \r/\row in {0/{0,0,1,0}, 1/{0,1,1,1}} {
+    \foreach \v [count=\c from 0] in \row \node at (\c+0.5,-\r-0.5) {\v};
+  }
+  \draw[very thick, red!70!black, rounded corners] (2.12,-0.1) rectangle (2.88,-1.9);
+  \draw[very thick, blue!70!black, rounded corners] (1.05,-1.15) rectangle (2.95,-1.85);
+  \draw[very thick, green!50!black, rounded corners, dashed] (2.05,-1.08) rectangle (3.92,-1.92);
+  \node[red!70!black, font=\scriptsize, right] at (4.2,-0.4) {$BC$};
+  \node[blue!70!black, font=\scriptsize, right] at (4.2,-1.0) {$AC$};
+  \node[green!50!black, font=\scriptsize, right] at (4.2,-1.6) {$AB$};
+\end{tikzpicture}
+\end{center}
+The three overlapping groups of the majority K-map; overlapping is allowed
+because $X + X = X$.
 \end{example}
 
 \begin{example}[Four variables]
@@ -166,6 +187,29 @@ $AB \backslash CD$ & 00 & 01 & 11 & 10 \\
 The four corners form one group (wrap-around) giving $\overline{B}\,\overline{D}$;
 the middle $2\times 2$ block gives $BD$. Hence
 $F = \overline{B}\,\overline{D} + BD = \overline{B \oplus D}$.
+
+\begin{center}
+\begin{tikzpicture}[x=1cm, y=0.8cm, font=\small]
+  \foreach \c/\lab in {0/00, 1/01, 2/11, 3/10} \node at (\c+0.5,0.35) {\lab};
+  \foreach \r/\lab in {0/00, 1/01, 2/11, 3/10} \node at (-0.35,-\r-0.5) {\lab};
+  \node at (-0.55,0.35) {\scriptsize $AB\backslash CD$};
+  \foreach \r/\row in {0/{1,0,0,1}, 1/{0,1,1,0}, 2/{0,1,1,0}, 3/{1,0,0,1}} {
+    \foreach \v [count=\c from 0] in \row \node at (\c+0.5,-\r-0.5) {\v};
+  }
+  \foreach \c in {0,...,4} \draw (\c,0) -- (\c,-4);
+  \foreach \r in {0,...,4} \draw (0,-\r) -- (4,-\r);
+  \begin{scope}
+    \clip (0,0) rectangle (4,-4);
+    \foreach \x/\y in {0/0, 4/0, 0/-4, 4/-4}
+      \draw[very thick, red!70!black, rounded corners] (\x-0.88,\y+0.88) rectangle (\x+0.88,\y-0.88);
+  \end{scope}
+  \draw[very thick, blue!70!black, rounded corners] (1.12,-1.12) rectangle (2.88,-2.88);
+  \node[red!70!black, font=\scriptsize, right] at (4.2,-0.5) {corners: $\overline{B}\,\overline{D}$};
+  \node[blue!70!black, font=\scriptsize, right] at (4.2,-2) {centre: $BD$};
+\end{tikzpicture}
+\end{center}
+The red group wraps around both edges: the map is really a torus, so the
+four corners are mutually adjacent.
 \end{example}
 
 \section{Combinational Building Blocks}
@@ -227,6 +271,40 @@ $A$ & $B$ & $C_{in}$ & $C_{out}$ & $S$ \\
 
 Notice $C_{out}$ is exactly the majority function.
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[circuit logic US, huge circuit symbols, every circuit symbol/.style={thick}, thick]
+  \node[xor gate, inputs=nn] (x1) at (2,1.2) {};
+  \node[xor gate, inputs=nn] (x2) at (5.4,0.85) {};
+  \node[and gate, inputs=nn] (a1) at (5.4,-0.6) {};
+  \node[and gate, inputs=nn] (a2) at (5.4,-2) {};
+  \node[or gate, inputs=nn] (o1) at (7.5,-1.3) {};
+  % inputs
+  \draw (-0.6,2.0) node[left]{$A$} -- (1.0,2.0) |- (x1.input 1);
+  \draw (-0.6,0 |- x1.input 2) node[left]{$B$} -- (x1.input 2);
+  \fill (0.0,2.0) circle (1.5pt);
+  \draw (0.0,2.0) |- (a2.input 1);
+  \fill (0.4,0 |- x1.input 2) circle (1.5pt);
+  \draw (0.4,0 |- x1.input 2) |- (a2.input 2);
+  \path (x2.input 2) ++(-0.4,0) coordinate (cu);
+  \path (x2.input 2) ++(-0.9,0) coordinate (cb);
+  \draw (-0.6,0.2) node[left]{$C_{in}$} -- (cu |- 0,0.2) -- (cu) -- (x2.input 2);
+  \fill (cb |- 0,0.2) circle (1.5pt);
+  \draw (cb |- 0,0.2) |- (a1.input 1);
+  % A xor B to second xor and to the lower AND input
+  \draw (x1.output) -- ++(0.5,0) coordinate(j) |- (x2.input 1);
+  \draw (j) |- (a1.input 2);
+  \fill (j) circle (1.5pt);
+  % outputs
+  \draw (x2.output) -- ++(2.4,0) node[right]{$S$};
+  \draw (a1.output) -- ++(0.4,0) |- (o1.input 1);
+  \draw (a2.output) -- ++(0.4,0) |- (o1.input 2);
+  \draw (o1.output) -- ++(0.6,0) node[right]{$C_{out}$};
+\end{tikzpicture}
+\caption{A full adder from two half adders: $S = (A\oplus B)\oplus C_{in}$
+and $C_{out} = AB + C_{in}(A\oplus B)$, which equals the majority function.}
+\end{figure}
+
 \paragraph{Ripple-carry adder.} Chain $n$ full adders, the carry-out of bit
 $i$ feeding the carry-in of bit $i+1$. Simple, but the delay is $\Theta(n)$
 because the carry may have to ripple through every stage.
@@ -265,6 +343,55 @@ The \textbf{arithmetic logic unit} computes one of several operations on two
 32-bit inputs, chosen by a control input. A 1-bit ALU slice contains an AND
 gate, an OR gate and a full adder, with a mux choosing the result;
 32 slices are chained through the carries.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[circuit logic US, large circuit symbols, every circuit symbol/.style={thick}, thick, >=Stealth, font=\small]
+  % gates
+  \node[and gate, inputs=nn] (and) at (4,1.6) {};
+  \node[or gate, inputs=nn] (or) at (4,0.4) {};
+  \node[draw, minimum width=0.9cm, minimum height=1.1cm] (fa) at (4,-1.6) {$+$};
+  % Binvert mux
+  \draw (1.4,-0.6) -- (1.4,-2) -- (1.9,-1.8) -- (1.9,-0.8) -- cycle;
+  \node[font=\tiny] at (1.55,-0.95) {0}; \node[font=\tiny] at (1.55,-1.65) {1};
+  \node[not gate] (inv) at (0.55,-1.65) {};
+  \draw (-0.6,-0.95) node[left]{$b$} -- (1.4,-0.95);
+  \fill (-0.2,-0.95) circle (1.5pt);
+  \draw (-0.2,-0.95) |- (inv.input);
+  \draw (inv.output) -- (1.4,-1.65);
+  \draw (1.65,-1.9) -- (1.65,-2.6) node[below, font=\scriptsize]{Binvert};
+  % a bus
+  \draw (-0.6,2.2) node[left]{$a$} -- (2.4,2.2) -- (2.4,-1.35);
+  \foreach \y in {1.6,0.4} \fill (2.4,\y+0.2) circle (0pt);
+  \draw (2.4,0 |- and.input 1) -- (and.input 1);
+  \draw (2.4,0 |- or.input 1) -- (or.input 1);
+  \draw (2.4,-1.35) -- ($(fa.west)+(0,0.25)$);
+  \fill (2.4,0 |- and.input 1) circle (1.5pt);
+  \fill (2.4,0 |- or.input 1) circle (1.5pt);
+  % b bus
+  \draw (1.9,-1.3) -- (2.9,-1.3);
+  \draw (2.9,-1.85) -- (2.9,0 |- and.input 2) -- (and.input 2);
+  \draw (2.9,0 |- or.input 2) -- (or.input 2);
+  \draw (2.9,-1.85) -- ($(fa.west)+(0,-0.25)$);
+  \fill (2.9,-1.3) circle (1.5pt);
+  \fill (2.9,0 |- or.input 2) circle (1.5pt);
+  % operation mux
+  \draw (5.6,2.3) -- (5.6,-2.3) -- (6.2,-1.7) -- (6.2,1.7) -- cycle;
+  \node[font=\tiny] at (5.75,1.6) {0}; \node[font=\tiny] at (5.75,0.4) {1};
+  \node[font=\tiny] at (5.75,-1.6) {2};
+  \draw (and.output) -- (5.6,1.6);
+  \draw (or.output) -- (5.6,0.4);
+  \draw (fa.east) -- (5.6,-1.6);
+  \draw (6.2,0) -- (6.8,0) node[right]{Result};
+  \draw (5.9,2) -- (5.9,2.7) node[above, font=\scriptsize]{Operation};
+  % carries
+  \draw[<-] (fa.north) -- ++(0,0.5) node[above, font=\scriptsize]{CarryIn};
+  \draw[->] (fa.south) -- ++(0,-0.6) node[below, font=\scriptsize]{CarryOut};
+\end{tikzpicture}
+\caption{One 1-bit ALU slice: AND, OR and a full adder compute in
+parallel and the \code{Operation} mux picks one. \code{Binvert} selects
+$\overline{b}$ for subtraction.}
+\end{figure}
 
 \begin{center}
 \begin{tabular}{cl}

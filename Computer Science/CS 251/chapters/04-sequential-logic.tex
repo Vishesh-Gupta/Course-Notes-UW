@@ -69,12 +69,68 @@ combinational logic can cause a value to race around the loop several times
 in one cycle; flip-flops prevent this.
 \end{important}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1.6cm, y=0.8cm, font=\small]
+  \fill[blue!8] (1,-0.2) rectangle (2,4.0);
+  \fill[blue!8] (3,-0.2) rectangle (4,4.0);
+  \fill[blue!8] (5,-0.2) rectangle (6,4.0);
+  \foreach \x in {1,3,5} \draw[red!60!black, densely dashed] (\x,-0.2) -- (\x,4.0);
+  \node[anchor=east] at (-0.1,3.3) {$C$ (clock)};
+  \node[anchor=east] at (-0.1,2.3) {$D$};
+  \node[anchor=east] at (-0.1,1.3) {$Q$, D latch};
+  \node[anchor=east] at (-0.1,0.3) {$Q$, flip-flop};
+  \draw[thick] (0,3) -- (1,3) -- (1,3.6) -- (2,3.6) -- (2,3) -- (3,3) -- (3,3.6) -- (4,3.6) -- (4,3) -- (5,3) -- (5,3.6) -- (6,3.6);
+  \draw[thick] (0,2) -- (0.5,2) -- (0.5,2.6) -- (1.4,2.6) -- (1.4,2) -- (1.7,2) -- (1.7,2.6) -- (2.6,2.6) -- (2.6,2) -- (3.5,2) -- (3.5,2.6) -- (4.3,2.6) -- (4.3,2) -- (6,2);
+  \draw[thick] (0,1) -- (1,1) -- (1,1.6) -- (1.4,1.6) -- (1.4,1) -- (1.7,1) -- (1.7,1.6) -- (3,1.6) -- (3,1) -- (3.5,1) -- (3.5,1.6) -- (5,1.6) -- (5,1) -- (6,1);
+  \draw[thick] (0,0) -- (1,0) -- (1,0.6) -- (3,0.6) -- (3,0) -- (6,0);
+  \node[font=\scriptsize, blue!50!black] at (1.5,4.25) {transparent};
+  \node[font=\scriptsize, red!60!black] at (3,4.25) {rising edge};
+\end{tikzpicture}
+\caption{A D latch (level-sensitive) passes every change of $D$ while the
+clock is high (shaded); a D flip-flop only samples $D$ at the rising edges
+(dashed), so it ignores the short pulse in $D$ during the first high phase.}
+\end{figure}
+
 \paragraph{Timing constraints.} The input must be stable for a
 \emph{setup time} before the edge and a \emph{hold time} after it; the output
 changes a \emph{clock-to-Q} delay after the edge. Therefore
 \[
 T_{clock} \ge t_{clk\to Q} + t_{\text{critical path}} + t_{setup}.
 \]
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=0.8cm, font=\small, >=Stealth]
+  % clock
+  \draw[thick] (0,2) -- (1,2) -- (1,2.6) -- (5,2.6) -- (5,2) -- (9,2) -- (9,2.6) -- (10.5,2.6);
+  \node[anchor=east] at (-0.1,2.3) {clock};
+  % register output Q and combinational logic output
+  \draw[thick] (0,1) -- (1.6,1) (0,1.6) -- (1.6,1.6);
+  \draw[thick] (1.6,1) -- (1.8,1.6) (1.6,1.6) -- (1.8,1) ;
+  \draw[thick] (1.8,1) -- (10.5,1) (1.8,1.6) -- (10.5,1.6);
+  \node[anchor=east] at (-0.1,1.3) {$Q$};
+  \draw[thick] (0,0) -- (6.4,0) (0,0.6) -- (6.4,0.6);
+  \fill[gray!25] (1.8,0) -- (6.4,0) -- (6.6,0.3) -- (6.4,0.6) -- (1.8,0.6) -- cycle;
+  \draw[thick] (6.4,0) -- (6.6,0.3) -- (6.4,0.6) (6.6,0.3) -- (6.8,0) -- (10.5,0) (6.6,0.3) -- (6.8,0.6) -- (10.5,0.6);
+  \node[font=\scriptsize] at (4.1,0.3) {logic settling};
+  \node[anchor=east] at (-0.1,0.3) {next $D$};
+  % edges and annotations
+  \draw[densely dashed] (1,-0.3) -- (1,3) (9,-0.3) -- (9,3);
+  \draw[<->] (1,-0.6) -- node[below, font=\scriptsize]{$t_{clk\to Q}$} (1.8,-0.6);
+  \draw[<->] (1.8,-0.6) -- node[below, font=\scriptsize]{$t_{\text{critical path}}$} (6.8,-0.6);
+  \draw[<->] (6.8,-0.6) -- node[below, font=\scriptsize]{slack} (8.2,-0.6);
+  \fill[red!20] (8.2,-0.1) rectangle (9,0.7);
+  \fill[orange!25] (9,-0.1) rectangle (9.5,0.7);
+  \draw[thick] (6.8,0) -- (10.5,0) (6.8,0.6) -- (10.5,0.6);
+  \draw[<->] (8.2,-0.6) -- node[below, font=\scriptsize]{$t_{setup}$} (9,-0.6);
+  \draw[<->] (9,-0.6) -- node[below right=-1pt, font=\scriptsize]{$t_{hold}$} (9.5,-0.6);
+  \draw[<->] (1,3.2) -- node[above, font=\scriptsize]{$T_{clock}$} (9,3.2);
+\end{tikzpicture}
+\caption{One clock cycle: the register output changes $t_{clk\to Q}$ after
+the edge, the logic settles along its critical path, and the new $D$ must be
+stable from $t_{setup}$ before the next edge until $t_{hold}$ after it.}
+\end{figure}
 
 \subsection{Other flip-flops}
 \begin{itemize}
@@ -101,6 +157,29 @@ The MIPS \textbf{register file} holds 32 registers of 32 bits. It has
 Reads are combinational; the write happens at the clock edge.
 \end{definition}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[>=Stealth, thick, font=\small]
+  \node[draw, minimum width=3.2cm, minimum height=3.6cm, align=center] (rf) at (0,0) {Register file\\[2pt]{\scriptsize 32 $\times$ 32 bits}};
+  \foreach \y/\lab/\w in {1.3/Read reg 1/5, 0.6/Read reg 2/5, -0.1/Write reg/5, -1.0/Write data/32} {
+    \draw[->] (-3.4,\y) -- node[above, font=\scriptsize, pos=0.4]{\lab} (-1.6,\y);
+    \draw (-2.9,\y-0.1) -- (-2.8,\y+0.1);
+    \node[font=\tiny, below] at (-2.85,\y-0.05) {\w};
+  }
+  \foreach \y/\lab in {0.9/Read data 1, -0.6/Read data 2} {
+    \draw[->] (1.6,\y) -- node[above, font=\scriptsize, pos=0.6]{\lab} (3.6,\y);
+    \draw (2.2,\y-0.1) -- (2.3,\y+0.1);
+    \node[font=\tiny, below] at (2.25,\y-0.05) {32};
+  }
+  \draw[<-] (0,1.8) -- (0,2.4) node[above, font=\scriptsize]{RegWrite};
+  \draw (-0.25,-1.8) -- (0,-1.55) -- (0.25,-1.8);
+  \draw[<-] (0,-1.8) -- (0,-2.3) node[below, font=\scriptsize]{clock};
+\end{tikzpicture}
+\caption{Interface of the MIPS register file: two 5-bit read register
+numbers select two 32-bit outputs; the write port writes \emph{Write data}
+into \emph{Write reg} at the clock edge when \code{RegWrite} = 1.}
+\end{figure}
+
 Other register types: \textbf{shift registers} (each flip-flop's input is
 its neighbour's output) and \textbf{counters} (register + incrementer).
 
@@ -114,6 +193,28 @@ logic (combinational; inputs: current state and inputs) and output logic.
   \item \textbf{Mealy} machine: outputs depend on state and inputs.
 \end{itemize}
 \end{definition}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[>=Stealth, thick, font=\small,
+  blk/.style={draw, rounded corners, align=center, minimum height=1.3cm, text width=1.8cm}]
+  \node[blk] (ns) at (0,0) {Next-state\\logic};
+  \node[draw, fill=gray!20, minimum height=1.3cm, minimum width=1.2cm, align=center] (sr) at (3.4,0) {State\\reg};
+  \node[blk] (out) at (7.0,0) {Output\\logic};
+  \draw[->] (-2.4,0.3) node[left]{inputs} -- ($(ns.west)+(0,0.3)$);
+  \draw[->] (ns) -- node[above, font=\scriptsize]{next state} (sr);
+  \draw[->] (sr) -- node[above, font=\scriptsize, pos=0.6]{current state} (out);
+  \draw[->] (out) -- (8.8,0) node[right]{outputs};
+  \draw[->] ($(sr.east)+(0.2,0)$) -- ++(0,-1.3) -| ($(ns.west)+(-0.4,-0.3)$) -- ($(ns.west)+(0,-0.3)$);
+  \fill ($(sr.east)+(0.2,0)$) circle (1.5pt);
+  \draw[->, densely dashed] (-1.8,0.3) -- (-1.8,1.3) -| node[pos=0.25, above, font=\scriptsize]{Mealy only} (out.north);
+  \fill (-1.8,0.3) circle (1.5pt);
+  \draw (3.1,-0.65) -- (3.4,-0.4) -- (3.7,-0.65);
+\end{tikzpicture}
+\caption{Structure of a synchronous FSM. In a Moore machine the outputs
+depend only on the state; a Mealy machine also feeds the inputs to the
+output logic (dashed).}
+\end{figure}
 
 Design procedure:
 \begin{enumerate}

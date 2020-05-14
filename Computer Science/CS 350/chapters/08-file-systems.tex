@@ -35,6 +35,33 @@ close(fd);
     unless \code{fsync} is called.
 \end{itemize}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, >=Stealth, x=1cm, y=0.5cm,
+  ent/.style={draw, minimum width=0.9cm, minimum height=0.5cm, inner sep=1pt},
+  obj/.style={draw, rounded corners, align=center, minimum width=2.2cm, minimum height=0.9cm, inner sep=2pt}]
+  \node[font=\small, anchor=east] at (-0.2,2.5) {parent};
+  \node[font=\small, anchor=east] at (-0.2,-2.1) {child};
+  \foreach \i in {0,...,3} \node[ent] (p\i) at (0.45,4-\i) {\i};
+  \foreach \i in {0,...,3} \node[ent] (c\i) at (0.45,-0.6-\i) {\i};
+  \node[font=\small] at (4.2,5.0) {open file objects};
+  \node[obj, fill=blue!8] (o2) at (4.2,2.6) {offset 0\\mode \code{O\_RDONLY}};
+  \node[obj, fill=blue!8] (o1) at (4.2,-1.2) {offset 512\\mode \code{O\_RDWR}};
+  \node[font=\small] at (7.9,5.0) {i-nodes (vnodes)};
+  \node[obj, fill=green!12] (v2) at (7.9,2.6) {i-node 17};
+  \node[obj, fill=green!12] (v1) at (7.9,-1.2) {i-node 42};
+  \draw[->] (p2.east) -- (o2.west);
+  \draw[->] (c2.east) -- (o2.west);
+  \draw[->] (p3.east) -- (o1.west);
+  \draw[->] (c3.east) -- (o1.west);
+  \draw[->] (o1) -- (v1); \draw[->] (o2) -- (v2);
+\end{tikzpicture}
+\caption{File descriptors index a per-process table whose entries point to
+kernel open-file objects (holding the offset), which point to i-nodes.
+After \code{fork}, parent and child share the open-file objects, so a
+\code{read} in one advances the offset seen by the other.}
+\end{figure}
+
 \section{Directories and links}
 
 Files are organized in a hierarchical namespace: a tree of \textbf{directories}. A directory is
@@ -68,6 +95,27 @@ ln -s a c         # c is a new i-node whose content is "a"
 rm a              # link count 1; b still reads "hi"; c now dangles
 \end{lstlisting}
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[font=\small, >=Stealth, x=1cm, y=0.8cm,
+  de/.style={draw, minimum width=1.2cm, minimum height=0.55cm, font=\ttfamily\small},
+  ino/.style={draw, rounded corners, align=center, minimum height=1cm, fill=green!12, font=\scriptsize}]
+  \node[font=\scriptsize] at (0,2.1) {directory};
+  \node[de, gray, densely dashed] (a) at (0,1.2) {a};
+  \node[de] (b) at (0,0.4) {b};
+  \node[de] (c) at (0,-0.4) {c};
+  \node[ino] (i42) at (3.6,0.8) {i-node 42\\links: 1\\data: \code{hi}};
+  \node[ino, fill=orange!15] (i50) at (3.6,-1.0) {symlink i-node\\data: path ``a''};
+  \draw[->, gray, densely dashed] (a.east) -- (i42.west) node[pos=0.4, above, font=\tiny]{removed};
+  \draw[->, thick] (b.east) -- (i42.west);
+  \draw[->, thick] (c.east) -- (i50.west);
+  \draw[->, red!70!black, densely dashed] (i50.west) to[out=170, in=0] node[pos=0.6, below, font=\tiny]{} ($(a.east)+(0.05,-0.1)$);
+  \node[red!70!black, font=\scriptsize, anchor=west] at (5.0,-1.0) {``a'' no longer exists: dangling};
+\end{tikzpicture}
+\end{center}
+After \code{rm a}: the hard link \code{b} still reaches i-node 42, but the
+symbolic link \code{c} stores only the name \code{a}, which no longer
+resolves.
 
 \subsection*{Multiple file systems}
 Each device/partition holds its own file system. Windows uses drive letters; Unix
@@ -121,6 +169,44 @@ To support small and large files with a fixed-size i-node, the i-node contains
   \item a \textbf{triple indirect} pointer, and so on.
 \end{itemize}
 \end{definition}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, >=Stealth, x=1cm, y=0.45cm,
+  ptr/.style={draw, minimum width=1.6cm, minimum height=0.45cm, inner sep=1pt},
+  ib/.style={draw, fill=orange!15, minimum width=0.9cm, minimum height=1.05cm, align=center, inner sep=1pt},
+  db/.style={draw, fill=green!12, minimum width=0.5cm, minimum height=0.4cm, inner sep=0pt}]
+  \node[font=\small] at (0,7.9) {i-node};
+  \node[ptr, fill=gray!15, minimum height=0.9cm] at (0,6.2) {metadata};
+  \foreach \i/\lab in {0/{direct 0}, 1/{direct 1}, 2/{\ldots}, 3/{direct 11}, 4/{single ind.}, 5/{double ind.}, 6/{triple ind.}}
+    \node[ptr] (p\i) at (0,5-\i) {\lab};
+  % direct data blocks
+  \node[db] (d0) at (2.6,5.6) {}; \node[db] (d1) at (3.2,5.6) {}; \node[db] (d3) at (4.2,5.6) {};
+  \node at (3.7,5.6) {\ldots};
+  \draw[->] (p0.east) to[out=0, in=-120] (d0.south);
+  \draw[->] (p1.east) to[out=0, in=-110] (d1.south);
+  \draw[->] (p3.east) to[out=0, in=-100] (d3.south);
+  % single
+  \node[ib] (s1) at (2.6,1.2) {1024\\ptrs};
+  \draw[->] (p4.east) -- (s1.west |- p4);
+  \node[db] (sd) at (3.7,1.6) {}; \node[db] (sd2) at (3.7,0.8) {};
+  \draw[->] (s1.east |- sd) -- (sd); \draw[->] (s1.east |- sd2) -- (sd2);
+  % double
+  \node[ib] (d1a) at (2.6,-1.4) {1024\\ptrs};
+  \draw[->] (p5.east) -- (d1a.west |- p5);
+  \node[ib] (d2a) at (4.2,-1.4) {1024\\ptrs};
+  \draw[->] (d1a.east) -- (d2a.west);
+  \node[db] (dd) at (5.3,-1.0) {}; \node[db] (dd2) at (5.3,-1.8) {};
+  \draw[->] (d2a.east |- dd) -- (dd); \draw[->] (d2a.east |- dd2) -- (dd2);
+  % triple
+  \node[anchor=west] at (1.9,-3.4) {$\to$ three levels of pointer blocks $\to$ data};
+  \draw[->] (p6.east) -- (1.9,-3.4);
+\end{tikzpicture}
+\caption{An i-node with 12 direct pointers and single, double and triple
+indirect pointers (4\,KB blocks, 1024 pointers per block); data blocks are
+green, pointer blocks orange. Small files need
+only the direct pointers; each extra level multiplies the reach by 1024.}
+\end{figure}
 
 \begin{example}[Maximum file size]
 4\,KB blocks, 4-byte block pointers ($\Rightarrow$ $P = 1024$ pointers per block), 12 direct
@@ -205,6 +291,34 @@ Before updating structures in place, first write a description of the update to 
   \item \textbf{Free}: mark the transaction as done in the journal superblock, so the space can
     be reused.
 \end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, x=1cm, y=0.8cm, >=Stealth,
+  jb/.style={draw, minimum width=1.0cm, minimum height=0.6cm, inner sep=1pt}]
+  \node[font=\small, anchor=east] at (-0.2,1) {journal};
+  \node[font=\small, anchor=east] at (-0.2,-0.6) {final locations};
+  \node[jb, fill=gray!20] at (0.5,1) {TxB};
+  \node[jb, fill=blue!10] at (1.5,1) {bitmap};
+  \node[jb, fill=blue!10] at (2.5,1) {i-node};
+  \node[jb, fill=blue!10] at (3.5,1) {data};
+  \node[jb, fill=red!20] at (5.0,1) {TxE};
+  \node[jb, fill=blue!10] at (6.8,-0.6) {bitmap};
+  \node[jb, fill=blue!10] at (7.8,-0.6) {i-node};
+  \node[jb, fill=blue!10] at (8.8,-0.6) {data};
+  \draw[decorate, decoration={brace, amplitude=4pt}] (0,1.5) -- (4,1.5) node[midway, above=4pt]{1. journal write};
+  \node[above=6pt] at (5.0,1.3) {2. commit};
+  \draw[decorate, decoration={brace, amplitude=4pt, mirror}] (6.3,-1.1) -- (9.3,-1.1) node[midway, below=4pt]{3. checkpoint};
+  \draw[->, thick, gray] (4.0,0.6) to[out=-30, in=170] (6.3,-0.6);
+  \draw[->] (-0.2,-1.8) -- (9.6,-1.8) node[right]{time};
+  \draw[densely dashed, red!70!black] (5.6,1.6) -- (5.6,-1.8);
+  \node[red!70!black, align=center, anchor=north west] at (5.65,1.6) {crash after here:\\replay};
+  \node[gray!50!black, align=center] at (2.2,-0.6) {crash before TxE:\\discard};
+\end{tikzpicture}
+\caption{Data journaling for one appended block. A crash before the
+commit block TxE leaves an incomplete transaction that recovery ignores; a
+crash after it is fixed by replaying the logged blocks.}
+\end{figure}
 
 Recovery: scan the log; \textbf{replay} (redo) every committed transaction (TxB...TxE complete);
 discard incomplete ones. Replaying twice is harmless (redo logging is idempotent). Recovery time

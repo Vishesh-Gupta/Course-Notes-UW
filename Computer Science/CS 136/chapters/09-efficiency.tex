@@ -112,6 +112,21 @@ $n \cdot n \cdot \bigO(1) = \bigO(n^2)$.
 The inner loop runs $n - 1 - i$ times for $i = 0, \dots, n-2$, so the total is
 \[ \sum_{i=0}^{n-2} (n - 1 - i) = (n-1) + (n-2) + \dots + 1 = \frac{n(n-1)}{2} \in \bigO(n^2). \]
 Selection sort is $\bigO(n^2)$ in \emph{every} case.
+Each row below is one pass of the outer loop (for $n = 6$); the cells are the
+comparisons it makes. Together they fill about half of an $n \times n$ square:
+\begin{center}
+\begin{tikzpicture}[x=5mm,y=5mm]
+  \draw[gray!50,dashed] (0,0) rectangle (6,-6);
+  \foreach \i in {0,...,4} {
+    \pgfmathtruncatemacro{\w}{5-\i}
+    \fill[blue!20] (\i+1,-\i) rectangle (6,-\i-1);
+    \draw[step=5mm] (\i+1,-\i) grid (6,-\i-1);
+    \node[font=\scriptsize,anchor=east] at (0,-\i-0.5) {$i = \i$};
+    \node[font=\scriptsize,anchor=west] at (6.2,-\i-0.5) {\w};
+  }
+  \node[font=\scriptsize,anchor=west] at (6.2,-5.7) {total $= \frac{6 \cdot 5}{2} = 15$};
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \begin{example}[Halving loop]
@@ -165,6 +180,24 @@ expected to know these; deriving them is covered in later courses).
     the list at each step: $T(n) = \bigO(n) + T(n-1) = \bigO(n^2)$.
 \end{itemize}
 \end{example}
+
+The call tree of naive \code{fib(4)} shows the problem: the same values are
+recomputed again and again, and each extra level roughly doubles the number of calls.
+
+\begin{center}
+\begin{tikzpicture}[level distance=9mm,
+  level 1/.style={sibling distance=44mm},
+  level 2/.style={sibling distance=22mm},
+  level 3/.style={sibling distance=11mm},
+  fn/.style={draw,rounded corners,fill=blue!6,font=\scriptsize\ttfamily,inner sep=2pt}]
+  \node[fn] {fib(4)}
+    child {node[fn] {fib(3)}
+      child {node[fn] {fib(2)} child {node[fn] {fib(1)}} child {node[fn] {fib(0)}}}
+      child {node[fn] {fib(1)}}}
+    child {node[fn,fill=orange!20] {fib(2)}
+      child {node[fn] {fib(1)}} child {node[fn] {fib(0)}}};
+\end{tikzpicture}
+\end{center}
 
 \section{Sorting Algorithms Revisited}
 
@@ -220,6 +253,24 @@ void merge_sort(int a[], int len) {
 }
 \end{lstlisting}
 $T(n) = \bigO(n) + 2T(n/2) = \bigO(n \log n)$ in every case, at the cost of $\bigO(n)$ extra space.
+
+The recursion tree shows where $\bigO(n \log n)$ comes from: every level
+merges a total of $n$ elements, and halving gives about $\log_2 n$ levels.
+
+\begin{center}
+\begin{tikzpicture}[b/.style={draw,fill=blue!8,minimum height=5mm,inner sep=0pt,font=\scriptsize}]
+  \node[b,minimum width=6.4cm] at (3.2,0) {$n$};
+  \foreach \i in {0,1} \node[b,minimum width=3.1cm] at (1.55+\i*3.3,-0.8) {$n/2$};
+  \foreach \i in {0,...,3} \node[b,minimum width=1.5cm] at (0.75+\i*1.62,-1.6) {$n/4$};
+  \foreach \i in {0,...,7} \node[b,minimum width=0.7cm] at (0.35+\i*0.815,-2.4) {\tiny 1};
+  \node[font=\scriptsize] at (3.2,-2.0) {$\vdots$};
+  \foreach \y/\t in {0/{$n$},-0.8/{$2 \cdot \frac n2 = n$},-1.6/{$4 \cdot \frac n4 = n$},-2.4/{$n \cdot 1 = n$}}
+    \node[font=\scriptsize,anchor=west] at (7.1,\y) {\t};
+  \node[font=\scriptsize\bfseries,anchor=west] at (7.1,0.55) {work per level};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] (-0.25,0.25) -- (-0.25,-2.65)
+    node[midway,left=5pt,font=\scriptsize] {$\approx \log_2 n$ levels};
+\end{tikzpicture}
+\end{center}
 
 \begin{center}
 \begin{tabular}{lccc}

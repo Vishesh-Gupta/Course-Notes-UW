@@ -1,5 +1,9 @@
 \chapter{Synchronization}
 
+\tikzset{thr/.style={circle, draw, thick, minimum size=8mm, inner sep=0pt, font=\small},
+  res/.style={rectangle, draw, thick, minimum size=8mm, inner sep=1pt, font=\small},
+  ra/.style={thick, -{Stealth[length=2.4mm]}}}
+
 \section{Race conditions and critical sections}
 
 Threads in a process share global data. Without coordination, concurrent access gives results
@@ -16,6 +20,24 @@ sw   t0, total      # store
 Interleaving: T1 loads 0, T2 loads 0, T1 stores 1, T2 stores 1. One increment is lost. The final
 value can be anything from 2 to 2000 (2 needs a tricky interleaving, but is possible).
 \end{example}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=0.62cm, font=\small, >=Stealth]
+  \node[font=\bfseries\small] at (0,0.9) {T1};
+  \node[font=\bfseries\small] at (3.4,0.9) {T2};
+  \node[font=\small] at (6.2,0.9) {\code{total}};
+  \foreach \r/\a in {0/{lw t0, total \ (t0=0)}, 2/{addi t0, t0, 1}, 4/{sw t0, total}}
+    \node[font=\ttfamily\scriptsize, fill=blue!8] at (0,-\r) {\a};
+  \foreach \r/\b in {1/{lw t0, total \ (t0=0)}, 3/{addi t0, t0, 1}, 5/{sw t0, total}}
+    \node[font=\ttfamily\scriptsize, fill=green!10] at (3.4,-\r) {\b};
+  \foreach \r/\v in {0/0, 1/0, 2/0, 3/0, 4/1, 5/1} \node at (6.2,-\r) {\v};
+  \draw[->, gray] (-2.2,0.3) -- node[left, font=\scriptsize]{time} (-2.2,-5.3);
+  \node[red!70!black, font=\scriptsize, anchor=west] at (6.6,-5) {should be 2};
+\end{tikzpicture}
+\caption{One interleaving of two \code{total++} operations that loses an
+update: both threads load the old value before either stores.}
+\end{figure}
 
 \begin{definition}
 A \textbf{race condition} occurs when the result of a program depends on the relative timing
@@ -236,6 +258,33 @@ Swapping the order (taking \code{mutex} before \code{P(spaces)}) can deadlock: a
 the mutex sleeps on a full buffer, and no consumer can get the mutex to free a slot.
 \end{remark}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >=Stealth]
+  \foreach \i in {0,...,15} {
+    \pgfmathsetmacro{\a}{90-22.5*\i}
+    \pgfmathsetmacro{\b}{90-22.5*(\i+1)}
+    \pgfmathtruncatemacro{\full}{(\i>=3 && \i<=8) ? 1 : 0}
+    \ifnum\full=1
+      \fill[blue!25] (\a:1.2) arc (\a:\b:1.2) -- (\b:2) arc (\b:\a:2) -- cycle;
+    \fi
+    \draw (\a:1.2) -- (\a:2);
+    \node[font=\tiny, gray] at ({90-22.5*(\i+0.5)}:2.25) {\i};
+  }
+  \draw (0,0) circle (1.2) (0,0) circle (2);
+  \draw[->, very thick, red!70!black] (0,0) -- ({90-22.5*3.5}:1.15);
+  \node[red!70!black, font=\scriptsize] at ({90-22.5*3.5}:0.45) [above] {out};
+  \draw[->, very thick, green!45!black] (0,0) -- ({90-22.5*9.5}:1.15);
+  \node[green!45!black, font=\scriptsize] at (-0.1,-0.75) {in};
+  \node[font=\scriptsize, align=left, anchor=west] at (2.7,0.5) {\textcolor{blue!60!black}{full slots}: \code{items} $=6$};
+  \node[font=\scriptsize, align=left, anchor=west] at (2.7,-0.1) {empty slots: \code{spaces} $=10$};
+\end{tikzpicture}
+\caption{The bounded buffer as a circular array of $N=16$ slots. Consumers
+take from \code{out}, producers insert at \code{in}; the two semaphores
+count full and empty slots, so \code{items} $+$ \code{spaces} $=N$ whenever
+no operation is in progress.}
+\end{figure}
+
 \section{Condition variables}
 
 A \textbf{condition variable} lets a thread wait, \emph{inside} a critical section protected by a
@@ -304,6 +353,22 @@ Thread 2: \code{lock\_acquire(B); lock\_acquire(A);}. If each gets its first loc
 forever.
 \end{example}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1.4cm, y=1.2cm]
+  \node[thr] (t1) at (0,0) {T1};
+  \node[thr] (t2) at (2,1) {T2};
+  \node[res] (a) at (0,1) {A};
+  \node[res] (b) at (2,0) {B};
+  \draw[ra] (a) -- node[left, font=\scriptsize]{held by} (t1);
+  \draw[ra, red!70!black] (t1) -- node[below, font=\scriptsize]{requests} (b);
+  \draw[ra] (b) -- node[right, font=\scriptsize]{held by} (t2);
+  \draw[ra, red!70!black] (t2) -- node[above, font=\scriptsize]{requests} (a);
+\end{tikzpicture}
+\caption{Resource allocation graph for the two-lock deadlock: the cycle
+$T1\to B\to T2\to A\to T1$ means neither thread can proceed.}
+\end{figure}
+
 \begin{definition}[Deadlock]
 A set of threads is \textbf{deadlocked} if each is blocked waiting for a resource held by
 another thread in the set, so none can make progress.
@@ -358,6 +423,30 @@ avail $=(0,0)$. Requests $U = \{T_1:(0,1), T_2:(1,0), T_3:(0,0)\}$. $T_3$ can fi
 nothing): avail $=(0,1)$. Now $T_1$ can finish: avail $=(1,1)$. Then $T_2$. No deadlock.
 If instead $T_3$ also requested $(1,0)$, nobody could proceed: $T_1,T_2,T_3$ deadlocked.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[x=1.5cm, y=1.3cm]
+  \node[thr] (t1) at (0,1) {$T_1$};
+  \node[thr] (t2) at (2,1) {$T_2$};
+  \node[thr] (t3) at (4,1) {$T_3$};
+  \node[res, minimum width=1.2cm] (r1) at (1,0) {};
+  \node[res, minimum width=1.6cm] (r2) at (3,0) {};
+  \node[font=\scriptsize, below=1pt] at (r1.south) {$R_1$};
+  \node[font=\scriptsize, below=1pt] at (r2.south) {$R_2$};
+  \fill (1,0) circle (2pt);
+  \fill (2.8,0) circle (2pt) (3.2,0) circle (2pt);
+  \draw[ra] (1,0) -- (t1);
+  \draw[ra] (2.8,0) -- (t2);
+  \draw[ra] (3.2,0) -- (t3);
+  \draw[ra, red!70!black] (t1) to[bend left=15] (r2.north west);
+  \draw[ra, red!70!black] (t2) -- (r1.north east);
+\end{tikzpicture}
+\end{center}
+The first situation of the example: dots are resource units, black edges
+are allocations and red edges are requests. There is a cycle
+$T_1\to R_2\to T_2\to R_1\to T_1$, but no deadlock, because $T_3$ can finish
+and release its unit of $R_2$. With multiple instances, a cycle is necessary
+but not sufficient for deadlock.
 
 Recovery: kill a thread in the cycle, or preempt and roll back. Many systems simply ignore
 deadlock (the ``ostrich algorithm'') and rely on lock-ordering discipline in code.

@@ -32,6 +32,25 @@ int n = 0;
 printf("%zd\n", sizeof n);       // 4
 \end{lstlisting}
 
+For example, if \code{int n} is stored at address \code{0x5000} and a
+\code{char c} right after it, memory looks like this (each box is one byte):
+
+\begin{center}
+\begin{tikzpicture}[b/.style={draw,minimum width=1.05cm,minimum height=0.7cm,font=\scriptsize\ttfamily}]
+  \foreach \i in {0,...,3} {
+    \node[b,fill=blue!8] (n\i) at (\i*1.05,0) {};
+    \node[font=\scriptsize\ttfamily,gray] at (\i*1.05,0.6) {0x500\i};
+  }
+  \node[b,fill=orange!20] (c) at (4*1.05,0) {};
+  \node[font=\scriptsize\ttfamily,gray] at (4*1.05,0.6) {0x5004};
+  \node[b,fill=gray!10] at (5*1.05,0) {\dots};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] (-0.5,-0.45) -- (3.65,-0.45)
+    node[midway,below=4pt,font=\scriptsize] {\code{n}: \code{sizeof(int)} = 4 bytes};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] (3.7,-0.45) -- (4.7,-0.45)
+    node[midway,below=4pt,font=\scriptsize,align=center] {\code{c}: 1 byte};
+\end{tikzpicture}
+\end{center}
+
 \subsection{Integer limits and overflow}
 
 An \code{int} in Seashell is 4 bytes $=$ 32 bits, so there are only $2^{32}$ possible values.
@@ -50,6 +69,24 @@ If an arithmetic result is outside the range of its type, \emph{overflow} occurs
 value usually ``wraps around'', e.g.\ \code{INT\_MAX + 1} becomes \code{INT\_MIN}). It is your
 job to make sure overflow cannot happen.
 \end{important}
+
+Picture the \code{int} values arranged on a circle: going one step past
+\code{INT\_MAX} lands on \code{INT\_MIN}.
+
+\begin{center}
+\begin{tikzpicture}
+  \draw[thick,gray] (0,0) circle (1.5);
+  \foreach \a/\t in {90/0,0/{$2^{30}$},180/{$-2^{30}$}} {
+    \fill (\a:1.5) circle (1.5pt);
+    \node[font=\scriptsize] at (\a:1.95) {\t};
+  }
+  \fill[blue!60!black] (-83:1.5) circle (2pt) node[below right,font=\scriptsize\ttfamily] {INT\_MAX};
+  \fill[red!70!black] (-97:1.5) circle (2pt) node[below left,font=\scriptsize\ttfamily] {INT\_MIN};
+  \draw[-{Stealth},thick] (60:1.15) arc (60:-60:1.15);
+  \node[font=\scriptsize] at (0,0) {$+1$ steps};
+  \draw[-{Stealth},thick,red!70!black] (-80:1.75) to[out=-150,in=-30] node[below=1pt,font=\scriptsize] {overflow} (-100:1.75);
+\end{tikzpicture}
+\end{center}
 
 \begin{aside}
 \code{unsigned int} uses the same 32 bits to store $0$ to $2^{32}-1$, and overflow of unsigned
@@ -281,6 +318,30 @@ for (int i = 1; i <= n; ++i) {   // i is local to the loop (C99)
   sum += i;
 }
 \end{lstlisting}
+
+As a flowchart, a \code{for} loop runs the setup once, then repeats
+``test, body, update'' until the test fails:
+
+\begin{center}
+\begin{tikzpicture}[b/.style={draw,rounded corners,fill=blue!6,font=\scriptsize\ttfamily,minimum height=6mm,minimum width=2.2cm},
+  q/.style={draw,diamond,aspect=2,fill=orange!15,font=\scriptsize\ttfamily,inner sep=1pt},
+  arr/.style={-{Stealth},thick}]
+  \node[b] (s) at (0,0) {int i = 1};
+  \node[q] (c) at (0,-1.3) {i <= n ?};
+  \node[b] (body) at (0,-2.7) {sum += i};
+  \node[b] (u) at (0,-3.8) {++i};
+  \node[b,fill=green!8] (e) at (3.6,-1.3) {after the loop};
+  \draw[arr] (0,0.7) -- (s);
+  \draw[arr] (s) -- (c);
+  \draw[arr] (c) -- node[right,font=\scriptsize]{true} (body);
+  \draw[arr] (body) -- (u);
+  \draw[arr] (u.west) -- ++(-0.9,0) |- (c.west);
+  \draw[arr] (c) -- node[above,font=\scriptsize]{false} (e);
+  \node[font=\scriptsize,gray,anchor=east] at (-1.2,0) {setup};
+  \node[font=\scriptsize,gray,anchor=west] at (1.2,-3.8) {update};
+  \node[font=\scriptsize,gray,anchor=west] at (1.2,-2.7) {body};
+\end{tikzpicture}
+\end{center}
 
 \paragraph{Nested loops.}
 \begin{lstlisting}[style=c]

@@ -1,5 +1,11 @@
 \chapter{Dictionaries for Special Keys}
 
+\tikzset{
+  tri/.style={circle,draw,fill=blue!6,minimum size=3.5mm,inner sep=0pt},
+  tlf/.style={draw,rounded corners,fill=green!10,font=\scriptsize\ttfamily,inner sep=2pt},
+  el/.style={font=\scriptsize\ttfamily,inner sep=1pt}
+}
+
 The comparison lower bound applies to searching too: any comparison-based search
 in a set of $n$ keys needs $\Omega(\log n)$ comparisons (a decision tree must
 have $n + 1$ distinguishable outcomes). To do better we must exploit the
@@ -38,6 +44,20 @@ interpolation-search(A[0..n-1], k):
 
 Binary search uses $m = l + \floor{\frac12 (r - l)}$; interpolation search
 replaces $\frac12$ by the fraction $\frac{k - A[l]}{A[r] - A[l]}$.
+Geometrically, it draws the line through $(l, A[l])$ and $(r, A[r])$ and probes
+where that line reaches height $k$:
+
+\begin{center}
+\begin{tikzpicture}[x=0.75cm,y=0.05cm]
+  \draw[-{Stealth}] (0,0) -- (10,0) node[right,font=\scriptsize]{index};
+  \draw[-{Stealth}] (0,0) -- (0,105) node[above,font=\scriptsize]{key};
+  \foreach \i/\v in {0/2,1/9,2/21,3/30,4/38,5/52,6/58,7/71,8/80,9/94} \fill[blue!60!black] (\i,\v) circle (1.8pt);
+  \draw[thick,orange!80!black] (0,2) -- (9,94);
+  \draw[densely dashed] (0,62) node[left,font=\scriptsize]{$k$} -- (5.86,62) -- (5.86,0) node[below,font=\scriptsize]{$m$};
+  \node[font=\scriptsize,anchor=west] at (0.15,6) {$A[l]$};
+  \node[font=\scriptsize,anchor=east] at (8.9,98) {$A[r]$};
+\end{tikzpicture}
+\end{center}
 
 \begin{example}
 $A = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]$, search 70:
@@ -80,6 +100,46 @@ at leaves. Alternatively, mark internal nodes with a flag ``a word ends here''.
 \begin{example}
 Binary trie for $\{00\$, 0001\$, 01001\$, 011\$, 0110\$, 110\$, 1101\$, 111\$\}$:
 from the root, branch on bit 0, bit 1, \ldots, with each \$ edge ending at a leaf.
+\begin{center}
+\begin{tikzpicture}[level distance=8mm,
+  level 1/.style={sibling distance=60mm},
+  level 2/.style={sibling distance=30mm},
+  level 3/.style={sibling distance=15mm},
+  level 4/.style={sibling distance=10mm},
+  level 5/.style={sibling distance=10mm},
+  level 6/.style={sibling distance=10mm},
+  edge from parent/.style={draw}]
+  \node[tri] {}
+    child {node[tri] {}
+      child {node[tri] {}
+        child {node[tlf] {00\$} edge from parent node[el,left] {\$}}
+        child {node[tri] {}
+          child {node[tri] {} child {node[tlf] {0001\$} edge from parent node[el,left] {\$}} edge from parent node[el,right] {1}}
+          edge from parent node[el,right] {0}}
+        edge from parent node[el,left] {0}}
+      child {node[tri] {}
+        child {node[tri] {}
+          child {node[tri] {} child {node[tri] {} child {node[tlf] {01001\$} edge from parent node[el,left] {\$}} edge from parent node[el,left] {1}} edge from parent node[el,left] {0}}
+          edge from parent node[el,left] {0}}
+        child {node[tri] {}
+          child {node[tlf] {011\$} edge from parent node[el,left] {\$}}
+          child {node[tri] {} child {node[tlf] {0110\$} edge from parent node[el,right] {\$}} edge from parent node[el,right] {0}}
+          edge from parent node[el,right] {1}}
+        edge from parent node[el,right] {1}}
+      edge from parent node[el,above left] {0}}
+    child {node[tri] {}
+      child[missing]
+      child {node[tri] {}
+        child {node[tri] {}
+          child {node[tlf] {110\$} edge from parent node[el,left] {\$}}
+          child {node[tri] {} child {node[tlf] {1101\$} edge from parent node[el,right] {\$}} edge from parent node[el,right] {1}}
+          edge from parent node[el,left] {0}}
+        child {node[tri] {} child {node[tlf] {111\$} edge from parent node[el,right] {\$}} edge from parent node[el,right] {1}}
+        edge from parent node[el,right] {1}}
+      edge from parent node[el,above right] {1}};
+\end{tikzpicture}
+\end{center}
+
 \end{example}
 
 \subsection{Operations}
@@ -138,6 +198,40 @@ patricia-search(v, x):
 \end{lstlisting}
 Note the final comparison with the stored key is required, since skipped
 positions were never checked.
+\begin{center}
+\begin{tikzpicture}[level distance=10mm,
+  level 1/.style={sibling distance=60mm},
+  level 2/.style={sibling distance=30mm},
+  level 3/.style={sibling distance=16mm},
+  level 4/.style={sibling distance=12mm},
+  ix/.style={circle,draw,fill=blue!6,minimum size=5mm,inner sep=0pt,font=\scriptsize}]
+  \node[ix] {0}
+    child {node[ix] {1}
+      child {node[ix] {2}
+        child {node[tlf] {00\$} edge from parent node[el,left] {\$}}
+        child {node[tlf] {0001\$} edge from parent node[el,right] {0}}
+        edge from parent node[el,left] {0}}
+      child {node[ix] {2}
+        child {node[tlf] {01001\$} edge from parent node[el,left] {0}}
+        child {node[ix] {3}
+          child {node[tlf] {011\$} edge from parent node[el,left] {\$}}
+          child {node[tlf] {0110\$} edge from parent node[el,right] {0}}
+          edge from parent node[el,right] {1}}
+        edge from parent node[el,right] {1}}
+      edge from parent node[el,above left] {0}}
+    child {node[ix] {2}
+      child {node[ix] {3}
+        child {node[tlf] {110\$} edge from parent node[el,left] {\$}}
+        child {node[tlf] {1101\$} edge from parent node[el,right] {1}}
+        edge from parent node[el,left] {0}}
+      child {node[tlf] {111\$} edge from parent node[el,right] {1}}
+      edge from parent node[el,above right] {1}};
+\end{tikzpicture}
+\end{center}
+The compressed trie for the same keys as the binary trie above: each internal
+node shows the (0-based) index of the bit it tests, and only 7 internal nodes
+remain for 8 keys.
+
 
 \paragraph{Insert.} Search for $x$; this leads to some leaf (or fails at a node).
 Compare $x$ with any key $y$ in that subtree to find the first index $d$ where

@@ -1,5 +1,13 @@
 \chapter{Working with Recursion on Lists}
 
+\tikzset{
+  lcell/.style={draw,minimum width=7mm,minimum height=6mm,inner sep=1pt},
+  lptr/.style={-{Stealth}},
+  rarr/.style={-{Stealth},thick},
+  rcall/.style={draw,rounded corners,fill=blue!6,font=\ttfamily\small,minimum height=6mm},
+  rval/.style={draw,rounded corners,fill=green!8,font=\ttfamily\small,minimum height=6mm,minimum width=8mm}
+}
+
 Having seen the list template, we now practise \textbf{structural recursion}:
 recursion whose shape follows exactly the shape of the data definition.
 
@@ -53,6 +61,31 @@ found. (Built-in: \code{member?}.)
         [(positive? (first lon)) (cons (first lon) (keep-positive (rest lon)))]
         [else (keep-positive (rest lon))]))
 \end{lstlisting}
+
+Element by element, the two patterns look like this: \code{double-all}
+sends every element through the same operation, while \code{keep-positive}
+lets some elements through and drops the rest.
+
+\begin{center}
+\begin{tikzpicture}[x=8mm]
+  \foreach \v [count=\i] in {1,2,3} {
+    \node[lcell] (t\i) at (\i,0) {\v};
+    \pgfmathtruncatemacro{\d}{2*\v}
+    \node[lcell,fill=green!8] (b\i) at (\i,-1.6) {\d};
+    \draw[rarr] (t\i) -- node[right,font=\scriptsize,inner sep=1pt]{$\times 2$} (b\i);
+  }
+  \node[font=\scriptsize\ttfamily] at (2,0.65) {double-all};
+  \foreach \v/\k [count=\i] in {3/1,-1/0,0/0,5/1} {
+    \node[lcell] (u\i) at (\i+5,0) {\v};
+  }
+  \node[font=\scriptsize\ttfamily] at (7.5,0.65) {keep-positive};
+  \node[lcell,fill=green!8] (k1) at (6.5,-1.6) {3};
+  \node[lcell,fill=green!8] (k2) at (8.5,-1.6) {5};
+  \draw[rarr] (u1) -- (k1);
+  \draw[rarr] (u4) -- (k2);
+  \foreach \i in {2,3} \draw[red!60!black,thick] ($(u\i.center)+(-0.25,-0.5)$) -- ++(0.5,-0.4) ($(u\i.center)+(0.25,-0.5)$) -- ++(-0.5,-0.4);
+\end{tikzpicture}
+\end{center}
 
 These patterns recur so often that Chapter~\ref{ch:abstraction} abstracts them
 into the built-in higher-order functions \code{map} and \code{filter}.
@@ -120,6 +153,32 @@ correct place.
         [else (cons (first slon) (insert n (rest slon)))]))
 \end{lstlisting}
 
+\code{insert} only rebuilds the cells in front of the insertion point; the
+rest of \code{slon} is shared with the result, not copied:
+
+\begin{center}
+\begin{tikzpicture}
+  \node[font=\scriptsize\ttfamily,anchor=east] at (-0.6,0) {slon};
+  \node[lcell] (a1) at (0,0) {1}; \node[lcell] (a2) at (0.7,0) {};
+  \node[lcell] (b1) at (2.1,0) {3}; \node[lcell] (b2) at (2.8,0) {};
+  \node[lcell] (c1) at (4.2,0) {5}; \node[lcell] (c2) at (4.9,0) {};
+  \node[font=\ttfamily\small] (e) at (6.4,0) {empty};
+  \draw[lptr] (a2.center) -- (a2.center -| b1.west);
+  \draw[lptr] (b2.center) -- (c1.west);
+  \draw[lptr] (c2.center) -- (e.west);
+  \begin{scope}[yshift=-1.5cm]
+  \node[font=\scriptsize\ttfamily,anchor=east] at (-0.6,0) {(insert 4 slon)};
+  \node[lcell,fill=green!8] (x1) at (0,0) {1}; \node[lcell,fill=green!8] (x2) at (0.7,0) {};
+  \node[lcell,fill=green!8] (y1) at (2.1,0) {3}; \node[lcell,fill=green!8] (y2) at (2.8,0) {};
+  \node[lcell,fill=green!8] (z1) at (4.2,0) {4}; \node[lcell,fill=green!8] (z2) at (4.9,0) {};
+  \end{scope}
+  \draw[lptr] (x2.center) -- (y1.west);
+  \draw[lptr] (y2.center) -- (z1.west);
+  \draw[lptr,thick,blue!60!black] (z2.center) -- ++(0.9,0) |- ($(c1.south)+(0,-0.25)$) -- (c1.south);
+  \node[font=\scriptsize,text=blue!60!black,anchor=west] at (5.9,-0.8) {shared tail};
+\end{tikzpicture}
+\end{center}
+
 \paragraph{Condensed trace.}
 \begin{lstlisting}[style=racket]
 (sort (list 3 1 2))
@@ -133,6 +192,28 @@ correct place.
 => (cons 1 (cons 2 (insert 3 empty)))
 => (list 1 2 3)
 \end{lstlisting}
+
+The recursion first unwinds all the way to \code{empty}; the sorted list is
+then built on the way back up by one \code{insert} per level:
+
+\begin{center}
+\begin{tikzpicture}
+  \node[rcall] (c1) at (0,0) {(sort (list 3 1 2))};
+  \node[rcall] (c2) at (0,-1.1) {(sort (list 1 2))};
+  \node[rcall] (c3) at (0,-2.2) {(sort (list 2))};
+  \node[rcall] (c4) at (0,-3.3) {(sort empty)};
+  \node[rval] (r4) at (6,-3.3) {empty};
+  \node[rval] (r3) at (6,-2.2) {(list 2)};
+  \node[rval] (r2) at (6,-1.1) {(list 1 2)};
+  \node[rval] (r1) at (6,0) {(list 1 2 3)};
+  \foreach \a/\b in {c1/c2,c2/c3,c3/c4} \draw[rarr] (\a) -- (\b);
+  \draw[rarr] (c4) -- (r4);
+  \draw[rarr,green!40!black] (r4) -- node[right,font=\scriptsize\ttfamily]{insert 2} (r3);
+  \draw[rarr,green!40!black] (r3) -- node[right,font=\scriptsize\ttfamily]{insert 1} (r2);
+  \draw[rarr,green!40!black] (r2) -- node[right,font=\scriptsize\ttfamily]{insert 3} (r1);
+  \foreach \a/\b in {c1/r1,c2/r2,c3/r3} \draw[densely dotted] (\a) -- (\b);
+\end{tikzpicture}
+\end{center}
 
 Insertion sort takes time proportional to $n^2$ in the worst case (a
 reverse-sorted list), since each of $n$ insertions may traverse the whole

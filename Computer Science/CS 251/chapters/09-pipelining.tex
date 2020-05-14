@@ -28,6 +28,28 @@ travel all the way to WB).
 
 \begin{figure}[H]
 \centering
+\begin{tikzpicture}[>=Stealth, thick, font=\small,
+  st/.style={draw, rounded corners, fill=blue!6, minimum height=1.6cm, minimum width=1.5cm, align=center},
+  preg/.style={draw, fill=gray!25, minimum height=2.4cm, minimum width=0.35cm}]
+  \node[st] (if) at (0,0) {IF\\[-1pt]{\scriptsize IMem}};
+  \node[preg, label={[font=\scriptsize]above:IF/ID}] (r1) at (1.4,0) {};
+  \node[st] (id) at (2.8,0) {ID\\[-1pt]{\scriptsize Regs}};
+  \node[preg, label={[font=\scriptsize]above:ID/EX}] (r2) at (4.2,0) {};
+  \node[st] (ex) at (5.6,0) {EX\\[-1pt]{\scriptsize ALU}};
+  \node[preg, label={[font=\scriptsize]above:EX/MEM}] (r3) at (7.0,0) {};
+  \node[st] (mem) at (8.4,0) {MEM\\[-1pt]{\scriptsize DMem}};
+  \node[preg, label={[font=\scriptsize]above:MEM/WB}] (r4) at (9.8,0) {};
+  \node[st] (wb) at (11.2,0) {WB};
+  \foreach \a/\b in {if/r1, r1/id, id/r2, r2/ex, ex/r3, r3/mem, mem/r4, r4/wb} \draw[->] (\a) -- (\b);
+  \draw[->] (wb.south) -- ++(0,-0.6) -| node[pos=0.25, below, font=\scriptsize]{write register (number carried along from ID)} (id.south);
+\end{tikzpicture}
+\caption{The five stages separated by pipeline registers. Each register
+latches everything later stages need, including control signals and the
+destination register number.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
 \begin{tikzpicture}[font=\scriptsize, x=1.1cm, y=0.6cm]
   \foreach \t in {1,...,8} \node at (\t,0.8) {CC\t};
   \foreach \i/\name in {0/lw, 1/sub, 2/add, 3/sw} {
@@ -102,6 +124,33 @@ need to \textbf{stall} (insert bubbles) for two cycles.
 end of its EX stage, long before WB. A \textbf{forwarding unit} feeds it
 directly from the EX/MEM or MEM/WB pipeline register into the ALU inputs.
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, x=1.1cm, y=0.9cm, >=Stealth]
+  \foreach \t in {1,...,8} \node at (\t,0.9) {CC\t};
+  \foreach \i/\name in {0/{sub \$2,\$1,\$3}, 1/{and \$12,\$2,\$5}, 2/{or \$13,\$6,\$2}, 3/{add \$14,\$2,\$2}} {
+    \node[anchor=east, font=\ttfamily\scriptsize] at (0.45,-\i) {\name};
+    \foreach \s/\lab in {0/IF,1/ID,2/EX,3/MEM,4/WB} {
+      \pgfmathtruncatemacro{\c}{\i+\s+1}
+      \node[draw, fill=white, minimum width=0.95cm, minimum height=0.45cm] (n\i\s) at (\c,-\i) {\lab};
+    }
+  }
+  \fill[blue!12] (n02.north west) rectangle (n02.south east); \node at (n02) {EX};
+  \foreach \n in {n04, n31} {\fill[green!15] (\n.north west) rectangle (\n.south east); \draw (\n.north west) rectangle (\n.south east);}
+  \node at (n04) {WB}; \node at (n31) {ID};
+  \draw[->, very thick, red!70!black] (n02.south east) -- (n12.north west);
+  \draw[->, very thick, red!70!black] (n03.south east) -- (n22.north west);
+  \node[red!70!black, font=\tiny, anchor=east] at (3.35,-0.5) {EX/MEM};
+  \node[red!70!black, font=\tiny, anchor=east] at (3.6,-1.5) {MEM/WB};
+\end{tikzpicture}
+\caption{Forwarding for the \code{sub} sequence. The result exists at the
+end of \code{sub}'s EX; red arrows forward it from the EX/MEM and MEM/WB
+pipeline registers into the ALU inputs of the next two instructions
+(arrows go forward in time). The \code{add} reads the register file in
+the second half of CC5 after \code{sub} wrote it in the first half
+(green).}
+\end{figure}
+
 \begin{important}[Forwarding conditions]
 EX hazard (forward from EX/MEM):
 \begin{center}
@@ -128,6 +177,29 @@ The \textbf{hazard detection unit} in ID checks
 and if true stalls one cycle: it prevents PC and IF/ID from updating and
 zeroes the control signals going into ID/EX (a bubble, i.e.\ a \code{nop}).
 After the one-cycle stall, forwarding from MEM/WB supplies the value.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, x=1.1cm, y=0.9cm, >=Stealth]
+  \foreach \t in {1,...,7} \node at (\t,0.9) {CC\t};
+  \node[anchor=east, font=\ttfamily\scriptsize] at (0.45,0) {lw \$2,20(\$1)};
+  \node[anchor=east, font=\ttfamily\scriptsize] at (0.45,-1) {and \$4,\$2,\$5};
+  \foreach \s/\lab in {0/IF,1/ID,2/EX,3/MEM,4/WB}
+    \node[draw, minimum width=0.95cm, minimum height=0.45cm] (a\s) at (\s+1,0) {\lab};
+  \node[draw, minimum width=0.95cm, minimum height=0.45cm] (b0) at (2,-1) {IF};
+  \node[draw, minimum width=0.95cm, minimum height=0.45cm] (b1) at (3,-1) {ID};
+  \node[draw, fill=gray!25, minimum width=0.95cm, minimum height=0.45cm] (bb) at (4,-1) {bubble};
+  \node[draw, minimum width=0.95cm, minimum height=0.45cm] (b2) at (5,-1) {EX};
+  \node[draw, minimum width=0.95cm, minimum height=0.45cm] (b3) at (6,-1) {MEM};
+  \node[draw, minimum width=0.95cm, minimum height=0.45cm] (b4) at (7,-1) {WB};
+  \node[font=\tiny, gray!40!black] at (4,-1.45) {(ID repeated)};
+  \draw[->, very thick, red!70!black] (a3.south east) -- (b2.north west);
+  \node[red!70!black, font=\tiny, anchor=west] at (5.0,-0.5) {forward from MEM/WB};
+\end{tikzpicture}
+\caption{Load-use hazard: the loaded value appears only at the end of
+\code{lw}'s MEM stage, so \code{and} is held in ID for one cycle (a
+bubble enters EX) and then receives the value by forwarding.}
+\end{figure}
 
 \paragraph{Code scheduling.} The compiler can reorder instructions to avoid
 load-use stalls.
@@ -172,6 +244,27 @@ Approaches:
   \item \textbf{Dynamic branch prediction}: hardware remembers past
     behaviour.
 \end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, x=1.1cm, y=0.9cm, >=Stealth]
+  \foreach \t in {1,...,7} \node at (\t,0.9) {CC\t};
+  \foreach \i/\name/\f in {0/{beq \$1,\$2,L}/0, 1/{next instr.}/1, 2/{L: target}/0} {
+    \node[anchor=east, font=\ttfamily\scriptsize] at (0.45,-\i) {\name};
+  }
+  \foreach \s/\lab in {0/IF,1/ID,2/EX,3/MEM,4/WB}
+    \node[draw, minimum width=0.95cm, minimum height=0.45cm] at (\s+1,0) {\lab};
+  \node[draw, minimum width=0.95cm, minimum height=0.45cm] at (2,-1) {IF};
+  \node[draw, fill=gray!25, minimum width=0.95cm, minimum height=0.45cm] at (3,-1) {flush};
+  \foreach \s/\lab in {0/IF,1/ID,2/EX,3/MEM,4/WB}
+    \node[draw, minimum width=0.95cm, minimum height=0.45cm] at (\s+3,-2) {\lab};
+  \node[red!70!black, font=\tiny, align=center] at (2,-2.85) {branch resolved in ID:\\taken, so fetch target};
+  \draw[->, red!70!black] (2,-0.25) to[out=-80, in=180] (2.5,-2);
+\end{tikzpicture}
+\caption{Predict not taken with the branch resolved in ID: when the branch
+is taken, the one sequentially fetched instruction is flushed (a 1-cycle
+penalty) and the target is fetched in the next cycle.}
+\end{figure}
 
 \paragraph{Dynamic prediction.} A \textbf{branch history table} (branch
 prediction buffer) is indexed by low bits of the branch address.

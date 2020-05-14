@@ -1,5 +1,11 @@
 \chapter{Dictionaries via Hashing}
 
+\tikzset{
+  sl/.style={draw,minimum width=9mm,minimum height=6mm,font=\small},
+  ix/.style={font=\scriptsize,gray},
+  ch/.style={draw,rounded corners,fill=blue!8,minimum height=5mm,font=\scriptsize,inner sep=2pt}
+}
+
 \section{Direct Addressing}
 
 If keys are integers in $\{0, \ldots, M-1\}$, store the dictionary in an array
@@ -46,6 +52,56 @@ cost of \code{search}/\code{delete} is $\Theta(1 + \alpha)$. With $\alpha \in
 \Theta(1)$ (maintained by rehashing), all operations are $\Theta(1)$ expected,
 while the worst case is $\Theta(n)$ (all keys in one bucket).
 
+With the keys of the linear-probing example below ($M = 11$,
+$h(k) = k \bmod 11$), chaining gives:
+\begin{center}
+\begin{tikzpicture}
+  \node[draw,minimum width=6mm,minimum height=5mm] (t0) at (0,0.0) {};
+  \node[ix,anchor=east] at (-0.4,0.0) {0};
+  \node[ch] (c0_0) at (1.2,0.0) {44};
+  \draw[-{Stealth}] (t0.center) -- (c0_0);
+  \node[ch] (c0_1) at (2.3,0.0) {22};
+  \draw[-{Stealth}] (c0_0) -- (c0_1);
+  \fill (t0.center) circle (1.2pt);
+  \node[draw,minimum width=6mm,minimum height=5mm] (t1) at (0,-0.5) {};
+  \node[ix,anchor=east] at (-0.4,-0.5) {1};
+  \node[draw,minimum width=6mm,minimum height=5mm] (t2) at (0,-1.0) {};
+  \node[ix,anchor=east] at (-0.4,-1.0) {2};
+  \node[draw,minimum width=6mm,minimum height=5mm] (t3) at (0,-1.5) {};
+  \node[ix,anchor=east] at (-0.4,-1.5) {3};
+  \node[draw,minimum width=6mm,minimum height=5mm] (t4) at (0,-2.0) {};
+  \node[ix,anchor=east] at (-0.4,-2.0) {4};
+  \node[ch] (c4_0) at (1.2,-2.0) {59};
+  \draw[-{Stealth}] (t4.center) -- (c4_0);
+  \fill (t4.center) circle (1.2pt);
+  \node[draw,minimum width=6mm,minimum height=5mm] (t5) at (0,-2.5) {};
+  \node[ix,anchor=east] at (-0.4,-2.5) {5};
+  \node[draw,minimum width=6mm,minimum height=5mm] (t6) at (0,-3.0) {};
+  \node[ix,anchor=east] at (-0.4,-3.0) {6};
+  \node[draw,minimum width=6mm,minimum height=5mm] (t7) at (0,-3.5) {};
+  \node[ix,anchor=east] at (-0.4,-3.5) {7};
+  \node[ch] (c7_0) at (1.2,-3.5) {73};
+  \draw[-{Stealth}] (t7.center) -- (c7_0);
+  \fill (t7.center) circle (1.2pt);
+  \node[draw,minimum width=6mm,minimum height=5mm] (t8) at (0,-4.0) {};
+  \node[ix,anchor=east] at (-0.4,-4.0) {8};
+  \node[ch] (c8_0) at (1.2,-4.0) {41};
+  \draw[-{Stealth}] (t8.center) -- (c8_0);
+  \fill (t8.center) circle (1.2pt);
+  \node[draw,minimum width=6mm,minimum height=5mm] (t9) at (0,-4.5) {};
+  \node[ix,anchor=east] at (-0.4,-4.5) {9};
+  \node[ch] (c9_0) at (1.2,-4.5) {31};
+  \draw[-{Stealth}] (t9.center) -- (c9_0);
+  \fill (t9.center) circle (1.2pt);
+  \node[draw,minimum width=6mm,minimum height=5mm] (t10) at (0,-5.0) {};
+  \node[ix,anchor=east] at (-0.4,-5.0) {10};
+  \node[ch] (c10_0) at (1.2,-5.0) {32};
+  \draw[-{Stealth}] (t10.center) -- (c10_0);
+  \fill (t10.center) circle (1.2pt);
+  \node[font=\scriptsize,anchor=west,align=left] at (3.6,-0.25) {22 and 44 both hash to 0;\\44 was inserted later, at the front};
+\end{tikzpicture}
+\end{center}
+
 \section{Open Addressing}
 
 Store all items directly in the table, at most one per slot ($\alpha \le 1$).
@@ -85,6 +141,38 @@ $M = 11$, $h(k) = k \bmod 11$. Insert 41, 22, 44, 59, 32, 31, 73.
 \end{itemize}
 Now inserting 19 ($h = 8$) probes 8, 9, 10, 0, 1 and lands in 2: the clusters at
 7--10 and 0--1 merged into one.
+\begin{center}
+\begin{tikzpicture}
+  \node[sl,fill=blue!8] (s0) at (0.0,0) {22};
+  \node[ix] at (0.0,-0.55) {0};
+  \node[sl,fill=blue!8] (s1) at (0.9,0) {44};
+  \node[ix] at (0.9,-0.55) {1};
+  \node[sl,fill=orange!25] (s2) at (1.8,0) {19};
+  \node[ix] at (1.8,-0.55) {2};
+  \node[sl,fill=white] (s3) at (2.7,0) {};
+  \node[ix] at (2.7,-0.55) {3};
+  \node[sl,fill=blue!8] (s4) at (3.6,0) {59};
+  \node[ix] at (3.6,-0.55) {4};
+  \node[sl,fill=white] (s5) at (4.5,0) {};
+  \node[ix] at (4.5,-0.55) {5};
+  \node[sl,fill=white] (s6) at (5.4,0) {};
+  \node[ix] at (5.4,-0.55) {6};
+  \node[sl,fill=blue!8] (s7) at (6.3,0) {73};
+  \node[ix] at (6.3,-0.55) {7};
+  \node[sl,fill=blue!8] (s8) at (7.2,0) {41};
+  \node[ix] at (7.2,-0.55) {8};
+  \node[sl,fill=blue!8] (s9) at (8.1,0) {31};
+  \node[ix] at (8.1,-0.55) {9};
+  \node[sl,fill=blue!8] (s10) at (9.0,0) {32};
+  \node[ix] at (9.0,-0.55) {10};
+  \draw[-{Stealth},red!70!black,thick] (s8.north) to[out=60,in=120] (s9.north);
+  \draw[-{Stealth},red!70!black,thick] (s9.north) to[out=60,in=120] (s10.north);
+  \draw[-{Stealth},red!70!black,thick] (s10.north) to[out=90,in=90,looseness=0.4] (s0.north);
+  \draw[-{Stealth},red!70!black,thick] (s0.north) to[out=60,in=120] (s1.north);
+  \draw[-{Stealth},red!70!black,thick] (s1.north) to[out=60,in=120] (s2.north);
+  \node[font=\scriptsize,red!70!black] at (4.5,1.55) {probes for 19: 8, 9, 10, 0, 1, then 2 is free};
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \subsection{Quadratic Probing}
@@ -134,7 +222,59 @@ random-like hash functions, the expected insertion time is $\bigO(1)$.
 \begin{example}
 $M = 11$, $h_0(k) = k \bmod 11$, $h_1(k) = \floor{11(0.618k - \floor{0.618k})}$.
 Insert 51: $h_0 = 7$, goes to $T_0[7]$. Insert 95: $h_0 = 7$ is taken, so 95
-takes $T_0[7]$ and 51 is evicted to $T_1[h_1(51)]$.
+takes $T_0[7]$ and 51 is evicted to $T_1[h_1(51)]$. Here
+$h_1(51) = \floor{11 \cdot 0.518} = 5$:
+\begin{center}
+\begin{tikzpicture}
+  \node[sl,fill=white] (u0_0) at (0.0,0.0) {};
+  \node[ix] at (0.0,0.5) {0};
+  \node[sl,fill=white] (u0_1) at (0.9,0.0) {};
+  \node[ix] at (0.9,0.5) {1};
+  \node[sl,fill=white] (u0_2) at (1.8,0.0) {};
+  \node[ix] at (1.8,0.5) {2};
+  \node[sl,fill=white] (u0_3) at (2.7,0.0) {};
+  \node[ix] at (2.7,0.5) {3};
+  \node[sl,fill=white] (u0_4) at (3.6,0.0) {};
+  \node[ix] at (3.6,0.5) {4};
+  \node[sl,fill=white] (u0_5) at (4.5,0.0) {};
+  \node[ix] at (4.5,0.5) {5};
+  \node[sl,fill=white] (u0_6) at (5.4,0.0) {};
+  \node[ix] at (5.4,0.5) {6};
+  \node[sl,fill=blue!8] (u0_7) at (6.3,0.0) {95};
+  \node[ix] at (6.3,0.5) {7};
+  \node[sl,fill=white] (u0_8) at (7.2,0.0) {};
+  \node[ix] at (7.2,0.5) {8};
+  \node[sl,fill=white] (u0_9) at (8.1,0.0) {};
+  \node[ix] at (8.1,0.5) {9};
+  \node[sl,fill=white] (u0_10) at (9.0,0.0) {};
+  \node[ix] at (9.0,0.5) {10};
+  \node[font=\small,anchor=east] at (-0.6,0.0) {$T_0$};
+  \node[sl,fill=white] (u1_0) at (0.0,-1.6) {};
+  \node[ix] at (0.0,-2.1) {0};
+  \node[sl,fill=white] (u1_1) at (0.9,-1.6) {};
+  \node[ix] at (0.9,-2.1) {1};
+  \node[sl,fill=white] (u1_2) at (1.8,-1.6) {};
+  \node[ix] at (1.8,-2.1) {2};
+  \node[sl,fill=white] (u1_3) at (2.7,-1.6) {};
+  \node[ix] at (2.7,-2.1) {3};
+  \node[sl,fill=white] (u1_4) at (3.6,-1.6) {};
+  \node[ix] at (3.6,-2.1) {4};
+  \node[sl,fill=blue!8] (u1_5) at (4.5,-1.6) {51};
+  \node[ix] at (4.5,-2.1) {5};
+  \node[sl,fill=white] (u1_6) at (5.4,-1.6) {};
+  \node[ix] at (5.4,-2.1) {6};
+  \node[sl,fill=white] (u1_7) at (6.3,-1.6) {};
+  \node[ix] at (6.3,-2.1) {7};
+  \node[sl,fill=white] (u1_8) at (7.2,-1.6) {};
+  \node[ix] at (7.2,-2.1) {8};
+  \node[sl,fill=white] (u1_9) at (8.1,-1.6) {};
+  \node[ix] at (8.1,-2.1) {9};
+  \node[sl,fill=white] (u1_10) at (9.0,-1.6) {};
+  \node[ix] at (9.0,-2.1) {10};
+  \node[font=\small,anchor=east] at (-0.6,-1.6) {$T_1$};
+  \draw[-{Stealth},thick,red!70!black] (u0_7.south) -- node[right=3pt,font=\scriptsize]{51 evicted} (u1_5.north);
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \subsection{Expected Probes}
@@ -154,6 +294,26 @@ Separate chaining & $1 + \alpha$ & $1 + \alpha/2$\\
 \end{center}
 (Up to constants and lower-order terms.) The key point: all are $\bigO(1)$ when
 $\alpha$ is bounded away from the critical value (1 for probing, $1/2$ for cuckoo).
+
+\begin{center}
+\begin{tikzpicture}[x=8cm,y=0.4cm]
+  \begin{scope}
+  \clip (0,0) rectangle (1,12.5);
+  \draw[very thick,red!70!black,domain=0:0.75,samples=60] plot (\x,{1/((1-\x)*(1-\x))});
+  \draw[very thick,blue!60!black,domain=0:0.93,samples=60] plot (\x,{1/(1-\x)});
+  \draw[very thick,green!50!black,domain=0:1,samples=2] plot (\x,{1+\x});
+  \end{scope}
+  \draw[-{Stealth}] (0,0) -- (1.05,0) node[right,font=\scriptsize]{$\alpha$};
+  \draw[-{Stealth}] (0,0) -- (0,13) node[above,font=\scriptsize]{expected probes};
+  \foreach \t in {0.25,0.5,0.75,1} \draw (\t,0) -- (\t,-0.25) node[below,font=\scriptsize]{\t};
+  \foreach \t in {4,8,12} \draw (0,\t) -- (-0.01,\t) node[left,font=\scriptsize]{\t};
+  \node[font=\scriptsize,red!70!black,anchor=east] at (0.7,10) {linear probing $\frac{1}{(1-\alpha)^2}$};
+  \node[font=\scriptsize,blue!60!black,anchor=west] at (0.93,11) {double hashing $\frac{1}{1-\alpha}$};
+  \node[font=\scriptsize,green!50!black,anchor=west] at (0.75,2.6) {chaining $1+\alpha$};
+\end{tikzpicture}
+\end{center}
+Unsuccessful search: all curves are flat for small $\alpha$, but the probing curves blow up as
+$\alpha \to 1$.
 
 \begin{proof}[Sketch for ideal double hashing]
 If each probe is to a uniformly random slot not yet probed, each probe finds an

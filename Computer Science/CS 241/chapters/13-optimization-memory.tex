@@ -75,6 +75,19 @@ return c + 1;
 Interference edges: $a$--$b$, $b$--$c$. Two registers suffice: $a, c \mapsto$ \code{\$5},
 $b \mapsto$ \code{\$6}.
 \end{example}
+\begin{center}
+\begin{tikzpicture}[v/.style={circle,draw,minimum size=0.8cm,font=\small}]
+  \node[v,fill=blue!12] (a) at (0,0) {$a$};
+  \node[v,fill=orange!20] (b) at (2,0) {$b$};
+  \node[v,fill=blue!12] (c) at (4,0) {$c$};
+  \draw (a) -- (b) -- (c);
+  \node[font=\scriptsize,below=2pt of a] {\code{\$5}};
+  \node[font=\scriptsize,below=2pt of b] {\code{\$6}};
+  \node[font=\scriptsize,below=2pt of c] {\code{\$5}};
+\end{tikzpicture}
+
+\small Interference graph of the example, properly 2-coloured.
+\end{center}
 
 \subsection{Procedure-level optimizations}
 \begin{itemize}
@@ -131,6 +144,19 @@ inside a block that is bigger than requested.
 Heap of 100 words. Allocate $A=20$, $B=30$, $C=20$, then free $B$. Free space: 30 (where B was)
 $+$ 30 at the end $=60$ words, but a request for 40 words fails: external fragmentation.
 \end{example}
+\begin{center}
+\begin{tikzpicture}[x=0.12cm,font=\small]
+  \draw[fill=blue!15] (0,0) rectangle node{$A$ (20)} (20,0.7);
+  \draw[fill=white] (20,0) rectangle node{free (30)} (50,0.7);
+  \draw[fill=blue!15] (50,0) rectangle node{$C$ (20)} (70,0.7);
+  \draw[fill=white] (70,0) rectangle node{free (30)} (100,0.7);
+  \draw[dashed,red!70!black,fill=red!5] (30,1.2) rectangle node{request: 40} (70,1.9);
+  \node[font=\scriptsize,anchor=north] at (0,0) {0};
+  \node[font=\scriptsize,anchor=north] at (100,0) {100};
+\end{tikzpicture}
+
+\small 60 words are free, but no single gap can hold 40.
+\end{center}
 
 No allocator can avoid fragmentation for all request sequences; without moving blocks
 (compaction) some sequences force heap usage much larger than the live data.
@@ -153,6 +179,22 @@ Heap 64 words. Request 7 words (+1 header = 8): split $64\to32+32\to16+16\to8+8$
 first 8. Request 14 words ($\to 16$): use the free 16. Freeing the 8 merges it with its free
 buddy 8 to give 16; that 16's buddy is allocated, so merging stops.
 \end{example}
+\begin{center}
+\begin{tikzpicture}[x=0.18cm,y=0.8cm,font=\scriptsize,
+  split/.style={draw,fill=gray!12},al/.style={draw,fill=blue!15},fr/.style={draw,fill=white}]
+  \draw[split] (0,0) rectangle node{64 (split)} (64,0.6);
+  \draw[split] (0,-1) rectangle node{32 (split)} (32,-0.4);
+  \draw[fr] (32,-1) rectangle node{32 free} (64,-0.4);
+  \draw[split] (0,-2) rectangle node{16 (split)} (16,-1.4);
+  \draw[al] (16,-2) rectangle node{16 (used)} (32,-1.4);
+  \draw[al] (0,-3) rectangle node{8 (used)} (8,-2.4);
+  \draw[fr] (8,-3) rectangle node{8 free} (16,-2.4);
+  \foreach \o in {0,8,16,32,64} \node[anchor=north] at (\o,-3) {\o};
+\end{tikzpicture}
+
+\small The heap after both requests. Freeing the 8-word block merges it with its free buddy
+(offset $0\oplus 8 = 8$); the result's buddy at offset 16 is in use, so merging stops.
+\end{center}
 
 \section{Garbage collection}
 
@@ -176,6 +218,19 @@ target's count and decrements the old target's; when a count reaches 0 the block
   \item[$-$] \textbf{Cycles} are never reclaimed: two blocks pointing to each other keep each
         other's count at 1 even when unreachable.
 \end{itemize}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,blk/.style={draw,rounded corners,fill=blue!5,minimum width=1.8cm,minimum height=0.8cm,align=center}]
+  \node[draw,fill=gray!10,minimum width=1.4cm,minimum height=0.8cm] (r) at (0,0) {root};
+  \node[blk] (x) at (3.5,0) {$X$\\ \scriptsize count 1};
+  \node[blk] (y) at (6.5,0) {$Y$\\ \scriptsize count 1};
+  \draw[->,dashed,gray] (r) -- (x);
+  \draw[gray,thick] (1.6,-0.25) -- (2.0,0.25); \draw[gray,thick] (1.6,0.25) -- (2.0,-0.25);
+  \draw[->] (x.north east) to[bend left=30] (y.north west);
+  \draw[->] (y.south west) to[bend left=30] (x.south east);
+\end{tikzpicture}
+
+\small After the root's pointer is gone, $X$ and $Y$ are garbage, yet each count stays at 1.
+\end{center}
 
 \subsection{Mark and sweep}
 \begin{enumerate}

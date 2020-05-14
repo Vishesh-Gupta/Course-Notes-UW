@@ -1,5 +1,11 @@
 \chapter{External Memory}
 
+\tikzset{
+  kn/.style={draw,rectangle split,rectangle split horizontal,rectangle split parts=#1,
+    inner sep=3pt,minimum height=6mm,font=\small,fill=blue!6},
+  blk/.style={draw,minimum width=1.4cm,minimum height=5mm,fill=gray!10}
+}
+
 \section{The External Memory Model}
 
 When data is too large for main memory it lives on disk (or SSD). Accessing a
@@ -13,6 +19,20 @@ Data moves between them in blocks of $B$ consecutive items. The cost of an
 algorithm is the number of \emph{block transfers} (reads and writes); computation
 in internal memory is free.
 \end{definition}
+
+\begin{center}
+\begin{tikzpicture}[arr/.style={{Stealth}-{Stealth},thick}]
+  \draw[rounded corners,fill=blue!6] (0,0) rectangle (3,2);
+  \node[font=\small,align=center] at (1.5,1.35) {internal memory};
+  \node[font=\scriptsize] at (1.5,0.85) {size $M$};
+  \node[draw,fill=white,minimum width=1cm,minimum height=5mm,font=\scriptsize] at (1.5,0.35) {CPU};
+  \draw[rounded corners,fill=gray!6] (5,-0.3) rectangle (11.4,2.3);
+  \node[font=\small] at (8.2,2.0) {external memory (disk)};
+  \foreach \r in {0,1} \foreach \c in {0,...,3} \node[blk] at (5.9+\c*1.5,1.2-\r*0.8) {};
+  \node[font=\scriptsize] at (5.9,1.2) {$B$ items};
+  \draw[arr] (3.1,1) -- node[above,font=\scriptsize]{one block} node[below,font=\scriptsize]{per transfer} (4.9,1);
+\end{tikzpicture}
+\end{center}
 
 The goal: design algorithms whose block transfers are a factor $B$ (or better)
 less than their RAM operation counts, by using every item of each block we read.
@@ -48,6 +68,27 @@ d-way-merge(S1, ..., Sd):          // each Si sorted, read block by block
     if Si is not empty then P.insert((front of Si, i))
   return S
 \end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[run/.style={draw,minimum width=2.4cm,minimum height=5mm,font=\scriptsize,anchor=west},
+  buf/.style={draw,fill=blue!10,minimum width=0.8cm,minimum height=5mm,font=\scriptsize},
+  arr/.style={-{Stealth},thick}]
+  \foreach \i/\n/\y in {0/1/0,1/2/-0.9,2/d/-2.1} {
+    \node[run] (r\i) at (0,\y) {run $S_\n$ (on disk)};
+    \node[buf] (b\i) at (4.0,\y) {block};
+    \draw[arr] (r\i) -- (b\i);
+  }
+  \node at (1.2,-1.4) {$\vdots$};
+  \draw[rounded corners,dashed] (3.3,0.75) rectangle (7.6,-2.5);
+  \node[font=\scriptsize] at (5.45,0.5) {internal memory};
+  \node[draw,circle,fill=orange!20,font=\scriptsize,align=center,inner sep=1pt] (h) at (5.6,-1.0) {min-\\heap};
+  \foreach \i in {0,1,2} \draw[arr] (b\i) -- (h);
+  \node[buf,fill=green!15] (o) at (7.0,-1.0) {out};
+  \draw[arr] (h) -- (o);
+  \node[run,fill=green!8] (S) at (8.2,-1.0) {output run (on disk)};
+  \draw[arr] (o) -- (S);
+\end{tikzpicture}
+\end{center}
 
 \paragraph{External MergeSort.}
 \begin{enumerate}
@@ -104,6 +145,21 @@ is created and the tree grows by one level (the only way height increases).
 Insert 10, 20, 30 into an empty 2-3 tree: [10, 20] then [10, 20, 30] overflows;
 split: root [20] with children [10] and [30]. Insert 40, 50: [30, 40] then
 [30, 40, 50] overflows; 40 moves up: root [20, 40] with children [10], [30], [50].
+\begin{center}
+\begin{tikzpicture}[level distance=11mm,level 1/.style={sibling distance=16mm}]
+  \node[kn=1] {20}
+    child {node[kn=1] {10}}
+    child {node[kn=3,fill=red!12] {30\nodepart{two}40\nodepart{three}50}};
+  \node[font=\scriptsize,red!70!black] at (1.2,-1.75) {overflow};
+  \draw[-{Stealth},thick] (2.3,-0.6) -- node[above,font=\scriptsize]{split} (3.6,-0.6);
+  \begin{scope}[xshift=5.6cm,level 1/.style={sibling distance=16mm}]
+  \node[kn=2] {20\nodepart{two}\textcolor{orange!80!black}{\textbf{40}}}
+    child {node[kn=1] {10}}
+    child {node[kn=1] {30}}
+    child {node[kn=1] {50}};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \paragraph{Delete.} If $k$ is in an internal node, swap it with its successor (in
@@ -239,6 +295,24 @@ $d = 2$ (entries 00, 01, 10, 11; both 10 and 11 point to $B$, whose local depth
 stays 1). Split $A$ by the second bit: $A$ = \{\texttt{0010}\} (prefix 00),
 $A'$ = \{\texttt{0111}, \texttt{0101}\} (prefix 01), both with local depth 2.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[de/.style={draw,minimum width=1cm,minimum height=6mm,font=\small\ttfamily},
+  bk/.style={draw,rounded corners,fill=blue!6,font=\scriptsize,align=left,minimum width=2.6cm,inner sep=3pt},
+  arr/.style={-{Stealth},thick}]
+  \node[font=\scriptsize] at (0,0.75) {directory, $d = 2$};
+  \foreach \b [count=\i from 0] in {00,01,10,11} \node[de] (e\i) at (0,-\i*0.6) {\b};
+  \node[bk] (A) at (4,0.5) {$A$ (local depth 2)\\\texttt{0010}};
+  \node[bk,fill=green!10] (A2) at (4,-0.75) {$A'$ (local depth 2)\\\texttt{0111}, \texttt{0101}};
+  \node[bk] (B) at (4,-2.0) {$B$ (local depth 1)\\\texttt{1000}};
+  \draw[arr] (e0.east) -- (A.west);
+  \draw[arr] (e1.east) -- (A2.west);
+  \draw[arr] (e2.east) -- (B.west);
+  \draw[arr] (e3.east) -- (B.west);
+\end{tikzpicture}
+\end{center}
+After the insertion in the example: $B$ has local depth $1 < d$, so two directory
+entries share it.
 
 \paragraph{Analysis.} Search and delete: 1 block transfer. Insert: usually 1-2,
 plus occasionally a directory doubling, which is done in internal memory (no
