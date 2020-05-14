@@ -149,6 +149,24 @@ Since $\abs{\psi} < 1$, $c_n$ is the nearest integer to $\phi^{n+1}/\sqrt5$; the
 compositions grows like $1.618^n$.
 \end{example}
 
+The recurrence itself is visible if we draw a composition with parts $1$ and $2$ as a tiling
+of a $1\times n$ strip by squares and dominoes: the last tile is a square (leaving a strip of
+length $n-1$) or a domino (leaving length $n-2$). The five tilings of length $4$:
+\begin{center}
+\begin{tikzpicture}[x=0.5cm,y=0.5cm]
+  \foreach \t [count=\r from 0] in {{1,1,1,1},{2,1,1},{1,2,1},{1,1,2},{2,2}} {
+    \begin{scope}[xshift=\r*2.7cm]
+      \def\pos{0}
+      \foreach \p in \t {
+        \pgfmathsetmacro{\e}{\pos+\p}
+        \ifnum\p=1 \draw[fill=blue!15] (\pos,0) rectangle (\e,1); \else \draw[fill=orange!30] (\pos,0) rectangle (\e,1); \fi
+        \global\let\pos\e
+      }
+    \end{scope}
+  }
+\end{tikzpicture}
+\end{center}
+
 \section{Non-homogeneous recurrences}
 
 A recurrence with an extra term depending on $n$ can be handled by generating series.
@@ -161,6 +179,30 @@ A(x) = \frac{x}{(1-x)(1-2x)} = \frac{1}{1-2x} - \frac{1}{1-x}.
 \]
 So $a_n = 2^n - 1$.
 \end{example}
+
+This recurrence comes from the puzzle: to move $n$ discs to another peg, move the top
+$n-1$ out of the way ($a_{n-1}$ moves), move the largest disc ($1$ move), then move the $n-1$
+discs back on top of it ($a_{n-1}$ moves).
+\begin{center}
+\begin{tikzpicture}[scale=0.55,>={Stealth}]
+  \foreach \s/\t in {0/{start},9/{after $a_{n-1}$ moves}} {
+    \begin{scope}[xshift=\s cm]
+      \fill[gray!60] (-0.5,-0.2) rectangle (7.5,0);
+      \foreach \p in {0,3.5,7} { \draw[very thick,gray] (\p,0) -- (\p,3); }
+      \node[font=\scriptsize] at (3.5,-0.7) {\t};
+    \end{scope}
+  }
+  \draw[fill=red!40] (-1.4,0) rectangle (1.4,0.5);
+  \foreach \w [count=\k] in {1.1,0.85,0.6} { \draw[fill=blue!25] (-\w,0.5*\k) rectangle (\w,0.5*\k+0.5); }
+  \node[font=\scriptsize] at (0,3.4) {$n$ discs};
+  \begin{scope}[xshift=9cm]
+    \draw[fill=red!40] (-1.4,0) rectangle (1.4,0.5);
+    \foreach \w [count=\k] in {1.1,0.85,0.6} { \draw[fill=blue!25] (3.5-\w,0.5*\k-0.5) rectangle (3.5+\w,0.5*\k); }
+    \draw[->,thick,red!70!black] (0,1) to[bend left=40] node[above,font=\scriptsize] {$1$ move} (7,0.8);
+    \node[font=\scriptsize] at (3.5,2.2) {$n-1$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
 
 \section{Summary}
 \begin{itemize}

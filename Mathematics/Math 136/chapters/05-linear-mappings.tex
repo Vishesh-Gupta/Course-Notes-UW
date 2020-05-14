@@ -84,9 +84,47 @@ Check: $\frac15(-3+8,\ 4+6)=(1,2)$, so $\vec d$ is fixed, and $(2,-1)\mapsto\fra
 is flipped. A reflection in a plane through the origin in $\R^3$ with normal $\vec n$ is
 $\refl_P\vec x = \vec x - 2\proj_{\vec n}\vec x$.
 
+\begin{center}
+\begin{tikzpicture}[scale=1.1,>={Stealth}]
+  \draw[->,gray] (-2.2,0) -- (2.6,0); \draw[->,gray] (0,-1.2) -- (0,3);
+  \draw[thick,gray] (-0.6,-1.2) -- (1.5,3) node[above] {$\Span\{\vec d\}$};
+  \coordinate (x) at (2,1); \coordinate (p) at (0.8,1.6); \coordinate (r) at (-0.4,2.2);
+  \draw[->,very thick,blue!70!black] (0,0) -- (x) node[right] {$\vec x$};
+  \draw[->,very thick,red!70!black] (0,0) -- (r) node[left] {$\refl_{\vec d}\vec x$};
+  \draw[->,thick,green!50!black] (0,0) -- (p) node[right,xshift=2pt] {$\proj_{\vec d}\vec x$};
+  \draw[dashed] (x) -- (p) -- (r);
+\end{tikzpicture}
+\end{center}
+
 \subsection*{Stretches and shears}
 $\begin{bmatrix}t&0\\0&1\end{bmatrix}$ stretches horizontally by $t$; $\begin{bmatrix}1&s\\0&1\end{bmatrix}$
 is a horizontal shear, $(x_1,x_2)\mapsto(x_1+sx_2,x_2)$.
+
+Since $[L] = [L(\vec e_1)\ L(\vec e_2)]$, a linear operator on $\R^2$ is pinned down by where it
+sends the unit square: the image is the parallelogram on $L(\vec e_1)$ (blue) and $L(\vec e_2)$
+(green). Below, the dashed square is the original.
+\begin{center}
+\begin{tikzpicture}[scale=1.1,>={Stealth}]
+  \foreach \s/\ax/\ay/\bx/\by/\name in {0/0.866/0.5/-0.5/0.866/{rotation $R_{\pi/6}$},
+      3/-0.6/0.8/0.8/0.6/{reflection $\refl_{(1,2)}$},
+      6/1/0/1/1/{shear $\begin{bmatrix}1&1\\0&1\end{bmatrix}$},
+      9/0.2/0.4/0.4/0.8/{projection $\proj_{(1,2)}$}} {
+    \begin{scope}[xshift=\s cm]
+      \draw[gray!60,->] (-0.9,0) -- (1.9,0); \draw[gray!60,->] (0,-0.4) -- (0,1.7);
+      \draw[dashed,gray] (0,0) rectangle (1,1);
+      \fill[orange!25,opacity=0.8] (0,0) -- (\ax,\ay) -- ({\ax+\bx},{\ay+\by}) -- (\bx,\by) -- cycle;
+      \draw[orange!80!black] (0,0) -- (\ax,\ay) -- ({\ax+\bx},{\ay+\by}) -- (\bx,\by) -- cycle;
+      \draw[->,thick,blue!70!black] (0,0) -- (\ax,\ay);
+      \draw[->,thick,green!50!black] (0,0) -- (\bx,\by);
+      \node[font=\scriptsize] at (0.5,-0.75) {\name};
+    \end{scope}
+  }
+  \draw[gray,dotted] (8.6,-0.8) -- (9.85,1.7);
+\end{tikzpicture}
+\end{center}
+The rotation and reflection keep the square's shape (the reflection flips which of
+$\vec e_1, \vec e_2$ comes first counter-clockwise), the shear slants it, and the projection
+flattens it onto the line $\Span\{(1,2)\}$ (dotted).
 
 \section{Operations on linear mappings and composition}
 
@@ -156,6 +194,21 @@ $\Range(L)=\Span\{(1,2,1)\}$ (a line in $\R^3$) and $\Ker(L)=\Span\{(1,-1)\}$.
 For $\proj_{\vec d}$ on $\R^2$: range = the line $\Span\{\vec d\}$, kernel = the line orthogonal to
 $\vec d$. Rotations and reflections have kernel $\{\vec0\}$ and range all of $\R^2$.
 \end{important}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9,>={Stealth}]
+  \draw[->,gray] (-2.5,0) -- (2.8,0); \draw[->,gray] (0,-1.6) -- (0,3);
+  \draw[very thick,green!50!black] (-0.75,-1.5) -- (1.5,3) node[above] {$\Range = \Span\{\vec d\}$};
+  \draw[very thick,blue!70!black] (-2.4,1.2) -- (2.4,-1.2) node[below] {$\Ker = \Span\{\vec d\}^{\perp}$};
+  \coordinate (x) at (2,2); \coordinate (p) at (1.2,2.4);
+  \draw[->,thick] (0,0) -- (x) node[right] {$\vec x$};
+  \draw[->,thick,red!70!black] (0,0) -- (p) node[left] {$\proj_{\vec d}\vec x$};
+  \draw[dashed] (x) -- (p);
+  \fill[blue!70!black] (-1.6,0.8) circle (2pt) node[above,font=\scriptsize] {$\mapsto \vec 0$};
+\end{tikzpicture}
+\end{center}
+Every vector lands on the line $\Span\{\vec d\}$, and the vectors that land on $\vec 0$ form the
+perpendicular line.
 
 \begin{theorem}
 $L$ is one-to-one iff $\Ker(L)=\{\vec 0\}$. $L:\R^n\to\R^m$ is onto iff $\rank[L]=m$.

@@ -34,6 +34,29 @@ A bridge is traversed twice by the boundary walk of the (single) face on both of
 it contributes $2$ to that face's degree. For example a tree has one face, of degree
 $2(p-1)$. The embedding of $K_4$ above has $4$ faces, each of degree $3$.
 
+\begin{example}
+The embedding below has $p = 6$ vertices, $q = 7$ edges and $3$ faces. The bridge $cd$ lies inside
+the outer face $f_3$, whose boundary walk $a\,b\,c\,d\,e\,d\,c\,f\,a$ traverses it twice, so
+$\deg(f_3) = 8$ (counting $de$ twice as well). With $\deg(f_1) = 3$ and $\deg(f_2) = 3$:
+$3 + 3 + 8 = 14 = 2q$.
+\begin{center}
+\begin{tikzpicture}[every label/.style={font=\small}]
+  \fill[blue!8] (0,0) -- (1.6,0) -- (0.8,1.3) -- cycle;
+  \fill[green!10] (0,0) -- (1.6,0) -- (0.8,-1.3) -- cycle;
+  \node[vtx,label=left:$a$] (a) at (0,0) {};
+  \node[vtx,label=above:$b$] (b) at (0.8,1.3) {};
+  \node[vtx,label=right:$c$] (c) at (1.6,0) {};
+  \node[vtx,label=below:$f$] (f) at (0.8,-1.3) {};
+  \node[vtx,label=above:$d$] (d) at (2.8,0) {};
+  \node[vtx,label=above:$e$] (e) at (3.8,0.5) {};
+  \draw (a)--(b)--(c)--(f)--(a)--(c) (c)--(d)--(e);
+  \node at (0.8,0.42) {$f_1$};
+  \node at (0.8,-0.42) {$f_2$};
+  \node at (3.2,-0.9) {$f_3$ (outer)};
+\end{tikzpicture}
+\end{center}
+\end{example}
+
 \begin{theorem}[Faceshaking lemma]
 For a planar embedding of $G$ with face set $F$, $\displaystyle\sum_{f\in F}\deg(f) = 2\abs{E(G)}$.
 \end{theorem}
@@ -208,6 +231,28 @@ $5$ & $3$ & $1$ & $30$ & $12$ & $20$ & icosahedron\\
 
 For example, for $(3,5)$: $q = \frac{2\cdot15}{6 + 10 - 15} = 30$, $p = 60/3 = 20$, $f = 60/5 = 12$.
 
+The cube and the octahedron as planar embeddings (flatten the solid through one face, which
+becomes the outer face):
+\begin{center}
+\begin{tikzpicture}
+  \draw (-1.2,-1.2) rectangle (1.2,1.2) (-0.5,-0.5) rectangle (0.5,0.5);
+  \foreach \x/\y in {-1.2/-1.2,1.2/-1.2,1.2/1.2,-1.2/1.2} {
+    \node[vtx] at (\x,\y) {}; \node[vtx] at (\x*0.4167,\y*0.4167) {};
+    \draw (\x,\y) -- (\x*0.4167,\y*0.4167);
+  }
+  \node at (0,-1.8) {cube: $(d,d^*) = (3,4)$};
+  \begin{scope}[xshift=5cm]
+    \foreach \i in {1,2,3} {
+      \node[vtx] (o\i) at ({90+120*\i}:1.5) {};
+      \node[vtx] (n\i) at ({30+120*\i}:0.55) {};
+    }
+    \draw (o1)--(o2)--(o3)--(o1) (n1)--(n2)--(n3)--(n1);
+    \draw (o1)--(n1) (o1)--(n2) (o2)--(n2) (o2)--(n3) (o3)--(n3) (o3)--(n1);
+    \node at (0,-1.8) {octahedron: $(d,d^*) = (4,3)$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
 \section{Colouring planar graphs}
 
 A \emph{$k$-colouring} assigns one of $k$ colours to each vertex so that adjacent vertices get
@@ -235,7 +280,26 @@ Suppose $\deg(v) = 5$. Since $K_5$ is not planar, two neighbours $x, y$ of $v$ a
 Form $G'$ from $G$ by contracting the edges $vx$ and $vy$: merge $x, v, y$ into a single new
 vertex $z$ adjacent to every neighbour of $x$, $v$ or $y$ (removing duplicate edges). Contracting
 an edge of a planar graph gives a planar graph, so $G'$ is planar with $p - 2$ vertices, and by
-induction has a $5$-colouring. Colour $G$ by giving $x$ and $y$ the colour of $z$ and every other
+induction has a $5$-colouring.
+\begin{center}
+\begin{tikzpicture}[>={Stealth},every label/.style={font=\small}]
+  \node[vtx,fill=white,draw,label=below:$v$] (v) at (0,0) {};
+  \foreach \i/\l in {1/x,2/{},3/y,4/{},5/{}} {
+    \node[vtx,label={[font=\small]{90+72*(\i-1)}:$\l$}] (u\i) at ({90+72*(\i-1)}:1.2) {};
+    \draw (v)--(u\i);
+  }
+  \draw (u1)--(u2) (u3)--(u4)--(u5)--(u1);
+  \draw[->,thick] (2,0) -- node[above,font=\scriptsize] {contract $vx$, $vy$} (3.6,0);
+  \begin{scope}[xshift=5.6cm]
+    \node[vtx,fill=red!70!black,label=below:$z$] (z) at (0,0) {};
+    \foreach \i in {2,4,5} { \node[vtx] (w\i) at ({90+72*(\i-1)}:1.2) {}; \draw (z)--(w\i); }
+    \draw (w4)--(w5);
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+(Left: $v$ with its five neighbours, $x$ and $y$ non-adjacent. Right: $x$, $v$, $y$ merged into
+$z$; afterwards $x$ and $y$ both receive the colour of $z$.)
+ Colour $G$ by giving $x$ and $y$ the colour of $z$ and every other
 vertex except $v$ its colour in $G'$. This is a proper colouring of $G - v$: $x$ and $y$ are not
 adjacent, and any neighbour of $x$ or $y$ was a neighbour of $z$. Now the five neighbours of $v$
 use at most $4$ colours (since $x, y$ share one), leaving a colour for $v$.

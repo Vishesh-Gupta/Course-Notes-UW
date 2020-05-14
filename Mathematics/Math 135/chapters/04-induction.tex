@@ -24,6 +24,23 @@ then $P(n)$ is true for all $n\in\N$.
 The base case can start at any integer $b$, giving $P(n)$ for all $n \ge b$. In the inductive
 step, the assumption $P(k)$ is called the \emph{inductive hypothesis} (IH).
 
+Think of a row of dominoes: the base case knocks over the first, and the inductive step
+guarantees that each falling domino knocks over the next.
+
+\begin{center}
+\begin{tikzpicture}
+  \foreach \i/\lab in {1/P(1),2/P(2),3/P(3),4/P(4),5/P(5)} {
+    \node[draw,fill=blue!10,minimum width=1.3cm,minimum height=0.7cm] (n\i) at (2.1*\i,0) {$\lab$};
+  }
+  \node (dots) at (12.4,0) {$\cdots$};
+  \foreach \i [evaluate=\i as \j using int(\i+1)] in {1,...,4} {
+    \draw[->,thick] (n\i.north) to[bend left=40] node[above,font=\scriptsize] {step} (n\j.north);
+  }
+  \draw[->,thick] (n5.north) to[bend left=40] (dots.north);
+  \node[below=0.2cm of n1,font=\scriptsize,align=center] {base case\\(check directly)};
+\end{tikzpicture}
+\end{center}
+
 \begin{important}[Template]
 \textbf{Base case.} Verify $P(b)$ explicitly (compute both sides).\\
 \textbf{Inductive hypothesis.} Assume $P(k)$ holds for some $k \ge b$.\\
@@ -85,6 +102,21 @@ x_{k+1} = 3x_k - 2x_{k-1} &= 3(2^k + 1) - 2(2^{k-1} + 1) \\
 Both $k$ and $k-1$ are in $\{1,\dots,k\}$ because $k \ge 2$; this is why two base cases are
 needed. Check: $x_3 = 15 - 6 = 9 = 2^3 + 1$.
 \end{example}
+
+In this recurrence each term reaches back two places, so the chain of implications
+needs two starting points:
+\begin{center}
+\begin{tikzpicture}
+  \foreach \i in {1,...,6} {
+    \node[draw,circle,minimum size=0.85cm,fill=\ifnum\i<3 blue!20\else white\fi] (x\i) at (1.7*\i,0) {$x_{\i}$};
+  }
+  \foreach \i [evaluate=\i as \a using int(\i-1), evaluate=\i as \b using int(\i-2)] in {3,...,6} {
+    \draw[->] (x\a) -- (x\i);
+    \draw[->,gray] (x\b) to[bend right=35] (x\i);
+  }
+  \node[below=0.55cm of x1,xshift=0.85cm,font=\scriptsize] {two base cases};
+\end{tikzpicture}
+\end{center}
 
 \begin{example}[Fibonacci bound]
 Let $f_1 = f_2 = 1$ and $f_n = f_{n-1} + f_{n-2}$. Prove $f_n < 2^n$.
@@ -150,6 +182,24 @@ For $1 \le k \le n-1$,
 \]
 For $k = n$ both sides equal $1$.
 \end{proof}
+
+Pascal's identity says each entry of Pascal's triangle is the sum of the two entries above
+it; for instance $\binom 42 = \binom 31 + \binom 32 = 3 + 3 = 6$.
+\begin{center}
+\begin{tikzpicture}[x=0.75cm,y=0.6cm]
+  \foreach \n in {0,...,5} {
+    \node[left,font=\scriptsize] at (-3.6,-\n) {$n=\n$};
+    \foreach \k in {0,...,\n} {
+      \pgfmathtruncatemacro{\c}{factorial(\n)/(factorial(\k)*factorial(\n-\k))}
+      \node (p\n\k) at (\k-\n/2,-\n) {$\c$};
+    }
+  }
+  \draw[blue!70!black,thick] (p31) circle (0.28) (p32) circle (0.28);
+  \draw[blue!70!black,thick] (p42) circle (0.28);
+  \draw[->,blue!70!black] (p31) -- (p42);
+  \draw[->,blue!70!black] (p32) -- (p42);
+\end{tikzpicture}
+\end{center}
 
 \begin{theorem}[Binomial theorem]
 For all $n \ge 0$ and $a,b$ (real or complex),

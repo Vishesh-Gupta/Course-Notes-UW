@@ -145,6 +145,25 @@ The inverse is the contrapositive of the converse, so the inverse is equivalent 
 converse.
 \end{important}
 
+The four related implications fit in a square: the statements at opposite corners are
+contrapositives of each other, and hence logically equivalent.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={draw,rounded corners,minimum width=2.6cm,minimum height=0.8cm,align=center}]
+  \node (o) at (0,2.4) {$A \Rightarrow B$\\[-2pt]\scriptsize original};
+  \node (c) at (6,2.4) {$B \Rightarrow A$\\[-2pt]\scriptsize converse};
+  \node (i) at (0,0) {$\neg A \Rightarrow \neg B$\\[-2pt]\scriptsize inverse};
+  \node (p) at (6,0) {$\neg B \Rightarrow \neg A$\\[-2pt]\scriptsize contrapositive};
+  \draw[<->] (o) -- node[draw=none,above,minimum width=0pt,minimum height=0pt]{\scriptsize swap} (c);
+  \draw[<->] (i) -- node[draw=none,below,minimum width=0pt,minimum height=0pt]{\scriptsize swap} (p);
+  \draw[<->] (o) -- node[draw=none,left,minimum width=0pt,minimum height=0pt]{\scriptsize negate both} (i);
+  \draw[<->] (c) -- node[draw=none,right,minimum width=0pt,minimum height=0pt]{\scriptsize negate both} (p);
+  \draw[<->,very thick,blue!60!black] (o.south east) -- (p.north west);
+  \draw[<->,very thick,blue!60!black] (c.south west) -- (i.north east);
+  \node[draw=none,fill=white,text=blue!60!black,minimum width=0pt,minimum height=0pt,inner sep=1pt] at (3,1.2) {\scriptsize $\equiv$ (diagonals)};
+\end{tikzpicture}
+\end{center}
+
 \section{Quantifiers}
 
 \begin{definition}

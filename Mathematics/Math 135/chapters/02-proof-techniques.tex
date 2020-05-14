@@ -152,6 +152,23 @@ Prove that for $x\in\R$, $x^2 - 3x + 2 < 0 \iff 1 < x < 2$.
 We have $x^2 - 3x + 2 = (x-1)(x-2)$. A product of two reals is negative if and only if the
 factors have opposite signs. $x - 1 < 0 < x - 2$ is impossible (it would need $x < 1$ and
 $x > 2$), so the product is negative iff $x - 1 > 0 > x - 2$, i.e.\ iff $1 < x < 2$.
+A sign chart records the same case analysis on the number line:
+\begin{center}
+\begin{tikzpicture}[x=1.4cm]
+  \draw[->] (-0.6,0) -- (3.6,0) node[right] {$x$};
+  \foreach \p in {1,2} { \draw (\p,0.1) -- (\p,-0.1) node[below] {$\p$}; }
+  \fill[blue!25] (1,-0.06) rectangle (2,0.06);
+  \draw[thick,blue!70!black] (1,0) circle (2pt) (2,0) circle (2pt);
+  \node[left] at (-0.7,0.8) {\small $x-1$};
+  \node[left] at (-0.7,1.4) {\small $x-2$};
+  \node[left] at (-0.7,2.0) {\small $(x-1)(x-2)$};
+  \foreach \x/\a/\b/\c in {0.25/-/-/+, 1.5/+/-/-, 2.8/+/+/+} {
+    \node at (\x,0.8) {$\a$}; \node at (\x,1.4) {$\b$}; \node at (\x,2.0) {$\c$};
+  }
+  \draw[dashed,gray] (1,0.3) -- (1,2.3) (2,0.3) -- (2,2.3);
+  \node[blue!70!black] at (1.5,-0.75) {\small negative};
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \section{Uniqueness}

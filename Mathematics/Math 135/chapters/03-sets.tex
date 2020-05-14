@@ -36,6 +36,40 @@ Let $A,B$ be subsets of a universal set $U$.
 $A$ and $B$ are \emph{disjoint} if $A \cap B = \emptyset$.
 \end{definition}
 
+The shaded regions below show each operation.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.62]
+  \def\A{(0,0) circle (1)}
+  \def\B{(1.1,0) circle (1)}
+  \def\U{(-1.5,-1.4) rectangle (2.6,1.4)}
+  % union
+  \begin{scope}
+    \fill[blue!25] \A; \fill[blue!25] \B;
+    \draw \U \A \B; \node at (0.55,-1.85) {$A \cup B$};
+    \node at (-0.4,0) {\scriptsize $A$}; \node at (1.5,0) {\scriptsize $B$};
+  \end{scope}
+  % intersection
+  \begin{scope}[xshift=4.6cm]
+    \begin{scope} \clip \A; \fill[blue!25] \B; \end{scope}
+    \draw \U \A \B; \node at (0.55,-1.85) {$A \cap B$};
+    \node at (-0.4,0) {\scriptsize $A$}; \node at (1.5,0) {\scriptsize $B$};
+  \end{scope}
+  % difference
+  \begin{scope}[xshift=9.2cm]
+    \fill[blue!25] \A; \fill[white] \B;
+    \draw \U \A \B; \node at (0.55,-1.85) {$A - B$};
+    \node at (-0.4,0) {\scriptsize $A$}; \node at (1.5,0) {\scriptsize $B$};
+  \end{scope}
+  % complement
+  \begin{scope}[xshift=13.8cm]
+    \fill[blue!25] \U; \fill[white] \A;
+    \draw \U \A \B; \node at (0.55,-1.85) {$\bar A$};
+    \node at (-0.4,0) {\scriptsize $A$}; \node at (1.5,0) {\scriptsize $B$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
 The definitions translate set operations into the logical connectives of Chapter 1:
 $\cup$ is $\vee$, $\cap$ is $\wedge$, complement is $\neg$. Consequently set identities
 mirror logical equivalences.
@@ -45,6 +79,21 @@ Let $U = \{1,\dots,10\}$, $A = \{1,2,3,4,5\}$, $B = \{2,4,6,8,10\}$. Then
 $A \cup B = \{1,2,3,4,5,6,8,10\}$, $A \cap B = \{2,4\}$, $A - B = \{1,3,5\}$,
 $\bar B = \{1,3,5,7,9\}$.
 \end{example}
+
+Placing each element of $U$ in its region of the Venn diagram makes all four answers visible
+at once:
+\begin{center}
+\begin{tikzpicture}
+  \draw (-2.3,-1.7) rectangle (4.3,1.7);
+  \node[below left] at (4.3,1.7) {$U$};
+  \draw (0,0) circle (1.4) (2,0) circle (1.4);
+  \node at (-0.9,1.2) {$A$}; \node at (2.9,1.2) {$B$};
+  \node at (-0.5,0) {$1\ \ 3\ \ 5$};
+  \node at (1,0.25) {$2$}; \node at (1,-0.3) {$4$};
+  \node[align=center] at (2.55,0) {$6\ \ 8$\\$10$};
+  \node at (-1.8,-1.35) {$7$}; \node at (3.8,-1.35) {$9$};
+\end{tikzpicture}
+\end{center}
 
 \begin{theorem}[De Morgan's laws for sets]
 $\overline{A \cup B} = \bar A \cap \bar B$ and $\overline{A \cap B} = \bar A \cup \bar B$.
@@ -108,6 +157,32 @@ $x \in B \subseteq B \cup C$. If $x \in A \cap C$, then $x \in A$ and $x \in C \
 In both cases $x \in A \cap (B \cup C)$.
 \end{proof}
 
+The two sides of the distributive law shade the same region (a Venn diagram suggests the
+identity; the element-chasing proof above establishes it):
+\begin{center}
+\begin{tikzpicture}[scale=0.7]
+  \def\A{(0,0) circle (1.2)}
+  \def\B{(1.3,0) circle (1.2)}
+  \def\C{(0.65,-1.1) circle (1.2)}
+  \begin{scope}
+    \fill[gray!15] \B; \fill[gray!15] \C;
+    \begin{scope} \clip \A; \fill[blue!35] \B; \fill[blue!35] \C; \end{scope}
+    \draw \A \B \C;
+    \node at (-0.7,0.6) {$A$}; \node at (2.0,0.6) {$B$}; \node at (0.65,-2.0) {$C$};
+    \node at (0.65,-2.9) {$A \cap (B \cup C)$};
+  \end{scope}
+  \node at (3.9,-0.5) {$=$};
+  \begin{scope}[xshift=5.5cm]
+    \begin{scope} \clip \A; \fill[blue!35] \B; \end{scope}
+    \begin{scope} \clip \A; \fill[blue!35] \C; \end{scope}
+    \draw \A \B \C;
+    \node at (-0.7,0.6) {$A$}; \node at (2.0,0.6) {$B$}; \node at (0.65,-2.0) {$C$};
+    \node at (0.65,-2.9) {$(A \cap B) \cup (A \cap C)$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+(On the left, the light grey region is $B \cup C$.)
+
 \begin{proposition}
 $A \subseteq B$ if and only if $A \cap B = A$.
 \end{proposition}
@@ -142,6 +217,23 @@ then $\abs{A\times B} = \abs A\abs B$.
 $\{1,2\} \times \{x,y,z\} = \{(1,x),(1,y),(1,z),(2,x),(2,y),(2,z)\}$, which has $2\cdot 3 = 6$
 elements. Note $A \times B \ne B\times A$ in general. $\R \times \R = \R^2$ is the plane.
 \end{example}
+
+Drawing $A$ along one axis and $B$ along the other shows $A \times B$ as a grid of
+$\abs A \cdot \abs B$ points:
+\begin{center}
+\begin{tikzpicture}
+  \draw[->] (0,0) -- (2.8,0) node[right] {$A$};
+  \draw[->] (0,0) -- (0,3.6) node[above] {$B$};
+  \foreach \a in {1,2} { \draw (\a,0.08) -- (\a,-0.08) node[below] {$\a$}; }
+  \foreach \b/\y in {x/1,y/2,z/3} {
+    \draw (0.08,\y) -- (-0.08,\y) node[left] {$\b$};
+    \foreach \a in {1,2} {
+      \fill[blue!70!black] (\a,\y) circle (2pt);
+      \node[right,font=\scriptsize] at (\a,\y) {$(\a,\b)$};
+    }
+  }
+\end{tikzpicture}
+\end{center}
 
 \begin{proposition}
 $A \times (B \cap C) = (A \times B) \cap (A \times C)$.

@@ -28,6 +28,23 @@ For $a,b,c\in\Z$: if $a \mid b$ and $b \mid c$ then $a \mid c$.
 Write $b = ka$ and $c = \ell b$. Then $c = (\ell k) a$ with $\ell k \in \Z$.
 \end{proof}
 
+The positive divisors of $12$, with a line drawn upward from $a$ to $b$ whenever $b = pa$ for
+a prime $p$, form the diagram below. Then $a \mid b$ exactly when one can climb from $a$ to $b$;
+TD is the statement that two climbs can be joined into one.
+\begin{center}
+\begin{tikzpicture}[x=1.3cm,y=1.1cm,every node/.style={draw,circle,minimum size=0.7cm,inner sep=1pt}]
+  \node (1) at (0,0) {$1$};
+  \node (2) at (-1,1) {$2$};
+  \node (3) at (1,1) {$3$};
+  \node (4) at (-2,2) {$4$};
+  \node (6) at (0,2) {$6$};
+  \node (12) at (-1,3) {$12$};
+  \draw (1) -- (2) -- (4) -- (12) (1) -- (3) -- (6) -- (12) (2) -- (6);
+  \node[draw=none,right,font=\scriptsize] at (1.4,1) {$\times 3$ goes up-right};
+  \node[draw=none,left,font=\scriptsize] at (-2.4,1.2) {$\times 2$ goes up-left};
+\end{tikzpicture}
+\end{center}
+
 \begin{proposition}[Divisibility of Integer Combinations, DIC]
 For $a,b,c \in \Z$: if $a \mid b$ and $a \mid c$, then $a \mid (bx + cy)$ for all $x,y\in\Z$.
 \end{proposition}
@@ -82,6 +99,22 @@ multiple of $b$ strictly between $-b$ and $b$ is $0$. So $r_1 = r_2$, and then $
   \item $a = 30$, $b = 5$: $q = 6$, $r = 0$. In general $b \mid a \iff r = 0$.
 \end{itemize}
 \end{example}
+
+On the number line, $qb$ is the largest multiple of $b$ that is at most $a$, and $r$ is the
+distance from it up to $a$. For $a = -17$, $b = 5$:
+\begin{center}
+\begin{tikzpicture}[x=0.5cm]
+  \draw[->] (-23,0) -- (2,0);
+  \foreach \m in {-10,-5,0} { \draw[thick] (\m,0.15) -- (\m,-0.15) node[below] {\small $\m$}; }
+  \draw[thick] (-20,0.15) -- (-20,-0.15) node[below] {\small $qb = -20$};
+  \draw[thick] (-15,0.15) -- (-15,-0.15) node[below] {\small $(q+1)b = -15$};
+  \foreach \m in {-22,...,1} { \draw (\m,0.07) -- (\m,-0.07); }
+  \fill[red!70!black] (-17,0) circle (3pt);
+  \node[red!70!black,below=22pt] at (-17,0) {$a=-17$};
+  \draw[decorate,decoration={brace,amplitude=4pt},thick,blue!70!black] (-20,0.3) -- (-17,0.3)
+     node[midway,above=4pt] {$r=3$};
+\end{tikzpicture}
+\end{center}
 
 \begin{example}[Using the division algorithm for cases]
 Prove that the square of any integer has the form $4k$ or $4k + 1$.
