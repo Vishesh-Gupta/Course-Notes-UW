@@ -18,6 +18,29 @@ Multinomial & $y_j/n$ & --- & GOF tests \\
 \end{tabular}
 \end{center}
 
+
+\section{Choosing a method}
+
+\begin{center}
+\begin{tikzpicture}[q/.style={draw, rounded corners, fill=blue!8, font=\small, align=center, inner sep=4pt},
+    m/.style={draw, fill=orange!12, font=\scriptsize, align=center, inner sep=3pt},
+    every node/.style={font=\small}, >={Stealth}]
+  \node[q] (root) at (0,0) {What kind of response?};
+  \node[q] (cnt) at (-5.0,-1.6) {count / proportion};
+  \node[q] (gau) at (0,-1.6) {measurement\\(Gaussian)};
+  \node[q] (cat) at (5.0,-1.6) {categorical\\counts};
+  \draw[->] (root) -- (cnt); \draw[->] (root) -- (gau); \draw[->] (root) -- (cat);
+  \node[m] (bp) at (-5.3,-3.4) {$\Bin$ / $\Poi$:\\CLT interval, LI,\\LRT ($\chi^2(1)$)};
+  \draw[->] (cnt) -- (bp);
+  \node[m] (one) at (-2.3,-3.4) {one sample:\\$t(n-1)$, $\chi^2(n-1)$};
+  \node[m] (two) at (0,-4.6) {two groups:\\paired $\to t(n-1)$\\independent $\to t(n_1+n_2-2)$};
+  \node[m] (reg) at (2.3,-3.4) {depends on $x$:\\regression $t(n-2)$};
+  \draw[->] (gau) -- (one); \draw[->] (gau) -- (two); \draw[->] (gau) -- (reg);
+  \node[m] (gof) at (5.0,-4.6) {fit of a model: $\chi^2(k-1-p)$\\two-way table: $\chi^2((a-1)(b-1))$};
+  \draw[->] (cat) -- (gof);
+\end{tikzpicture}
+\end{center}
+
 \section{Pivotal quantities for Gaussian models}
 
 \begin{center}

@@ -25,6 +25,27 @@ interpret it causally depends on how the data were collected.
 \end{itemize}
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[v/.style={draw, rounded corners, fill=blue!6, font=\small, align=center, inner sep=4pt},
+    every node/.style={font=\small}]
+  \node[v] (t) at (2,1.6) {hot weather};
+  \node[v] (i) at (0,0) {ice cream\\sales};
+  \node[v] (d) at (4,0) {drownings};
+  \draw[-{Stealth}, thick] (t) -- (i);
+  \draw[-{Stealth}, thick] (t) -- (d);
+  \draw[dashed, gray] (i) -- node[below, font=\scriptsize] {association only} (d);
+  \node at (2,-1.3) {common cause};
+  \begin{scope}[xshift=7.2cm]
+    \node[v] (g) at (0,0.8) {weak\\grades};
+    \node[v] (u) at (3.6,0.8) {uses tutoring\\centre};
+    \draw[-{Stealth}, thick] (g) -- node[above, font=\scriptsize] {causes} (u);
+    \node at (1.8,-1.3) {reverse causation};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+In both cases the arrow we might naively draw (ice cream $\to$ drowning, tutoring $\to$
+low grades) is not the real causal path.
+
 \section{Confounding}
 
 \begin{definition}[Confounding variate]
@@ -54,6 +75,22 @@ Strategies for dealing with confounding:
   \item \textbf{Including $z$ in the model} (multiple regression, beyond Stat 231).
 \end{itemize}
 Only randomization handles \emph{unknown} confounders.
+
+\begin{center}
+\begin{tikzpicture}[v/.style={draw, circle, minimum size=0.9cm}, every node/.style={font=\small}]
+  \node[v] (z) at (0,1.6) {$z$};
+  \node[v] (x) at (-1.6,0) {$x$};
+  \node[v] (y) at (1.6,0) {$y$};
+  \node[draw, rounded corners, fill=orange!20] (r) at (-4.2,0) {coin flip};
+  \draw[-{Stealth}] (z) -- (y);
+  \draw[-{Stealth}, gray!60] (z) -- node[sloped, font=\large, text=red!70!black] {$\times$} (x);
+  \draw[-{Stealth}, thick] (r) -- node[above, font=\scriptsize] {assigns} (x);
+  \draw[-{Stealth}, thick] (x) -- node[below] {effect of $x$} (y);
+  \node[anchor=west, align=left, font=\scriptsize, text=gray] at (2.6,0.8) {$z$ still affects $y$,\\but is now unrelated to $x$};
+\end{tikzpicture}
+\end{center}
+When $x$ is set by a random mechanism, nothing about the unit (including any confounder
+$z$, known or unknown) can influence which treatment it gets, so the link $z\to x$ is cut.
 
 \section{Experimental versus observational studies}
 
@@ -110,6 +147,27 @@ and B mostly to small-stone patients ($270$ of $350$). The overall comparison mi
 treatment effect with the severity effect. The stratified comparison (within stone size) is
 the relevant one, and a randomized trial would avoid the problem.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=8.5cm, height=6cm, xmin=-0.5, xmax=2.6, ymin=0.6, ymax=1.0, xtick={0,1,2},
+    xticklabels={small stones, large stones, all patients}, ylabel={success rate}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed},
+    legend style={font=\small, draw=none, at={(0.98,0.98)}, anchor=north east}, legend cell align=left]
+  \addplot[thick, blue!60!black, mark=*] coordinates {(0,0.931) (1,0.730)};
+  \addplot[thick, orange!80!black, mark=square*] coordinates {(0,0.867) (1,0.688)};
+  \addplot[only marks, blue!60!black, mark=*, mark size=3pt, forget plot] coordinates {(2,0.780)};
+  \addplot[only marks, orange!80!black, mark=square*, mark size=3pt, forget plot] coordinates {(2,0.826)};
+  \node[font=\scriptsize, anchor=west] at (axis cs:2.08,0.78) {A};
+  \node[font=\scriptsize, anchor=west] at (axis cs:2.08,0.826) {B};
+  \draw[dashed, gray] (axis cs:1.5,0.6) -- (axis cs:1.5,1);
+  \node[font=\scriptsize, anchor=west] at (axis cs:0.08,0.94) {$n_A=87$, $n_B=270$};
+  \node[font=\scriptsize, anchor=west] at (axis cs:1.05,0.66) {$n_A=263$, $n_B=80$};
+  \legend{Treatment A, Treatment B}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Within each stone size the A line is above the B line, but A's overall rate is dragged
+down towards its large-stone rate because most of A's patients had large stones.
 
 \begin{remark}
 Algebraically, the overall rate is a weighted average of the subgroup rates, with weights

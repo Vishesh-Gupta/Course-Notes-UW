@@ -52,6 +52,26 @@ Let $X$ be the sum of two fair dice. Counting ordered pairs,
 So $f(7) = 6/36$, $f(4) = 3/36$, and $F(4) = f(2) + f(3) + f(4) = (1+2+3)/36 = 1/6$.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=pf, width=7cm, height=5cm, ybar, bar width=7pt, ymin=0, ymax=0.2,
+    xtick={2,...,12}, xlabel={$x$}, ylabel={$f(x)$}, title={p.f.}, tick label style={font=\small}, label style={font=\small}, axis lines=left, ymajorgrids, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, grid style={gray!20},
+    enlarge x limits=0.06]
+  \addplot[fill=blue!35, draw=blue!60!black] coordinates {(2,0.0278) (3,0.0556) (4,0.0833) (5,0.1111) (6,0.1389) (7,0.1667) (8,0.1389) (9,0.1111) (10,0.0833) (11,0.0556) (12,0.0278)};
+\end{axis}
+\begin{axis}[at={(pf.east)}, anchor=west, xshift=1.2cm, width=7cm, height=5cm,
+    ymin=0, ymax=1.05, xmin=0, xmax=14, xtick={2,4,...,12}, xlabel={$x$}, ylabel={$F(x)$},
+    title={c.d.f.}, tick label style={font=\small}, label style={font=\small}, axis lines=left, ymajorgrids, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, grid style={gray!20}]
+  \addplot[const plot, thick, blue!60!black] coordinates {(0,0) (2,0) (2,0.0278) (3,0.0833) (4,0.1667) (5,0.2778) (6,0.4167) (7,0.5833) (8,0.7222) (9,0.8333) (10,0.9167) (11,0.9722) (12,1.0000) (14,1)};
+  \addplot[only marks, mark=*, mark size=1.5pt, blue!60!black] coordinates {(2,0.0278) (3,0.0833) (4,0.1667) (5,0.2778) (6,0.4167) (7,0.5833) (8,0.7222) (9,0.8333) (10,0.9167) (11,0.9722) (12,1.0000)};
+  \draw[dashed, red!70!black] (axis cs:4,0) -- (axis cs:4,0.1667) -- (axis cs:0,0.1667);
+  \node[anchor=west, font=\small] at (axis cs:6.5,0.12) {$F(4) = 1/6$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The p.f.\ is a triangle peaked at $7$; the c.d.f.\ is a staircase that jumps by $f(x)$ at
+each possible value and is flat in between.
+
 \section{Discrete uniform distribution}
 
 \begin{definition}[Discrete uniform]
@@ -132,6 +152,20 @@ probability $0.3$, independently. Let $X\sim\Bin(10, 0.3)$.
   \approx 0.0282 + 0.1211 + 0.2335 = 0.3828.
 \]
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5cm, ybar, bar width=12pt, ymin=0, ymax=0.3,
+    xtick={0,...,10}, xlabel={$x$}, ylabel={$P(X = x)$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, ymajorgrids, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, grid style={gray!20}, enlarge x limits=0.05,
+    legend style={font=\small, draw=none}, legend cell align=left, bar shift=0pt]
+  \addplot[fill=orange!50, draw=orange!70!black] coordinates {(0,0.0282) (1,0.1211) (2,0.2335)};
+  \addplot[fill=blue!25, draw=blue!60!black] coordinates {(3,0.2668) (4,0.2001) (5,0.1029) (6,0.0368) (7,0.0090) (8,0.0014) (9,0.0001) (10,0.0000)};
+  \legend{$P(X\le 2) \approx 0.3828$, other values}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The $\Bin(10,0.3)$ p.f.\ peaks at $x=3$ (the most likely score) and is skewed to the right,
+since $p<1/2$.
 
 \subsection{Binomial approximation to the hypergeometric}
 
@@ -215,6 +249,20 @@ losing tickets before the first winner. Then $P(X = 3) = 0.2(0.8)^3 = 0.1024$, a
 $P(X\ge 4) = 0.8^4 = 0.4096$.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5cm, ybar, bar width=9pt, bar shift=0pt, ymin=0, ymax=0.22,
+    xtick={0,...,15}, xlabel={$x$ (losing tickets before the first winner)}, ylabel={$f(x)$},
+    tick label style={font=\small}, label style={font=\small}, axis lines=left, ymajorgrids, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, grid style={gray!20}, enlarge x limits=0.04, legend style={font=\small, draw=none}, legend cell align=left]
+  \addplot[fill=blue!25, draw=blue!60!black] coordinates {(0,0.2000) (1,0.1600) (2,0.1280) (3,0.1024)};
+  \addplot[fill=orange!50, draw=orange!70!black] coordinates {(4,0.0819) (5,0.0655) (6,0.0524) (7,0.0419) (8,0.0336) (9,0.0268) (10,0.0215) (11,0.0172) (12,0.0137) (13,0.0110) (14,0.0088) (15,0.0070)};
+  \legend{$x\le 3$, $P(X\ge 4) = 0.4096$}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Each bar is $0.8$ times the one before it, so the p.f.\ decays geometrically, and the whole
+tail from $x$ onward has probability $(1-p)^x$.
+
 The geometric distribution is \emph{memoryless}:
 $P(X \ge s+t \given X\ge s) = (1-p)^{s+t}/(1-p)^s = (1-p)^t = P(X\ge t)$. Past failures do
 not make a success ``due''.
@@ -261,6 +309,19 @@ $1\%$ of items are defective, and $200$ are inspected. Exactly,
 the Poisson approximation gives $e^{-2}2^3/3! = \tfrac{8}{6}e^{-2} \approx 0.1804$.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5cm, ybar, bar width=7pt, ymin=0, ymax=0.32,
+    xtick={0,...,8}, xlabel={$x$}, ylabel={probability}, tick label style={font=\small}, label style={font=\small}, axis lines=left, ymajorgrids, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, grid style={gray!20}, enlarge x limits=0.06,
+    legend style={font=\small, draw=none}, legend cell align=left]
+  \addplot[fill=blue!35, draw=blue!60!black] coordinates {(0,0.1340) (1,0.2707) (2,0.2720) (3,0.1814) (4,0.0902) (5,0.0357) (6,0.0117) (7,0.0033) (8,0.0008)};
+  \addplot[fill=orange!50, draw=orange!70!black] coordinates {(0,0.1353) (1,0.2707) (2,0.2707) (3,0.1804) (4,0.0902) (5,0.0361) (6,0.0120) (7,0.0034) (8,0.0009)};
+  \legend{{$\Bin(200, 0.01)$}, {$\Poi(2)$}}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The two sets of bars are almost indistinguishable.
+
 \subsection{The Poisson process}
 
 Poisson distributions also arise directly when events occur randomly in time (or space).
@@ -293,6 +354,31 @@ tends to $\Poi(\lambda t)$ by the previous theorem. (A rigorous proof sets up di
 equations for $f_t(x) = P(x \text{ events in } [0,t])$:
 $f_t'(x) = \lambda f_t(x-1) - \lambda f_t(x)$, and checks the Poisson solution.)
 \end{proof}
+
+One simulated hour of calls at rate $\lambda = 6$ per hour looks like this: the events
+are scattered at random, and the counts in non-overlapping intervals vary independently.
+
+\begin{center}
+\begin{tikzpicture}[x=0.2cm, every node/.style={font=\small}]
+  \fill[blue!8] (0,-0.5) rectangle (20,0.5);
+  \fill[orange!12] (20,-0.5) rectangle (40,0.5);
+  \fill[blue!8] (40,-0.5) rectangle (60,0.5);
+  \draw[->] (0,0) -- (62,0) node[right] {$t$ (min)};
+  \foreach \t in {0,10,...,60} \draw (\t,0.1) -- (\t,-0.1) node[below=2pt, font=\scriptsize] {\t};
+  \draw[very thick, red!70!black] (6.3,-0.3) -- (6.3,0.3);
+  \draw[very thick, red!70!black] (14.2,-0.3) -- (14.2,0.3);
+  \draw[very thick, red!70!black] (23.5,-0.3) -- (23.5,0.3);
+  \draw[very thick, red!70!black] (27.9,-0.3) -- (27.9,0.3);
+  \draw[very thick, red!70!black] (33.0,-0.3) -- (33.0,0.3);
+  \draw[very thick, red!70!black] (38.1,-0.3) -- (38.1,0.3);
+  \draw[very thick, red!70!black] (46.4,-0.3) -- (46.4,0.3);
+  \draw[very thick, red!70!black] (55.4,-0.3) -- (55.4,0.3);
+  \node[above] at (10,0.5) {$2$ events};
+  \node[above] at (30,0.5) {$4$ events};
+  \node[above] at (50,0.5) {$2$ events};
+  \node[below, font=\scriptsize, text=gray] at (30,-0.9) {each $20$-minute block: count $\sim\Poi(6\cdot\tfrac13) = \Poi(2)$, independent of the others};
+\end{tikzpicture}
+\end{center}
 
 \begin{example}[Calls to a help desk]
 Calls arrive according to a Poisson process at a rate of $6$ per hour.

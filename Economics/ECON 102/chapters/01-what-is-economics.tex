@@ -199,6 +199,23 @@ Hours 1 to 3 have $MB > MC$, so study them. For hour 4, $MB = 10 < 15 = MC$, so 
 3 hours. Comparing \emph{total} benefit to total cost would not tell you where to stop.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[x=1.4cm, y=0.09cm, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (5,0) node[right] {Hours of study};
+  \draw[->] (0,0) -- (0,56) node[above] {\$ per hour};
+  \foreach \h/\mb in {1/40, 2/30, 3/20, 4/10} {
+    \fill[blue!25] (\h-0.85,0) rectangle (\h-0.15,\mb);
+    \draw[blue!60!black] (\h-0.85,0) rectangle (\h-0.15,\mb);
+    \node[above, font=\scriptsize] at (\h-0.5,\mb) {\mb};
+    \node[below] at (\h-0.5,0) {\h};
+  }
+  \draw[thick, red] (0,15) -- (4.3,15) node[right] {MC $= 15$};
+  \node[blue!60!black] at (3.3,36) {MB};
+  \draw[decorate, decoration={brace, amplitude=4pt}] (0.15,46) -- (2.85,46) node[midway, above=4pt] {$MB > MC$: study};
+  \node[anchor=west, font=\scriptsize] at (4.0,6) {hour 4: $MB < MC$};
+\end{tikzpicture}
+\end{center}
+
 \subsection{Choices respond to incentives}
 
 A change in marginal benefit or marginal cost changes the incentives people face, and so
@@ -259,9 +276,34 @@ A line passes through $(x,y) = (2, 10)$ and $(6, 4)$. Its slope is
 $\dfrac{4 - 10}{6 - 2} = \dfrac{-6}{4} = -1.5$, a negative relationship.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[scale=0.55, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (8,0) node[right] {$x$};
+  \draw[->] (0,0) -- (0,12) node[above] {$y$};
+  \draw[thick, blue] (1,11.5) -- (7.5,1.75);
+  \fill (2,10) circle (3pt) node[left] {$(2,10)$};
+  \fill (6,4) circle (3pt) node[below left] {$(6,4)$};
+  \draw[dashed] (2,10) -- (6,10) node[midway, above] {$\Delta x = 4$};
+  \draw[dashed] (6,10) -- (6,4) node[midway, right] {$\Delta y = -6$};
+  \node[blue] at (2.6,2.5) {slope $= -1.5$};
+  \begin{scope}[xshift=11cm]
+    \draw[->] (0,0) -- (8,0) node[right] {quantity};
+    \draw[->] (0,0) -- (0,12) node[above] {price};
+    \draw[thick, blue] (0.8,10.5) .. controls (2,5) and (4,3) .. (6.5,2.2) node[right] {$D_0$};
+    \draw[thick, blue, dashed] (2.3,11.3) .. controls (3.5,5.8) and (5.5,3.8) .. (8,3) node[right] {$D_1$};
+    \fill (1.85,7.0) circle (3pt) node[left] {a};
+    \fill (3.16,4.59) circle (3pt) node[below left] {b};
+    \draw[->, thick, red!70!black] (2.05,6.55) -- (3.0,4.95);
+    \draw[->, thick, red!70!black] (4.0,5.7) -- (5.0,6.4);
+    \node[red!70!black, align=center, font=\scriptsize] at (2.3,1.4) {movement along\\(price changes)};
+    \node[red!70!black, align=center, font=\scriptsize] at (5.8,8.0) {shift\\(other influence\\changes)};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
 When a variable other than the two on the axes changes, the whole curve \emph{shifts}.
-This distinction (movement along a curve vs shift of the curve) is used throughout the
-course.
+This distinction (movement along a curve vs shift of the curve, right panel above) is
+used throughout the course.
 
 \section{Summary}
 

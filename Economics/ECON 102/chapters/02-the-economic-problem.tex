@@ -214,6 +214,29 @@ shirt, between the two opportunity costs of 2 and 4).
 Both consume outside their own PPFs.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[x=0.45cm, y=0.2cm, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (11.5,0) node[right] {Shirts};
+  \draw[->] (0,0) -- (0,22) node[above] {Hats};
+  \draw[thick, blue] (0,20) -- (10,0);
+  \node[blue, anchor=west] at (6.2,10) {Ann's PPF};
+  \fill (5,10) circle (3.5pt) node[below left] {no trade};
+  \fill[red!70!black] (5,12) circle (3.5pt) node[above right, red!70!black] {with trade};
+  \foreach \v in {5,10} \node[below] at (\v,0) {\v};
+  \foreach \v in {10,20} \node[left] at (0,\v) {\v};
+  \begin{scope}[xshift=7.5cm]
+    \draw[->] (0,0) -- (6,0) node[right] {Shirts};
+    \draw[->] (0,0) -- (0,22) node[above] {Hats};
+    \draw[thick, blue] (0,16) -- (4,0);
+    \node[blue, anchor=west] at (1.4,13.5) {Bob's PPF};
+    \fill (2,8) circle (3.5pt) node[below left] {no trade};
+    \fill[red!70!black] (3,8) circle (3.5pt) node[right, red!70!black] {with trade};
+    \foreach \v in {2,4} \node[below] at (\v,0) {\v};
+    \foreach \v in {8,16} \node[left] at (0,\v) {\v};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
 \begin{important}[Pitfall]
 Trade is mutually beneficial only if the terms of trade lie \emph{between} the two
 traders' opportunity costs. Always compare opportunity costs, not output per hour, to find
@@ -240,6 +263,28 @@ In the \emph{circular flow} model, households sell factors of production to firm
 \emph{factor markets} and receive incomes; firms sell goods and services to households in
 \emph{goods markets}; real flows go one way and money flows the other way. This picture
 is developed into the GDP accounts in the next chapter.
+
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, thick, rounded corners, minimum width=2.6cm, minimum height=0.9cm, fill=blue!6},
+    mk/.style={draw, rounded corners, minimum width=2.4cm, minimum height=0.8cm, fill=orange!12, align=center},
+    every node/.style={font=\small}]
+  \node[box] (H) at (0,0) {Households};
+  \node[box] (F) at (8,0) {Firms};
+  \node[mk] (G) at (4,2.3) {Goods markets};
+  \node[mk] (Fm) at (4,-2.3) {Factor markets};
+  \draw[->, thick, red!70!black] (F.north) |- node[pos=0.75, above] {goods \& services} (G.east);
+  \draw[->, thick, red!70!black] (G.west) -| node[pos=0.25, above] {goods \& services} (H.north);
+  \draw[->, thick, red!70!black] (H.south) |- node[pos=0.75, below] {factor services} (Fm.west);
+  \draw[->, thick, red!70!black] (Fm.east) -| node[pos=0.25, below] {factor services} (F.south);
+  \draw[->, thick, blue!70!black, dashed] (H.north east) -- node[sloped, below, font=\scriptsize] {expenditure \$} (G.south west);
+  \draw[->, thick, blue!70!black, dashed] (G.south east) -- node[sloped, below, font=\scriptsize] {revenue \$} (F.north west);
+  \draw[->, thick, blue!70!black, dashed] (F.south west) -- node[sloped, above, font=\scriptsize] {wages, rent, \dots} (Fm.north east);
+  \draw[->, thick, blue!70!black, dashed] (Fm.north west) -- node[sloped, above, font=\scriptsize] {incomes \$} (H.south east);
+\end{tikzpicture}
+\end{center}
+Solid arrows are real flows (goods and services; the services of labour, land, capital and
+entrepreneurship); dashed arrows are
+the money flows that pay for them, running in the opposite direction.
 
 \section{Summary}
 

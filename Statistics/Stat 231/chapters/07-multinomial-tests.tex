@@ -76,6 +76,26 @@ For $W\sim\chi^2(5)$, $\Prob(W\le 9.236) = 0.90$, so $p>0.10$ (software: $p\appr
 for both). No evidence that the die is unfair.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=d1, width=6.8cm, height=4.8cm, ybar, bar width=10pt, ymin=0, ymax=30, xtick={1,...,6},
+    xlabel={face}, ylabel={count}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, enlarge x limits=0.12, title={observed vs.\ expected $20$},
+    title style={font=\small}]
+  \addplot[fill=blue!30, draw=blue!60!black] coordinates {(1,14) (2,23) (3,17) (4,25) (5,16) (6,25)};
+  \draw[thick, dashed, red!70!black] (axis cs:0.4,20) -- (axis cs:6.6,20);
+\end{axis}
+\begin{axis}[at={(d1.east)}, anchor=west, xshift=1cm, width=6.8cm, height=4.8cm, xmin=0, xmax=18,
+    ymin=0, ymax=0.17, ytick=\empty, xtick={0,6,9.236,15}, xticklabels={0,$d=6$,$9.24$,15}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed},
+    samples=100, title={$\chi^2(5)$: $p\approx0.30$}, title style={font=\small}]
+  \addplot[draw=none, fill=red!30, domain=6:18] {x^1.5*exp(-x/2)/7.5199} \closedcycle;
+  \addplot[thick, blue!60!black, domain=0:18] {x^1.5*exp(-x/2)/7.5199};
+  \draw[dashed, gray] (axis cs:9.236,0) -- (axis cs:9.236,0.1);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The deviations from $20$ (left) are of the size chance produces: the observed $d = 6$ sits
+in the bulk of the $\chi^2(5)$ distribution (right), well below the $10\%$ point $9.236$.
+
 \begin{example}[Poisson goodness of fit ($p=1$)]
 The car counts of Chapter 2 in $n=200$ intervals had observed frequencies
 $38,80,50,20,12$ for $0,1,2,3,\ge4$ cars, $\thetahat = 1.455$ and expected frequencies
@@ -147,6 +167,24 @@ $W\sim\chi^2(2)$, $\Prob(W\le 9.210) = 0.99$, so $p<0.01$ (software: $p\approx0.
 evidence that format preference is associated with faculty: Math students prefer online
 more, Arts students prefer in-person more than independence predicts.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=9cm, height=5cm, ybar, bar width=14pt, ymin=0, ymax=0.7, xtick={1,2,3},
+    xticklabels={online, hybrid, in person}, ylabel={proportion of row}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, enlarge x limits=0.25,
+    legend style={font=\small, draw=none}, legend cell align=left]
+  \addplot[fill=blue!35, draw=blue!60!black] coordinates {(1,0.5) (2,0.375) (3,0.125)};
+  \addplot[fill=orange!50, draw=orange!70!black] coordinates {(1,0.3077) (2,0.4231) (3,0.2692)};
+  \draw[very thick] (axis cs:0.72,0.4) -- (axis cs:1.28,0.4);
+  \draw[very thick] (axis cs:1.72,0.4) -- (axis cs:2.28,0.4);
+  \draw[very thick] (axis cs:2.72,0.2) -- (axis cs:3.28,0.2);
+  \legend{Math ($n=120$), Arts ($n=130$)}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Under independence both faculties would match the overall column proportions (black lines:
+$0.4$, $0.4$, $0.2$). Math leans online and Arts leans in-person, which is the pattern
+the test detects.
 
 \begin{example}[$2\times2$ table]
 Of $50$ patients on treatment A, $30$ improved; of $50$ on treatment B, $18$ improved.

@@ -142,6 +142,26 @@ shifts both curves (in opposite directions), the exchange rate can change sharpl
 though the quantity traded changes little. This is why exchange rates are so volatile.
 
 \begin{center}
+\begin{tikzpicture}[scale=0.8, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (8.5,0) node[right] {Quantity of CAD};
+  \draw[->] (0,0) -- (0,6.3) node[above] {Exchange rate};
+  \draw[thick, blue] (2,5) -- (6,1) node[below right] {$D_0$};
+  \draw[thick, red] (2,1) -- (6,5) node[right] {$S_0$};
+  \draw[thick, blue, dashed] (3.5,5) -- (7.5,1) node[below right] {$D_1$};
+  \draw[thick, red, dashed] (1,1.5) -- (5,5.5) node[right] {$S_1$};
+  \fill (4,3) circle (2.5pt); \fill (4,4.5) circle (2.5pt);
+  \draw[dotted] (0,3) node[left] {$e_0$} -- (4,3);
+  \draw[dotted] (0,4.5) node[left] {$e_1$} -- (4,4.5);
+  \draw[dotted] (4,4.5) -- (4,0) node[below] {$Q_0 = Q_1$};
+  \draw[->, thick, gray] (5.4,2.2) -- (6.4,2.2);
+  \draw[->, thick, gray] (5.2,4.6) -- (4.4,4.6);
+\end{tikzpicture}
+\end{center}
+A rise in the Canadian interest rate differential (or in the expected future exchange rate)
+increases demand and decreases supply at the same time: the exchange rate jumps from $e_0$
+to $e_1$ while the quantity traded need not change at all.
+
+\begin{center}
 \begin{tikzpicture}[scale=0.8]
   \draw[->] (0,0) -- (8.5,0) node[right] {Quantity of CAD (billions/day)};
   \draw[->] (0,0) -- (0,6) node[above] {Exchange rate (US\$ per CAD)};
@@ -228,6 +248,23 @@ adjusts to the price levels.
         central bank. To keep it fixed, the central bank buys its own currency (using
         foreign reserves) when there is excess supply and sells it when there is excess
         demand. It cannot defend an overvalued rate forever: reserves run out.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.8, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (8.5,0) node[right] {Quantity of CAD};
+  \draw[->] (0,0) -- (0,6.3) node[above] {Exchange rate};
+  \draw[thick, blue] (2,5) -- (6,1) node[below right] {$D$};
+  \draw[thick, red] (2,1) -- (6,5) node[right] {$S$};
+  \draw[thick, green!50!black] (0,4) node[left] {peg} -- (7.5,4);
+  \fill (4,3) circle (2.5pt);
+  \draw[dotted] (0,3) node[left] {$e^{*}$} -- (4,3);
+  \fill (3,4) circle (2.5pt); \fill (5,4) circle (2.5pt);
+  \draw[decorate, decoration={brace, mirror, amplitude=4pt}] (3,3.85) -- (5,3.85);
+  \draw[gray] (4,3.55) -- (6.2,2.6) node[right, align=left, font=\scriptsize, text=black] {excess supply:\\central bank buys CAD};
+\end{tikzpicture}
+\end{center}
+To hold the rate at a peg above the market equilibrium $e^{*}$, the central bank must buy
+the excess supply of its own currency every period, paying with foreign reserves.
   \item \textbf{Crawling peg}: a rate that follows a path chosen by the central bank
         (China's yuan after 2005 is the textbook example).
 \end{itemize}
@@ -264,6 +301,20 @@ net transfers $-2$. Foreign investment in Canada 150, Canadian investment abroad
 \end{align*}
 meaning official reserves \emph{decreased} by 2 billion.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[x=1.8cm, y=0.05cm, every node/.style={font=\small}]
+  \draw[thick] (0,0) -- (4,0);
+  \fill[red!35] (0.3,0) rectangle (1.0,-42); \draw (0.3,0) rectangle (1.0,-42);
+  \fill[blue!25] (1.6,0) rectangle (2.3,40); \draw (1.6,0) rectangle (2.3,40);
+  \fill[green!30] (2.9,0) rectangle (3.6,2); \draw (2.9,0) rectangle (3.6,2);
+  \node[below] at (0.65,-42) {$-42$}; \node[above] at (1.95,40) {$+40$}; \node[above] at (3.25,2) {$+2$};
+  \node[above, align=center, font=\scriptsize] at (0.65,1) {current\\account};
+  \node[below, align=center, font=\scriptsize] at (1.95,-1) {capital and\\financial account};
+  \node[below, align=center, font=\scriptsize] at (3.25,-1) {official\\settlements};
+  \node[anchor=west] at (4.05,0) {sum $= 0$};
+\end{tikzpicture}
+\end{center}
 
 \begin{definition}[Borrowers, lenders, debtors, creditors]
 A \emph{net borrower} borrows more from the rest of the world than it lends in a given
