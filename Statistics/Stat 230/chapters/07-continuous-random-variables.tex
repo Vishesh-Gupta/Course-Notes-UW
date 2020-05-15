@@ -61,6 +61,31 @@ Let $f(x) = kx^2$ for $0 < x < 2$ and $0$ otherwise.
 \end{itemize}
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=pdf, width=6.8cm, height=5cm, xmin=-0.3, xmax=2.5, ymin=0, ymax=1.7,
+    xlabel={$x$}, ylabel={$f(x)$}, title={p.d.f.\ $\tfrac38x^2$}, title style={font=\small}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=60]
+  \addplot[draw=none, fill=blue!25, domain=1:2] {3*x^2/8} \closedcycle;
+  \addplot[thick, blue!60!black, domain=0:2] {3*x^2/8};
+  \draw[thick, blue!60!black] (axis cs:2,1.5) -- (axis cs:2,0);
+  \draw[thick, blue!60!black] (axis cs:-0.3,0) -- (axis cs:0,0);
+  \draw[thick, blue!60!black] (axis cs:2,0) -- (axis cs:2.5,0);
+  \node[font=\small] at (axis cs:1.7,0.35) {$\tfrac78$};
+  \node[font=\small, anchor=east] at (axis cs:1.3,1.2) {$P(X>1)$};
+  \draw[->, gray] (axis cs:1.2,1.1) -- (axis cs:1.5,0.6);
+\end{axis}
+\begin{axis}[at={(pdf.east)}, anchor=west, xshift=1.2cm, width=6.8cm, height=5cm, xmin=-0.3,
+    xmax=2.5, ymin=0, ymax=1.1, xlabel={$x$}, ylabel={$F(x)$}, title={c.d.f.\ $x^3/8$},
+    title style={font=\small}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=60]
+  \addplot[thick, blue!60!black, domain=0:2] {x^3/8};
+  \draw[thick, blue!60!black] (axis cs:-0.3,0) -- (axis cs:0,0);
+  \draw[thick, blue!60!black] (axis cs:2,1) -- (axis cs:2.5,1);
+  \draw[dashed, red!70!black] (axis cs:-0.3,0.5) -- (axis cs:1.587,0.5) -- (axis cs:1.587,0);
+  \node[font=\small, anchor=south east] at (axis cs:1.55,0.52) {median $1.587$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
 \section{Change of variables}
 
 To find the distribution of $Y = h(X)$, the reliable method is to go through the c.d.f.
@@ -118,6 +143,21 @@ $P(X\le x) = P(F^{-1}(U)\le x) = P(U\le F(x)) = F(x)$.
 
 This is how computers generate random numbers from other distributions starting from
 uniform pseudo-random numbers.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=8cm, height=5.5cm, xmin=0, xmax=40, ymin=0, ymax=1.05, xlabel={$x$},
+    ylabel={$F(x)$}, xtick=\empty, ytick={0,1}, clip=false, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=60]
+  \addplot[thick, blue!60!black, domain=0:40] {1-exp(-x/10)};
+  \draw[->, thick, red!70!black] (axis cs:0,0.7) -- (axis cs:12.04,0.7);
+  \draw[->, thick, red!70!black] (axis cs:12.04,0.7) -- (axis cs:12.04,0);
+  \node[anchor=east, font=\small] at (axis cs:0,0.7) {$U$};
+  \node[anchor=north, font=\small] at (axis cs:12.04,0) {$X = F^{-1}(U)$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Pick a uniform height $U$ on the vertical axis, run across to the c.d.f.\ and drop down:
+regions where $F$ is steep (high density) catch many values of $U$.
 
 \section{Exponential distribution}
 
@@ -177,6 +217,22 @@ minutes) for the next call is $\Exp(\theta = 10)$.
         the mean of $10$ because the distribution is right-skewed.
 \end{itemize}
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5cm, xmin=0, xmax=50, ymin=0, ymax=0.11, xlabel={$x$ (minutes)},
+    ylabel={$f(x)$}, xtick={0,6.93,10,15,20,30,40,50}, xticklabels={0,$m$,$\theta$,15,20,30,40,50},
+    tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=80]
+  \addplot[draw=none, fill=blue!25, domain=15:50] {exp(-x/10)/10} \closedcycle;
+  \addplot[thick, blue!60!black, domain=0:50] {exp(-x/10)/10};
+  \draw[dashed, red!70!black] (axis cs:6.93,0) -- (axis cs:6.93,0.05);
+  \draw[dashed, gray] (axis cs:10,0) -- (axis cs:10,0.0368);
+  \node[font=\small, anchor=south west] at (axis cs:20,0.025) {$P(X>15) = e^{-1.5}\approx 0.223$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The $\Exp(10)$ density is highest at $0$ and has a long right tail, which pulls the mean
+$\theta = 10$ above the median $m \approx 6.93$.
 
 \subsection{The gamma function (brief)}
 
@@ -262,6 +318,21 @@ Let $X\sim\Norm(100, 15^2)$.
 \end{itemize}
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5cm, xmin=50, xmax=150, ymin=0, ymax=0.031, xlabel={IQ score $x$},
+    xtick={55,70,85,100,115,130,145}, ytick=\empty, axis lines=left, tick label style={font=\small},
+    label style={font=\small}, samples=80, clip=false]
+  \addplot[draw=none, fill=blue!25, domain=85:115] {exp(-(x-100)^2/450)/(15*sqrt(2*pi))} \closedcycle;
+  \addplot[draw=none, fill=orange!50, domain=120:150] {exp(-(x-100)^2/450)/(15*sqrt(2*pi))} \closedcycle;
+  \addplot[thick, blue!60!black, domain=50:150] {exp(-(x-100)^2/450)/(15*sqrt(2*pi))};
+  \node[font=\small] at (axis cs:100,0.01) {$0.6827$};
+  \node[font=\small, anchor=south west] at (axis cs:121,0.009) {$P(X>120)\approx 0.09$};
+  \draw[->, gray] (axis cs:126,0.009) -- (axis cs:123,0.004);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
 \begin{example}[Finding $\sigma$]
 Bags of chips are filled with mean $\mu = 250$\,g. The machine's standard deviation is to
 be set so that only $5\%$ of bags weigh less than $240$\,g. We need
@@ -271,6 +342,28 @@ $-10/\sigma = -1.6449$, so $\sigma = 10/1.6449 \approx 6.08$\,g.
 
 The ``68--95--99.7 rule'': for any normal distribution, about $68.3\%$, $95.4\%$ and
 $99.7\%$ of the probability lies within $1$, $2$ and $3$ standard deviations of the mean.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=11cm, height=5.5cm, xmin=-3.8, xmax=3.8, ymin=0, ymax=0.62,
+    xtick={-3,-2,-1,0,1,2,3}, xticklabels={$\mu-3\sigma$,$\mu-2\sigma$,$\mu-\sigma$,$\mu$,$\mu+\sigma$,$\mu+2\sigma$,$\mu+3\sigma$},
+    ytick=\empty, axis lines=left, tick label style={font=\scriptsize}, samples=80]
+  \addplot[draw=none, fill=blue!10, domain=-3:3] {exp(-x^2/2)/sqrt(2*pi)} \closedcycle;
+  \addplot[draw=none, fill=blue!22, domain=-2:2] {exp(-x^2/2)/sqrt(2*pi)} \closedcycle;
+  \addplot[draw=none, fill=blue!38, domain=-1:1] {exp(-x^2/2)/sqrt(2*pi)} \closedcycle;
+  \addplot[thick, blue!60!black, domain=-3.8:3.8] {exp(-x^2/2)/sqrt(2*pi)};
+  \draw[<->] (axis cs:-1,0.44) -- node[fill=white, font=\small, inner sep=1pt] {$68.3\%$} (axis cs:1,0.44);
+  \draw[<->] (axis cs:-2,0.5) -- node[fill=white, font=\small, inner sep=1pt] {$95.4\%$} (axis cs:2,0.5);
+  \draw[<->] (axis cs:-3,0.56) -- node[fill=white, font=\small, inner sep=1pt] {$99.7\%$} (axis cs:3,0.56);
+  \draw[gray, dashed] (axis cs:-3,0) -- (axis cs:-3,0.56);
+  \draw[gray, dashed] (axis cs:-2,0) -- (axis cs:-2,0.56);
+  \draw[gray, dashed] (axis cs:-1,0) -- (axis cs:-1,0.56);
+  \draw[gray, dashed] (axis cs:1,0) -- (axis cs:1,0.56);
+  \draw[gray, dashed] (axis cs:2,0) -- (axis cs:2,0.56);
+  \draw[gray, dashed] (axis cs:3,0) -- (axis cs:3,0.56);
+\end{axis}
+\end{tikzpicture}
+\end{center}
 
 \section{Summary}
 

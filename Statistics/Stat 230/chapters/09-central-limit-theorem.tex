@@ -46,6 +46,21 @@ A single package exceeds $53$ with probability $P(Z > 0.3) \approx 0.382$: avera
 much less variable than individual observations.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5cm, xmin=20, xmax=80, ymin=0, ymax=0.22, xlabel={weight},
+    ytick=\empty, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=120, legend style={font=\small, draw=none, at={(0.02,0.98)}, anchor=north west}, legend cell align=left]
+  \addplot[draw=none, fill=orange!50, domain=53:60, forget plot] {exp(-(x-50)^2/8)/(2*sqrt(2*pi))} \closedcycle;
+  \addplot[thick, blue!60!black, domain=20:80] {exp(-(x-50)^2/200)/(10*sqrt(2*pi))};
+  \addplot[thick, orange!80!black, domain=40:60] {exp(-(x-50)^2/8)/(2*sqrt(2*pi))};
+  \draw[dashed, gray] (axis cs:53,0) -- (axis cs:53,0.2);
+  \legend{{one package, $\Norm(50,10^2)$}, {mean of 25, $\Norm(50,2^2)$}}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The shaded area beyond $53$ under the narrow curve is $0.0668$; under the wide curve the
+corresponding area would be $0.382$.
+
 \begin{example}[Two independent copies vs.\ doubling]
 If $X_1, X_2\sim\Norm(10, 4)$ independently, then $X_1+X_2\sim\Norm(20, 8)$ while
 $2X_1\sim\Norm(20, 16)$. The sum of two independent copies is less spread out because
@@ -80,6 +95,39 @@ $X_i$. Taking more observations does not make the data themselves look normal. T
 and variance of $S_n$ ($n\mu$ and $n\sigma^2$) are exact for any $n$; only the normal
 shape is an approximation.
 \end{important}
+
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=c0, width=4.4cm, height=4cm, ybar, bar width=6pt, bar shift=0pt,
+    xmin=0.0, xmax=7.0, ymin=0, ymax=0.2083, ytick=\empty, title={$n = 1$},
+    title style={font=\small}, tick label style={font=\scriptsize}, axis lines=left]
+  \addplot[fill=blue!30, draw=blue!50!black, line width=0.2pt] coordinates {(1,0.16667) (2,0.16667) (3,0.16667) (4,0.16667) (5,0.16667) (6,0.16667)};
+  \addplot[thick, red!70!black, domain=0.0:7.0, samples=80, smooth] {exp(-(x-3.5)^2/(2*2.9167))/sqrt(2*pi*2.9167)};
+\end{axis}
+\begin{axis}[name=c1, at={(c0.east)}, anchor=west, xshift=0.3cm, width=4.4cm, height=4cm, ybar, bar width=3.5pt, bar shift=0pt,
+    xmin=-1.7, xmax=15.7, ymin=0, ymax=0.2083, ytick=\empty, title={$n = 2$},
+    title style={font=\small}, tick label style={font=\scriptsize}, axis lines=left]
+  \addplot[fill=blue!30, draw=blue!50!black, line width=0.2pt] coordinates {(2,0.02778) (3,0.05556) (4,0.08333) (5,0.11111) (6,0.13889) (7,0.16667) (8,0.13889) (9,0.11111) (10,0.08333) (11,0.05556) (12,0.02778)};
+  \addplot[thick, red!70!black, domain=-1.7:15.7, samples=80, smooth] {exp(-(x-7.0)^2/(2*5.8333))/sqrt(2*pi*5.8333)};
+\end{axis}
+\begin{axis}[name=c2, at={(c1.east)}, anchor=west, xshift=0.3cm, width=4.4cm, height=4cm, ybar, bar width=1.8pt, bar shift=0pt,
+    xmin=1.7, xmax=26.3, ymin=0, ymax=0.1408, ytick=\empty, title={$n = 4$},
+    title style={font=\small}, tick label style={font=\scriptsize}, axis lines=left]
+  \addplot[fill=blue!30, draw=white, line width=0.2pt] coordinates {(4,0.00077) (5,0.00309) (6,0.00772) (7,0.01543) (8,0.02701) (9,0.04321) (10,0.06173) (11,0.08025) (12,0.09645) (13,0.10802) (14,0.11265) (15,0.10802) (16,0.09645) (17,0.08025) (18,0.06173) (19,0.04321) (20,0.02701) (21,0.01543) (22,0.00772) (23,0.00309) (24,0.00077)};
+  \addplot[thick, red!70!black, domain=1.7:26.3, samples=80, smooth] {exp(-(x-14.0)^2/(2*11.6667))/sqrt(2*pi*11.6667)};
+\end{axis}
+\begin{axis}[name=c3, at={(c2.east)}, anchor=west, xshift=0.3cm, width=4.4cm, height=4cm, ybar, bar width=0.8pt, bar shift=0pt,
+    xmin=15.6, xmax=54.4, ymin=0, ymax=0.0909, ytick=\empty, title={$n = 10$},
+    title style={font=\small}, tick label style={font=\scriptsize}, axis lines=left]
+  \addplot[fill=blue!30, draw=white, line width=0.2pt] coordinates {(16,0.00008) (17,0.00019) (18,0.00039) (19,0.00077) (20,0.00141) (21,0.00245) (22,0.00403) (23,0.00634) (24,0.00954) (25,0.01375) (26,0.01904) (27,0.02539) (28,0.03262) (29,0.04046) (30,0.04846) (31,0.05612) (32,0.06287) (33,0.06816) (34,0.07153) (35,0.07269) (36,0.07153) (37,0.06816) (38,0.06287) (39,0.05612) (40,0.04846) (41,0.04046) (42,0.03262) (43,0.02539) (44,0.01904) (45,0.01375) (46,0.00954) (47,0.00634) (48,0.00403) (49,0.00245) (50,0.00141) (51,0.00077) (52,0.00039) (53,0.00019) (54,0.00008)};
+  \addplot[thick, red!70!black, domain=15.6:54.4, samples=80, smooth] {exp(-(x-35.0)^2/(2*29.1667))/sqrt(2*pi*29.1667)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The exact p.f.\ of the total of $n$ dice (bars) against the normal curve with the same mean
+$3.5n$ and variance $35n/12$: the flat single-die distribution becomes a triangle at $n=2$
+and is already very close to normal at $n=4$.
 
 \begin{example}[Sum of dice]
 A fair die is rolled $100$ times. Each roll has $\mu = 3.5$ and $\sigma^2 = 35/12$, so the
@@ -186,6 +234,24 @@ $X\sim\Bin(50, 0.4)$ has mean $20$ and variance $12$ (standard deviation $3.464$
 \end{align*}
 The exact binomial probability is $0.6653$.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=11cm, height=5.5cm, ybar, bar width=12.5pt, bar shift=0pt, xmin=9.5, xmax=30.5,
+    ymin=0, ymax=0.13, xtick={10,12,...,30}, extra x ticks={17.5,24.5},
+    extra x tick style={tick label style={font=\scriptsize, text=red!70!black, yshift=-8pt}, tick style={red!70!black}},
+    xlabel={$x$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}]
+  \addplot[fill=gray!15, draw=gray!60] coordinates {(10,0.00144) (11,0.00349) (12,0.00756) (13,0.01474) (14,0.02597) (15,0.04155) (16,0.06059) (17,0.08079) (25,0.04046) (26,0.02594) (27,0.01537) (28,0.00842) (29,0.00426) (30,0.00199)};
+  \addplot[fill=blue!25, draw=blue!60!black] coordinates {(18,0.09874) (19,0.11086) (20,0.11456) (21,0.10910) (22,0.09588) (23,0.07781) (24,0.05836)};
+  \addplot[draw=none, fill=red!25, fill opacity=0.5, domain=17.5:24.5, samples=60] {exp(-(x-20)^2/24)/sqrt(24*pi)} \closedcycle;
+  \addplot[thick, red!70!black, domain=9.5:30.5, samples=100, smooth] {exp(-(x-20)^2/24)/sqrt(24*pi)};
+  \draw[red!70!black, dashed] (axis cs:17.5,0) -- (axis cs:17.5,0.11);
+  \draw[red!70!black, dashed] (axis cs:24.5,0) -- (axis cs:24.5,0.11);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The blue bars are $P(X = 18), \dots, P(X = 24)$; each bar covers $[k-0.5, k+0.5]$, so the
+matching area under the $\Norm(20,12)$ curve runs from $17.5$ to $24.5$, not from $18$ to $24$.
 
 \begin{example}[Poisson]
 Customers arrive at a store according to a Poisson process, averaging $25$ per hour. Let

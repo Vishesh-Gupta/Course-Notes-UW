@@ -40,6 +40,19 @@ depreciates by \$5 million and it buys \$8 million of new capital. Gross investm
 $30 + 3 = \$33$ million of capital.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small}, >={Stealth}]
+  \draw[thick, fill=blue!10] (0,0) rectangle (2.4,1.5);
+  \fill[blue!30] (0,0) rectangle (2.4,1.1);
+  \node[align=center] at (1.2,0.75) {capital stock\\\$30m $\to$ \$33m};
+  \draw[->, very thick, green!50!black] (-2.2,2.2) node[above, align=center] {gross investment\\(flow in) \$8m} -- (0.6,1.6);
+  \draw[->, very thick, red!70!black] (2.0,-0.1) -- (4.2,-1.0) node[below, align=center] {depreciation\\(flow out) \$5m};
+  \node[anchor=west, align=left] at (3.2,1.2) {net investment\\$= 8 - 5 = \$3$m};
+\end{tikzpicture}
+\end{center}
+Capital is a stock (measured at a point in time); investment and depreciation are flows
+(per year) that raise and lower it.
+
 \subsection{Wealth and saving}
 
 \begin{definition}[Wealth and saving]
@@ -115,6 +128,20 @@ rises to $(1050 - 980)/980 = 70/980 \approx 7.1\%$.
 Similarly, a share paying a \$5 dividend has a 10\% rate of return at a price of \$50 but
 only 5\% at a price of \$100.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[x=0.035cm, y=0.45cm, every node/.style={font=\small}]
+  \draw[->] (900,0) -- (1070,0) node[right] {bond price (\$)};
+  \draw[->] (900,0) -- (900,13) node[above] {interest rate (\%)};
+  \foreach \p in {950,1000,1050} \draw (\p,0.15) -- (\p,-0.15) node[below] {\p};
+  \foreach \r in {5,10} \draw (903,\r) -- (897,\r) node[left] {\r};
+  \draw[thick, blue, domain=930:1050, samples=60] plot (\x, {100*(1050-\x)/\x});
+  \fill (1000,5) circle (3pt) node[above right] {\$1000, 5\%};
+  \fill (980,7.14) circle (3pt) node[above right] {\$980, 7.1\%};
+\end{tikzpicture}
+\end{center}
+For the bond paying \$1050 in a year, every price has one interest rate, and the curve
+slopes down: the price and the rate move in opposite directions.
 
 \section{The loanable funds market}
 
@@ -220,6 +247,21 @@ $Q = 1000 - 600 = 400$. If expected profits rise and DLF becomes $Q_D = 1200 - 1
 then $1200 - 100r = 100r - 200$ gives $r = 7\%$ and $Q = 500$.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[x=1cm, y=0.6cm, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (8.5,0) node[right] {loanable funds (\$ billions)};
+  \draw[->] (0,0) -- (0,10.5) node[above] {real interest rate (\%)};
+  \draw[thick, red] (0.5,2.5) -- (7,9) node[right] {SLF};
+  \draw[thick, blue] (1,9) -- (7,3) node[right] {DLF$_0$};
+  \draw[thick, blue, dashed] (3,9) -- (8,4) node[right] {DLF$_1$};
+  \fill (4,6) circle (2.5pt);
+  \fill (5,7) circle (2.5pt);
+  \draw[dotted] (0,6) node[left] {6} -- (4,6) -- (4,0) node[below] {400};
+  \draw[dotted] (0,7) node[left] {7} -- (5,7) -- (5,0) node[below] {500};
+  \draw[->, thick, gray] (1.6,9.6) -- (3.0,9.6) node[right, font=\scriptsize] {expected profit rises};
+\end{tikzpicture}
+\end{center}
+
 \section{Government in the loanable funds market}
 
 \subsection{A government budget surplus}
@@ -292,6 +334,21 @@ $Q_D = 500$. Canada invests 500, saves 300 and borrows $500 - 300 = 200$ from th
 of the world. The domestic interest rate stays at 5\% instead of rising to the 6\%
 closed-economy equilibrium.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[x=1cm, y=0.6cm, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (8.5,0) node[right] {loanable funds (\$ billions)};
+  \draw[->] (0,0) -- (0,10.5) node[above] {real interest rate (\%)};
+  \draw[thick, red] (0.5,2.5) -- (7,9) node[right] {SLF (Canada)};
+  \draw[thick, blue] (1,9) -- (7,3) node[right] {DLF (Canada)};
+  \draw[thick, green!50!black] (0,5) node[left] {5} -- (8.2,5) node[above left, font=\scriptsize] {world real interest rate};
+  \fill (3,5) circle (2.5pt); \fill (5,5) circle (2.5pt);
+  \draw[dotted] (3,5) -- (3,0) node[below] {300};
+  \draw[dotted] (5,5) -- (5,0) node[below] {500};
+  \draw[dotted] (0,6) node[left] {6} -- (4,6);
+  \draw[decorate, decoration={brace, mirror, amplitude=4pt}] (3,4.6) -- (5,4.6) node[midway, below=5pt, font=\scriptsize, align=center] {borrowed\\from abroad: 200};
+\end{tikzpicture}
+\end{center}
 
 \section{Summary}
 

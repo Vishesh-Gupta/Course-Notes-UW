@@ -190,6 +190,40 @@ $\bar A$ and $\bar B$. The second law follows by applying the first to $\bar A$,
 and taking complements.
 \end{proof}
 
+\begin{center}
+\begin{tikzpicture}[scale=0.8, every node/.style={font=\small}]
+  \foreach \dx/\lab in {0/{$\bar A$ shaded}, 5.2/{$\bar B$ shaded}, 10.4/{$\bar A\cap\bar B = \overline{A\cup B}$}} {
+    \begin{scope}[xshift=\dx cm]
+      \node at (0,-1.9) {\lab};
+    \end{scope}
+  }
+  % panel 1: complement of A
+  \begin{scope}
+    \fill[blue!20, even odd rule] (-2.2,-1.5) rectangle (2.2,1.5) (-0.55,0) circle (1);
+  \end{scope}
+  % panel 2: complement of B
+  \begin{scope}[xshift=5.2cm]
+    \fill[blue!20, even odd rule] (-2.2,-1.5) rectangle (2.2,1.5) (0.55,0) circle (1);
+  \end{scope}
+  % panel 3: outside both
+  \begin{scope}[xshift=10.4cm]
+    \fill[blue!20] (-2.2,-1.5) rectangle (2.2,1.5);
+    \fill[white] (-0.55,0) circle (1);
+    \fill[white] (0.55,0) circle (1);
+  \end{scope}
+  \foreach \dx in {0,5.2,10.4} {
+    \begin{scope}[xshift=\dx cm]
+      \draw (-2.2,-1.5) rectangle (2.2,1.5);
+      \draw (-0.55,0) circle (1); \draw (0.55,0) circle (1);
+      \node at (-0.95,0) {$A$}; \node at (0.95,0) {$B$}; \node at (1.95,1.25) {$S$};
+    \end{scope}
+  }
+\end{tikzpicture}
+\end{center}
+
+The picture shows the first law: the region outside both circles is exactly the overlap
+of the two complements.
+
 Other standard rules: union and intersection are commutative and associative, and each
 distributes over the other:
 $A \cap (B \cup C) = (A\cap B)\cup(A \cap C)$ and $A \cup (B\cap C) = (A\cup B)\cap(A\cup C)$.
@@ -224,6 +258,29 @@ probability that the sum is $7$ is
 and the probability that the sum is $4$ is $3/36 = 1/12$.
 \end{example}
 
+The $36$ ordered outcomes are easiest to see as a grid. Each anti-diagonal collects the
+outcomes with the same sum, which is why the sums are not equally likely.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.6, every node/.style={font=\small}]
+  \foreach \i in {1,...,6} \foreach \j in {1,...,6} {
+    \pgfmathtruncatemacro{\s}{\i+\j}
+    \ifnum\s=7 \fill[blue!25] (\i-1,6-\j) rectangle (\i,7-\j); \fi
+    \ifnum\s=4 \fill[orange!35] (\i-1,6-\j) rectangle (\i,7-\j); \fi
+    \draw[gray!60] (\i-1,6-\j) rectangle (\i,7-\j);
+    \node[font=\scriptsize] at (\i-0.5,6.5-\j) {\s};
+  }
+  \foreach \i in {1,...,6} {
+    \node at (\i-0.5,6.4) {\i};
+    \node at (-0.4,6.5-\i) {\i};
+  }
+  \node at (3,7.2) {first die $i$};
+  \node[rotate=90] at (-1.2,3) {second die $j$};
+  \fill[blue!25] (7,4) rectangle (7.6,4.6); \node[anchor=west] at (7.7,4.3) {sum $7$: $6/36$};
+  \fill[orange!35] (7,3) rectangle (7.6,3.6); \node[anchor=west] at (7.7,3.3) {sum $4$: $3/36$};
+\end{tikzpicture}
+\end{center}
+
 \begin{example}[Countably infinite $S$]
 Toss a fair coin until the first head and let $S=\{1,2,\dots\}$ be the number of tosses.
 The first head occurs on toss $k$ exactly when the first $k-1$ tosses are tails and the
@@ -235,6 +292,26 @@ The probability that more than $3$ tosses are needed is
 $1 - (1/2 + 1/4 + 1/8) = 1/8$, which also equals the probability that the first three
 tosses are all tails.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[x=11cm, y=1cm, every node/.style={font=\small}]
+  \foreach \a/\b/\k in {0/0.5/1, 0.5/0.75/2, 0.75/0.875/3, 0.875/0.9375/4, 0.9375/0.96875/5} {
+    \fill[blue!\the\numexpr 10+12*\k\relax] (\a,0) rectangle (\b,0.6);
+    \draw (\a,0) rectangle (\b,0.6);
+  }
+  \draw (0.96875,0) rectangle (1,0.6);
+  \node at (0.25,0.3) {$P(1)=\tfrac12$};
+  \node at (0.625,0.3) {$\tfrac14$};
+  \node at (0.8125,0.3) {$\tfrac18$};
+  \node[font=\scriptsize] at (0.906,0.3) {$\tfrac1{16}$};
+  \node[font=\scriptsize] at (0.984,0.85) {$\cdots$};
+  \draw (0,-0.1) node[below] {$0$} -- (0,0);
+  \draw (1,-0.1) node[below] {$1$} -- (1,0);
+  \draw[decorate, decoration={brace, mirror, amplitude=4pt}] (0.75,-0.15) -- (1,-0.15)
+    node[midway, below=4pt, anchor=north east, xshift=1.4cm] {$P(\text{more than 3 tosses}) = \tfrac18$};
+\end{tikzpicture}
+\end{center}
+The probabilities $(1/2)^k$ fill up the unit interval: each one takes half of what is left.
 
 \begin{important}[Common pitfall]
 Do not assume outcomes are equally likely just because the sample space is finite. In

@@ -70,6 +70,30 @@ p\approx\Prob(|Z|\ge 8/6.124) = \Prob(|Z|\ge 1.306) = 2(1-0.9043) = 0.19.
 consistent with $\theta=0.25$.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=z1, width=7cm, height=4.6cm, xmin=-4, xmax=4, ymin=0, ymax=0.45, ytick=\empty,
+    xtick={-1.306,0,1.306}, xticklabels={$-1.31$,0,$1.31$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=100,
+    title={binomial test: $\Gau(0,1)$, $p\approx0.19$}, title style={font=\small}]
+  \addplot[draw=none, fill=red!35, domain=-4:-1.306] {exp(-x^2/2)/sqrt(2*pi)} \closedcycle;
+  \addplot[draw=none, fill=red!35, domain=1.306:4] {exp(-x^2/2)/sqrt(2*pi)} \closedcycle;
+  \addplot[thick, blue!60!black, domain=-4:4] {exp(-x^2/2)/sqrt(2*pi)};
+\end{axis}
+\begin{axis}[at={(z1.east)}, anchor=west, xshift=0.8cm, width=7cm, height=4.6cm, xmin=-4, xmax=4,
+    ymin=0, ymax=0.45, ytick=\empty, xtick={-2.654,0,2.654}, xticklabels={$-2.65$,0,$2.65$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed},
+    samples=100, title={$t$ test: $t(9)$, $p\approx0.026$}, title style={font=\small}]
+  \addplot[draw=none, fill=red!35, domain=-4:-2.654] {0.38803*(1+x^2/9)^(-5)} \closedcycle;
+  \addplot[draw=none, fill=red!35, domain=2.654:4] {0.38803*(1+x^2/9)^(-5)} \closedcycle;
+  \addplot[thick, blue!60!black, domain=-4:4] {0.38803*(1+x^2/9)^(-5)};
+  \node[font=\scriptsize, text=red!70!black] at (axis cs:3.2,0.08) {$0.013$};
+  \node[font=\scriptsize, text=red!70!black] at (axis cs:-3.2,0.08) {$0.013$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+For a two-sided test the p-value is the total shaded area in \emph{both} tails beyond the
+observed value of the statistic. The left picture is the binomial test above; the right
+one is the $t$ test below.
+
 \textbf{Poisson.} For $Y_1,\dots,Y_n$ independent $\Poi(\theta)$ and $H_0:\theta=\theta_0$,
 $\sum Y_i\sim\Poi(n\theta_0)$ under $H_0$; use $D = |\sum Y_i - n\theta_0|$ with either exact
 Poisson probabilities or the approximation $\sum Y_i\approx\Gau(n\theta_0,\sqrt{n\theta_0})$.
@@ -146,6 +170,27 @@ conclusion.
 $p\approx\Prob(|Z|\ge 1.885) = 0.059$.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=c1, width=7cm, height=4.6cm, xmin=0, xmax=24, ymin=0, ymax=0.12, ytick=\empty,
+    xtick={0,3.456,9,20}, xticklabels={0,$u$,9,20}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=100,
+    title={$\chi^2(9)$: $\Prob(U\le 3.456) = 0.057$}, title style={font=\small}]
+  \addplot[draw=none, fill=red!35, domain=0:3.456] {x^3.5*exp(-x/2)/263.2} \closedcycle;
+  \addplot[thick, blue!60!black, domain=0:24] {x^3.5*exp(-x/2)/263.2};
+\end{axis}
+\begin{axis}[at={(c1.east)}, anchor=west, xshift=0.8cm, width=7cm, height=4.6cm, xmin=0, xmax=8,
+    ymin=0, ymax=0.5, ytick=\empty, xtick={0,3.553,8}, xticklabels={0,$\lambda = 3.55$,8}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=100,
+    title={LRT: $\chi^2(1)$, $p\approx 0.059$}, title style={font=\small}]
+  \addplot[draw=none, fill=red!35, domain=3.553:8] {x^(-0.5)*exp(-x/2)/sqrt(2*pi)} \closedcycle;
+  \addplot[thick, blue!60!black, domain=0.15:8] {x^(-0.5)*exp(-x/2)/sqrt(2*pi)};
+  \node[font=\scriptsize, text=red!70!black] at (axis cs:4.6,0.1) {$0.059$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Left: the standard deviation test, where the observed $u$ is in the \emph{lower} tail, so
+$p = 2(0.0566) = 0.113$. Right: the Poisson LRT, where only large $\lambda$ counts against
+$H_0$ and the p-value is the single right tail of $\chi^2(1)$.
+
 \begin{example}[LRT for a Gaussian mean]
 For $H_0:\mu=\mu_0$ with $\sigma$ unknown, the maximized likelihoods give
 $\Lambda = n\log(\hat\sigma_0^2/\hat\sigma^2)$, where $\hat\sigma_0^2 = \frac1n\sum(y_i-\mu_0)^2
@@ -176,6 +221,23 @@ binomial proportion contains $0.25$: consistent with $p\approx0.19$. Equivalentl
 set of $\theta_0$ whose LRT p-value is at least $0.05$ is (approximately) the $15\%$
 likelihood interval.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small}]
+  \draw[->] (0,0) -- (10.2,0) node[right] {$\mu$};
+  \draw (0.500,0.08) -- (0.500,-0.08) node[below] {11.8};
+  \draw (2.000,0.08) -- (2.000,-0.08) node[below] {12.0};
+  \draw (3.500,0.08) -- (3.500,-0.08) node[below] {12.2};
+  \draw (5.000,0.08) -- (5.000,-0.08) node[below] {12.4};
+  \draw (6.500,0.08) -- (6.500,-0.08) node[below] {12.6};
+  \draw (8.000,0.08) -- (8.000,-0.08) node[below] {12.8};
+  \draw (9.500,0.08) -- (9.500,-0.08) node[below] {13.0};
+  \draw[very thick, blue!60!black, |-|] (2.577,0.4) -- node[above] {$95\%$ CI $[12.077,\ 12.963]$} (9.222,0.4);
+  \fill[red!70!black] (2.000,0) circle (2.5pt);
+  \node[red!70!black, above] at (2.000,0.1) {$\mu_0 = 12$};
+  \node[text=gray, align=left, anchor=north west] at (0.500,-0.55) {$\mu_0$ outside the $95\%$ CI $\iff$ $p < 0.05$ (here $p = 0.026$)};
+\end{tikzpicture}
+\end{center}
 
 \begin{important}[Common pitfalls]
 \begin{itemize}

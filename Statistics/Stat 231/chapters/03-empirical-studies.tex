@@ -82,6 +82,24 @@ population comes from three sources.
 \end{itemize}
 \end{definition}
 
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small}]
+  \draw[fill=blue!6] (0,0) ellipse (5.2 and 2.2);
+  \draw[fill=blue!14] (1.0,-0.2) ellipse (3.0 and 1.5);
+  \draw[fill=blue!30] (1.9,-0.4) ellipse (1.1 and 0.7);
+  \node[align=center] at (-3.5,0.7) {target\\population};
+  \node[align=center] at (-0.5,0.6) {study\\population};
+  \node at (1.9,-0.4) {sample};
+  \draw[{Stealth}-{Stealth}, red!70!black] (-5.08,-0.4) -- node[below, font=\scriptsize] {study error} (-1.97,-0.4);
+  \draw[{Stealth}-{Stealth}, red!70!black] (-1.97,-0.4) -- node[below, font=\scriptsize] {sample error} (0.8,-0.4);
+  \node[draw, rounded corners, fill=white, font=\scriptsize, align=center] (m) at (6.7,-0.4) {\textcolor{red!70!black}{measurement error:}\\measured vs.\ true value};
+  \draw[-{Stealth}, red!70!black] (m) -- (3.0,-0.4);
+\end{tikzpicture}
+\end{center}
+The three populations are nested: conclusions travel from the sample to the study
+population (sample error) and then, by argument rather than by data, to the target
+population (study error); every value recorded along the way carries measurement error.
+
 \begin{example}[Identifying the errors]
 A researcher wants the average weekly hours of exercise of Ontario university students.
 She emails a survey to $5000$ students chosen at random from the UW registrar's list; $900$
@@ -120,6 +138,282 @@ distribution. Other protocols:
   \item \textbf{Convenience / volunteer sampling}: whoever is easiest to reach or chooses
         to respond. Cheap but prone to serious, unquantifiable bias.
 \end{itemize}
+
+\begin{center}
+\begin{tikzpicture}
+  \begin{scope}[xshift=0cm]
+    \fill[gray!50] (0.00,0.00) circle (1.3pt);
+    \fill[gray!50] (0.00,0.30) circle (1.3pt);
+    \fill[gray!50] (0.00,0.60) circle (1.3pt);
+    \fill[gray!50] (0.00,0.90) circle (1.3pt);
+    \fill[red!70!black] (0.00,1.20) circle (2.4pt);
+    \fill[gray!50] (0.00,1.50) circle (1.3pt);
+    \fill[gray!50] (0.30,0.00) circle (1.3pt);
+    \fill[gray!50] (0.30,0.30) circle (1.3pt);
+    \fill[red!70!black] (0.30,0.60) circle (2.4pt);
+    \fill[gray!50] (0.30,0.90) circle (1.3pt);
+    \fill[gray!50] (0.30,1.20) circle (1.3pt);
+    \fill[gray!50] (0.30,1.50) circle (1.3pt);
+    \fill[gray!50] (0.60,0.00) circle (1.3pt);
+    \fill[gray!50] (0.60,0.30) circle (1.3pt);
+    \fill[gray!50] (0.60,0.60) circle (1.3pt);
+    \fill[red!70!black] (0.60,0.90) circle (2.4pt);
+    \fill[gray!50] (0.60,1.20) circle (1.3pt);
+    \fill[gray!50] (0.60,1.50) circle (1.3pt);
+    \fill[gray!50] (0.90,0.00) circle (1.3pt);
+    \fill[gray!50] (0.90,0.30) circle (1.3pt);
+    \fill[gray!50] (0.90,0.60) circle (1.3pt);
+    \fill[gray!50] (0.90,0.90) circle (1.3pt);
+    \fill[gray!50] (0.90,1.20) circle (1.3pt);
+    \fill[red!70!black] (0.90,1.50) circle (2.4pt);
+    \fill[gray!50] (1.20,0.00) circle (1.3pt);
+    \fill[gray!50] (1.20,0.30) circle (1.3pt);
+    \fill[gray!50] (1.20,0.60) circle (1.3pt);
+    \fill[gray!50] (1.20,0.90) circle (1.3pt);
+    \fill[gray!50] (1.20,1.20) circle (1.3pt);
+    \fill[gray!50] (1.20,1.50) circle (1.3pt);
+    \fill[red!70!black] (1.50,0.00) circle (2.4pt);
+    \fill[gray!50] (1.50,0.30) circle (1.3pt);
+    \fill[gray!50] (1.50,0.60) circle (1.3pt);
+    \fill[gray!50] (1.50,0.90) circle (1.3pt);
+    \fill[red!70!black] (1.50,1.20) circle (2.4pt);
+    \fill[gray!50] (1.50,1.50) circle (1.3pt);
+    \fill[gray!50] (1.80,0.00) circle (1.3pt);
+    \fill[red!70!black] (1.80,0.30) circle (2.4pt);
+    \fill[red!70!black] (1.80,0.60) circle (2.4pt);
+    \fill[gray!50] (1.80,0.90) circle (1.3pt);
+    \fill[red!70!black] (1.80,1.20) circle (2.4pt);
+    \fill[gray!50] (1.80,1.50) circle (1.3pt);
+    \fill[gray!50] (2.10,0.00) circle (1.3pt);
+    \fill[gray!50] (2.10,0.30) circle (1.3pt);
+    \fill[gray!50] (2.10,0.60) circle (1.3pt);
+    \fill[gray!50] (2.10,0.90) circle (1.3pt);
+    \fill[gray!50] (2.10,1.20) circle (1.3pt);
+    \fill[gray!50] (2.10,1.50) circle (1.3pt);
+    \fill[gray!50] (2.40,0.00) circle (1.3pt);
+    \fill[gray!50] (2.40,0.30) circle (1.3pt);
+    \fill[gray!50] (2.40,0.60) circle (1.3pt);
+    \fill[gray!50] (2.40,0.90) circle (1.3pt);
+    \fill[gray!50] (2.40,1.20) circle (1.3pt);
+    \fill[gray!50] (2.40,1.50) circle (1.3pt);
+    \fill[gray!50] (2.70,0.00) circle (1.3pt);
+    \fill[gray!50] (2.70,0.30) circle (1.3pt);
+    \fill[gray!50] (2.70,0.60) circle (1.3pt);
+    \fill[gray!50] (2.70,0.90) circle (1.3pt);
+    \fill[red!70!black] (2.70,1.20) circle (2.4pt);
+    \fill[gray!50] (2.70,1.50) circle (1.3pt);
+    \node[font=\small] at (1.35,-0.55) {simple random};
+  \end{scope}
+  \begin{scope}[xshift=3.5cm]
+    \fill[orange!12] (-0.15,-0.15) rectangle (2.85,0.44999999999999996);
+    \fill[green!12] (-0.15,0.44999999999999996) rectangle (2.85,1.05);
+    \fill[blue!8] (-0.15,1.05) rectangle (2.85,1.65);
+    \fill[red!70!black] (0.00,0.00) circle (2.4pt);
+    \fill[gray!50] (0.00,0.30) circle (1.3pt);
+    \fill[gray!50] (0.00,0.60) circle (1.3pt);
+    \fill[gray!50] (0.00,0.90) circle (1.3pt);
+    \fill[gray!50] (0.00,1.20) circle (1.3pt);
+    \fill[gray!50] (0.00,1.50) circle (1.3pt);
+    \fill[gray!50] (0.30,0.00) circle (1.3pt);
+    \fill[gray!50] (0.30,0.30) circle (1.3pt);
+    \fill[gray!50] (0.30,0.60) circle (1.3pt);
+    \fill[gray!50] (0.30,0.90) circle (1.3pt);
+    \fill[gray!50] (0.30,1.20) circle (1.3pt);
+    \fill[gray!50] (0.30,1.50) circle (1.3pt);
+    \fill[gray!50] (0.60,0.00) circle (1.3pt);
+    \fill[gray!50] (0.60,0.30) circle (1.3pt);
+    \fill[gray!50] (0.60,0.60) circle (1.3pt);
+    \fill[gray!50] (0.60,0.90) circle (1.3pt);
+    \fill[gray!50] (0.60,1.20) circle (1.3pt);
+    \fill[gray!50] (0.60,1.50) circle (1.3pt);
+    \fill[gray!50] (0.90,0.00) circle (1.3pt);
+    \fill[gray!50] (0.90,0.30) circle (1.3pt);
+    \fill[red!70!black] (0.90,0.60) circle (2.4pt);
+    \fill[red!70!black] (0.90,0.90) circle (2.4pt);
+    \fill[gray!50] (0.90,1.20) circle (1.3pt);
+    \fill[gray!50] (0.90,1.50) circle (1.3pt);
+    \fill[red!70!black] (1.20,0.00) circle (2.4pt);
+    \fill[gray!50] (1.20,0.30) circle (1.3pt);
+    \fill[gray!50] (1.20,0.60) circle (1.3pt);
+    \fill[gray!50] (1.20,0.90) circle (1.3pt);
+    \fill[gray!50] (1.20,1.20) circle (1.3pt);
+    \fill[gray!50] (1.20,1.50) circle (1.3pt);
+    \fill[gray!50] (1.50,0.00) circle (1.3pt);
+    \fill[gray!50] (1.50,0.30) circle (1.3pt);
+    \fill[gray!50] (1.50,0.60) circle (1.3pt);
+    \fill[gray!50] (1.50,0.90) circle (1.3pt);
+    \fill[gray!50] (1.50,1.20) circle (1.3pt);
+    \fill[gray!50] (1.50,1.50) circle (1.3pt);
+    \fill[gray!50] (1.80,0.00) circle (1.3pt);
+    \fill[gray!50] (1.80,0.30) circle (1.3pt);
+    \fill[gray!50] (1.80,0.60) circle (1.3pt);
+    \fill[gray!50] (1.80,0.90) circle (1.3pt);
+    \fill[red!70!black] (1.80,1.20) circle (2.4pt);
+    \fill[gray!50] (1.80,1.50) circle (1.3pt);
+    \fill[gray!50] (2.10,0.00) circle (1.3pt);
+    \fill[red!70!black] (2.10,0.30) circle (2.4pt);
+    \fill[gray!50] (2.10,0.60) circle (1.3pt);
+    \fill[red!70!black] (2.10,0.90) circle (2.4pt);
+    \fill[gray!50] (2.10,1.20) circle (1.3pt);
+    \fill[red!70!black] (2.10,1.50) circle (2.4pt);
+    \fill[gray!50] (2.40,0.00) circle (1.3pt);
+    \fill[gray!50] (2.40,0.30) circle (1.3pt);
+    \fill[gray!50] (2.40,0.60) circle (1.3pt);
+    \fill[red!70!black] (2.40,0.90) circle (2.4pt);
+    \fill[gray!50] (2.40,1.20) circle (1.3pt);
+    \fill[red!70!black] (2.40,1.50) circle (2.4pt);
+    \fill[gray!50] (2.70,0.00) circle (1.3pt);
+    \fill[red!70!black] (2.70,0.30) circle (2.4pt);
+    \fill[gray!50] (2.70,0.60) circle (1.3pt);
+    \fill[gray!50] (2.70,0.90) circle (1.3pt);
+    \fill[gray!50] (2.70,1.20) circle (1.3pt);
+    \fill[red!70!black] (2.70,1.50) circle (2.4pt);
+    \node[font=\small] at (1.35,-0.55) {stratified (rows)};
+  \end{scope}
+  \begin{scope}[xshift=7cm]
+    \draw[gray!50, rounded corners=2pt] (-0.12,-0.12) rectangle (0.42,0.42);
+    \draw[gray!50, rounded corners=2pt] (-0.12,0.48) rectangle (0.42,1.02);
+    \draw[gray!50, rounded corners=2pt] (-0.12,1.08) rectangle (0.42,1.6199999999999999);
+    \draw[gray!50, rounded corners=2pt] (0.48,-0.12) rectangle (1.02,0.42);
+    \draw[gray!50, rounded corners=2pt] (0.48,0.48) rectangle (1.02,1.02);
+    \draw[gray!50, rounded corners=2pt] (0.48,1.08) rectangle (1.02,1.6199999999999999);
+    \draw[gray!50, rounded corners=2pt] (1.08,-0.12) rectangle (1.6199999999999999,0.42);
+    \draw[gray!50, rounded corners=2pt] (1.08,0.48) rectangle (1.6199999999999999,1.02);
+    \draw[gray!50, rounded corners=2pt] (1.08,1.08) rectangle (1.6199999999999999,1.6199999999999999);
+    \draw[gray!50, rounded corners=2pt] (1.6799999999999997,-0.12) rectangle (2.2199999999999998,0.42);
+    \draw[gray!50, rounded corners=2pt] (1.6799999999999997,0.48) rectangle (2.2199999999999998,1.02);
+    \draw[gray!50, rounded corners=2pt] (1.6799999999999997,1.08) rectangle (2.2199999999999998,1.6199999999999999);
+    \draw[gray!50, rounded corners=2pt] (2.28,-0.12) rectangle (2.82,0.42);
+    \draw[gray!50, rounded corners=2pt] (2.28,0.48) rectangle (2.82,1.02);
+    \draw[gray!50, rounded corners=2pt] (2.28,1.08) rectangle (2.82,1.6199999999999999);
+    \fill[gray!50] (0.00,0.00) circle (1.3pt);
+    \fill[gray!50] (0.00,0.30) circle (1.3pt);
+    \fill[gray!50] (0.00,0.60) circle (1.3pt);
+    \fill[gray!50] (0.00,0.90) circle (1.3pt);
+    \fill[gray!50] (0.00,1.20) circle (1.3pt);
+    \fill[gray!50] (0.00,1.50) circle (1.3pt);
+    \fill[gray!50] (0.30,0.00) circle (1.3pt);
+    \fill[gray!50] (0.30,0.30) circle (1.3pt);
+    \fill[gray!50] (0.30,0.60) circle (1.3pt);
+    \fill[gray!50] (0.30,0.90) circle (1.3pt);
+    \fill[gray!50] (0.30,1.20) circle (1.3pt);
+    \fill[gray!50] (0.30,1.50) circle (1.3pt);
+    \fill[gray!50] (0.60,0.00) circle (1.3pt);
+    \fill[gray!50] (0.60,0.30) circle (1.3pt);
+    \fill[gray!50] (0.60,0.60) circle (1.3pt);
+    \fill[gray!50] (0.60,0.90) circle (1.3pt);
+    \fill[red!70!black] (0.60,1.20) circle (2.4pt);
+    \fill[red!70!black] (0.60,1.50) circle (2.4pt);
+    \fill[gray!50] (0.90,0.00) circle (1.3pt);
+    \fill[gray!50] (0.90,0.30) circle (1.3pt);
+    \fill[gray!50] (0.90,0.60) circle (1.3pt);
+    \fill[gray!50] (0.90,0.90) circle (1.3pt);
+    \fill[red!70!black] (0.90,1.20) circle (2.4pt);
+    \fill[red!70!black] (0.90,1.50) circle (2.4pt);
+    \fill[gray!50] (1.20,0.00) circle (1.3pt);
+    \fill[gray!50] (1.20,0.30) circle (1.3pt);
+    \fill[gray!50] (1.20,0.60) circle (1.3pt);
+    \fill[gray!50] (1.20,0.90) circle (1.3pt);
+    \fill[gray!50] (1.20,1.20) circle (1.3pt);
+    \fill[gray!50] (1.20,1.50) circle (1.3pt);
+    \fill[gray!50] (1.50,0.00) circle (1.3pt);
+    \fill[gray!50] (1.50,0.30) circle (1.3pt);
+    \fill[gray!50] (1.50,0.60) circle (1.3pt);
+    \fill[gray!50] (1.50,0.90) circle (1.3pt);
+    \fill[gray!50] (1.50,1.20) circle (1.3pt);
+    \fill[gray!50] (1.50,1.50) circle (1.3pt);
+    \fill[red!70!black] (1.80,0.00) circle (2.4pt);
+    \fill[red!70!black] (1.80,0.30) circle (2.4pt);
+    \fill[gray!50] (1.80,0.60) circle (1.3pt);
+    \fill[gray!50] (1.80,0.90) circle (1.3pt);
+    \fill[gray!50] (1.80,1.20) circle (1.3pt);
+    \fill[gray!50] (1.80,1.50) circle (1.3pt);
+    \fill[red!70!black] (2.10,0.00) circle (2.4pt);
+    \fill[red!70!black] (2.10,0.30) circle (2.4pt);
+    \fill[gray!50] (2.10,0.60) circle (1.3pt);
+    \fill[gray!50] (2.10,0.90) circle (1.3pt);
+    \fill[gray!50] (2.10,1.20) circle (1.3pt);
+    \fill[gray!50] (2.10,1.50) circle (1.3pt);
+    \fill[gray!50] (2.40,0.00) circle (1.3pt);
+    \fill[gray!50] (2.40,0.30) circle (1.3pt);
+    \fill[gray!50] (2.40,0.60) circle (1.3pt);
+    \fill[gray!50] (2.40,0.90) circle (1.3pt);
+    \fill[gray!50] (2.40,1.20) circle (1.3pt);
+    \fill[gray!50] (2.40,1.50) circle (1.3pt);
+    \fill[gray!50] (2.70,0.00) circle (1.3pt);
+    \fill[gray!50] (2.70,0.30) circle (1.3pt);
+    \fill[gray!50] (2.70,0.60) circle (1.3pt);
+    \fill[gray!50] (2.70,0.90) circle (1.3pt);
+    \fill[gray!50] (2.70,1.20) circle (1.3pt);
+    \fill[gray!50] (2.70,1.50) circle (1.3pt);
+    \node[font=\small] at (1.35,-0.55) {cluster};
+  \end{scope}
+  \begin{scope}[xshift=10.5cm]
+    \fill[red!70!black] (0.00,0.00) circle (2.4pt);
+    \fill[gray!50] (0.00,0.30) circle (1.3pt);
+    \fill[gray!50] (0.00,0.60) circle (1.3pt);
+    \fill[red!70!black] (0.00,0.90) circle (2.4pt);
+    \fill[gray!50] (0.00,1.20) circle (1.3pt);
+    \fill[gray!50] (0.00,1.50) circle (1.3pt);
+    \fill[gray!50] (0.30,0.00) circle (1.3pt);
+    \fill[gray!50] (0.30,0.30) circle (1.3pt);
+    \fill[gray!50] (0.30,0.60) circle (1.3pt);
+    \fill[gray!50] (0.30,0.90) circle (1.3pt);
+    \fill[gray!50] (0.30,1.20) circle (1.3pt);
+    \fill[gray!50] (0.30,1.50) circle (1.3pt);
+    \fill[gray!50] (0.60,0.00) circle (1.3pt);
+    \fill[gray!50] (0.60,0.30) circle (1.3pt);
+    \fill[red!70!black] (0.60,0.60) circle (2.4pt);
+    \fill[gray!50] (0.60,0.90) circle (1.3pt);
+    \fill[gray!50] (0.60,1.20) circle (1.3pt);
+    \fill[red!70!black] (0.60,1.50) circle (2.4pt);
+    \fill[gray!50] (0.90,0.00) circle (1.3pt);
+    \fill[gray!50] (0.90,0.30) circle (1.3pt);
+    \fill[gray!50] (0.90,0.60) circle (1.3pt);
+    \fill[gray!50] (0.90,0.90) circle (1.3pt);
+    \fill[gray!50] (0.90,1.20) circle (1.3pt);
+    \fill[gray!50] (0.90,1.50) circle (1.3pt);
+    \fill[gray!50] (1.20,0.00) circle (1.3pt);
+    \fill[red!70!black] (1.20,0.30) circle (2.4pt);
+    \fill[gray!50] (1.20,0.60) circle (1.3pt);
+    \fill[gray!50] (1.20,0.90) circle (1.3pt);
+    \fill[red!70!black] (1.20,1.20) circle (2.4pt);
+    \fill[gray!50] (1.20,1.50) circle (1.3pt);
+    \fill[gray!50] (1.50,0.00) circle (1.3pt);
+    \fill[gray!50] (1.50,0.30) circle (1.3pt);
+    \fill[gray!50] (1.50,0.60) circle (1.3pt);
+    \fill[gray!50] (1.50,0.90) circle (1.3pt);
+    \fill[gray!50] (1.50,1.20) circle (1.3pt);
+    \fill[gray!50] (1.50,1.50) circle (1.3pt);
+    \fill[red!70!black] (1.80,0.00) circle (2.4pt);
+    \fill[gray!50] (1.80,0.30) circle (1.3pt);
+    \fill[gray!50] (1.80,0.60) circle (1.3pt);
+    \fill[red!70!black] (1.80,0.90) circle (2.4pt);
+    \fill[gray!50] (1.80,1.20) circle (1.3pt);
+    \fill[gray!50] (1.80,1.50) circle (1.3pt);
+    \fill[gray!50] (2.10,0.00) circle (1.3pt);
+    \fill[gray!50] (2.10,0.30) circle (1.3pt);
+    \fill[gray!50] (2.10,0.60) circle (1.3pt);
+    \fill[gray!50] (2.10,0.90) circle (1.3pt);
+    \fill[gray!50] (2.10,1.20) circle (1.3pt);
+    \fill[gray!50] (2.10,1.50) circle (1.3pt);
+    \fill[gray!50] (2.40,0.00) circle (1.3pt);
+    \fill[gray!50] (2.40,0.30) circle (1.3pt);
+    \fill[red!70!black] (2.40,0.60) circle (2.4pt);
+    \fill[gray!50] (2.40,0.90) circle (1.3pt);
+    \fill[gray!50] (2.40,1.20) circle (1.3pt);
+    \fill[red!70!black] (2.40,1.50) circle (2.4pt);
+    \fill[gray!50] (2.70,0.00) circle (1.3pt);
+    \fill[gray!50] (2.70,0.30) circle (1.3pt);
+    \fill[gray!50] (2.70,0.60) circle (1.3pt);
+    \fill[gray!50] (2.70,0.90) circle (1.3pt);
+    \fill[gray!50] (2.70,1.20) circle (1.3pt);
+    \fill[gray!50] (2.70,1.50) circle (1.3pt);
+    \node[font=\small] at (1.35,-0.55) {systematic ($k=6$)};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The same population of $60$ units sampled four ways (red: selected).
 
 \begin{important}[Key distinction]
 Random \emph{sampling} (selecting units at random) supports generalizing from the
@@ -162,6 +456,62 @@ vans year-round), measurement error in the receipts, small sample.
         later inference.
 \end{itemize}
 \end{important}
+
+\begin{center}
+\begin{tikzpicture}
+  \begin{scope}[xshift=0cm]
+    \draw[fill=blue!6] (0,0) circle (1.2);
+    \draw[fill=blue!14] (0,0) circle (0.8);
+    \draw[fill=blue!28] (0,0) circle (0.4);
+    \draw[red!70!black, thick] (-0.12,-0.12) -- (0.12,0.12) (-0.12,0.12) -- (0.12,-0.12);
+    \fill[black] (-0.49,0.15) circle (1.6pt);
+    \fill[black] (0.40,-0.21) circle (1.6pt);
+    \fill[black] (-0.53,-0.03) circle (1.6pt);
+    \fill[black] (0.19,0.44) circle (1.6pt);
+    \fill[black] (-0.49,-0.52) circle (1.6pt);
+    \fill[black] (0.28,0.19) circle (1.6pt);
+    \fill[black] (0.61,0.39) circle (1.6pt);
+    \fill[black] (-0.04,-0.11) circle (1.6pt);
+    \fill[black] (1.03,-0.12) circle (1.6pt);
+    \node[font=\small, align=center] at (0,-1.65) {small $n$, random\\sample: unbiased};
+  \end{scope}
+  \begin{scope}[xshift=3.3cm]
+    \draw[fill=blue!6] (0,0) circle (1.2);
+    \draw[fill=blue!14] (0,0) circle (0.8);
+    \draw[fill=blue!28] (0,0) circle (0.4);
+    \draw[red!70!black, thick] (-0.12,-0.12) -- (0.12,0.12) (-0.12,0.12) -- (0.12,-0.12);
+    \fill[black] (-0.10,-0.15) circle (1.6pt);
+    \fill[black] (0.01,0.02) circle (1.6pt);
+    \fill[black] (-0.04,-0.01) circle (1.6pt);
+    \fill[black] (0.04,0.09) circle (1.6pt);
+    \fill[black] (0.14,0.03) circle (1.6pt);
+    \fill[black] (-0.23,0.09) circle (1.6pt);
+    \fill[black] (-0.18,-0.02) circle (1.6pt);
+    \fill[black] (-0.19,0.00) circle (1.6pt);
+    \fill[black] (-0.10,0.03) circle (1.6pt);
+    \node[font=\small, align=center] at (0,-1.65) {large $n$, random\\sample: unbiased};
+  \end{scope}
+  \begin{scope}[xshift=6.6cm]
+    \draw[fill=blue!6] (0,0) circle (1.2);
+    \draw[fill=blue!14] (0,0) circle (0.8);
+    \draw[fill=blue!28] (0,0) circle (0.4);
+    \draw[red!70!black, thick] (-0.12,-0.12) -- (0.12,0.12) (-0.12,0.12) -- (0.12,-0.12);
+    \fill[black] (0.95,0.44) circle (1.6pt);
+    \fill[black] (0.65,0.29) circle (1.6pt);
+    \fill[black] (0.52,0.53) circle (1.6pt);
+    \fill[black] (0.54,0.49) circle (1.6pt);
+    \fill[black] (0.56,0.33) circle (1.6pt);
+    \fill[black] (0.62,0.35) circle (1.6pt);
+    \fill[black] (0.77,0.39) circle (1.6pt);
+    \fill[black] (0.63,0.45) circle (1.6pt);
+    \fill[black] (0.66,0.38) circle (1.6pt);
+    \node[font=\small, align=center] at (0,-1.65) {large $n$, biased\\protocol};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The cross marks the attribute of interest and each dot is the estimate from one possible
+sample. A bigger sample pulls the dots together (less sample error) but cannot move their
+centre: a biased protocol stays biased however large $n$ is.
 
 \section*{Summary}
 \begin{itemize}

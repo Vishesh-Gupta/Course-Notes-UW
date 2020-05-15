@@ -124,6 +124,29 @@ S_{yy} = 1576.12 - \tfrac{117.4^2}{10} = 197.844.
 so the fitted line is $\hat y = 2.90 + 1.04x$. Residual sum of squares
 $197.844 - 1.04(189.8) = 0.452$, so $s_e^2 = 0.452/8 = 0.0565$ and $s_e = 0.2377$.
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=9cm, height=6cm, xmin=0, xmax=17, ymin=2, ymax=21, xlabel={temperature $x$ ($10^\circ$C)},
+    ylabel={yield $y$ (g)}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, grid=major, grid style={gray!15}]
+  \addplot[thick, blue!60!black, domain=0:17] {2.90+1.04*x};
+  \draw[red!70!black] (axis cs:2,5.1) -- (axis cs:2,4.980);
+  \draw[red!70!black] (axis cs:3,6.0) -- (axis cs:3,6.020);
+  \draw[red!70!black] (axis cs:5,8.3) -- (axis cs:5,8.100);
+  \draw[red!70!black] (axis cs:6,8.9) -- (axis cs:6,9.140);
+  \draw[red!70!black] (axis cs:8,11.2) -- (axis cs:8,11.220);
+  \draw[red!70!black] (axis cs:9,12.0) -- (axis cs:9,12.260);
+  \draw[red!70!black] (axis cs:11,14.6) -- (axis cs:11,14.340);
+  \draw[red!70!black] (axis cs:12,15.1) -- (axis cs:12,15.380);
+  \draw[red!70!black] (axis cs:14,17.8) -- (axis cs:14,17.460);
+  \draw[red!70!black] (axis cs:15,18.4) -- (axis cs:15,18.500);
+  \addplot[only marks, mark=*, mark size=1.8pt, black] coordinates {(2,5.1) (3,6.0) (5,8.3) (6,8.9) (8,11.2) (9,12.0) (11,14.6) (12,15.1) (14,17.8) (15,18.4)};
+  \node[font=\small, text=blue!60!black, anchor=west] at (axis cs:1,17) {$\hat y = 2.90 + 1.04x$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The fitted line and the residuals (vertical red segments). Least squares chooses the line that minimises the sum of their
+squares.
+
 \textbf{Slope.} $\Prob(T\le 2.306) = 0.975$ for $T\sim t(8)$. Standard error
 $s_e/\sqrt{S_{xx}} = 0.2377/13.509 = 0.01760$. $95\%$ CI:
 $1.04\pm 2.306(0.01760) = 1.04\pm 0.0406 = [0.999,\ 1.081]$. For $H_0:\beta = 0$,
@@ -143,6 +166,26 @@ $13.30\pm 0.184 = [13.12,\ 13.48]$.
 \textbf{Prediction at $x=10$.} Standard error $0.2377\sqrt{1.1123} = 0.2507$; $95\%$ PI
 $13.30\pm 0.578 = [12.72,\ 13.88]$, much wider than the CI for the mean.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=6cm, xmin=5.5, xmax=11.5, ymin=8, ymax=15.5, xlabel={$x$}, ylabel={$y$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed},
+    legend style={font=\small, draw=none, at={(0.98,0.02)}, anchor=south east}, legend cell align=left]
+  \addplot[thick, orange!80!black, dashed] coordinates {(0.0,3.5704) (0.5,4.0802) (1.0,4.5905) (1.5,5.1012) (2.0,5.6125) (2.5,6.1243) (3.0,6.6367) (3.5,7.1496) (4.0,7.6632) (4.5,8.1774) (5.0,8.6922) (5.5,9.2076) (6.0,9.7238) (6.5,10.2406) (7.0,10.7581) (7.5,11.2763) (8.0,11.7952) (8.5,12.3149) (9.0,12.8352) (9.5,13.3563) (10.0,13.8781) (10.5,14.4006) (11.0,14.9238) (11.5,15.4476) (12.0,15.9722) (12.5,16.4974) (13.0,17.0232) (13.5,17.5496) (14.0,18.0767) (14.5,18.6043) (15.0,19.1325) (15.5,19.6612) (16.0,20.1905) (16.5,20.7202) (17.0,21.2504)};
+  \addplot[thick, blue!60!black] coordinates {(0.0,3.2860) (0.5,3.7880) (1.0,4.2902) (1.5,4.7927) (2.0,5.2956) (2.5,5.7989) (3.0,6.3026) (3.5,6.8068) (4.0,7.3118) (4.5,7.8175) (5.0,8.3241) (5.5,8.8318) (6.0,9.3408) (6.5,9.8514) (7.0,10.3637) (7.5,10.8780) (8.0,11.3945) (8.5,11.9133) (9.0,12.4345) (9.5,12.9580) (10.0,13.4837) (10.5,14.0114) (11.0,14.5408) (11.5,15.0718) (12.0,15.6041) (12.5,16.1375) (13.0,16.6718) (13.5,17.2068) (14.0,17.7426) (14.5,18.2789) (15.0,18.8156) (15.5,19.3527) (16.0,19.8902) (16.5,20.4280) (17.0,20.9660)};
+  \addplot[thick, orange!80!black, dashed, forget plot] coordinates {(0.0,2.2296) (0.5,2.7598) (1.0,3.2895) (1.5,3.8188) (2.0,4.3475) (2.5,4.8757) (3.0,5.4033) (3.5,5.9304) (4.0,6.4568) (4.5,6.9826) (5.0,7.5078) (5.5,8.0324) (6.0,8.5562) (6.5,9.0794) (7.0,9.6019) (7.5,10.1237) (8.0,10.6448) (8.5,11.1651) (9.0,11.6848) (9.5,12.2037) (10.0,12.7219) (10.5,13.2394) (11.0,13.7562) (11.5,14.2724) (12.0,14.7878) (12.5,15.3026) (13.0,15.8168) (13.5,16.3304) (14.0,16.8433) (14.5,17.3557) (15.0,17.8675) (15.5,18.3788) (16.0,18.8895) (16.5,19.3998) (17.0,19.9096)};
+  \addplot[thick, blue!60!black, forget plot] coordinates {(0.0,2.5140) (0.5,3.0520) (1.0,3.5898) (1.5,4.1273) (2.0,4.6644) (2.5,5.2011) (3.0,5.7374) (3.5,6.2732) (4.0,6.8082) (4.5,7.3425) (5.0,7.8759) (5.5,8.4082) (6.0,8.9392) (6.5,9.4686) (7.0,9.9963) (7.5,10.5220) (8.0,11.0455) (8.5,11.5667) (9.0,12.0855) (9.5,12.6020) (10.0,13.1163) (10.5,13.6286) (11.0,14.1392) (11.5,14.6482) (12.0,15.1559) (12.5,15.6625) (13.0,16.1682) (13.5,16.6732) (14.0,17.1774) (14.5,17.6811) (15.0,18.1844) (15.5,18.6873) (16.0,19.1898) (16.5,19.6920) (17.0,20.1940)};
+  \addplot[gray, forget plot, domain=5.5:11.5] {2.90+1.04*x};
+  \addplot[only marks, mark=*, mark size=1.8pt, black] coordinates {(2,5.1) (3,6.0) (5,8.3) (6,8.9) (8,11.2) (9,12.0) (11,14.6) (12,15.1) (14,17.8) (15,18.4)};
+  \draw[dotted] (axis cs:8.5,8) -- (axis cs:8.5,15.5);
+  \node[font=\scriptsize, anchor=north west] at (axis cs:8.55,15.4) {$\bar x = 8.5$};
+  \legend{$95\%$ prediction interval, $95\%$ CI for $\mu(x)$, data}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Zooming in around the data: the confidence band for the mean response (solid) is narrowest
+at $\bar x$ and fans out; the prediction band (dashed) is much wider because it also
+includes the scatter of an individual new unit.
 
 \section{Checking the model: residual plots}
 
@@ -167,6 +210,38 @@ squares residuals always do), show no curvature or funnel, and all standardized
 residuals are within $\pm1.5$. The model looks adequate (though with $n=10$ only gross
 violations would be visible).
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=4.5cm, xmin=0, xmax=17, ymin=-2.5, ymax=2.5, xlabel={$x$},
+    ylabel={$\hat r_i/s_e$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, ytick={-2,-1,0,1,2}]
+  \addplot[gray, dashed, domain=0:17] {0};
+  \addplot[only marks, mark=*, mark size=2pt, blue!60!black] coordinates {(2,0.505) (3,-0.084) (5,0.841) (6,-1.010) (8,-0.084) (9,-1.094) (11,1.094) (12,-1.178) (14,1.430) (15,-0.421)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Standardized residuals of the yield data against $x$: a patternless band about $0$, all
+within $\pm1.5$. For comparison, the patterns below signal trouble:
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=q0, width=4.8cm, height=3.8cm, xmin=0, xmax=10, ymin=-3, ymax=3, xtick=\empty,
+    ytick=\empty, title={random band: fine}, title style={font=\scriptsize}]
+  \addplot[gray, dashed, domain=0:10] {0};
+  \addplot[only marks, mark=*, mark size=1.1pt, blue!60!black] coordinates {(6.23,-0.07) (9.42,-1.42) (7.40,0.17) (4.66,-0.09) (9.43,-1.02) (1.13,-1.39) (4.69,0.02) (5.74,1.00) (0.13,0.13) (9.16,0.63) (7.66,0.77) (1.39,1.20) (6.17,0.03) (8.71,0.03) (2.09,0.49) (8.72,2.22) (2.89,0.97) (6.78,-0.24) (2.05,1.14) (9.67,-0.44) (8.94,-0.23) (1.66,0.72) (1.46,0.62) (6.03,0.27) (0.03,-0.32) (3.10,-0.65) (8.19,-0.69) (4.81,0.08) (7.05,2.04) (0.23,0.76) (7.50,0.09) (7.88,-0.13) (3.66,-0.10) (0.47,-0.05) (1.81,0.51) (7.56,-0.15) (9.30,0.69) (3.55,-0.26) (5.25,0.06) (7.48,-0.38)};
+\end{axis}
+\begin{axis}[name=q1, at={(q0.east)}, anchor=west, xshift=0.3cm, width=4.8cm, height=3.8cm, xmin=0, xmax=10, ymin=-3, ymax=3, xtick=\empty,
+    ytick=\empty, title={curve: non-linear mean}, title style={font=\scriptsize}]
+  \addplot[gray, dashed, domain=0:10] {0};
+  \addplot[only marks, mark=*, mark size=1.1pt, blue!60!black] coordinates {(7.97,0.12) (9.46,1.31) (0.91,0.75) (9.18,1.50) (3.40,-0.30) (3.12,-0.78) (3.17,-0.54) (1.49,0.61) (6.89,-0.36) (0.49,1.44) (9.87,1.49) (2.37,-0.25) (5.94,-0.72) (4.22,-1.27) (0.56,1.45) (4.94,-1.04) (8.38,0.76) (9.50,1.84) (6.30,-0.76) (4.35,-1.11) (1.49,0.64) (4.53,-1.22) (9.99,2.56) (4.54,-1.74) (4.88,-1.05) (2.91,-0.87) (4.04,-0.68) (9.88,2.13) (9.60,1.25) (3.38,-0.98) (0.89,0.94) (8.67,1.22) (3.61,-0.63) (6.95,-1.13) (6.64,-0.66) (7.04,-0.83) (2.81,-1.02) (6.91,-0.51) (2.94,-0.01) (5.81,-1.09)};
+\end{axis}
+\begin{axis}[name=q2, at={(q1.east)}, anchor=west, xshift=0.3cm, width=4.8cm, height=3.8cm, xmin=0, xmax=10, ymin=-3, ymax=3, xtick=\empty,
+    ytick=\empty, title={funnel: non-constant $\sigma$}, title style={font=\scriptsize}]
+  \addplot[gray, dashed, domain=0:10] {0};
+  \addplot[only marks, mark=*, mark size=1.1pt, blue!60!black] coordinates {(0.12,-0.08) (6.72,-0.34) (4.63,0.65) (7.98,-2.42) (3.48,-0.85) (8.28,-2.45) (3.50,0.95) (6.88,-2.69) (9.76,2.59) (5.29,-0.41) (1.66,0.54) (4.77,-2.28) (6.91,-0.49) (1.72,-0.73) (7.80,-2.32) (4.21,-0.72) (6.24,0.32) (7.20,-2.34) (0.28,0.08) (6.50,1.38) (2.19,-0.31) (0.42,-0.22) (4.72,0.06) (1.34,0.12) (3.17,0.21) (0.36,0.09) (4.65,-1.11) (5.90,1.30) (2.38,0.02) (4.05,-0.02) (2.79,-0.29) (8.31,0.51) (3.74,1.21) (0.95,0.09) (5.45,-0.90) (9.58,2.44) (8.19,-2.90) (6.42,1.33) (3.69,0.75) (5.64,1.38)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
 
 \section{Comparing two population means}
 
@@ -212,6 +287,43 @@ $T\sim t(14)$, $p<0.001$ (software: $p = 0.0005$). Very strong evidence that fer
 gives taller plants on average.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small}]
+  \draw[->] (0,-0.3) -- (11.2,-0.3) node[right] {height (cm)};
+  \draw (0.00,-0.22) -- (0.00,-0.38) node[below] {20};
+  \draw (1.60,-0.22) -- (1.60,-0.38) node[below] {21};
+  \draw (3.20,-0.22) -- (3.20,-0.38) node[below] {22};
+  \draw (4.80,-0.22) -- (4.80,-0.38) node[below] {23};
+  \draw (6.40,-0.22) -- (6.40,-0.38) node[below] {24};
+  \draw (8.00,-0.22) -- (8.00,-0.38) node[below] {25};
+  \draw (9.60,-0.22) -- (9.60,-0.38) node[below] {26};
+  \draw (11.20,-0.22) -- (11.20,-0.38) node[below] {27};
+  \fill[blue!60!black] (6.560,1.2) circle (2.4pt);
+  \fill[blue!60!black] (4.480,1.2) circle (2.4pt);
+  \fill[blue!60!black] (8.960,1.2) circle (2.4pt);
+  \fill[blue!60!black] (6.240,1.2) circle (2.4pt);
+  \fill[blue!60!black] (9.920,1.2) circle (2.4pt);
+  \fill[blue!60!black] (7.520,1.2) circle (2.4pt);
+  \fill[blue!60!black] (5.280,1.2) circle (2.4pt);
+  \fill[blue!60!black] (8.000,1.2) circle (2.4pt);
+  \draw[thick, blue!60!black] (7.120,0.8999999999999999) -- (7.120,1.5);
+  \node[anchor=east] at (-0.2,1.2) {A};
+  \fill[orange!80!black] (3.040,0.19999999999999996) circle (2.4pt);
+  \fill[orange!80!black] (5.440,0.19999999999999996) circle (2.4pt);
+  \fill[orange!80!black] (3.360,0.19999999999999996) circle (2.4pt);
+  \fill[orange!80!black] (1.280,0.19999999999999996) circle (2.4pt);
+  \fill[orange!80!black] (4.800,0.19999999999999996) circle (2.4pt);
+  \fill[orange!80!black] (4.160,0.19999999999999996) circle (2.4pt);
+  \fill[orange!80!black] (2.400,0.19999999999999996) circle (2.4pt);
+  \fill[orange!80!black] (3.680,0.19999999999999996) circle (2.4pt);
+  \draw[thick, orange!80!black] (3.520,-0.10000000000000003) -- (3.520,0.49999999999999994);
+  \node[anchor=east] at (-0.2,0.19999999999999996) {B};
+  \draw[{Stealth}-{Stealth}] (3.520,1.75) -- node[above] {$\ybar_1-\ybar_2 = 2.25$} (7.120,1.75);
+\end{tikzpicture}
+\end{center}
+The two groups overlap a little, but the difference in means (vertical ticks) is large
+compared with the spread within each group, hence the small p-value.
+
 \subsection{Paired data}
 
 When each unit is measured twice (before/after) or units come in natural matched pairs
@@ -243,6 +355,25 @@ on $14$ degrees of freedom, $p = 0.19$: no evidence! The large patient-to-patien
 variation swamps the effect. Pairing removes this variation; this is why paired designs
 are so efficient.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=6.5cm, height=6cm, xmin=-0.4, xmax=1.4, ymin=128, ymax=163, xtick={0,1},
+    xticklabels={before, after}, ylabel={systolic BP}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}]
+  \addplot[blue!60!black, mark=*, mark size=1.6pt] coordinates {(0,142) (1,136)};
+  \addplot[blue!60!black, mark=*, mark size=1.6pt] coordinates {(0,138) (1,135)};
+  \addplot[blue!60!black, mark=*, mark size=1.6pt] coordinates {(0,151) (1,144)};
+  \addplot[blue!60!black, mark=*, mark size=1.6pt] coordinates {(0,147) (1,145)};
+  \addplot[blue!60!black, mark=*, mark size=1.6pt] coordinates {(0,135) (1,131)};
+  \addplot[blue!60!black, mark=*, mark size=1.6pt] coordinates {(0,160) (1,152)};
+  \addplot[blue!60!black, mark=*, mark size=1.6pt] coordinates {(0,144) (1,141)};
+  \addplot[blue!60!black, mark=*, mark size=1.6pt] coordinates {(0,149) (1,142)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Each line is one patient. Every line slopes down by a similar amount (the differences
+$2$--$8$ are consistent), even though the patients' levels range over $25$ units: the
+paired analysis uses the first fact, while the unpaired analysis is swamped by the second.
 
 \begin{important}[Common pitfalls]
 \begin{itemize}
