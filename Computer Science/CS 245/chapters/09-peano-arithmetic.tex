@@ -45,6 +45,19 @@ quantified).
         successor steps (as far as first-order logic can).
 \end{itemize}
 
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,n/.style={circle,draw,fill=blue!6,minimum size=0.75cm,inner sep=0pt}]
+  \foreach \k/\lab in {0/0,1/1,2/2,3/3} \node[n] (n\k) at (2*\k,0) {$\lab$};
+  \node (dots) at (8,0) {$\cdots$};
+  \foreach \k/\t in {0/0,1/{s(0)},2/{s(s(0))},3/{s^3(0)}} \node[font=\scriptsize,below=2pt of n\k] {$\t$};
+  \foreach \a/\b in {n0/n1,n1/n2,n2/n3,n3/dots} \draw[->] (\a) -- node[above,font=\scriptsize]{$s$} (\b);
+  \node[font=\scriptsize,align=center,red!60!black] at (0,1.1) {PA1: no $s$-arrow\\ into $0$};
+  \node[font=\scriptsize,align=center,red!60!black] at (4,1.1) {PA2: at most one\\ arrow into each element};
+\end{tikzpicture}
+
+\small The standard model $\mathcal{N}$: everything is reached from $0$ by finitely many $s$ steps.
+\end{center}
+
 Order can be defined: $x\le y$ abbreviates $\exists z\,(x+z=y)$ and $x<y$ abbreviates
 $\exists z\,(x+s(z)=y)$.
 
@@ -123,6 +136,23 @@ creative part.
 Strong induction follows from simple induction applied to $Q(n)=\forall k\le n\ P(k)$.
 \end{important}
 
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,x=1.5cm]
+  \foreach \k in {0,...,5} {
+    \node (a\k) at (\k,0) {$P(\k)$};
+    \node (b\k) at (\k,-1.6) {$P(\k)$};
+  }
+  \node at (6,0) {$\cdots$}; \node at (6,-1.6) {$\cdots$};
+  \foreach \k [evaluate=\k as \kk using int(\k+1)] in {0,...,4} \draw[->] (a\k) -- (a\kk);
+  \foreach \k in {0,...,3} \draw[->,blue!60!black] (b\k.south) to[out=-35,in=-145] (b4.south);
+  \node[anchor=east,font=\scriptsize] at (-0.4,0) {simple:};
+  \node[anchor=east,font=\scriptsize] at (-0.4,-1.6) {strong:};
+\end{tikzpicture}
+
+\small Simple induction proves $P(n+1)$ from $P(n)$ alone; strong induction may use every
+earlier case (shown for $P(4)$).
+\end{center}
+
 Structural induction (Chapter~\ref{ch:propsyntax}) generalises these to any inductively
 defined set: formulas, lists, trees. Induction on the length of a proof (used in the
 soundness proof) is strong induction on $\N$.
@@ -161,6 +191,25 @@ $2\le a,b<n$; by IH both $a$ and $b$ are products of primes, hence so is $n$.
   \item By contrast, \emph{Presburger arithmetic} (only $0$, $s$, $+$, no $\cdot$) is
         complete and decidable.
 \end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,n/.style={circle,draw,fill=blue!6,minimum size=0.7cm,inner sep=0pt},
+  m/.style={circle,draw,fill=orange!15,minimum size=0.7cm,inner sep=0pt,font=\scriptsize}]
+  \foreach \k in {0,1,2} \node[n] (n\k) at (1.2*\k,0) {$\k$};
+  \node (d1) at (3.5,0) {$\cdots$};
+  \draw[->] (n0) -- (n1); \draw[->] (n1) -- (n2); \draw[->] (n2) -- (d1);
+  \node (d2) at (5.6,0) {$\cdots$};
+  \node[m] (c0) at (7,0) {$c{-}1$};
+  \node[m] (c1) at (8.4,0) {$c$};
+  \node[m] (c2) at (9.8,0) {$c{+}1$};
+  \node (d3) at (11.1,0) {$\cdots$};
+  \draw[->] (d2) -- (c0); \draw[->] (c0) -- (c1); \draw[->] (c1) -- (c2); \draw[->] (c2) -- (d3);
+  \draw[decorate,decoration={brace,amplitude=5pt,mirror}] (-0.4,-0.6) -- (3.9,-0.6) node[midway,below=6pt,font=\scriptsize]{standard numbers $\overline{n}$};
+  \draw[decorate,decoration={brace,amplitude=5pt,mirror}] (5.3,-0.6) -- (11.4,-0.6) node[midway,below=6pt,font=\scriptsize]{a copy of $\Z$, above every $\overline{n}$};
+\end{tikzpicture}
+
+\small A non-standard model of PA (in fact the order type is $\N$ followed by copies of $\Z$).
+\end{center}
 
 \begin{aside}
 The connection to computer science: the recursive equations PA3--PA6 are exactly how

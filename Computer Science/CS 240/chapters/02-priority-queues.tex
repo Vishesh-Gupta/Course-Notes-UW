@@ -1,5 +1,10 @@
 \chapter{Priority Queues}
 
+\tikzset{
+  hn/.style={circle,draw,minimum size=6.5mm,inner sep=0pt,font=\small},
+  ac/.style={draw,minimum width=8mm,minimum height=7mm}
+}
+
 \section{Abstract Data Types}
 
 \begin{definition}
@@ -107,6 +112,38 @@ children $A[3]=27$ and $A[4]=15$; $A[3]=27$ has children $23$ and $26$.
     child {node {10}}};
 \end{tikzpicture}
 \end{center}
+In the array, each node's arrows go to its children at indices $2i+1$ (blue) and
+$2i+2$ (orange):
+\begin{center}
+\begin{tikzpicture}
+  \node[ac] (a0) at (0.0,0) {50};
+  \node[font=\scriptsize,gray] at (0.0,-0.6) {0};
+  \node[ac] (a1) at (0.8,0) {29};
+  \node[font=\scriptsize,gray] at (0.8,-0.6) {1};
+  \node[ac] (a2) at (1.6,0) {34};
+  \node[font=\scriptsize,gray] at (1.6,-0.6) {2};
+  \node[ac] (a3) at (2.4,0) {27};
+  \node[font=\scriptsize,gray] at (2.4,-0.6) {3};
+  \node[ac] (a4) at (3.2,0) {15};
+  \node[font=\scriptsize,gray] at (3.2,-0.6) {4};
+  \node[ac] (a5) at (4.0,0) {8};
+  \node[font=\scriptsize,gray] at (4.0,-0.6) {5};
+  \node[ac] (a6) at (4.8,0) {10};
+  \node[font=\scriptsize,gray] at (4.8,-0.6) {6};
+  \node[ac] (a7) at (5.6,0) {23};
+  \node[font=\scriptsize,gray] at (5.6,-0.6) {7};
+  \node[ac] (a8) at (6.4,0) {26};
+  \node[font=\scriptsize,gray] at (6.4,-0.6) {8};
+  \draw[-{Stealth},blue!60!black] (a0.north) to[out=60,in=120] (a1.north);
+  \draw[-{Stealth},orange!80!black] (a0.north) to[out=60,in=120] (a2.north);
+  \draw[-{Stealth},blue!60!black] (a1.north) to[out=60,in=120] (a3.north);
+  \draw[-{Stealth},orange!80!black] (a1.north) to[out=60,in=120] (a4.north);
+  \draw[-{Stealth},blue!60!black] (a2.north) to[out=60,in=120] (a5.north);
+  \draw[-{Stealth},orange!80!black] (a2.north) to[out=60,in=120] (a6.north);
+  \draw[-{Stealth},blue!60!black] (a3.north) to[out=60,in=120] (a7.north);
+  \draw[-{Stealth},orange!80!black] (a3.north) to[out=60,in=120] (a8.north);
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \subsection{Insertion: fix-up (bubble-up)}
@@ -124,6 +161,22 @@ fix-up(A, k):
     k <- parent(k)
 \end{lstlisting}
 Each swap moves up a level, so the time is $\bigO(\text{height}) = \bigO(\log n)$.
+
+\begin{center}
+\begin{tikzpicture}
+  \begin{scope}[level distance=0.95cm,level 1/.style={sibling distance=3.0cm},level 2/.style={sibling distance=1.5cm},level 3/.style={sibling distance=0.75cm}]
+  \node[hn] (b0) {50} child {node[hn,fill=yellow!25] (b1) {29} child {node[hn] (b3) {27} child {node[hn] (b7) {23}} child {node[hn] (b8) {26}}} child {node[hn,fill=yellow!25] (b4) {15} child {node[hn,fill=orange!30] (b9) {45}} child[missing]}} child {node[hn] (b2) {34} child {node[hn] (b5) {8}} child {node[hn] (b6) {10}}};
+  \end{scope}
+  \draw[-{Stealth},thick,red!70!black] (b9) to[bend right=40] (b4);
+  \draw[-{Stealth},thick,red!70!black] (b4) to[bend right=30] (b1);
+  \node[font=\scriptsize] at (0,0.7) {insert 45 at $A[9]$, then fix-up};
+  \draw[-{Stealth},thick] (3.4,-1.5) -- (4.4,-1.5);
+  \begin{scope}[xshift=7.8cm,level distance=0.95cm,level 1/.style={sibling distance=3.0cm},level 2/.style={sibling distance=1.5cm},level 3/.style={sibling distance=0.75cm}]
+  \node[hn] (c0) {50} child {node[hn,fill=orange!30] (c1) {45} child {node[hn] (c3) {27} child {node[hn] (c7) {23}} child {node[hn] (c8) {26}}} child {node[hn] (c4) {29} child {node[hn] (c9) {15}} child[missing]}} child {node[hn] (c2) {34} child {node[hn] (c5) {8}} child {node[hn] (c6) {10}}};
+  \end{scope}
+  \node[font=\scriptsize] at (7.8,0.7) {after two swaps ($45 < 50$: stop)};
+\end{tikzpicture}
+\end{center}
 
 \subsection{deleteMax: fix-down (bubble-down)}
 
@@ -157,6 +210,20 @@ one breaks heap order between the two children.
 The larger child of 26 is 34: swap, giving
 \[[34, 29, 26, 27, 15, 8, 10, 23].\]
 Now 26 at index 2 has children 8, 10: stop.
+\begin{center}
+\begin{tikzpicture}
+  \begin{scope}[level distance=0.95cm,level 1/.style={sibling distance=3.0cm},level 2/.style={sibling distance=1.5cm},level 3/.style={sibling distance=0.75cm}]
+  \node[hn,fill=orange!30] (d0) {26} child {node[hn] (d1) {29} child {node[hn] (d3) {27} child {node[hn] (d7) {23}} child[missing]} child {node[hn] (d4) {15}}} child {node[hn,fill=yellow!25] (d2) {34} child {node[hn] (d5) {8}} child {node[hn] (d6) {10}}};
+  \end{scope}
+  \draw[{Stealth}-{Stealth},thick,red!70!black] (d0) to[bend left=30] (d2);
+  \node[font=\scriptsize] at (0,0.7) {26 moved to the root};
+  \draw[-{Stealth},thick] (3.4,-1.5) -- (4.4,-1.5);
+  \begin{scope}[xshift=7.8cm,level distance=0.95cm,level 1/.style={sibling distance=3.0cm},level 2/.style={sibling distance=1.5cm},level 3/.style={sibling distance=0.75cm}]
+  \node[hn] (e0) {34} child {node[hn] (e1) {29} child {node[hn] (e3) {27} child {node[hn] (e7) {23}} child[missing]} child {node[hn] (e4) {15}}} child {node[hn,fill=orange!30] (e2) {26} child {node[hn] (e5) {8}} child {node[hn] (e6) {10}}};
+  \end{scope}
+  \node[font=\scriptsize] at (7.8,0.7) {swapped with the larger child 34};
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \section{Building a Heap: Heapify}

@@ -87,6 +87,31 @@ Very high-rate devices (fast network cards) switch adaptively between the two (e
 NAPI).
 \end{important}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=0.8cm, font=\small]
+  \node[anchor=east] at (-0.1,1.8) {polling, CPU};
+  \node[anchor=east] at (-0.1,0.6) {interrupts, CPU};
+  \draw[line width=5pt, blue!50] (0,1.8) -- (1,1.8);
+  \draw[line width=5pt, red!45] (1,1.8) -- (6,1.8);
+  \draw[line width=5pt, blue!50] (6,1.8) -- (9,1.8);
+  \node[font=\scriptsize, red!60!black] at (3.5,2.25) {busy-waiting on the status register};
+  \draw[line width=5pt, blue!50] (0,0.6) -- (1,0.6);
+  \draw[line width=5pt, green!45!black!60] (1.3,0.6) -- (5.9,0.6);
+  \draw[line width=5pt, orange!60] (6,0.6) -- (6.5,0.6);
+  \draw[line width=5pt, blue!50] (6.8,0.6) -- (9,0.6);
+  \node[font=\scriptsize, green!35!black] at (3.6,0.15) {another thread runs};
+  \node[font=\scriptsize, orange!70!black, align=center] at (6.25,1.15) {handler};
+  \fill[gray!25] (1,-0.6) rectangle (6,-0.2);
+  \node[font=\scriptsize] at (3.5,-0.4) {device busy};
+  \node[anchor=east] at (-0.1,-0.4) {device};
+  \draw[densely dashed] (1,-0.6) -- (1,2.1) (6,-0.6) -- (6,2.1);
+\end{tikzpicture}
+\caption{The same I/O operation with polling and with interrupts. With
+interrupts the CPU does useful work while the device is busy, paying for
+two context switches and an interrupt handler.}
+\end{figure}
+
 \section{Moving data: programmed I/O vs DMA}
 
 \begin{description}
@@ -116,6 +141,24 @@ DMA uses physical addresses, so the buffer must be contiguous in physical memory
 must support scatter/gather lists) and must not be paged out during the transfer
 (\emph{pinned}).
 \end{remark}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >=Stealth, thick,
+  blk/.style={draw, rounded corners, minimum width=2.2cm, minimum height=1cm, align=center}]
+  \node[blk, fill=blue!8] (cpu) at (0,2.4) {CPU};
+  \node[blk, fill=green!10] (mem) at (7.5,2.4) {memory\\{\scriptsize buffer at \code{buf}}};
+  \node[blk, fill=orange!15] (dev) at (3.75,0) {disk controller};
+  \draw[->] (cpu.east) to[bend left=10] node[above, font=\scriptsize, sloped]{(1) set up} (dev.north west);
+  \draw[->, red!70!black] (dev.west) to[bend left=25] node[below, font=\scriptsize, sloped]{(3) interrupt} (cpu.south);
+  \draw[<->, very thick, green!45!black] (dev.north east) -- node[above, font=\scriptsize, sloped]{(2) DMA} (mem.south west);
+\end{tikzpicture}
+\caption{A DMA read: (1) the driver writes the
+sector, physical address, count and command to the controller's
+registers; (2) the controller copies the data into
+memory by itself; (3) an interrupt reports
+completion.}
+\end{figure}
 
 System/161 disks use PIO through a 512-byte on-device transfer buffer that is memory-mapped.
 
@@ -187,6 +230,36 @@ toward higher numbers), queue $98, 183, 37, 122, 14, 124, 65, 67$, cylinders $0.
   \item[C-SCAN] Serve only while moving in one direction, then jump back to the start
     (circular). More uniform waiting times.
 \end{description}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.019cm, y=0.32cm, >=Stealth]
+  \begin{scope}[xshift=0.0cm]
+    \node[font=\small] at (100,2.6) {FCFS: 640};
+    \draw[->] (0,0.4) -- (205,0.4);
+    \foreach \c in {0,100,199} \node[font=\tiny, above] at (\c,0.4) {\c};
+    \draw[thick, red!70!black] (53,0) -- (98,-1) -- (183,-2) -- (37,-3) -- (122,-4) -- (14,-5) -- (124,-6) -- (65,-7) -- (67,-8);
+    \foreach \c [count=\i from 0] in {53,98,183,37,122,14,124,65,67} \fill[red!70!black] (\c,-\i) circle (1.3pt);
+  \end{scope}
+  \begin{scope}[xshift=4.6cm]
+    \node[font=\small] at (100,2.6) {SSTF: 236};
+    \draw[->] (0,0.4) -- (205,0.4);
+    \foreach \c in {0,100,199} \node[font=\tiny, above] at (\c,0.4) {\c};
+    \draw[thick, blue!60!black] (53,0) -- (65,-1) -- (67,-2) -- (37,-3) -- (14,-4) -- (98,-5) -- (122,-6) -- (124,-7) -- (183,-8);
+    \foreach \c [count=\i from 0] in {53,65,67,37,14,98,122,124,183} \fill[blue!60!black] (\c,-\i) circle (1.3pt);
+  \end{scope}
+  \begin{scope}[xshift=9.2cm]
+    \node[font=\small] at (100,2.6) {SCAN/LOOK: 299};
+    \draw[->] (0,0.4) -- (205,0.4);
+    \foreach \c in {0,100,199} \node[font=\tiny, above] at (\c,0.4) {\c};
+    \draw[thick, green!45!black] (53,0) -- (65,-1) -- (67,-2) -- (98,-3) -- (122,-4) -- (124,-5) -- (183,-6) -- (37,-7) -- (14,-8);
+    \foreach \c [count=\i from 0] in {53,65,67,98,122,124,183,37,14} \fill[green!45!black] (\c,-\i) circle (1.3pt);
+  \end{scope}
+\end{tikzpicture}
+\caption{Head movement for the example queue (cylinder on the horizontal
+axis, time downwards), starting at cylinder 53; totals are the cylinders
+travelled.}
+\end{figure}
 
 Modern drives do their own scheduling internally (they know the exact geometry and rotational
 position); the OS keeps queues deep enough for the drive to optimize, and may still merge and

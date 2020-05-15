@@ -160,6 +160,26 @@ Removing a node has three cases:
     subtree, i.e.\ the leftmost node there), copy its key and value into the node, and then
     remove the successor from the right subtree (it has no left child, so that is case 1 or 2).
 \end{enumerate}
+For example, removing 40 (two children) from the tree on the left: its
+successor 50 is the leftmost node of the right subtree; 50 is copied into the
+root and the old 50 node (a leaf) is removed.
+
+\begin{center}
+\begin{tikzpicture}[level distance=10mm,level 1/.style={sibling distance=24mm},
+  level 2/.style={sibling distance=12mm},
+  tn/.style={circle,draw,minimum size=7mm,inner sep=1pt}]
+  \node[tn,fill=red!12] {40}
+    child {node[tn] {20} child {node[tn] {10}} child {node[tn] {30}}}
+    child {node[tn] {60} child {node[tn,fill=orange!25] {50}} child {node[tn] {70}}};
+  \draw[-{Stealth},thick] (3.0,-1.1) -- node[above,font=\scriptsize]{remove 40} (4.4,-1.1);
+  \begin{scope}[xshift=7.4cm]
+  \node[tn,fill=orange!25] {50}
+    child {node[tn] {20} child {node[tn] {10}} child {node[tn] {30}}}
+    child {node[tn] {60} child[missing] child {node[tn] {70}}};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
 \begin{lstlisting}[style=c]
 // remove_node(key, node) removes key from the subtree rooted at node
 //   and produces the new root of that subtree
@@ -268,6 +288,32 @@ int queue_remove_front(struct queue *q) {
 \end{lstlisting}
 The indices ``wrap around'' using \code{\%}, so the items occupy a contiguous range modulo the
 capacity.
+
+\begin{center}
+\begin{tikzpicture}[c/.style={draw,minimum width=9mm,minimum height=7mm}]
+  \node[c,fill=blue!12] (q0) at (0.0,0) {30};
+  \node[font=\scriptsize,gray] at (0.0,0.6) {0};
+  \node[c,fill=blue!12] (q1) at (0.9,0) {40};
+  \node[font=\scriptsize,gray] at (0.9,0.6) {1};
+  \node[c,fill=blue!12] (q2) at (1.8,0) {50};
+  \node[font=\scriptsize,gray] at (1.8,0.6) {2};
+  \node[c,fill=white] (q3) at (2.7,0) {};
+  \node[font=\scriptsize,gray] at (2.7,0.6) {3};
+  \node[c,fill=white] (q4) at (3.6,0) {};
+  \node[font=\scriptsize,gray] at (3.6,0.6) {4};
+  \node[c,fill=white] (q5) at (4.5,0) {};
+  \node[font=\scriptsize,gray] at (4.5,0.6) {5};
+  \node[c,fill=blue!12] (q6) at (5.4,0) {10};
+  \node[font=\scriptsize,gray] at (5.4,0.6) {6};
+  \node[c,fill=blue!12] (q7) at (6.3,0) {20};
+  \node[font=\scriptsize,gray] at (6.3,0.6) {7};
+  \draw[-{Stealth},thick,blue!60!black] (q6.south) ++(0,-0.6) node[below,font=\scriptsize\ttfamily]{front = 6} -- (q6.south);
+  \draw[-{Stealth},thick,green!40!black] (q3.south) ++(0,-0.6) node[below,font=\scriptsize,align=center]{next \code{add\_back}\\$(6 + 5) \bmod 8 = 3$} -- (q3.south);
+  \draw[-{Stealth},dashed,gray] (q7.east) -- ++(0.3,0) |- node[pos=0.75,above,font=\scriptsize]{wraps around} ($(q0.west)+(-0.3,1.05)$) |- (q0.west);
+  \node[font=\scriptsize,anchor=west] at (7.4,-0.0) {\code{len = 5}};
+\end{tikzpicture}
+\end{center}
+The queue holds 10, 20, 30, 40, 50 (front to back) in slots 6, 7, 0, 1, 2.
 
 \subsection{Sequence}
 

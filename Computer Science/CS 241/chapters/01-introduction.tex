@@ -126,6 +126,27 @@ The range is $[-2^{n-1},\, 2^{n-1}-1]$.
 
 So the top bit has \emph{negative} weight. For 8 bits the range is $[-128,127]$; for 32 bits
 it is $[-2^{31}, 2^{31}-1] = [-2147483648, 2147483647]$.
+The 3-bit case shows the whole picture: arranging the eight patterns on a circle, adding 1 is
+one step clockwise, and the two kinds of overflow happen at different places on the circle.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small]
+  \draw[gray!50] (0,0) circle (1.8cm);
+  \foreach \p/\s [count=\k from 0] in {000/0,001/1,010/2,011/3,100/-4,101/-3,110/-2,111/-1} {
+    \fill ({90-45*\k}:1.8) circle (1.6pt);
+    \node at ({90-45*\k}:2.4) {\code{\p}};
+    \node[text=blue!60!black] at ({90-45*\k}:1.3) {$\s$};
+  }
+  \draw[red!70!black,very thick] (-67.5:1.5) -- (-67.5:2.1);
+  \node[red!70!black,align=center,font=\scriptsize] at (-67.5:3.05) {signed\\overflow\\($3+1=-4$)};
+  \draw[gray!60!black,very thick] (112.5:1.5) -- (112.5:2.1);
+  \node[gray!60!black,align=center,font=\scriptsize] at (112.5:3.05) {unsigned\\wrap-around\\($7+1=0$)};
+  \draw[->,gray] (50:0.55) arc (50:-50:0.55);
+  \node[font=\scriptsize,gray] at (-0.15,0) {$+1$};
+\end{tikzpicture}
+
+\small 3-bit patterns (outside) and their two's complement values (inside).
+\end{center}
 
 \begin{important}[Negation in two's complement]
 To compute $-x$: flip all bits and add 1. This works because
@@ -194,11 +215,51 @@ and on MIPS words must be \emph{aligned}: their address is a multiple of 4.
 stores the least significant byte first. The CS 241 MIPS emulator is big-endian, so
 \code{0x12345678} at address \code{0x100} has \code{0x12} at \code{0x100}.
 
+\begin{center}
+\begin{tikzpicture}[byte/.style={draw,minimum width=1.4cm,minimum height=0.6cm,font=\ttfamily\small}]
+  \node[anchor=east,font=\small] at (-0.1,0) {big-endian (CS 241)};
+  \node[anchor=east,font=\small] at (-0.1,-1.1) {little-endian};
+  \foreach \ad/\bg/\lt [count=\k from 0] in {100/12/78,101/34/56,102/56/34,103/78/12} {
+    \node[byte,fill=blue!5] at (0.7+1.4*\k,0) {\bg};
+    \node[byte,fill=gray!8] at (0.7+1.4*\k,-1.1) {\lt};
+    \node[font=\scriptsize\ttfamily] at (0.7+1.4*\k,0.55) {0x\ad};
+  }
+  \draw[-Stealth,gray] (0,-1.75) -- node[below,font=\scriptsize]{increasing address} (5.6,-1.75);
+\end{tikzpicture}
+
+\small The word \code{0x12345678} stored at address \code{0x100} under each convention.
+\end{center}
+
 \section{The stored-program idea}
 
 The machine has a CPU containing registers, an ALU, a program counter (PC) and an instruction
 register (IR), connected to RAM. Programs live in RAM alongside data (von Neumann
 architecture). The CPU repeatedly runs the \emph{fetch--execute cycle}:
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,
+  reg/.style={draw,fill=white,minimum width=1.6cm,minimum height=0.55cm,align=center},
+  mem/.style={draw,minimum width=3.2cm,minimum height=0.55cm,font=\scriptsize}]
+  \node[draw,rounded corners,fill=blue!3,minimum width=4.6cm,minimum height=3.4cm] (cpu) at (0,0) {};
+  \node[font=\small\bfseries] at (0,-1.45) {CPU};
+  \node[reg] (pc) at (-1.1,1.0) {PC};
+  \node[reg] (ir) at (1.1,1.0) {IR};
+  \node[reg,minimum height=1.2cm] (regs) at (-1.1,-0.55) {\code{\$0}--\code{\$31}\\ \code{hi}, \code{lo}};
+  \node[reg,minimum height=1.2cm] (alu) at (1.1,-0.55) {ALU};
+  \draw[<->] (regs) -- (alu);
+  \node[mem] (m0) at (6,1.4) {\code{0x00}\quad instruction};
+  \node[mem,below=0pt of m0] (m1) {\code{0x04}\quad instruction};
+  \node[mem,below=0pt of m1] (m2) {\code{0x08}\quad instruction};
+  \node[mem,below=0pt of m2] (m3) {$\vdots$};
+  \node[mem,below=0pt of m3,fill=gray!10] (m4) {data};
+  \node[mem,below=0pt of m4,fill=gray!10] (m5) {stack};
+  \node[font=\small\bfseries] at (6,1.95) {RAM};
+  \draw[<->,thick] (cpu.east) -- node[above,font=\scriptsize]{address} node[below,font=\scriptsize]{data} (cpu.east -| m0.west);
+  \draw[->,blue!60!black,dashed] (pc.north) to[out=70,in=170] node[above,pos=0.35,font=\scriptsize]{fetch $\mathrm{MEM}[PC]$} (m1.west);
+\end{tikzpicture}
+
+\small Von Neumann machine: instructions and data share one memory.
+\end{center}
 
 \begin{lstlisting}[style=c]
 PC = 0;

@@ -164,6 +164,30 @@ Binary: \code{100011 11110 00011 1111111111111100}. Opcode \code{0x23} is \code{
 $s=30$, $t=3$, $i = \mathtt{0xfffc} = -4$. So the instruction is \code{lw \$3, -4(\$30)}.
 \end{example}
 
+The two encodings worked above, drawn as bit fields (bit numbers on top, 31 at the left):
+\begin{center}
+\begin{tikzpicture}[x=0.37cm,y=1cm,font=\small]
+  \node[anchor=west] at (0,1.25) {\code{add \$3, \$1, \$2} $=$ \code{0x00221820} \quad (R-type)};
+  \foreach \hi/\lo/\v/\f in {31/26/000000/opcode 0,25/21/00001/$s=1$,20/16/00010/$t=2$,15/11/00011/$d=3$,10/6/00000/unused,5/0/100000/funct \code{0x20}} {
+    \draw[fill=blue!5] ({31-\hi},0) rectangle ({32-\lo},0.6);
+    \node[font=\ttfamily\small] at ({(63-\hi-\lo)/2},0.3) {\v};
+    \node[font=\scriptsize] at ({(63-\hi-\lo)/2},-0.25) {\f};
+    \node[font=\tiny,anchor=south west,inner sep=1pt] at ({31-\hi},0.6) {\hi};
+    \node[font=\tiny,anchor=south east,inner sep=1pt] at ({32-\lo},0.6) {\lo};
+  }
+  \begin{scope}[yshift=-2.1cm]
+  \node[anchor=west] at (0,1.25) {\code{lw \$3, -4(\$30)} $=$ \code{0x8fc3fffc} \quad (I-type)};
+  \foreach \hi/\lo/\v/\f in {31/26/100011/opcode \code{0x23},25/21/11110/$s=30$,20/16/00011/$t=3$,15/0/1111111111111100/$i=-4$ (16-bit two's complement)} {
+    \draw[fill=gray!8] ({31-\hi},0) rectangle ({32-\lo},0.6);
+    \node[font=\ttfamily\small] at ({(63-\hi-\lo)/2},0.3) {\v};
+    \node[font=\scriptsize] at ({(63-\hi-\lo)/2},-0.25) {\f};
+    \node[font=\tiny,anchor=south west,inner sep=1pt] at ({31-\hi},0.6) {\hi};
+    \node[font=\tiny,anchor=south east,inner sep=1pt] at ({32-\lo},0.6) {\lo};
+  }
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
 In code, encoding is done with shifts and masks; masking the immediate with
 \code{0xffff} is essential so a negative immediate does not smear sign bits over the other
 fields:
@@ -193,6 +217,24 @@ stack), \code{\$31} holds the return address to the loader, and when the program
 \code{jr \$31} the front-end prints the registers. The tools \code{cs241.wordasm} /
 \code{cs241.binasm} convert human-readable words to binary files so you can write machine code
 by hand before you have an assembler.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,cell/.style={draw,minimum width=3.8cm,font=\small,align=center}]
+  \node[cell,minimum height=1.0cm,fill=blue!5] (prog) at (0,0) {program, loaded at 0};
+  \node[cell,minimum height=0.7cm,below=0pt of prog] (arr) {array (\code{mips.array})};
+  \node[cell,minimum height=1.4cm,below=0pt of arr,fill=gray!8] (free) {unused};
+  \node[cell,minimum height=0.9cm,below=0pt of free] (stk) {stack (grows upward\\ in this picture)};
+  \node[cell,minimum height=0.8cm,below=0.7cm of stk,fill=yellow!12] (io) {memory-mapped I/O};
+  \node at ($(stk.south)!0.5!(io.north)$) {$\vdots$};
+  \node[font=\scriptsize\ttfamily,anchor=east] at (prog.north west) {0x00000000};
+  \node[font=\scriptsize\ttfamily,anchor=east] at ([yshift=-0.2cm]io.north west) {0xffff0004};
+  \node[font=\scriptsize\ttfamily,anchor=east] at ([yshift=0.2cm]io.south west) {0xffff000c};
+  \draw[<-] (arr.east) -- ++(1,0) node[right]{\code{\$1} (address), \code{\$2} (length)};
+  \draw[<-] (stk.south east) -- ++(1,0) node[right]{\code{\$30} (initial top of stack)};
+\end{tikzpicture}
+
+\small Memory as seen by a program run with \code{mips.array} (low addresses at the top).
+\end{center}
 
 \section{Memory-mapped I/O}
 
@@ -257,6 +299,22 @@ jr $31
 \end{lstlisting}
 The \code{bne} is at address \code{0x1c}; when it executes PC $=\mathtt{0x20}$, and
 $\mathtt{0x20} + 4(-3) = \mathtt{0x14}$, the top of the loop.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,cell/.style={draw,minimum width=3.2cm,minimum height=0.5cm,font=\ttfamily\small,anchor=west},
+  ad/.style={font=\ttfamily\scriptsize,anchor=east}]
+  \node[cell] (r0) at (0,0) {lis \$2};
+  \node[cell] (r1) at (0,-0.5) {.word 13};
+  \node[cell] (r2) at (0,-1.0) {lis \$1};
+  \node[cell] (r3) at (0,-1.5) {.word 1};
+  \node[cell] (r4) at (0,-2.0) {add \$3, \$0, \$0};
+  \node[cell,fill=blue!6] (r5) at (0,-2.5) {add \$3, \$3, \$2};
+  \node[cell] (r6) at (0,-3.0) {sub \$2, \$2, \$1};
+  \node[cell,fill=red!6] (r7) at (0,-3.5) {bne \$2, \$0, -3};
+  \node[cell] (r8) at (0,-4.0) {jr \$31};
+  \foreach \k/\ad in {0/00,1/04,2/08,3/0c,4/10,5/14,6/18,7/1c,8/20} \node[ad] at (-0.1,-0.5*\k) {0x\ad};
+  \draw[->,thick,red!60!black] (r8.east) -- ++(0.9,0) |- node[pos=0.25,right,font=\scriptsize,align=left]{$\mathtt{0x20}+4\cdot(-3)$\\$=\mathtt{0x14}$} (r5.east);
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \section{Summary}

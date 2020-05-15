@@ -63,6 +63,33 @@ A variable and a procedure may share a name; inside a procedure a local variable
 procedure name for the purpose of calls (\code{f()} where \code{f} is a local variable is an
 error).
 
+For the example program above the tables look like this:
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,
+  c/.style={draw,minimum height=0.55cm,anchor=west,font=\ttfamily\small}]
+  \node[font=\small\bfseries,anchor=west] at (0,0.65) {procedures};
+  \node[c,minimum width=1.3cm] at (0,0) {sum};
+  \node[c,minimum width=2.4cm] at (1.3,0) {(int*, int)};
+  \node[c,minimum width=0.8cm] (p1) at (3.7,0) {};
+  \node[c,minimum width=1.3cm] at (0,-0.55) {wain};
+  \node[c,minimum width=2.4cm] at (1.3,-0.55) {(int*, int)};
+  \node[c,minimum width=0.8cm] (p2) at (3.7,-0.55) {};
+  \node[font=\small\bfseries,anchor=west] at (6,1.45) {locals of \code{sum}};
+  \foreach \n/\t/\y in {a/int*/0.8,n/int/0.25,i/int/-0.3,s/int/-0.85} {
+    \node[c,minimum width=1cm] at (6,\y) {\n};
+    \node[c,minimum width=1.4cm] at (7,\y) {\t};
+  }
+  \node[font=\small\bfseries,anchor=west] at (6,-1.65) {locals of \code{wain}};
+  \foreach \n/\t/\y in {a/int*/-2.3,n/int/-2.85} {
+    \node[c,minimum width=1cm] at (6,\y) {\n};
+    \node[c,minimum width=1.4cm] at (7,\y) {\t};
+  }
+  \fill (p1.center) circle (2pt); \fill (p2.center) circle (2pt);
+  \draw[->] (p1.center) -- (5.95,0.8);
+  \draw[->] (p2.center) -- (5.95,-2.3);
+\end{tikzpicture}
+\end{center}
+
 \paragraph{Building it.} Traverse the parse tree:
 \begin{itemize}
   \item At \code{procedure}: error if the name is already in the global table; create a new
@@ -123,6 +150,32 @@ expression & requirement & type \\
 The pointer rules mirror C: adding an integer to a pointer moves it by that many
 \emph{elements}; subtracting two pointers gives the distance in elements. \code{int* + int*}
 is an error.
+
+For example, in \code{s + *(a + i)} from \code{sum}, types flow up the tree; the inner
+\code{+} is pointer arithmetic, and the dereference turns \code{int*} back into \code{int}:
+\begin{center}
+\begin{tikzpicture}[level distance=1.05cm,level 1/.style={sibling distance=2.6cm},
+  level 2/.style={sibling distance=2.2cm},
+  every node/.style={font=\small,draw,rounded corners,fill=blue!4,inner sep=3pt},
+  edge from parent/.style={draw,-}]
+\node {\code{+} : \code{int}}
+  child {node {\code{s} : \code{int}}}
+  child {node {\code{*} : \code{int}}
+    child {node {\code{+} : \code{int*}}
+      child {node {\code{a} : \code{int*}}}
+      child {node {\code{i} : \code{int}}}}};
+\end{tikzpicture}
+\hspace{1cm}
+\begin{tikzpicture}[>=Stealth,cell/.style={draw,minimum width=1.1cm,minimum height=0.6cm,font=\small}]
+  \node[cell] (c0) at (0,0) {$a[0]$};
+  \node[cell,right=0pt of c0] (c1) {$a[1]$};
+  \node[cell,right=0pt of c1] (c2) {$\cdots$};
+  \node[cell,right=0pt of c2,fill=blue!8] (c3) {$a[i]$};
+  \draw[<-] (c0.north) -- ++(0,0.7) node[above,font=\small]{\code{a}};
+  \draw[<-] (c3.north) -- ++(0,0.7) node[above,font=\small]{\code{a + i}};
+  \draw[decorate,decoration={brace,amplitude=4pt,mirror}] (c0.south west) -- (c3.south west) node[midway,below=5pt,font=\scriptsize]{$4i$ bytes};
+\end{tikzpicture}
+\end{center}
 
 \subsection{Statements and tests}
 \begin{itemize}

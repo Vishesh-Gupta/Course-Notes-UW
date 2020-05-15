@@ -68,6 +68,21 @@ C uses \emph{infix} notation (like ordinary math) instead of Racket's prefix not
 \code{(+ 1 (* 2 3))} becomes \code{1 + 2 * 3}. C has precedence rules (\code{*} binds tighter
 than \code{+}); use parentheses when in doubt.
 
+Both notations describe the same expression tree; C's precedence rules decide
+how an unparenthesized infix expression is grouped:
+
+\begin{center}
+\begin{tikzpicture}[level distance=10mm,level 1/.style={sibling distance=16mm},
+  level 2/.style={sibling distance=10mm},
+  op/.style={circle,draw,fill=blue!8,minimum size=7mm,inner sep=0pt,font=\ttfamily},
+  lf/.style={draw,rounded corners,fill=green!8,minimum size=6mm,inner sep=2pt}]
+  \node[op] {+}
+    child {node[lf] {1}}
+    child {node[op] {*} child {node[lf] {2}} child {node[lf] {3}}};
+  \node[font=\small\ttfamily,align=left,anchor=west] at (2.2,-0.6) {C:\ \ \ \ \ 1 + 2 * 3\\Racket: (+ 1 (* 2 3))};
+\end{tikzpicture}
+\end{center}
+
 \begin{important}[Integer division and remainder]
 \begin{itemize}
   \item \code{/} on integers behaves like Racket's \code{quotient}: the result is
@@ -78,6 +93,23 @@ than \code{+}); use parentheses when in doubt.
   \item The identity \code{(a / b) * b + a \% b == a} always holds (for \code{b != 0}).
 \end{itemize}
 \end{important}
+
+On a number line, integer division always moves the exact quotient toward
+zero:
+
+\begin{center}
+\begin{tikzpicture}[x=1.1cm]
+  \draw[-{Stealth}] (-4.5,0) -- (4.5,0);
+  \foreach \t in {-4,...,4} \draw (\t,0.08) -- (\t,-0.08) node[below,font=\scriptsize] {$\t$};
+  \fill[red!70!black] (3.5,0) circle (2pt) node[above=2pt,font=\scriptsize] {$7/2 = 3.5$};
+  \fill[red!70!black] (-3.5,0) circle (2pt) node[above=2pt,font=\scriptsize] {$-7/2 = -3.5$};
+  \draw[-{Stealth},thick,blue!60!black] (3.5,-0.55) -- (3.05,-0.55);
+  \draw[-{Stealth},thick,blue!60!black] (-3.5,-0.55) -- (-3.05,-0.55);
+  \node[font=\scriptsize\ttfamily,blue!60!black] at (3,-0.95) {7 / 2 == 3};
+  \node[font=\scriptsize\ttfamily,blue!60!black] at (-3,-0.95) {-7 / 2 == -3};
+  \node[font=\scriptsize] at (0,0.45) {truncate toward 0};
+\end{tikzpicture}
+\end{center}
 
 \section{Functions}
 
@@ -250,6 +282,21 @@ textually replaces the line with the contents of the named file.
 A module is split into an \emph{interface} file (\code{.h}: declarations, documentation) and
 an \emph{implementation} file (\code{.c}: definitions). This is covered fully in Unit~03.
 
+\begin{center}
+\begin{tikzpicture}[f/.style={draw,fill=gray!5,font=\scriptsize\ttfamily,align=left,anchor=north west,inner sep=4pt,text width=3.3cm},
+  t/.style={font=\scriptsize\ttfamily,anchor=south west,inner sep=1pt},
+  arr/.style={-{Stealth},thick}]
+  \node[t] at (0,2.2) {my\_module.h};
+  \node[f] (h) at (0,2.2) {int my\_sqr(int n);};
+  \node[t] at (0,1.0) {main.c};
+  \node[f] (m) at (0,1.0) {\#include "my\_module.h"\\[1pt]int main(void) \{ ... \}};
+  \node[t,font=\scriptsize\bfseries] at (6.4,1.9) {what the compiler sees};
+  \node[f,fill=green!6] (r) at (6.4,1.9) {\textcolor{blue!60!black}{int my\_sqr(int n);}\\[1pt]int main(void) \{ ... \}};
+  \draw[arr] (3.9,1.1) -- node[above,font=\scriptsize]{preprocessor} (6.3,1.4);
+  \draw[-{Stealth},dashed,blue!60!black] (h.east) to[out=0,in=150] (6.4,1.55);
+\end{tikzpicture}
+\end{center}
+
 \section{Testing with \code{assert}}
 
 \code{assert(e)} (from \code{<assert.h>}) does nothing if \code{e} is true, and stops the
@@ -288,6 +335,18 @@ int manhattan(struct posn a, struct posn b) {
   return my_abs(a.x - b.x) + my_abs(a.y - b.y);
 }
 \end{lstlisting}
+In memory, \code{p} is simply its fields stored one after another:
+
+\begin{center}
+\begin{tikzpicture}[c/.style={draw,minimum width=1.4cm,minimum height=0.7cm,font=\ttfamily}]
+  \node[c] (x) at (0,0) {3};
+  \node[c] (y) at (1.4,0) {4};
+  \node[font=\scriptsize,above=0pt of x] {\code{p.x}};
+  \node[font=\scriptsize,above=0pt of y] {\code{p.y}};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] (-0.7,-0.45) -- (2.1,-0.45)
+    node[midway,below=4pt,font=\scriptsize] {\code{const struct posn p}};
+\end{tikzpicture}
+\end{center}
 \begin{itemize}
   \item The type is \code{struct posn} (the word \code{struct} is part of it).
   \item Fields are accessed with the \emph{selection operator} \code{.} (e.g.\ \code{p.x}).

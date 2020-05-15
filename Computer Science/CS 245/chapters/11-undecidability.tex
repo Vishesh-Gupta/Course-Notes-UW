@@ -24,6 +24,19 @@ $\delta(q,a)=(q',b,D)$ it writes $b$, moves one cell in direction $D$, and enter
 stops when it enters a halting state; it may also run forever.
 \end{definition}
 
+\begin{center}
+\begin{tikzpicture}[>=Stealth,x=0.75cm,font=\small]
+  \foreach \s [count=\k from 0] in {1,0,1,1,{$\sqcup$},{$\sqcup$},{$\sqcup$}}
+    \node[draw,minimum width=0.75cm,minimum height=0.7cm] at (\k,0) {\s};
+  \node at (7.2,0) {$\cdots$};
+  \node[draw,rounded corners,fill=blue!8] (ctl) at (2,-1.6) {finite control: state $q$};
+  \draw[->,thick] (ctl.north) -- (2,-0.4);
+  \node[font=\scriptsize,anchor=west] at (7.7,0) {tape, infinite to the right};
+\end{tikzpicture}
+
+\small A configuration: tape contents, head position (here on the third cell) and current state.
+\end{center}
+
 \begin{example}
 A machine that accepts binary strings with an even number of $1$s scans right, toggling
 between states $q_{\mathrm{even}}$ and $q_{\mathrm{odd}}$ on each $1$, and on reaching
@@ -31,6 +44,24 @@ the blank accepts iff it is in $q_{\mathrm{even}}$. (This one does not even need
 machines that use the tape as memory can do far more, e.g.\ recognise
 $\{0^n1^n : n\ge0\}$ by repeatedly crossing off a $0$ and a matching $1$.)
 \end{example}
+\begin{center}
+\begin{tikzpicture}[shorten >=1pt,node distance=3.2cm,on grid,auto,>=Stealth,
+  every state/.style={minimum size=1.1cm,font=\small}]
+  \node[state,initial] (e) {$q_{\mathrm{even}}$};
+  \node[state] (o) [right=of e] {$q_{\mathrm{odd}}$};
+  \node[state,accepting] (a) [below=2cm of e] {acc};
+  \node[state] (r) [below=2cm of o] {rej};
+  \path[->]
+    (e) edge[loop above] node {$0/0,R$} ()
+    (e) edge[bend left] node {$1/1,R$} (o)
+    (o) edge[bend left] node {$1/1,R$} (e)
+    (o) edge[loop above] node {$0/0,R$} ()
+    (e) edge node[swap] {$\sqcup/\sqcup,R$} (a)
+    (o) edge node {$\sqcup/\sqcup,R$} (r);
+\end{tikzpicture}
+
+\small Edge label $a/b,D$: reading $a$, write $b$ and move in direction $D$.
+\end{center}
 
 \begin{important}[Church--Turing thesis]
 Every function that is computable by an effective procedure (an ``algorithm'' in the
@@ -97,6 +128,28 @@ we have a contradiction, so \code{halts} cannot exist.
 
 This is a \emph{diagonal argument}, the same idea as Cantor's proof that $\R$ is
 uncountable and as the liar paradox ``this sentence is false''.
+Picture a table of every program's behaviour on every program as input; \code{diag}
+is built to disagree with the diagonal, so it cannot be any row of the table:
+\begin{center}
+\begin{tikzpicture}[x=1.1cm,y=0.6cm,font=\small]
+  \foreach \c [count=\i] in {$P_1$,$P_2$,$P_3$,$P_4$} \node at (\i,0.8) {\c};
+  \node[font=\scriptsize] at (2.5,1.6) {input};
+  \foreach \r/\vals [count=\j] in {{$P_1$}/{H,L,H,H},{$P_2$}/{L,L,H,L},{$P_3$}/{H,H,H,L},{$P_4$}/{L,H,L,H}} {
+    \node at (-0.1,-\j+0.5) {\r};
+    \foreach \v [count=\i] in \vals {
+      \ifnum\i=\j \fill[yellow!35] (\i-0.5,-\j) rectangle (\i+0.5,-\j+1); \fi
+      \node at (\i,-\j+0.5) {\v};
+    }
+  }
+  \foreach \x in {0.5,1.5,2.5,3.5,4.5} \draw[gray] (\x,-4) -- (\x,0.3);
+  \node at (5.1,-2) {$\cdots$};
+  \node[red!70!black] at (-0.1,-5.2) {\code{diag}};
+  \foreach \v [count=\i] in {L,H,L,L} {\fill[red!8] (\i-0.5,-5.7) rectangle (\i+0.5,-4.7); \node[red!70!black] at (\i,-5.2) {\v};}
+  \node[font=\scriptsize,anchor=west] at (4.7,-5.2) {flips every diagonal entry};
+\end{tikzpicture}
+
+\small H $=$ halts, L $=$ loops. Row $i$, column $j$: what $P_i$ does on input $P_j$.
+\end{center}
 
 \begin{corollary}
 The complement of $\textsc{Halt}$ is not even semi-decidable.
@@ -118,6 +171,19 @@ To show $B$ undecidable, reduce a known undecidable problem (usually $\textsc{Ha
 The direction matters: reducing $B$ to $\textsc{Halt}$ proves nothing about $B$'s
 hardness.
 \end{important}
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,box/.style={draw,rounded corners,fill=blue!5,minimum height=0.9cm,align=center}]
+  \node (x) at (0,0) {$x$};
+  \node[box] (f) at (2.2,0) {compute\\ $f(x)$};
+  \node[box,fill=green!8] (d) at (5.6,0) {decider\\ for $B$};
+  \node (out) at (8.6,0) {yes / no};
+  \draw[->] (x) -- (f); \draw[->] (f) -- node[above,font=\scriptsize]{$f(x)$} (d);
+  \draw[->] (d) -- (out);
+  \draw[dashed,rounded corners] (1.1,-0.9) rectangle (6.7,1.05);
+  \node[font=\scriptsize,anchor=south west] at (1.1,1.05) {a decider for $A$ (impossible if $A$ is undecidable)};
+\end{tikzpicture}
+\end{center}
 
 \begin{example}[Halting on empty input]
 $\textsc{Halt}_\varepsilon=\{P : P \text{ halts on empty input}\}$ is undecidable. Given
@@ -171,6 +237,22 @@ True arithmetic ($\N$ with $+,\cdot$) & not even semi-decidable\\
 \end{tabular}
 \end{center}
 \end{important}
+
+\begin{center}
+\begin{tikzpicture}[font=\scriptsize]
+  \draw[rounded corners] (-5.6,-2.4) rectangle (5.6,2.3);
+  \node[anchor=north west,font=\small] at (-5.6,2.3) {all decision problems};
+  \draw[fill=blue!8,fill opacity=0.8] (-1.4,-0.1) ellipse (3.2cm and 1.7cm);
+  \draw[fill=green!8,fill opacity=0.8] (1.4,-0.1) ellipse (3.2cm and 1.7cm);
+  \node[font=\small] at (-2.9,0.6) {semi-decidable};
+  \node[font=\small] at (2.9,0.6) {co-semi-decidable};
+  \node[font=\small] at (0,0.6) {decidable};
+  \node[align=center] at (0,-0.35) {propositional\\ validity,\\ Presburger};
+  \node[align=center] at (-2.9,-0.3) {\textsc{Halt},\\ FO validity};
+  \node[align=center] at (2.9,-0.3) {complement of \textsc{Halt},\\ FO satisfiability};
+  \node[align=center] at (-4.5,-2.05) {true arithmetic};
+\end{tikzpicture}
+\end{center}
 
 \section{G\"odel's incompleteness theorems}
 

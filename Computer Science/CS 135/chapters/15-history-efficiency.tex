@@ -45,6 +45,30 @@ Write a \textbf{recurrence} for the running time and solve it:
   \item $T(n) = T(n/2) + \bigO(1)$ $\Rightarrow$ $\bigO(\log n)$ (search in a balanced BST).
 \end{itemize}
 
+The gap between these classes grows very quickly with $n$:
+
+\begin{center}
+\begin{tikzpicture}[x=0.9cm,y=0.075cm]
+  \begin{scope}
+  \clip (0,0) rectangle (11,62);
+  \draw[very thick,red!70!black,domain=1:6,samples=40] plot (\x,{2^\x});
+  \draw[very thick,orange!80!black,domain=1:8,samples=40] plot (\x,{\x*\x});
+  \draw[very thick,green!50!black,domain=1:11,samples=40] plot (\x,{\x*ln(\x)/ln(2)});
+  \draw[very thick,blue!60!black,domain=0:11,samples=2] plot (\x,\x);
+  \draw[very thick,violet,domain=1:11,samples=40] plot (\x,{ln(\x)/ln(2)});
+  \end{scope}
+  \draw[-{Stealth}] (0,0) -- (11.3,0) node[right,font=\scriptsize]{$n$};
+  \draw[-{Stealth}] (0,0) -- (0,64) node[above,font=\scriptsize]{steps};
+  \foreach \t in {2,4,6,8,10} \draw (\t,0) -- (\t,-1) node[below,font=\scriptsize]{\t};
+  \foreach \t in {20,40,60} \draw (0,\t) -- (-0.12,\t) node[left,font=\scriptsize]{\t};
+  \node[font=\scriptsize,red!70!black,anchor=east] at (5.6,58) {$2^n$};
+  \node[font=\scriptsize,orange!80!black,anchor=west] at (7.8,60) {$n^2$};
+  \node[font=\scriptsize,green!50!black,anchor=west] at (11,38) {$n\log n$};
+  \node[font=\scriptsize,blue!60!black,anchor=west] at (11,11) {$n$};
+  \node[font=\scriptsize,violet,anchor=west] at (11,3.5) {$\log n$};
+\end{tikzpicture}
+\end{center}
+
 \begin{example}[Why repeated calls are exponential]
 \begin{lstlisting}[style=racket]
 (define (bad-max lon)
@@ -80,6 +104,33 @@ The halting problem connects to Chapter~\ref{ch:generative}: there is no
 general algorithm that decides whether an arbitrary function terminates on a
 given input, which is why termination arguments must be made case by case.
 \end{aside}
+
+\begin{center}
+\begin{tikzpicture}
+  \draw[thick] (-0.2,0) -- (2.3,0);
+  \draw[thick] (2.3,-0.15) -- (2.45,0.15) (2.45,-0.15) -- (2.6,0.15);
+  \draw[thick,-{Stealth}] (2.6,0) -- (12.4,0);
+  \draw (0.2,0) -- (0.2,0.55) node[above,font=\scriptsize,align=center] {c.\ 300 BCE\\Euclid};
+  \fill (0.2,0) circle (2pt);
+  \draw (1.7,0) -- (1.7,-0.55) node[below,font=\scriptsize,align=center] {al-Khwarizmi\\9th century};
+  \fill (1.7,0) circle (2pt);
+  \draw (3.35,0) -- (3.35,0.55) node[above,font=\scriptsize,align=center] {1837\\Analytical Engine};
+  \fill (3.35,0) circle (2pt);
+  \draw (8.30,0) -- (8.30,-0.55) node[below,font=\scriptsize,align=center] {Church, Turing\\1936};
+  \fill (8.30,0) circle (2pt);
+  \draw (8.75,0) -- (8.75,0.55) node[anchor=south east,font=\scriptsize,align=right,inner sep=1pt] {1945\\stored program};
+  \fill (8.75,0) circle (2pt);
+  \draw (9.35,0) -- (9.35,-1.40) node[below,font=\scriptsize,align=center] {FORTRAN\\1957};
+  \fill (9.35,0) circle (2pt);
+  \draw (9.40,0) -- (9.40,1.40) node[above,font=\scriptsize,align=center] {1958\\Lisp};
+  \fill (9.40,0) circle (2pt);
+  \draw (10.25,0) -- (10.25,-0.55) node[below,font=\scriptsize,align=center] {Scheme\\1975};
+  \fill (10.25,0) circle (2pt);
+  \draw (12.00,0) -- (12.00,0.55) node[above,font=\scriptsize,align=center] {2010\\Racket};
+  \fill (12.00,0) circle (2pt);
+\end{tikzpicture}
+\end{center}
+(Not to scale before 1830.)
 
 \subsection{Electronic computers and programming languages}
 \begin{itemize}

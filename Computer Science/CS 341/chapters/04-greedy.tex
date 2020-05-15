@@ -23,6 +23,29 @@ Candidate greedy rules: earliest start time (fails: one long early interval), sh
 (fails: a short interval overlapping two long disjoint ones), fewest conflicts (fails on a more intricate example).
 The correct rule is \textbf{earliest finish time}.
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.55cm, y=0.45cm, font=\scriptsize]
+  \node[font=\small] at (5,3.2) {earliest start fails};
+  \draw[thick, gray] (0,2) -- (10,2);
+  \foreach \a/\b in {1/3, 4/6, 7/9} \draw[thick, blue!70!black] (\a,1) -- (\b,1);
+  \foreach \x in {0,10} \fill[gray] (\x,2) circle (1.5pt);
+  \foreach \a/\b in {1/3, 4/6, 7/9} {\fill[blue!70!black] (\a,1) circle (1.5pt); \fill[blue!70!black] (\b,1) circle (1.5pt);}
+  \node[anchor=west] at (10.3,2) {greedy takes this};
+  \node[anchor=west] at (10.3,1) {optimal: 3};
+  \begin{scope}[yshift=-2.8cm]
+  \node[font=\small] at (5,3.2) {shortest interval fails};
+  \draw[thick, gray] (4,2) -- (6,2);
+  \foreach \x in {4,6} \fill[gray] (\x,2) circle (1.5pt);
+  \foreach \a/\b in {0/5, 5.5/10} {\draw[thick, blue!70!black] (\a,1) -- (\b,1); \fill[blue!70!black] (\a,1) circle (1.5pt); \fill[blue!70!black] (\b,1) circle (1.5pt);}
+  \node[anchor=west] at (10.3,2) {greedy takes this};
+  \node[anchor=west] at (10.3,1) {optimal: 2};
+  \end{scope}
+\end{tikzpicture}
+\caption{Counterexamples for two plausible greedy rules: each greedy
+choice (grey) blocks the optimal set (blue).}
+\end{figure}
+
 \begin{lstlisting}[style=pseudo]
 sort intervals so that $f_1 \le f_2 \le \dots \le f_n$
 S = {}; last = $-\infty$
@@ -32,6 +55,26 @@ for i = 1 to n do
 return S
 \end{lstlisting}
 Runtime $\Theta(n\log n)$ (sorting dominates).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.85cm, y=0.5cm, font=\small]
+  \foreach \name/\s/\f/\sel [count=\r] in {B/1/4/1, C/3/5/0, A/0/6/0, D/4/7/1, E/5/9/0, F/6/10/0, G/8/11/1, H/9/12/0} {
+    \node[anchor=east, font=\scriptsize] at (-0.3,-\r) {\name};
+    \ifnum\sel=1
+      \draw[line width=4pt, blue!60] (\s,-\r) -- (\f,-\r);
+    \else
+      \draw[line width=4pt, gray!35] (\s,-\r) -- (\f,-\r);
+    \fi
+  }
+  \foreach \x in {4,7,11} \draw[blue!60!black, densely dashed] (\x,0) -- (\x,-8.6);
+  \draw[->] (0,-9) -- (12.6,-9) node[right, font=\scriptsize]{time};
+  \foreach \x in {0,2,...,12} \draw (\x,-9) -- (\x,-9.2) node[below, font=\scriptsize]{\x};
+\end{tikzpicture}
+\caption{Earliest finish time on eight intervals, listed by finish time.
+Greedy takes $B$, then the first interval starting at or after 4 ($D$),
+then $G$; dashed lines mark the value of \code{last}.}
+\end{figure}
 
 \begin{theorem}
 Earliest-finish-first returns an optimal schedule.
@@ -73,6 +116,26 @@ $\max(0,f-d_j)\le\max(0,f-d_i)=$ old $\ell_i$. So the max lateness does not incr
 Start from an optimal schedule with no idle time; repeatedly swapping adjacent inversions gives an inversion-free schedule
 (i.e.\ EDF up to ties) that is still optimal.
 \end{proof}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=0.8cm, font=\small, >=Stealth]
+  \node[anchor=east] at (-0.2,1) {before};
+  \node[anchor=east] at (-0.2,0) {after};
+  \draw[fill=gray!15] (0,0.7) rectangle (1.5,1.3); \node at (0.75,1) {\ldots};
+  \draw[fill=orange!20] (1.5,0.7) rectangle (4,1.3); \node at (2.75,1) {$j$};
+  \draw[fill=blue!15] (4,0.7) rectangle (5.5,1.3); \node at (4.75,1) {$i$};
+  \draw[fill=gray!15] (0,-0.3) rectangle (1.5,0.3); \node at (0.75,0) {\ldots};
+  \draw[fill=blue!15] (1.5,-0.3) rectangle (3,0.3); \node at (2.25,0) {$i$};
+  \draw[fill=orange!20] (3,-0.3) rectangle (5.5,0.3); \node at (4.25,0) {$j$};
+  \draw[densely dashed] (5.5,-0.6) -- (5.5,1.6) node[above, font=\scriptsize]{$f$};
+  \draw[red!70!black, thick] (3.6,-0.6) -- (3.6,1.6) node[above, font=\scriptsize]{$d_i$};
+  \draw[green!40!black, thick] (4.6,-0.6) -- (4.6,1.6) node[above, font=\scriptsize]{$d_j$};
+\end{tikzpicture}
+\caption{Swapping an adjacent inversion ($d_i<d_j$ but $j$ first). Both
+jobs end by $f$; after the swap $j$ finishes at $f$ with lateness
+$f-d_j\le f-d_i$, the old lateness of $i$.}
+\end{figure}
 
 \section{Fractional knapsack}
 Items $1..n$ with weights $w_i>0$ and values $v_i$; capacity $W$. We may take a fraction $x_i\in[0,1]$ of each item.
@@ -124,6 +187,37 @@ With a binary heap, $\bigO(n\log n)$ for $n=|\Sigma|$.
 Frequencies $a{:}45, b{:}13, c{:}12, d{:}16, e{:}9, f{:}5$. Merge $f,e\to14$; $c,b\to25$; $14,d\to30$; $25,30\to55$; $a,55\to100$.
 Codes: $a=0$, $c=100$, $b=101$, $f=1100$, $e=1101$, $d=111$. Cost $=45+3(12+13+16)+4(5+9)=224$ (vs.\ 300 with a fixed 3-bit code).
 \end{example}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, level distance=1.1cm,
+  level 1/.style={sibling distance=4.4cm},
+  level 2/.style={sibling distance=2.6cm},
+  level 3/.style={sibling distance=1.4cm},
+  level 4/.style={sibling distance=1.1cm},
+  inner/.style={circle, draw, minimum size=7mm, inner sep=0pt, font=\scriptsize},
+  leaf/.style={rectangle, draw, fill=blue!8, minimum size=6mm, inner sep=1pt, font=\scriptsize},
+  edge from parent/.style={draw, thick},
+  lbl/.style={font=\tiny, midway, fill=white, inner sep=1pt}]
+\node[inner] {100}
+  child {node[leaf] {$a{:}45$} edge from parent node[lbl] {0}}
+  child {node[inner] {55}
+    child {node[inner] {25}
+      child {node[leaf] {$c{:}12$} edge from parent node[lbl] {0}}
+      child {node[leaf] {$b{:}13$} edge from parent node[lbl] {1}}
+      edge from parent node[lbl] {0}}
+    child {node[inner] {30}
+      child {node[inner] {14}
+        child {node[leaf] {$f{:}5$} edge from parent node[lbl] {0}}
+        child {node[leaf] {$e{:}9$} edge from parent node[lbl] {1}}
+        edge from parent node[lbl] {0}}
+      child {node[leaf] {$d{:}16$} edge from parent node[lbl] {1}}
+      edge from parent node[lbl] {1}}
+    edge from parent node[lbl] {1}};
+\end{tikzpicture}
+\caption{The Huffman tree for the example; internal nodes show merged
+frequencies and the codeword of a leaf is the sequence of edge labels.}
+\end{figure}
 
 \begin{lemma}[Greedy choice]
 Let $x,y$ be the two least frequent characters. There is an optimal tree in which $x$ and $y$ are siblings at maximum depth.

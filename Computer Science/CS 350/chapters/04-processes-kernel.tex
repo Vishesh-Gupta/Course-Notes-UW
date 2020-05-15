@@ -79,10 +79,62 @@ int main(void) {
 \end{lstlisting}
 \end{example}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=1cm, font=\small, >=Stealth]
+  \node[anchor=east] at (-0.1,1.5) {parent};
+  \node[anchor=east] at (-0.1,0) {child};
+  \draw[line width=4pt, blue!50] (0,1.5) -- (2,1.5);
+  \draw[line width=4pt, blue!50, dash pattern=on 3pt off 2pt] (3,1.5) -- (8.6,1.5);
+  \draw[line width=4pt, blue!50] (2,1.5) -- (3,1.5);
+  \draw[line width=4pt, blue!50] (8.6,1.5) -- (10.4,1.5);
+  \draw[->, thick] (2,1.4) -- (2,0.15);
+  \node[font=\scriptsize, anchor=south] at (2,1.7) {\code{fork()}};
+  \node[font=\scriptsize, anchor=south] at (3,1.7) {\code{waitpid}};
+  \node[font=\scriptsize, anchor=south] at (5.8,1.7) {blocked};
+  \draw[line width=4pt, green!50!black!50] (2,0) -- (3.4,0);
+  \draw[line width=4pt, orange!60] (3.4,0) -- (8.5,0);
+  \node[font=\scriptsize, anchor=north] at (3.4,-0.2) {\code{execv("/bin/ls")}};
+  \node[font=\scriptsize] at (6,0.3) {running \code{ls}};
+  \node[font=\scriptsize, anchor=north] at (8.5,-0.2) {\code{\_exit}};
+  \draw[->, thick, red!70!black] (8.5,0.15) -- node[right, font=\scriptsize]{exit status} (8.6,1.35);
+  \draw[->] (0,-0.9) -- (10.6,-0.9) node[right, font=\scriptsize]{time};
+\end{tikzpicture}
+\caption{The fork/exec/wait pattern over time: the child replaces its
+program with \code{ls}; the parent sleeps in \code{waitpid} until the
+child's \code{\_exit} hands back the status.}
+\end{figure}
+
 \begin{example}[Counting forks]
 \code{for (i = 0; i < 3; i++) fork();} creates $2^3 = 8$ processes in total (7 new), since
 every existing process doubles at each iteration.
 \end{example}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, >=Stealth,
+  pr/.style={circle, draw, thick, minimum size=6mm, inner sep=0pt},
+  level distance=1.1cm,
+  level 1/.style={sibling distance=4.2cm},
+  level 2/.style={sibling distance=2.1cm},
+  level 3/.style={sibling distance=1.05cm},
+  edge from parent/.style={draw, thick, ->}]
+  \node[pr, fill=gray!20] {P}
+    child {node[pr] {P}
+      child {node[pr] {P} child {node[pr] {P}} child {node[pr, fill=blue!15] {}}}
+      child {node[pr, fill=blue!15] {} child {node[pr, fill=blue!15] {}} child {node[pr, fill=blue!15] {}}}}
+    child {node[pr, fill=blue!15] {}
+      child {node[pr, fill=blue!15] {} child {node[pr, fill=blue!15] {}} child {node[pr, fill=blue!15] {}}}
+      child {node[pr, fill=blue!15] {} child {node[pr, fill=blue!15] {}} child {node[pr, fill=blue!15] {}}}};
+  \node[anchor=west] at (4.6,-1.1) {after $i=0$: 2 processes};
+  \node[anchor=west] at (4.6,-2.2) {after $i=1$: 4};
+  \node[anchor=west] at (4.6,-3.3) {after $i=2$: 8};
+\end{tikzpicture}
+\caption{Each \code{fork} splits one process into two (left branch: the
+caller continuing, right branch: its new child, shaded). The leaves are the
+8 processes alive at the end; the original process P follows the leftmost
+path.}
+\end{figure}
 
 \section{System calls}
 
@@ -109,6 +161,29 @@ a special trap instruction.
     to return to user mode. The libc wrapper checks \code{a3}; on failure it stores \code{v0}
     into \code{errno} and returns $-1$.
 \end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, >=Stealth, node distance=0.35cm,
+  st/.style={draw, rounded corners, align=center, minimum height=0.9cm, text width=2.4cm}]
+  \fill[blue!6] (-1.4,-0.95) rectangle (11.4,-3.25);
+  \node[font=\scriptsize, anchor=west] at (-1.25,-3.05) {kernel mode};
+  \node[font=\scriptsize, anchor=west] at (-1.25,0.6) {user mode};
+  \node[st] (app) at (0,0) {application\\calls \code{fork()}};
+  \node[st] (lib) at (3.3,0) {libc stub: \code{v0}${}\gets{}$\code{SYS\_fork}; \code{syscall}};
+  \node[st] (exc) at (3.3,-2) {\code{common\_exception}: save trapframe};
+  \node[st] (trap) at (6.6,-2) {\code{mips\_trap}\\$\to$ \code{syscall(tf)}};
+  \node[st] (sys) at (9.9,-2) {\code{sys\_fork};\\set \code{v0}, \code{a3}, \code{epc+=4}};
+  \node[st] (ret) at (9.9,0) {back in libc: check \code{a3}, return};
+  \draw[->, thick] (app) -- (lib);
+  \draw[->, thick, red!70!black] (lib) -- node[right]{trap} (exc);
+  \draw[->, thick] (exc) -- (trap);
+  \draw[->, thick] (trap) -- (sys);
+  \draw[->, thick, red!70!black] (sys) -- node[left]{restore trapframe, \code{rfe}} (ret);
+\end{tikzpicture}
+\caption{The path of a system call on OS/161: the trap switches to kernel
+mode and the kernel stack, and the return restores the saved user state.}
+\end{figure}
 
 \begin{lstlisting}[style=mips]
 # user-level stub generated for each system call (userland/lib/libc/syscalls.S)
@@ -291,6 +366,25 @@ int sys_waitpid(pid_t pid, userptr_t status, int options, pid_t *retval) {
     uncached, direct-mapped; used for devices), \code{kseg2} (kernel, TLB-mapped, unused in
     OS/161).
 \end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=0.55cm, font=\small]
+  \draw[fill=green!12] (0,0) rectangle (6,1); \node at (3,0.5) {\code{kuseg}: user, TLB-mapped (2\,GB)};
+  \draw[fill=blue!12] (6,0) rectangle (7.5,1); \node[font=\scriptsize] at (6.75,0.5) {\code{kseg0}};
+  \draw[fill=orange!20] (7.5,0) rectangle (9,1); \node[font=\scriptsize] at (8.25,0.5) {\code{kseg1}};
+  \draw[fill=gray!20] (9,0) rectangle (12,1); \node[font=\scriptsize] at (10.5,0.5) {\code{kseg2}};
+  \foreach \x/\a in {0/0x00000000, 6/0x80000000, 9/0xC0000000}
+    \node[font=\ttfamily\tiny, anchor=north] at (\x,-0.1) {\a};
+  \node[font=\ttfamily\tiny, anchor=south] at (7.5,1.1) {0xA0000000};
+  \node[font=\scriptsize, align=right, anchor=north east] at (7.0,-0.9) {cached,\\phys $=$ virt $-$ \texttt{0x80000000}};
+  \node[font=\scriptsize, align=left, anchor=north west] at (8.0,-0.9) {uncached (devices),\\phys $=$ virt $-$ \texttt{0xA0000000}};
+  \draw (6.75,-0.9) -- (6.75,0); \draw (8.25,-0.9) -- (8.25,0);
+\end{tikzpicture}
+\caption{The MIPS R3000 virtual address space (not to scale). Only
+\code{kuseg} and \code{kseg2} go through the TLB; \code{kseg0} and
+\code{kseg1} both map onto the first 512\,MB of physical memory.}
+\end{figure}
 
 \section{Inter-process communication (brief)}
 Processes are isolated, so cooperation needs kernel-provided mechanisms: pipes, files, signals,

@@ -11,6 +11,20 @@ can be viewed as built from \code{0} using \code{add1}:
 ;; * (add1 Nat)
 \end{lstlisting}
 
+\begin{center}
+\begin{tikzpicture}[n/.style={draw,circle,minimum size=8mm,fill=blue!6},
+  up/.style={-{Stealth},thick},dn/.style={-{Stealth},thick,gray!60!black,dashed}]
+  \foreach \i in {0,...,4} \node[n] (n\i) at (\i*2,0) {\i};
+  \node (dots) at (10,0) {$\cdots$};
+  \foreach \i [evaluate=\i as \j using int(\i+1)] in {0,...,3} {
+    \draw[up] (n\i) to[bend left=25] node[above,font=\scriptsize\ttfamily]{add1} (n\j);
+    \draw[dn] (n\j) to[bend left=25] node[below,font=\scriptsize\ttfamily]{sub1} (n\i);
+  }
+  \draw[up] (n4) to[bend left=25] (dots);
+  \node[font=\scriptsize,below=3mm of n0] {base case: \code{zero?}};
+\end{tikzpicture}
+\end{center}
+
 The analogues of \code{empty?} and \code{rest} are \code{zero?} and
 \code{sub1}. This gives a template:
 
@@ -128,6 +142,23 @@ together.
         [else (+ (* (first l1) (first l2))
                  (dot-product (rest l1) (rest l2)))]))
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[c/.style={draw,minimum width=7mm,minimum height=6mm},
+  p/.style={draw,minimum width=7mm,minimum height=6mm,fill=green!8}]
+  \foreach \a/\b [count=\i] in {1/4,2/5,3/6} {
+    \node[c] (a\i) at (\i*1.6,0) {\a};
+    \node[c] (b\i) at (\i*1.6,-1.0) {\b};
+    \pgfmathtruncatemacro{\pr}{\a*\b}
+    \node[p] (p\i) at (\i*1.6,-2.3) {\pr};
+    \draw[-{Stealth}] (b\i) -- node[right,font=\scriptsize]{$\times$} (p\i);
+    \draw[rounded corners,dashed,blue!50!black] ($(a\i.north west)+(-0.12,0.12)$) rectangle ($(b\i.south east)+(0.12,-0.12)$);
+  }
+  \node[font=\scriptsize\ttfamily,anchor=east] at (0.9,0) {l1};
+  \node[font=\scriptsize\ttfamily,anchor=east] at (0.9,-1) {l2};
+  \foreach \i in {1,2} \node at (\i*1.6+0.8,-2.3) {$+$};
+  \node[anchor=west] at (5.3,-2.3) {$+\ 0 = 32$};
+\end{tikzpicture}
+\end{center}
 Since both lists empty out simultaneously, checking one suffices.
 
 \subsection{Case 3: processing at different rates}
@@ -167,6 +198,23 @@ Often some cases collapse.
          (cons (first l1) (merge (rest l1) l2))]
         [else (cons (first l2) (merge l1 (rest l2)))]))
 \end{lstlisting}
+Each step takes the smaller of the two fronts, so the result interleaves the
+two lists:
+
+\begin{center}
+\begin{tikzpicture}[c/.style={draw,minimum width=7mm,minimum height=6mm},
+  f1/.style={fill=blue!12},f2/.style={fill=orange!20},
+  arr/.style={-{Stealth},gray!50!black}]
+  \foreach \v [count=\i] in {1,4,9} \node[c,f1] (a\i) at (\i*0.7,0) {\v};
+  \foreach \v [count=\i] in {2,3,10} \node[c,f2] (b\i) at (\i*0.7+4.9,0) {\v};
+  \node[font=\scriptsize\ttfamily] at (1.4,0.6) {l1};
+  \node[font=\scriptsize\ttfamily] at (6.3,0.6) {l2};
+  \foreach \v/\s [count=\i] in {1/f1,2/f2,3/f2,4/f1,9/f1,10/f2} \node[c,\s] (r\i) at (\i*0.7+1.75,-1.9) {\v};
+  \node[font=\scriptsize\ttfamily,anchor=east] at (2.0,-1.9) {(merge l1 l2)};
+  \foreach \x/\y in {a1/r1,b1/r2,b2/r3,a2/r4,a3/r5,b3/r6} \draw[arr] (\x.south) -- (\y.north);
+\end{tikzpicture}
+\end{center}
+
 Condensed trace:
 \begin{lstlisting}[style=racket]
 (merge (list 1 4) (list 2 3))

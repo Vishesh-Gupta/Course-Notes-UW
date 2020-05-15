@@ -144,6 +144,29 @@ int x = 5;
 int a = x++;   // a is 5, x is 6
 int b = ++x;   // b is 7, x is 7
 \end{lstlisting}
+The state after each line:
+
+\begin{center}
+\begin{tikzpicture}[v/.style={draw,minimum width=9mm,minimum height=6mm,font=\ttfamily\small},
+  nm/.style={font=\scriptsize\ttfamily,anchor=east},
+  ch/.style={draw,minimum width=9mm,minimum height=6mm,font=\ttfamily\small,fill=orange!20},
+  hd/.style={font=\scriptsize\ttfamily,anchor=south}]
+  \foreach \c/\t in {0/{int x = 5;},1/{int a = x++;},2/{int b = ++x;}} \node[hd] at (\c*3.4+0.9,1.4) {\t};
+  \foreach \r/\n in {0/x,1/a,2/b} {
+    \foreach \c in {0,1,2} \node[nm] at (\c*3.4+0.35,1-\r*0.7) {\n};
+  }
+  % column 0
+  \node[ch] at (0.9,1) {5};
+  % column 1
+  \node[ch] at (4.3,1) {6}; \node[ch] at (4.3,0.3) {5};
+  % column 2
+  \node[ch] at (7.7,1) {7}; \node[v] at (7.7,0.3) {5}; \node[ch] at (7.7,-0.4) {7};
+  \foreach \c in {1,2} \draw[-{Stealth},gray] (\c*3.4-1.2,0.3) -- (\c*3.4-0.4,0.3);
+\end{tikzpicture}
+\end{center}
+Highlighted boxes changed on that line. \code{a} receives the \emph{old} value of \code{x}
+(5); \code{b} receives the \emph{new} value (7).
+
 Prefer \code{++x} when the value is not used. Never use \code{x++} twice on the same variable in
 one expression (e.g.\ \code{x = x++ + x++;}): that is undefined behaviour.
 
@@ -181,6 +204,20 @@ p.y += p.x;        // p is now {5, 7}
 struct posn q = p; // copies all fields; q is independent of p
 q.x = 0;           // p.x is still 5
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[c/.style={draw,minimum width=1.1cm,minimum height=0.7cm,font=\ttfamily},
+  lab/.style={font=\scriptsize}]
+  \node[c] (px) at (0,0) {5}; \node[c] (py) at (1.1,0) {7};
+  \node[lab,above=0pt of px] {x}; \node[lab,above=0pt of py] {y};
+  \node[font=\small\ttfamily,anchor=east] at (-0.7,0) {p};
+  \node[c,fill=orange!20] (qx) at (4.6,0) {0}; \node[c] (qy) at (5.7,0) {7};
+  \node[lab,above=0pt of qx] {x}; \node[lab,above=0pt of qy] {y};
+  \node[font=\small\ttfamily,anchor=east] at (3.9,0) {q};
+  \draw[-{Stealth},thick,gray] (1.8,-0.55) to[out=-30,in=-150] node[below,font=\scriptsize]{\code{q = p} copies both fields} (3.9,-0.55);
+\end{tikzpicture}
+\end{center}
+After \code{q.x = 0} only \code{q} changes: the two structures share nothing.
+
 Assigning one structure to another copies every field. This matters a lot once we pass
 structures to functions (Units~05 and~06).
 

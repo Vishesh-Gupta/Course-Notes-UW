@@ -70,6 +70,31 @@ $\sum_{i=1}^n i^k\in\Theta(n^{k+1})$, and a geometric series $\sum_{i=0}^n r^i$ 
 $\Theta(1)$ if $r<1$, $\Theta(n)$ if $r=1$, $\Theta(r^n)$ if $r>1$.
 \end{important}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.75cm, y=0.22cm, >=Stealth, font=\small]
+  \draw[->] (0,0) -- (12.4,0) node[right]{$n$};
+  \draw[->] (0,0) -- (0,26) node[above]{cost};
+  \foreach \x in {2,4,...,12} \draw (\x,0) -- (\x,-0.4) node[below, font=\scriptsize]{\x};
+  \foreach \y in {5,10,...,25} \draw (0,\y) -- (-0.15,\y) node[left, font=\scriptsize]{\y};
+  \begin{scope}
+    \clip (0,0) rectangle (12.2,25.5);
+    \draw[thick, gray] plot[domain=1:12, samples=40] (\x, {ln(\x)/ln(2)});
+    \draw[thick, blue!70!black] plot[domain=0:12, samples=2] (\x, \x);
+    \draw[thick, green!50!black] plot[domain=1:12, samples=40] (\x, {\x*ln(\x)/ln(2)});
+    \draw[thick, orange!80!black] plot[domain=0:6, samples=40] (\x, {\x*\x});
+    \draw[thick, red!70!black] plot[domain=0:5, samples=40] (\x, {2^\x});
+  \end{scope}
+  \node[gray, font=\scriptsize, anchor=west] at (12.2,3.6) {$\log_2 n$};
+  \node[blue!70!black, font=\scriptsize, anchor=west] at (12.2,12) {$n$};
+  \node[green!50!black, font=\scriptsize, anchor=west] at (8.1,25.5) {$n\log_2 n$};
+  \node[orange!80!black, font=\scriptsize, anchor=west] at (5.1,25.5) {$n^2$};
+  \node[red!70!black, font=\scriptsize, anchor=east] at (4.5,25.5) {$2^n$};
+\end{tikzpicture}
+\caption{The bottom of the growth-rate ladder for small $n$. Already at
+$n = 5$ the exponential has overtaken the quadratic.}
+\end{figure}
+
 Useful properties: $\bigO$ is transitive; $f+g\in\Theta(\max(f,g))$;
 $\log_a n\in\Theta(\log_b n)$ for constant bases $a,b>1$, so the base of a log is
 irrelevant inside $\bigO$.
@@ -149,6 +174,28 @@ MaxSub(A, lo, hi):
 \end{lstlisting}
 Recurrence: $T(n)=2T(n/2)+\Theta(n)$, so $T(n)\in\Theta(n\log n)$ (Chapter 2).
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1.1cm, y=1cm, >=Stealth, font=\small]
+  \foreach \v [count=\i] in {2,-6,3,-1,4,-5,2} {
+    \node[draw, minimum width=1.1cm, minimum height=0.7cm] (a\i) at (\i,0) {$\v$};
+    \node[font=\scriptsize, gray] at (\i,0.6) {\i};
+  }
+  \draw[very thick, red!70!black] (4.5,-0.7) -- (4.5,0.9);
+  \node[red!70!black, font=\scriptsize] at (4.5,1.1) {$m=4$};
+  \draw[decorate, decoration={brace, mirror, amplitude=5pt}] (2.55,-0.45) -- (4.45,-0.45)
+    node[midway, below=5pt, font=\scriptsize, align=center]{best suffix\\of left: $2$};
+  \draw[decorate, decoration={brace, mirror, amplitude=5pt}] (4.55,-0.45) -- (5.45,-0.45)
+    node[midway, below=5pt, font=\scriptsize, align=center]{best prefix\\of right: $4$};
+  \draw[decorate, decoration={brace, amplitude=5pt}] (0.5,1.35) -- (4.4,1.35)
+    node[midway, above=5pt, font=\scriptsize]{left half: recursive answer $3$};
+  \draw[decorate, decoration={brace, amplitude=5pt}] (4.6,1.35) -- (7.5,1.35)
+    node[midway, above=5pt, font=\scriptsize]{right half: $4$};
+\end{tikzpicture}
+\caption{Divide and conquer on $A=[2,-6,3,-1,4,-5,2]$. The best crossing
+subarray is $A[3..5]$ with sum $2+4=6$, beating both recursive answers.}
+\end{figure}
+
 \subsection{Attempt 4: Kadane's algorithm, \texorpdfstring{$\Theta(n)$}{Theta(n)}}
 Let $E[j]$ be the maximum sum of a subarray \emph{ending exactly at} $j$ (possibly empty).
 Either the best such subarray is empty, or it is $A[j]$ appended to the best subarray ending at $j-1$:
@@ -163,6 +210,21 @@ for j = 1 to n do
     best = max(best, cur)
 return best
 \end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[x=1.1cm, y=0.8cm, font=\small]
+  \node[anchor=east] at (0.4,0) {$A[j]$};
+  \node[anchor=east] at (0.4,-1) {$E[j]$};
+  \foreach \v/\e [count=\i] in {2/2,-6/0,3/3,-1/2,4/6,-5/1,2/3} {
+    \node[draw, minimum width=1.1cm, minimum height=0.6cm] at (\i,0) {$\v$};
+    \node[draw, minimum width=1.1cm, minimum height=0.6cm, fill=blue!\the\numexpr 5*\e\relax] at (\i,-1) {$\e$};
+  }
+  \draw[very thick, red!70!black, rounded corners] (4.45,-1.4) rectangle (5.55,-0.6);
+  \node[red!70!black, font=\scriptsize, anchor=west] at (7.6,-1) {best $=\max_j E[j]=6$};
+\end{tikzpicture}
+\end{center}
+Kadane's scan on the running example: $E$ resets to $0$ after the $-6$
+and peaks at $j=5$, the end of $A[3..5]$.
 
 \begin{theorem}
 Kadane's algorithm returns the maximum subarray sum and runs in $\Theta(n)$ time.

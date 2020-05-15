@@ -20,6 +20,24 @@ recursive / r.e. & unrestricted grammars & Turing machines \\
 \end{tabular}
 \end{center}
 
+Each class strictly contains the one above it in the table:
+\begin{center}
+\begin{tikzpicture}[font=\small]
+  \draw[fill=gray!6] (0,0) ellipse (6.2cm and 2.6cm);
+  \draw[fill=orange!8] (0,-0.35) ellipse (5cm and 2.1cm);
+  \draw[fill=green!8] (0,-0.7) ellipse (3.8cm and 1.6cm);
+  \draw[fill=blue!8] (0,-1.0) ellipse (2.5cm and 1.15cm);
+  \draw[fill=white] (0,-1.35) ellipse (1.1cm and 0.55cm);
+  \node at (0,2.2) {recursively enumerable};
+  \node at (0,1.35) {context-sensitive};
+  \node at (0,0.45) {context-free: parsing};
+  \node at (0,-0.32) {regular: scanning};
+  \node at (0,-1.35) {finite};
+  \node[font=\scriptsize] at (2.95,-0.95) {$a^nb^n$};
+  \fill (2.95,-0.7) circle (1.2pt);
+\end{tikzpicture}
+\end{center}
+
 Compilers use regular languages for \emph{scanning} (tokens), context-free languages for
 \emph{parsing} (structure), and ad-hoc context-sensitive checks for \emph{semantic analysis}
 (types, declarations).
@@ -82,6 +100,20 @@ Precedence: star binds tightest, then concatenation, then alternation.
   \item Decimal integers without leading zeros: $0 \mid (1|\dots|9)(0|\dots|9)^*$.
 \end{itemize}
 \end{example}
+
+Equivalently, the first language is recognised by a two-state machine that only remembers
+the parity of the 1s seen so far (such machines are defined next):
+\begin{center}
+\begin{tikzpicture}[shorten >=1pt,node distance=3cm,on grid,auto,>=Stealth,every state/.style={minimum size=1.1cm,font=\small}]
+  \node[state,initial,accepting] (e) {even};
+  \node[state] (o) [right=of e] {odd};
+  \path[->]
+    (e) edge[loop above] node {0} ()
+    (e) edge[bend left] node {1} (o)
+    (o) edge[bend left] node {1} (e)
+    (o) edge[loop above] node {0} ();
+\end{tikzpicture}
+\end{center}
 
 \section{Deterministic finite automata}
 
@@ -262,6 +294,32 @@ induction, build an $\varepsilon$-NFA with one start and one accepting state:
 \end{tikzpicture}
 
 \small Thompson construction for $E_1 \mid E_2$.
+\end{center}
+
+The other two inductive cases, drawn the same way:
+\begin{center}
+\begin{tikzpicture}[shorten >=1pt,node distance=1.7cm,on grid,auto,>=Stealth,every state/.style={minimum size=0.7cm}]
+  \node[state,initial] (a1) {};
+  \node[state] (a2) [right=of a1] {};
+  \node[state] (b1) [right=of a2] {};
+  \node[state,accepting] (b2) [right=of b1] {};
+  \path[->]
+    (a1) edge[dashed] node {$M_1$} (a2)
+    (a2) edge node {$\varepsilon$} (b1)
+    (b1) edge[dashed] node {$M_2$} (b2);
+\end{tikzpicture}
+\hspace{1cm}
+\begin{tikzpicture}[shorten >=1pt,node distance=1.7cm,on grid,auto,>=Stealth,every state/.style={minimum size=0.7cm}]
+  \node[state,initial,accepting] (s) {};
+  \node[state] (m1) [right=of s] {};
+  \node[state] (m2) [right=of m1] {};
+  \path[->]
+    (s) edge node {$\varepsilon$} (m1)
+    (m1) edge[dashed] node {$M$} (m2)
+    (m2) edge[bend left=50] node {$\varepsilon$} (s);
+\end{tikzpicture}
+
+\small Left: $E_1E_2$. Right: $E^*$ (the old accept states of $M_1$ and $M$ are no longer accepting).
 \end{center}
 
 \paragraph{DFA $\Rightarrow$ regex.} By state elimination (or the dynamic-programming
