@@ -41,6 +41,23 @@ Anything we can do with an \code{istream} (\code{ostream}) variable such as
 \code{cin} (\code{cout}), we can do with an \code{ifstream} (\code{ofstream})
 variable.
 \end{important}
+The reason (Lecture~14) is inheritance: the file and string streams are special kinds of
+\code{istream} and \code{ostream}.
+\begin{center}
+\begin{tikzpicture}[font=\small,cls/.style={draw,fill=blue!4,minimum width=2.4cm,minimum height=0.75cm},
+  inh/.style={-{Triangle[open,length=3mm,width=3mm]}}]
+  \node[cls] (is) at (0,0) {\code{istream}};
+  \node[cls] (if) at (-1.5,-1.6) {\code{ifstream}};
+  \node[cls] (iss) at (1.5,-1.6) {\code{istringstream}};
+  \node[cls] (os) at (6,0) {\code{ostream}};
+  \node[cls] (of) at (4.5,-1.6) {\code{ofstream}};
+  \node[cls] (oss) at (7.5,-1.6) {\code{ostringstream}};
+  \draw[inh] (if.north) -- (is.south west); \draw[inh] (iss.north) -- (is.south east);
+  \draw[inh] (of.north) -- (os.south west); \draw[inh] (oss.north) -- (os.south east);
+  \node[font=\scriptsize,anchor=west] at (1.4,0) {e.g.\ \code{cin}};
+  \node[font=\scriptsize,anchor=west] at (7.4,0) {e.g.\ \code{cout}, \code{cerr}};
+\end{tikzpicture}
+\end{center}
 
 \section{String Streams}
 We can also attach streams to strings, to read from or write to them:
@@ -183,6 +200,26 @@ int * const q = &n;    // q is a const pointer to an int
 q = &x;                // illegal: q can't be re-pointed
 *q = 10;               // fine
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,box/.style={draw,minimum width=1.2cm,minimum height=0.7cm}]
+  \node[box,fill=blue!6] (p) at (0,0) {};
+  \node[left=2pt of p] {\code{p}};
+  \node[box,fill=gray!20] (n) at (2.6,0) {5};
+  \node[right=2pt of n] {\code{n}};
+  \draw[->] (p.center) -- (n);
+  \node[font=\scriptsize,align=center] at (1.3,-0.9) {\code{const int *p}: \code{p} may move,\\ \code{*p} is read-only};
+  \begin{scope}[xshift=6.6cm]
+  \node[box,fill=gray!20] (q) at (0,0) {};
+  \node[left=2pt of q] {\code{q}};
+  \node[box,fill=blue!6] (n2) at (2.6,0) {5};
+  \node[right=2pt of n2] {\code{n}};
+  \draw[->] (q.center) -- (n2);
+  \node[font=\scriptsize,align=center] at (1.3,-0.9) {\code{int * const q}: \code{q} is fixed,\\ \code{*q} may change};
+  \end{scope}
+\end{tikzpicture}
+
+\small Gray marks what the declaration makes \code{const}.
+\end{center}
 
 \section{Structures in C++}
 \begin{lstlisting}[style=cpp]
@@ -217,6 +254,28 @@ int x = 5;
 inc(&x);
 cout << x << endl;   // prints 6
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,box/.style={draw,minimum width=1.2cm,minimum height=0.7cm},
+  fr/.style={draw,rounded corners,dashed,gray,inner sep=6pt}]
+  \node[box] (x) at (0,0) {5};
+  \node[left=2pt of x] {\code{x}};
+  \node[box] (n) at (0,-1.4) {$5\to6$};
+  \node[left=2pt of n] {\code{n}};
+  \node[font=\scriptsize,anchor=west] at (0.8,0) {\code{main}};
+  \node[font=\scriptsize,anchor=west] at (0.8,-1.4) {\code{inc}};
+  \node[font=\scriptsize,align=center] at (0,-2.4) {by value: \code{n} is a copy,\\ \code{x} stays 5};
+  \begin{scope}[xshift=6cm]
+  \node[box] (x2) at (0,0) {$5\to6$};
+  \node[left=2pt of x2] {\code{x}};
+  \node[box] (n2) at (0,-1.4) {};
+  \node[left=2pt of n2] {\code{n}};
+  \draw[->] (n2.center) -- (x2);
+  \node[font=\scriptsize,anchor=west] at (0.8,0) {\code{main}};
+  \node[font=\scriptsize,anchor=west] at (0.8,-1.4) {\code{inc}};
+  \node[font=\scriptsize,align=center] at (0,-2.4) {by pointer: \code{*n += 1}\\ changes \code{x}};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
 This is why C needs \code{scanf("\%d", \&x)}. But in C++ we write
 \code{cin >> x}, not \code{cin >> \&x}. How does \code{cin} change \code{x}?
 

@@ -60,6 +60,29 @@ Node &Node::operator=(const Node &other) {
 \end{lstlisting}
 This relies on a correctly implemented copy ctor and dtor, and is safe for
 self-assignment and for a failing \code{new} automatically.
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, minimum width=11mm, minimum height=6.5mm,font=\small},>={Stealth},font=\small]
+  \node[font=\scriptsize\bfseries] at (2.4,0.75) {before \code{swap(tmp)}};
+  \node (t1) at (0,0) {\code{*this}};
+  \node[box,fill=gray!15] (o1) at (2,0) {old};
+  \node[box,fill=gray!15] (o2) at (3.4,0) {old};
+  \node (t2) at (0,-1) {\code{tmp}};
+  \node[box,fill=blue!8] (n1) at (2,-1) {copy};
+  \node[box,fill=blue!8] (n2) at (3.4,-1) {copy};
+  \draw[->] (t1) -- (o1); \draw[->] (o1) -- (o2); \draw[->] (t2) -- (n1); \draw[->] (n1) -- (n2);
+  \begin{scope}[xshift=6.4cm]
+  \node[font=\scriptsize\bfseries] at (2.4,0.75) {after \code{swap(tmp)}};
+  \node (t1) at (0,0) {\code{*this}};
+  \node[box,fill=blue!8] (o1) at (2,0) {copy};
+  \node[box,fill=blue!8] (o2) at (3.4,0) {copy};
+  \node (t2) at (0,-1) {\code{tmp}};
+  \node[box,fill=gray!15] (n1) at (2,-1) {old};
+  \node[box,fill=gray!15] (n2) at (3.4,-1) {old};
+  \draw[->] (t1) -- (o1); \draw[->] (o1) -- (o2); \draw[->] (t2) -- (n1); \draw[->] (n1) -- (n2);
+  \node[font=\scriptsize,anchor=west,red!60!black] at (4.0,-1) {freed by \code{tmp}'s dtor};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
 
 \section{Member Functions vs.\ Standalone Functions}
 \code{operator=} must be implemented as a method; the left-hand side is
@@ -125,6 +148,18 @@ Node n2{plusOne(n)};
         in \code{main}'s frame.
   \item Initializing \code{n2} from that temporary: copy ctor again.
 \end{itemize}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,node distance=1.7cm,
+  o/.style={draw,rounded corners,fill=blue!5,minimum height=0.8cm,align=center}]
+  \node[o] (a) {\code{n}\\ \scriptsize in \code{main}};
+  \node[o,right=of a] (b) {parameter \code{n}\\ \scriptsize in \code{plusOne}};
+  \node[o,right=of b] (c) {temporary\\ \scriptsize in \code{main}};
+  \node[o,right=of c] (d) {\code{n2}};
+  \draw[->] (a) -- node[above,font=\scriptsize]{copy} (b);
+  \draw[->] (b) -- node[above,font=\scriptsize]{copy} (c);
+  \draw[->,red!60!black] (c) -- node[above,font=\scriptsize]{copy} node[below,font=\scriptsize]{(could steal)} (d);
+\end{tikzpicture}
+\end{center}
 Compiling with \code{g++ -std=c++14 -fno-elide-constructors node.cc} shows all
 the copy-ctor calls; without the flag the compiler removes some of them (copy
 elision, next lecture).

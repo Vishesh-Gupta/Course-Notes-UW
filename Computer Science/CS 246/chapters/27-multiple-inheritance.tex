@@ -77,6 +77,27 @@ By default, a \code{D} contains \emph{two} A parts: one inside its B part and
 one inside its C part. So \code{d.a} is ambiguous; we would have to say
 \code{d.B::a} or \code{d.C::a}. Usually that isn't what we want: there should be
 only one A in a D.
+\begin{center}
+\begin{tikzpicture}[font=\small,p/.style={draw,rounded corners,minimum width=1.6cm,minimum height=0.6cm}]
+  \node[draw,fill=gray!6,minimum width=4.4cm,minimum height=2.6cm] (d) at (0,0) {};
+  \node[font=\scriptsize,anchor=north west] at (d.north west) {D};
+  \node[draw,fill=blue!6,minimum width=1.8cm,minimum height=1.5cm] (b) at (-1.05,-0.25) {};
+  \node[font=\scriptsize,anchor=north] at (b.north) {B};
+  \node[p,fill=red!10,minimum width=1.2cm] at (-1.05,-0.45) {A};
+  \node[draw,fill=green!8,minimum width=1.8cm,minimum height=1.5cm] (c) at (1.05,-0.25) {};
+  \node[font=\scriptsize,anchor=north] at (c.north) {C};
+  \node[p,fill=red!10,minimum width=1.2cm] at (1.05,-0.45) {A};
+  \node[font=\scriptsize,anchor=north] at (d.south) {ordinary inheritance: two A parts};
+  \begin{scope}[xshift=6.4cm]
+  \node[draw,fill=gray!6,minimum width=4.4cm,minimum height=2.6cm] (d) at (0,0) {};
+  \node[font=\scriptsize,anchor=north west] at (d.north west) {D};
+  \node[draw,fill=blue!6,minimum width=1.8cm,minimum height=0.8cm] at (-1.05,0.2) {B};
+  \node[draw,fill=green!8,minimum width=1.8cm,minimum height=0.8cm] at (1.05,0.2) {C};
+  \node[p,fill=red!10,minimum width=3.9cm] at (0,-0.8) {A (shared)};
+  \node[font=\scriptsize,anchor=north] at (d.south) {virtual inheritance: one A part};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
 
 \subsection{Virtual Inheritance}
 Make A a \textbf{virtual base class}:
@@ -91,6 +112,18 @@ d.a;           // OK: there is only one A part
 Example from the standard library: \code{iostream} inherits from both
 \code{istream} and \code{ostream}, which both virtually inherit from
 \code{ios\_base}/\code{ios} (the shared stream state).
+\begin{center}
+\begin{tikzpicture}[cls/.style={draw,fill=blue!4,minimum height=7mm,font=\ttfamily\small},
+  inh/.style={-{Triangle[open,length=3mm,width=3mm]}}]
+  \node[cls] (ios) at (0,0) {ios};
+  \node[cls] (is) at (-1.8,-1.4) {istream};
+  \node[cls] (os) at (1.8,-1.4) {ostream};
+  \node[cls] (io) at (0,-2.8) {iostream};
+  \draw[inh] (is) -- node[left,font=\scriptsize\rmfamily]{virtual} (ios);
+  \draw[inh] (os) -- node[right,font=\scriptsize\rmfamily]{virtual} (ios);
+  \draw[inh] (io) -- (is); \draw[inh] (io) -- (os);
+\end{tikzpicture}
+\end{center}
 
 \paragraph{Construction.} With virtual inheritance, B and C must not both
 construct the single shared A part. The rule is that the \emph{most derived}
@@ -122,6 +155,23 @@ D *pd = new D;
 C *pc = pd;                       // compiler adds the offset of the C part
 cout << (void*)pd << " " << (void*)pc;   // different addresses!
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,f/.style={draw,minimum width=3.2cm,minimum height=5.5mm,font=\small}]
+  \node[f,fill=gray!10] (v1) at (0,0) {vptr};
+  \node[f,fill=red!10,below=0mm of v1] (a1) {A fields (B's copy)};
+  \node[f,fill=blue!6,below=0mm of a1] (b) {B fields};
+  \node[f,fill=gray!10,below=0mm of b] (v2) {vptr};
+  \node[f,fill=red!10,below=0mm of v2] (a2) {A fields (C's copy)};
+  \node[f,fill=green!8,below=0mm of a2] (c) {C fields};
+  \node[f,fill=orange!12,below=0mm of c] (d) {D fields};
+  \draw[<-] (v1.west) -- ++(-1.2,0) node[left,font=\scriptsize]{\code{pd}, and \code{B*}};
+  \draw[<-] (v2.west) -- ++(-1.2,0) node[left,font=\scriptsize]{\code{pc}};
+  \draw[decorate,decoration={brace,amplitude=4pt}] ([xshift=3pt]v1.north east) -- ([xshift=3pt]b.south east) node[midway,right=6pt,font=\scriptsize]{B part};
+  \draw[decorate,decoration={brace,amplitude=4pt}] ([xshift=3pt]v2.north east) -- ([xshift=3pt]c.south east) node[midway,right=6pt,font=\scriptsize]{C part};
+\end{tikzpicture}
+
+\small Converting \code{D*} to \code{C*} adds the offset of the C part.
+\end{center}
 \code{static\_cast} and \code{dynamic\_cast} perform this adjustment;
 \code{reinterpret\_cast} does not (another reason never to use it for this).
 

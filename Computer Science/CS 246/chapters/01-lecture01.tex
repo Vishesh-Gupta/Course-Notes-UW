@@ -14,6 +14,19 @@ hardware; the shell lets the user talk to the OS. With a shell we
 \end{enumerate}
 \end{definition}
 
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,node distance=0.9cm,
+  lay/.style={draw,rounded corners,minimum width=2.2cm,minimum height=0.95cm,align=center}]
+  \node[lay,fill=yellow!12] (u) {user};
+  \node[lay,fill=blue!6,right=of u] (s) {shell\\ \scriptsize (\code{bash})};
+  \node[lay,fill=green!8,right=of s] (o) {operating\\ system};
+  \node[lay,fill=gray!12,right=of o] (h) {hardware};
+  \draw[<->] (u) -- node[above,font=\scriptsize]{types} (s);
+  \draw[<->] (s) -- (o);
+  \draw[<->] (o) -- (h);
+\end{tikzpicture}
+\end{center}
+
 \subsection{Types of Shells}
 
 \paragraph{Graphical shell.} Windows, macOS and Linux all have one: point and
@@ -93,6 +106,24 @@ directory.
 If \code{pwd} is \code{/Users/nanaeem}, then the absolute path
 \code{/Users/nanaeem/cs246/a1} names the same directory as the relative path
 \code{cs246/a1}.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\ttfamily\small]
+  \node (r) at (0,0) {/};
+  \node (U) at (-1.4,-1) {Users};
+  \node (usr) at (1.4,-1) {usr};
+  \node (n) at (-1.4,-2) {nanaeem};
+  \node (sh) at (1.4,-2) {share};
+  \node (c) at (-1.4,-3) {cs246};
+  \node (a1) at (-2.1,-4) {a1};
+  \node (a2) at (-0.7,-4) {a2};
+  \draw (r) -- (U); \draw (r) -- (usr); \draw (U) -- (n); \draw (usr) -- (sh);
+  \draw (n) -- (c); \draw (c) -- (a1); \draw (c) -- (a2);
+  \draw[->,thick,blue!60!black] (r.west) .. controls (-4.2,-0.4) and (-4.0,-3.6) .. node[pos=0.5,left,font=\scriptsize\ttfamily,align=right]{absolute:\\/Users/nanaeem/cs246/a1} (a1.west);
+  \draw[->,thick,red!60!black,dashed] (n.east) to[out=-10,in=10,looseness=1.6] node[pos=0.35,right,font=\scriptsize\ttfamily]{relative: cs246/a1} (a1.east);
+  \node[font=\scriptsize\rmfamily,red!60!black,anchor=south west] at (n.north east) {pwd};
+\end{tikzpicture}
+\end{center}
 
 \begin{aside}
 Special directory names:

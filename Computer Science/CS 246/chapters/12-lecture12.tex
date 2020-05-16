@@ -16,6 +16,17 @@ value and the returned value is an rvalue, the move ctor runs to build \code{v}
 
 What actually happens: only the basic ctor runs! The object is created directly
 in the space reserved for \code{v}.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,o/.style={draw,rounded corners,fill=blue!5,minimum height=0.75cm,align=center}]
+  \node[anchor=east,font=\scriptsize] at (-0.3,0) {in theory:};
+  \node[o] (a) at (1.4,0) {\code{Vec\{0,0\}}\\ \scriptsize in \code{makeVec}};
+  \node[o] (b) at (5.2,0) {\code{v}};
+  \draw[->] (a) -- node[above,font=\scriptsize]{move (or copy) ctor} (b);
+  \node[anchor=east,font=\scriptsize] at (-0.3,-1.3) {with elision:};
+  \node[o,fill=green!10] (c) at (5.2,-1.3) {\code{v}};
+  \draw[->] (1.4,-1.3) node[left=-2pt,font=\scriptsize]{basic ctor} -- (c);
+\end{tikzpicture}
+\end{center}
 
 \begin{important}[Elision]
 Compilers are allowed (though, in C++14, not required) to eliminate copy and
@@ -75,6 +86,21 @@ for (int i = 0; i < 3; ++i) delete vp1[i];
 delete [] vp1;
 \end{lstlisting}
 \end{enumerate}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,c/.style={draw,minimum width=1.1cm,minimum height=0.65cm}]
+  \node[c,fill=blue!5] (vp) at (0,0) {};
+  \node[left=2pt of vp] {\code{vp1}};
+  \node[font=\scriptsize] at (0,0.65) {stack};
+  \node[c] (p0) at (2.5,0) {}; \node[c,right=0pt of p0] (p1) {}; \node[c,right=0pt of p1] (p2) {};
+  \node[font=\scriptsize] at (3.6,0.65) {heap: array of \code{Vec*}};
+  \foreach \i in {0,1,2} {
+    \node[c,fill=green!8] (v\i) at (2.1+1.8*\i,-1.6) {\code{\{\i,\i\}}};
+    \draw[->] (p\i.center) -- (v\i.north);
+  }
+  \draw[->] (vp.center) -- (p0.west);
+  \node[font=\scriptsize] at (3.9,-2.3) {heap: one \code{Vec} per \code{new}};
+\end{tikzpicture}
+\end{center}
 
 \section{Short Topic: Const Methods}
 \begin{lstlisting}[style=cpp]
@@ -142,6 +168,22 @@ Node n3{4, &n2};                    // disaster
 \end{lstlisting}
 When \code{n3} goes out of scope, its dtor runs \code{delete \&n2}, deleting a
 stack address: the program is likely to crash.
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, minimum width=13mm, minimum height=7mm},>={Stealth},font=\small]
+  \node[font=\scriptsize] at (-0.2,0.7) {stack};
+  \node[box] (n3) at (0,0) {4 \,$\bullet$};
+  \node[left=2mm of n3] {\code{n3}};
+  \node[box] (n2) at (0,-1.3) {3 \,/};
+  \node[left=2mm of n2] {\code{n2}};
+  \draw[->,red!60!black,thick] (n3.east) to[out=0,in=0,looseness=1.6] node[right,font=\scriptsize,align=left]{\code{next} points into the stack:\\ \code{\textasciitilde Node} will \code{delete} it} (n2.east);
+  \node[font=\scriptsize] at (6.2,0.7) {heap};
+  \node[box] (h1) at (5.4,0) {1 \,$\bullet$};
+  \node[left=2mm of h1] {\code{n1}};
+  \node[box,fill=green!8] (h2) at (7.2,0) {2 \,/};
+  \draw[->] (h1) -- (h2);
+  \node[font=\scriptsize,align=center] at (6.3,-0.9) {fine: \code{next} owns\\ a heap Node};
+\end{tikzpicture}
+\end{center}
 
 \begin{definition}
 An \textbf{invariant} is a statement/assumption about a class that must be true
@@ -234,6 +276,20 @@ No one outside \code{List} knows the Node structure (it is defined only in the
 \code{.cc} file), so only \code{List} can create Nodes, and it always puts them
 on the heap. We now have a guarantee that the invariant is maintained. (We should
 also write or disable the copy/move operations of \code{List}: Rule of Five.)
+
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, minimum width=11mm, minimum height=7mm},>={Stealth},font=\small]
+  \node[draw,fill=blue!5,minimum width=1.8cm,minimum height=0.8cm] (l) at (0,0) {\code{theList}};
+  \node[font=\scriptsize,anchor=south] at (l.north) {\code{List l}};
+  \node[box] (a) at (3,0) {3 \,$\bullet$};
+  \node[box] (b) at (4.6,0) {2 \,$\bullet$};
+  \node[box] (c) at (6.2,0) {1 \,/};
+  \draw[->] (l) -- (a); \draw[->] (a) -- (b); \draw[->] (b) -- (c);
+  \node[draw,dashed,rounded corners,fit=(a)(b)(c),inner sep=8pt,label={[font=\scriptsize]below:\code{List::Node}: invisible to clients}] {};
+  \node[font=\scriptsize,align=center] (cl) at (-3.8,0) {client code};
+  \draw[->] (cl) -- node[above,font=\scriptsize]{public methods} (l);
+\end{tikzpicture}
+\end{center}
 
 \paragraph{The cost.} The client can no longer walk the list. Printing it
 requires \code{ith(0)}, \code{ith(1)}, \dots, each of which walks from the
