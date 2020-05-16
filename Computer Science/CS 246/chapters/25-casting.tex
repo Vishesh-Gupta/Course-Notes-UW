@@ -66,6 +66,20 @@ Text *pt = dynamic_cast<Text*>(pb);
 if (pt) cout << pt->getTopic();   // pb really pointed to a Text
 else cout << "Not a Text";        // dynamic_cast returned nullptr
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small]
+  \node[draw,fill=blue!5] (pb) at (0,0) {\code{pb}};
+  \node[draw,rounded corners,fill=orange!15] (t) at (3,0) {Text object};
+  \draw[->] (pb) -- (t);
+  \node[anchor=west,font=\scriptsize] at (4.4,0) {\code{dynamic\_cast<Text*>(pb)} $\to$ pointer to it};
+  \node[draw,fill=blue!5] (pb2) at (0,-1.2) {\code{pb}};
+  \node[draw,rounded corners,fill=green!12] (c) at (3,-1.2) {Comic object};
+  \draw[->] (pb2) -- (c);
+  \node[anchor=west,font=\scriptsize] at (4.4,-1.2) {\code{dynamic\_cast<Text*>(pb)} $\to$ \code{nullptr}};
+\end{tikzpicture}
+
+\small The answer depends on the object's run-time type, found through its vptr (next chapter).
+\end{center}
 \begin{itemize}
   \item If the cast works (\code{*pb} is a Text, or a subclass of Text),
         \code{pt} points to the object; otherwise \code{pt} is \code{nullptr}.

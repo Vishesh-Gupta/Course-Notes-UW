@@ -44,6 +44,19 @@ From low (bad) to high (good):
 With low cohesion, modules are poorly organized and hard to understand and
 maintain.
 
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small]
+  \shade[left color=green!35,right color=red!35] (0,0) rectangle (9,0.4);
+  \node[anchor=east] at (-0.2,0.2) {coupling};
+  \node[font=\scriptsize,anchor=north] at (0,0) {low (good)}; \node[font=\scriptsize,anchor=north] at (9,0) {high (bad)};
+  \shade[left color=red!35,right color=green!35] (0,-1.2) rectangle (9,-0.8);
+  \node[anchor=east] at (-0.2,-1) {cohesion};
+  \node[font=\scriptsize,anchor=north] at (0,-1.2) {low (bad)}; \node[font=\scriptsize,anchor=north] at (9,-1.2) {high (good)};
+\end{tikzpicture}
+
+\small Aim for the left end of the first bar and the right end of the second.
+\end{center}
+
 \begin{important}[Goal]
 Low coupling, high cohesion.
 \end{important}
@@ -115,6 +128,21 @@ possibly exceptions; a separate class handles I/O.
   \item Swapping out the view or controller does not require changing the model,
         and the model can be tested without any UI.
 \end{itemize}
+In the code below the roles map onto the Observer pattern like this:
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,cls/.style={draw,fill=blue!4,minimum width=2.4cm,minimum height=0.75cm},
+  inh/.style={-{Triangle[open,length=3mm,width=3mm]}}]
+  \node[cls] (s) at (0,0) {\textit{Subject}};
+  \node[cls] (o) at (5,0) {\textit{Observer}};
+  \node[cls,fill=green!10] (g) at (0,-1.8) {Game (model)};
+  \node[cls,fill=orange!12] (t) at (5,-1.8) {TextDisplay (view)};
+  \node[cls,fill=yellow!12] (c) at (0,-3.6) {Controller};
+  \draw[inh] (g) -- (s); \draw[inh] (t) -- (o);
+  \draw[-{Diamond[open,length=4mm,width=2.5mm]}] (o) -- node[above,font=\scriptsize]{observers} (s);
+  \draw[->] (t) -- node[above,font=\scriptsize]{\code{getState()}} (g);
+  \draw[->] (c) -- node[left,font=\scriptsize]{\code{makeMove}} (g);
+\end{tikzpicture}
+\end{center}
 
 \begin{lstlisting}[style=cpp]
 class Game : public Subject {          // model

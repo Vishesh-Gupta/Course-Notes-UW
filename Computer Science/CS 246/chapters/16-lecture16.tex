@@ -1,4 +1,8 @@
 \chapter{Lecture 16: Abstract Classes, Templates, Vectors and Exceptions}
+
+\tikzset{umlc/.style={draw,fill=blue!4,rectangle split,rectangle split parts=2,
+    rectangle split part align={center,left},font=\small,inner sep=3pt,minimum width=2.6cm},
+  inh/.style={-{Triangle[open,length=3mm,width=3mm]}}}
 \begin{center}
 \textit{March 6, 2018}
 \end{center}
@@ -53,6 +57,16 @@ In UML, virtual and pure virtual methods are written in \emph{italics}, and so
 are the names of abstract classes. Static members are \underline{underlined}.
 (Tools: StarUML, OmniGraffle, \dots)
 
+\begin{center}
+\begin{tikzpicture}
+  \node[umlc] (s) at (0,0) {\textit{Student}\nodepart{second}\code{+}\textit{fees(): Integer}};
+  \node[umlc] (r) at (-2.2,-2.2) {Regular\nodepart{second}\code{+fees(): Integer}};
+  \node[umlc] (c) at (2.2,-2.2) {CoOp\nodepart{second}\code{+fees(): Integer}};
+  \draw[inh] (r.north) -- (s.south west);
+  \draw[inh] (c.north) -- (s.south east);
+\end{tikzpicture}
+\end{center}
+
 \section{Templates}
 \begin{lstlisting}[style=cpp]
 class Stack {
@@ -95,6 +109,17 @@ The compiler takes the template and generates (stamps out) a separate copy of
 the class for each type it is used with, substituting the type for \code{T}.
 Because of this, the full template implementation must be visible where it is
 used: templates are written entirely in the header file.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small]
+  \node[draw,dashed,rounded corners,fill=gray!8,minimum height=0.9cm,align=center] (t) at (0,0) {\code{template <typename T>}\\ \code{class Stack}};
+  \node[draw,fill=blue!5,minimum height=0.8cm] (a) at (-2.6,-1.8) {\code{Stack<int>}};
+  \node[draw,fill=blue!5,minimum height=0.8cm] (b) at (2.6,-1.8) {\code{Stack<Expression*>}};
+  \draw[->] (t) -- node[left,font=\scriptsize]{\code{T = int}} (a);
+  \draw[->] (t) -- node[right,font=\scriptsize]{\code{T = Expression*}} (b);
+\end{tikzpicture}
+
+\small One class is generated per type the template is used with.
+\end{center}
 
 \subsection{A Template List with an Iterator}
 \begin{lstlisting}[style=cpp]
@@ -157,6 +182,22 @@ int main() {
 \end{lstlisting}
 Note the difference between \code{\{4, 5\}} (the elements) and \code{(4, 5)}
 (count and value).
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,x=0.8cm,c/.style={draw,minimum width=0.8cm,minimum height=0.65cm}]
+  \node[draw,fill=blue!5,minimum width=2.4cm,minimum height=0.9cm,align=center,font=\scriptsize] (v) at (-3,0) {\code{v}: data pointer,\\ size 4, capacity};
+  \node[font=\scriptsize] at (-3,0.75) {stack};
+  \foreach \x [count=\k from 0] in {4,5,6,7} \node[c,fill=green!8] (e\k) at (\k,0) {\x};
+  \node[c,draw=gray] (e4) at (4,0) {};
+  \node[c,draw=gray] (e5) at (5,0) {};
+  \node[font=\scriptsize] at (2.5,0.75) {heap array (spare capacity at the end)};
+  \draw[->] (v.east) -- (e0.west);
+  \draw[<-] (e0.south) -- ++(0,-0.6) node[below,font=\scriptsize]{\code{v.begin()}};
+  \draw[<-] (e4.south) -- ++(0,-0.6) node[below,font=\scriptsize]{\code{v.end()}};
+\end{tikzpicture}
+
+\small \code{end()} points one past the last element, so the loop condition \code{it != v.end()} stops on time.
+\end{center}
 
 Ways to loop over a vector:
 \begin{lstlisting}[style=cpp]

@@ -1,4 +1,8 @@
 \chapter{Lecture 20: Visitor Continued, Compilation Dependencies and Pimpl}
+
+\tikzset{umlc/.style={draw,fill=blue!4,rectangle split,rectangle split parts=2,
+    rectangle split part align={center,left},font=\small,inner sep=3pt,minimum width=2.6cm},
+  inh/.style={-{Triangle[open,length=3mm,width=3mm]}}}
 \begin{center}
 \textit{March 20, 2018}
 \end{center}
@@ -79,6 +83,21 @@ Recall that \code{m[key]} inserts \code{0} for a missing key, so
 Any further operation (e.g.\ total pages per category, printing a report) is
 just another \code{BookVisitor} subclass; \code{Book}, \code{Text} and
 \code{Comic} are untouched.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth]
+  \node[umlc] (b) at (0,0) {Book\nodepart{second}\code{+accept(BookVisitor\&)}};
+  \node[umlc,rectangle split parts=1,minimum width=1.6cm] (t) at (-1.4,-2) {Text};
+  \node[umlc,rectangle split parts=1,minimum width=1.6cm] (c) at (1.4,-2) {Comic};
+  \draw[inh] (t.north) -- (b.south west); \draw[inh] (c.north) -- (b.south east);
+  \node[umlc,minimum width=3.4cm] (v) at (7,0) {\textit{BookVisitor}\nodepart{second}\begin{tabular}{@{}l@{}}\code{+}\textit{visit(Book\&)}\\ \code{+}\textit{visit(Text\&)}\\ \code{+}\textit{visit(Comic\&)}\end{tabular}};
+  \node[umlc,rectangle split parts=1] (k) at (7,-2.6) {Catalogue};
+  \draw[inh] (k.north) -- (v.south);
+  \draw[->,dashed] (b.east) -- node[above,font=\scriptsize]{calls \code{v.visit(*this)}} (v.west);
+\end{tikzpicture}
+
+\small Each new operation is one more subclass on the right; the Book hierarchy on the left stays fixed.
+\end{center}
 
 \begin{important}[Trade-off of Visitor]
 Visitor makes it easy to add new \emph{operations}, but hard to add new
@@ -198,6 +217,28 @@ implementation struct changes, only \code{window.cc} is recompiled; clients just
 re-link. (Since the class now owns heap memory, the Rule of Five applies; with a
 smart pointer from Lecture~21, \code{std::unique\_ptr<XWindowImpl>}, most of it
 is automatic.)
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,f/.style={draw,fill=yellow!10,minimum height=0.65cm}]
+  \node[font=\scriptsize\bfseries] at (1.4,0.7) {without pImpl};
+  \node[f] (c1) at (0,0) {\code{client.cc}};
+  \node[f] (w1) at (0,-1.2) {\code{window.h}};
+  \node[f,fill=red!10] (x1) at (0,-2.4) {\code{Xlib.h}};
+  \node[f] (wc1) at (2.6,-1.2) {\code{window.cc}};
+  \draw[->] (c1) -- (w1); \draw[->] (w1) -- (x1); \draw[->] (wc1) -- (w1);
+  \begin{scope}[xshift=6.4cm]
+  \node[font=\scriptsize\bfseries] at (1.4,0.7) {with pImpl};
+  \node[f] (c2) at (0,0) {\code{client.cc}};
+  \node[f] (w2) at (0,-1.2) {\code{window.h}};
+  \node[f] (wc2) at (2.8,0) {\code{window.cc}};
+  \node[f] (wi2) at (2.8,-1.2) {\code{windowimpl.h}};
+  \node[f,fill=red!10] (x2) at (2.8,-2.4) {\code{Xlib.h}};
+  \draw[->] (c2) -- (w2); \draw[->] (wc2) -- (w2); \draw[->] (wc2) -- (wi2); \draw[->] (wi2) -- (x2);
+  \end{scope}
+\end{tikzpicture}
+
+\small Arrows mean \code{\#include}. With pImpl, clients no longer depend on X11 or on the private fields.
+\end{center}
 
 \section{The Bridge Pattern}
 Taking Pimpl further: if there are several possible window implementations

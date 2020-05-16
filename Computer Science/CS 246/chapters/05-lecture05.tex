@@ -100,6 +100,17 @@ meanings depending on the types of their operands; this is called
 \code{i}; its \emph{value} is \code{cin} itself. That is why reads can be
 cascaded: \code{cin >> x >> y} is \code{(cin >> x) >> y}.
 \end{important}
+\begin{center}
+\begin{tikzpicture}[font=\small]
+  \node (top) at (0,0) {\code{>{}>}};
+  \node[draw,rounded corners,fill=blue!5] (in) at (-1.5,-1.1) {\code{>{}>}};
+  \node (y) at (1.5,-1.1) {\code{y}};
+  \node (cin) at (-2.3,-2.2) {\code{cin}};
+  \node (x) at (-0.7,-2.2) {\code{x}};
+  \draw (top) -- (in); \draw (top) -- (y); \draw (in) -- (cin); \draw (in) -- (x);
+  \node[font=\scriptsize,blue!60!black,anchor=east] at (-2.1,-1.1) {reads \code{x}, value is \code{cin}};
+\end{tikzpicture}
+\end{center}
 
 Putting it together, the loop shrinks step by step:
 \begin{lstlisting}[style=cpp]
@@ -144,6 +155,27 @@ int main() {
 failed state ignores all operations.
 \end{example}
 
+The control flow of that loop:
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,node distance=0.5cm and 1.2cm,
+  act/.style={draw,rounded corners,fill=blue!5,minimum height=0.65cm},
+  test/.style={draw,diamond,aspect=2.2,inner sep=1pt,fill=gray!8}]
+  \node[act] (r) {\code{cin >{}> i}};
+  \node[test,below=of r] (ok) {succeeded?};
+  \node[act,right=of ok] (pr) {print \code{i}};
+  \node[test,below=of ok] (eof) {\code{cin.eof()}?};
+  \node[act,right=of eof] (stop) {\code{break}};
+  \node[act,below=of eof] (cl) {\code{cin.clear(); cin.ignore();}};
+  \draw[->] (r) -- (ok);
+  \draw[->] (ok) -- node[above,font=\scriptsize]{yes} (pr);
+  \draw[->] (ok) -- node[left,font=\scriptsize]{no} (eof);
+  \draw[->] (eof) -- node[above,font=\scriptsize]{yes} (stop);
+  \draw[->] (eof) -- node[left,font=\scriptsize]{no} (cl);
+  \draw[->] (pr.north) |- (r.east);
+  \draw[->] (cl.west) -- ++(-1.4,0) |- (r.west);
+\end{tikzpicture}
+\end{center}
+
 \begin{aside}
 \textbf{Look-up exercise: ignoring all of ``hello'' in one go.} \code{cin.ignore()}
 skips one character, so the input \code{hello} costs five trips around the loop.
@@ -172,6 +204,22 @@ In C, strings were simulated by null-terminated character arrays, which are
 C++ has a \code{string} type. It is not built in; it comes from
 \code{\#include <string>}. A C++ string grows as needed and manages its own
 memory.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,x=0.6cm,
+  ch/.style={draw,minimum width=0.6cm,minimum height=0.6cm,font=\ttfamily\small}]
+  \node[anchor=east] at (-0.6,0) {C: \code{char s[6]}};
+  \foreach \c [count=\k from 0] in {h,e,l,l,o} \node[ch] at (\k,0) {\c};
+  \node[ch,fill=red!10] at (5,0) {\textbackslash0};
+  \node[anchor=east] at (-0.6,-1.6) {C++: \code{string s}};
+  \node[draw,fill=blue!5,minimum width=2.4cm,minimum height=0.8cm,align=center,font=\scriptsize] (obj) at (1.4,-1.6) {pointer, size 5,\\ capacity};
+  \foreach \c [count=\k from 0] in {h,e,l,l,o} \node[ch] (h\k) at (\k+6,-1.6) {\c};
+  \node[ch,draw=gray,text=gray] at (11,-1.6) {};
+  \node[ch,draw=gray,text=gray] at (12,-1.6) {};
+  \draw[->] (obj.east) -- (h0.west);
+  \node[font=\scriptsize] at (9,-2.3) {heap buffer, grown and freed by \code{string}};
+\end{tikzpicture}
+\end{center}
 
 \begin{lstlisting}[style=cpp]
 string s = "hello";   // s is a C++ string; "hello" is a C string (const char*)
