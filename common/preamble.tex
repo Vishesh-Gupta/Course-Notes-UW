@@ -6,6 +6,10 @@
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
 \usepackage{lmodern}
+% Keep << and >> in code as two characters (T1 typewriter fonts would otherwise
+% turn them into guillemets, e.g. in cin >> x).
+\usepackage[protrusion=false,expansion=false]{microtype}
+\DisableLigatures[<,>]{encoding = T1, family = tt*}
 \usepackage[margin=1in]{geometry}
 \usepackage{mathtools}
 \usepackage{amsmath}
