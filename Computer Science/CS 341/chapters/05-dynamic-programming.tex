@@ -42,6 +42,26 @@ while j > 0 do
 \end{lstlisting}
 Total $\Theta(n\log n)$; the DP itself is $\Theta(n)$.
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.7cm, y=0.6cm, font=\small, >=Stealth]
+  \foreach \j/\s/\f/\v/\p/\M in {1/0/3/2/0/2, 2/1/5/4/0/4, 3/4/6/4/1/6, 4/2/8/7/0/7, 5/6/9/2/3/8, 6/7/10/1/3/8} {
+    \node[anchor=east, font=\scriptsize] at (-0.3,-\j) {$j=\j$, $v=\v$};
+    \draw[line width=4pt, blue!40] (\s,-\j) -- (\f,-\j);
+    \node[anchor=west, font=\scriptsize] at (10.8,-\j) {$p(j)=\p$};
+    \node[anchor=west, font=\scriptsize] at (13.2,-\j) {$M[j]=\M$};
+  }
+  \draw[->, red!70!black, thick] (4,-3) to[out=150, in=-30] (3,-1);
+  \draw[->, red!70!black, thick] (6,-5) to[out=150, in=-30] (6,-3);
+  \draw[->, red!70!black, thick] (7,-6) to[out=150, in=-30] (6,-3.1);
+  \draw[->] (0,-6.8) -- (10.4,-6.8);
+  \foreach \x in {0,2,...,10} \draw (\x,-6.8) -- (\x,-7.0) node[below, font=\scriptsize]{\x};
+\end{tikzpicture}
+\caption{Six weighted intervals sorted by finish time. Red arrows point
+from interval $j$ to $p(j)$, the last interval that finishes before $j$
+starts. The optimum $M[6]=8$ takes intervals 1, 3 and 5.}
+\end{figure}
+
 \section{0/1 knapsack}
 Items $i=1..n$ with integer weights $w_i$ and values $v_i$; capacity $W$ (integer). Choose $S$ with $\sum_{i\in S}w_i\le W$ maximizing $\sum_{i\in S}v_i$.
 
@@ -58,6 +78,24 @@ for i = 1 to n do
         if $w_i$ <= w then K[i][w] = max(K[i][w], $v_i$ + K[i-1][w - $w_i$])
 return K[n][W]
 \end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[x=0.6cm, y=0.6cm, font=\scriptsize, >=Stealth]
+  \foreach \x in {0,...,10} \draw[gray!50] (\x,0) -- (\x,4);
+  \foreach \y in {0,...,4} \draw[gray!50] (0,\y) -- (10,\y);
+  \fill[blue!25] (7,1) rectangle (8,2);
+  \fill[green!20] (7,2) rectangle (8,3);
+  \fill[orange!25] (3,2) rectangle (4,3);
+  \draw[->, thick] (7.5,2.5) -- (7.5,1.6);
+  \draw[->, thick] (3.5,2.5) -- (7.2,1.6);
+  \node[anchor=east] at (-0.1,2.5) {row $i-1$};
+  \node[anchor=east] at (-0.1,1.5) {row $i$};
+  \node[above] at (7.5,4) {$w$};
+  \node[above] at (3.5,4) {$w-w_i$};
+  \draw[<->] (3.5,-0.3) -- node[below]{$w_i$} (7.5,-0.3);
+  \node[anchor=west, align=left] at (10.4,2) {$K[i][w]$ looks only at row $i-1$:\\skip item $i$ (straight up) or\\take it (up and $w_i$ to the left)};
+\end{tikzpicture}
+\end{center}
 Runtime $\Theta(nW)$.
 
 \begin{important}[Pseudo-polynomial]
@@ -93,6 +131,87 @@ Only the length needs $\Theta(\min(m,n))$ space (keep two rows); Hirschberg's al
 \begin{example}
 $X=\texttt{ABCBDAB}$, $Y=\texttt{BDCABA}$: LCS length 4, e.g.\ \texttt{BCBA}.
 \end{example}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.75cm, y=0.6cm, font=\small,
+  cell/.style={draw, gray!60, text=black, minimum width=0.75cm, minimum height=0.6cm}]
+  \node[font=\scriptsize] at (-1,1) {$X\backslash Y$};
+  \node[font=\ttfamily] at (1,1) {B};
+  \node[font=\ttfamily] at (2,1) {D};
+  \node[font=\ttfamily] at (3,1) {C};
+  \node[font=\ttfamily] at (4,1) {A};
+  \node[font=\ttfamily] at (5,1) {B};
+  \node[font=\ttfamily] at (6,1) {A};
+  \node[font=\ttfamily] at (-1,-1) {A};
+  \node[font=\ttfamily] at (-1,-2) {B};
+  \node[font=\ttfamily] at (-1,-3) {C};
+  \node[font=\ttfamily] at (-1,-4) {B};
+  \node[font=\ttfamily] at (-1,-5) {D};
+  \node[font=\ttfamily] at (-1,-6) {A};
+  \node[font=\ttfamily] at (-1,-7) {B};
+  \node[cell,] at (0,0) {0};
+  \node[cell,] at (1,0) {0};
+  \node[cell,] at (2,0) {0};
+  \node[cell,] at (3,0) {0};
+  \node[cell,] at (4,0) {0};
+  \node[cell,] at (5,0) {0};
+  \node[cell,] at (6,0) {0};
+  \node[cell,] at (0,-1) {0};
+  \node[cell,] at (1,-1) {0};
+  \node[cell,] at (2,-1) {0};
+  \node[cell,] at (3,-1) {0};
+  \node[cell,] at (4,-1) {1};
+  \node[cell,] at (5,-1) {1};
+  \node[cell,] at (6,-1) {1};
+  \node[cell,] at (0,-2) {0};
+  \node[cell,fill=blue!25] at (1,-2) {1};
+  \node[cell,fill=blue!8] at (2,-2) {1};
+  \node[cell,] at (3,-2) {1};
+  \node[cell,] at (4,-2) {1};
+  \node[cell,] at (5,-2) {2};
+  \node[cell,] at (6,-2) {2};
+  \node[cell,] at (0,-3) {0};
+  \node[cell,] at (1,-3) {1};
+  \node[cell,] at (2,-3) {1};
+  \node[cell,fill=blue!25] at (3,-3) {2};
+  \node[cell,fill=blue!8] at (4,-3) {2};
+  \node[cell,] at (5,-3) {2};
+  \node[cell,] at (6,-3) {2};
+  \node[cell,] at (0,-4) {0};
+  \node[cell,] at (1,-4) {1};
+  \node[cell,] at (2,-4) {1};
+  \node[cell,] at (3,-4) {2};
+  \node[cell,] at (4,-4) {2};
+  \node[cell,fill=blue!25] at (5,-4) {3};
+  \node[cell,] at (6,-4) {3};
+  \node[cell,] at (0,-5) {0};
+  \node[cell,] at (1,-5) {1};
+  \node[cell,] at (2,-5) {2};
+  \node[cell,] at (3,-5) {2};
+  \node[cell,] at (4,-5) {2};
+  \node[cell,fill=blue!8] at (5,-5) {3};
+  \node[cell,] at (6,-5) {3};
+  \node[cell,] at (0,-6) {0};
+  \node[cell,] at (1,-6) {1};
+  \node[cell,] at (2,-6) {2};
+  \node[cell,] at (3,-6) {2};
+  \node[cell,] at (4,-6) {3};
+  \node[cell,] at (5,-6) {3};
+  \node[cell,fill=blue!25] at (6,-6) {4};
+  \node[cell,] at (0,-7) {0};
+  \node[cell,] at (1,-7) {1};
+  \node[cell,] at (2,-7) {2};
+  \node[cell,] at (3,-7) {2};
+  \node[cell,] at (4,-7) {3};
+  \node[cell,] at (5,-7) {4};
+  \node[cell,fill=blue!8] at (6,-7) {4};
+\end{tikzpicture}
+\caption{The LCS table $C[i][j]$ for $X=\texttt{ABCBDAB}$ and
+$Y=\texttt{BDCABA}$. The traceback from the bottom-right corner is shaded;
+dark cells are matches ($x_i=y_j$, move diagonally), which spell the LCS
+\texttt{BCBA}.}
+\end{figure}
 
 \section{Edit distance}
 The edit distance between $X$ and $Y$ is the minimum number of insertions, deletions, and substitutions turning $X$ into $Y$.
@@ -145,6 +264,27 @@ for len = 2 to n do                    // increasing interval length
 \end{lstlisting}
 $\Theta(n^2)$ subproblems, $\bigO(n)$ each: $\Theta(n^3)$ time, $\Theta(n^2)$ space. This is the template for
 \textbf{interval DP}: subproblems are contiguous ranges, evaluated by increasing length.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.7cm, y=0.7cm, font=\scriptsize, >=Stealth]
+  \foreach \i in {1,...,5} \foreach \j in {\i,...,5} {
+    \pgfmathtruncatemacro{\len}{\j-\i+1}
+    \pgfmathsetmacro{\shade}{8+14*(\len-1)}
+    \fill[blue!\shade] (\j-1,-\i) rectangle (\j,-\i+1);
+    \draw (\j-1,-\i) rectangle (\j,-\i+1);
+    \node at (\j-0.5,-\i+0.5) {\len};
+  }
+  \foreach \k in {1,...,5} {\node at (\k-0.5,1.3) {$j{=}\k$}; \node[anchor=east] at (-0.1,-\k+0.5) {$i{=}\k$};}
+  \fill[red!30] (4,-1) rectangle (5,0); \draw[thick, red!70!black] (4,-1) rectangle (5,0);
+  \node at (4.5,-0.5) {5};
+  \draw[red!70!black, very thick, densely dashed] (0.05,-0.95) rectangle (3.95,-0.05);
+  \draw[red!70!black, very thick, densely dashed] (4.05,-4.95) rectangle (4.95,-1.05);
+  \node[anchor=west, align=left] at (5.5,-2) {$m[i][j]$ uses the row to its left\\and the column below it, i.e.\\only shorter intervals; fill\\diagonal by diagonal\\(numbers = length).};
+\end{tikzpicture}
+\caption{Evaluation order for interval DP with $n=5$: diagonals in order of
+increasing length; the answer $m[1][n]$ is the top-right cell.}
+\end{figure}
 
 \section{Optimal binary search trees}
 Keys $k_1<\dots<k_n$ with search probabilities $p_1,\dots,p_n$. Build a BST minimizing expected search cost

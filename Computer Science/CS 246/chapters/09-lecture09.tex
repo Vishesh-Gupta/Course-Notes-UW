@@ -71,6 +71,18 @@ float Student::grade() {
     return this->assns * 0.4 + this->mt * 0.2 + this->final * 0.4;
 }
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,f/.style={draw,minimum width=1.6cm,minimum height=0.6cm}]
+  \node[font=\scriptsize] at (0,0.75) {\code{billy}};
+  \node[f,fill=blue!5] (a) at (0,0.2) {\code{assns} 80};
+  \node[f,fill=blue!5,below=0pt of a] (b) {\code{mt} 50};
+  \node[f,fill=blue!5,below=0pt of b] (c) {\code{final} 75};
+  \node[f] (t) at (4.2,-1.0) {};
+  \node[left=2pt of t,font=\scriptsize] {\code{this}};
+  \node[font=\scriptsize,anchor=south] at ([yshift=2pt]t.north) {frame of \code{billy.grade()}};
+  \draw[->] (t.center) -- (a.east);
+\end{tikzpicture}
+\end{center}
 \begin{quote}
 \textit{``I like to use \code{this} when I need to use \code{this}.''} --- Nomair
 Naeem
@@ -168,6 +180,17 @@ how objects are built.
   \item The constructor body runs.
 \end{enumerate}
 \end{important}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,node distance=0.8cm,
+  st/.style={draw,rounded corners,fill=blue!5,minimum height=0.9cm,text width=2.9cm,align=center}]
+  \node[st] (a) {1. allocate space};
+  \node[st,right=of a,fill=orange!15] (b) {2. initialize fields};
+  \node[st,right=of b] (c) {3. run ctor body};
+  \draw[->] (a) -- (b); \draw[->] (b) -- (c);
+  \node[font=\scriptsize,below=3pt of b,align=center] {the MIL controls this step};
+  \node[font=\scriptsize,below=3pt of c,align=center] {too late to initialize\\ \code{const}/reference fields};
+\end{tikzpicture}
+\end{center}
 
 By the time the body runs, the fields have already been initialized, so
 \code{myConst = 5;} in the body would be an assignment, not an initialization.

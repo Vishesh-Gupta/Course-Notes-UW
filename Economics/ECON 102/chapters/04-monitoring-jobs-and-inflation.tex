@@ -98,6 +98,27 @@ rate to $1{,}200/19{,}800 \approx 6.1\%$. The unemployment rate \emph{fell}, tho
 found a job; the LFPR fell to 66.0\% and the EPR did not change.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[b/.style={draw, rounded corners, fill=blue!6, align=center, font=\small, inner sep=4pt},
+    every node/.style={font=\small}, >={Stealth}]
+  \node[b] (w) at (0,0) {working-age population (15+)\\$30{,}000$};
+  \node[b, fill=blue!15] (lf) at (-3,-1.7) {labour force\\$20{,}000$};
+  \node[b, fill=gray!10] (nlf) at (3,-1.7) {not in the labour force\\$10{,}000$};
+  \node[b, fill=green!15] (e) at (-4.6,-3.5) {employed\\$18{,}600$};
+  \node[b, fill=red!12] (u) at (-1.4,-3.5) {unemployed\\$1{,}400$};
+  \node[b, fill=green!8, font=\scriptsize] (ipt) at (-4.6,-5.1) {incl.\ $900$ involuntary\\part-time};
+  \node[b, fill=gray!5, font=\scriptsize] (ds) at (3,-3.5) {retirees, students,\\caregivers, discouraged\\searchers, \dots};
+  \draw[->] (w) -- (lf); \draw[->] (w) -- (nlf);
+  \draw[->] (lf) -- (e); \draw[->] (lf) -- (u);
+  \draw[dashed] (e) -- (ipt); \draw[dashed] (nlf) -- (ds);
+  \draw[->, red!70!black, dashed, thick] (u.south east) to[bend right=25] node[below, font=\scriptsize, text=red!70!black] {give up looking} (ds.south west);
+\end{tikzpicture}
+\end{center}
+The unemployment rate compares the red box with the labour force; the participation rate
+compares the labour force with the whole working-age population. A discouraged searcher
+moves from ``unemployed'' to ``not in the labour force'' (dashed arrow), which lowers the
+unemployment rate without anyone finding work.
+
 \begin{remark}
 A useful identity: $\text{EPR} = \text{LFPR} \times (1 - u)$, where $u$ is the
 unemployment rate as a decimal. Check: $0.667 \times 0.93 \approx 0.62$.
@@ -186,6 +207,29 @@ $-40$ billion, or $-2\%$ of potential. By Okun's rule of thumb the unemployment 
 about 1 percentage point above the natural rate; if the natural rate is 6\%, unemployment
 is about 7\%.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[x=0.9cm, y=0.7cm, every node/.style={font=\small}]
+  % top panel: real GDP vs potential
+  \draw[->] (0,4) -- (11,4) node[right] {time};
+  \draw[->] (0,4) -- (0,8.3) node[above] {real GDP};
+  \draw[dashed, gray, thick] (0,5) -- (10.5,7.4) node[right] {potential};
+  \draw[thick, blue] plot[smooth] coordinates {(0,5) (1.5,5.9) (3,5.2) (4.5,5.4) (6.5,7.3) (8,7.4) (9.5,6.9) (10.5,7.4)};
+  \node[blue, font=\scriptsize] at (4.0,4.7) {recessionary gap};
+  \node[blue, font=\scriptsize] at (6.5,7.9) {inflationary gap};
+  % bottom panel: unemployment vs natural rate
+  \draw[->] (0,0) -- (11,0) node[right] {time};
+  \draw[->] (0,0) -- (0,3.3) node[above] {unemployment rate};
+  \draw[dashed, gray, thick] (0,1.6) -- (10.5,1.6) node[right] {natural rate};
+  \draw[thick, red!70!black] plot[smooth] coordinates {(0,1.6) (1.5,1.1) (3,2.3) (4.5,2.6) (6.5,1.15) (8,1.0) (9.5,1.9) (10.5,1.6)};
+  \draw[dotted] (4.5,0) -- (4.5,5.4);
+  \draw[dotted] (7.5,0) -- (7.5,7.5);
+  \node[font=\scriptsize, text=red!70!black] at (3.6,2.95) {cyclical unemployment $>0$};
+  \node[font=\scriptsize, text=red!70!black] at (7.8,0.5) {cyclical $<0$};
+\end{tikzpicture}
+\end{center}
+The two panels mirror each other (Okun's law): when real GDP dips below potential, the
+unemployment rate climbs above the natural rate, and the reverse in a boom.
 
 \section{The price level, inflation and deflation}
 
@@ -276,6 +320,25 @@ The CPI rose by 7 \emph{points}, but inflation is 6.1 \emph{percent}, because th
 change must be divided by last year's level (114), not by 100. Only when last year's CPI
 is 100 are the two the same.
 \end{important}
+
+\begin{center}
+\begin{tikzpicture}[x=1.6cm, y=0.07cm, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (3.7,0);
+  \draw[->] (0,0) -- (0,72) node[above] {cost of basket (\$)};
+  \foreach \v in {0,20,40,60} \draw (0.05,\v) -- (-0.05,\v) node[left] {\v};
+  \foreach \x/\o/\h/\lab/\cpi in {0.5/10/40/{Base}/100, 1.6/12/45/{Year 1}/114, 2.7/13/47.5/{Year 2}/121} {
+    \fill[orange!45] (\x-0.3,0) rectangle (\x+0.3,\o);
+    \fill[blue!25] (\x-0.3,\o) rectangle (\x+0.3,\o+\h);
+    \draw (\x-0.3,0) rectangle (\x+0.3,\o) (\x-0.3,\o) rectangle (\x+0.3,\o+\h);
+    \node[below] at (\x,0) {\lab};
+    \node[above, font=\scriptsize] at (\x,\o+\h) {CPI \cpi};
+  }
+  \fill[orange!45] (3.0,30) rectangle (3.15,34); \node[anchor=west, font=\scriptsize] at (3.18,32) {10 oranges};
+  \fill[blue!25] (3.0,22) rectangle (3.15,26); \node[anchor=west, font=\scriptsize] at (3.18,24) {5 haircuts};
+\end{tikzpicture}
+\end{center}
+The basket is the same each year; only the prices change. Each CPI is the height of the bar
+relative to the base-period bar, times 100.
 
 \subsection{Real variables and nominal variables}
 

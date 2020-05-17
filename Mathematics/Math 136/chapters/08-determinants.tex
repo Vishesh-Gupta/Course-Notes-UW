@@ -192,6 +192,18 @@ edge is scaled by $c$, and is $1$ for the unit square/cube; the determinant beha
 
 \begin{example}
 The parallelogram spanned by $(3,1)$ and $(1,2)$ has area $\abs{\det\begin{bmatrix}3&1\\1&2\end{bmatrix}}=\abs{6-1}=5$.
+
+On a grid (each square has area $1$), the shaded parallelogram indeed has area $5$:
+\begin{center}
+\begin{tikzpicture}[scale=0.8,>={Stealth}]
+  \draw[very thin,gray!40] (-0.5,-0.5) grid (4.5,3.5);
+  \fill[blue!15] (0,0) -- (3,1) -- (4,3) -- (1,2) -- cycle;
+  \draw[->,thick,blue!70!black] (0,0) -- (3,1) node[below right] {$(3,1)$};
+  \draw[->,thick,green!50!black] (0,0) -- (1,2) node[above left] {$(1,2)$};
+  \draw[dashed] (3,1) -- (4,3) -- (1,2);
+  \node at (2,1.5) {$5$};
+\end{tikzpicture}
+\end{center}
 The parallelepiped spanned by $(1,2,0)$, $(0,1,3)$, $(1,0,1)$ has volume
 \[
 \abs{\det\begin{bmatrix}1&0&1\\2&1&0\\0&3&1\end{bmatrix}}
@@ -200,6 +212,41 @@ The parallelepiped spanned by $(1,2,0)$, $(0,1,3)$, $(1,0,1)$ has volume
 The sign of the determinant records orientation: a negative determinant means the map reverses
 orientation (like a reflection).
 \end{example}
+
+The idea of the proof in a picture: adding a multiple of one column to another is a shear, which
+slides one side of the parallelogram along a line parallel to the other side. Base and height
+stay the same, so the area (and the determinant) does not change:
+\begin{center}
+\begin{tikzpicture}[scale=0.8,>={Stealth}]
+  \draw[very thin,gray!40] (-0.5,-0.5) grid (6.5,2.5);
+  \fill[blue!15] (0,0) -- (2,0) -- (3,2) -- (1,2) -- cycle;
+  \fill[red!15,opacity=0.7] (0,0) -- (2,0) -- (5,2) -- (3,2) -- cycle;
+  \draw[thick,blue!70!black] (0,0) -- (2,0) -- (3,2) -- (1,2) -- cycle;
+  \draw[thick,red!70!black,dashed] (0,0) -- (2,0) -- (5,2) -- (3,2) -- cycle;
+  \draw[->,gray] (1.4,2.2) -- (3.4,2.2);
+  \node[font=\scriptsize,align=left,right] at (6.6,1.6) {$\det\begin{bmatrix}2&1\\0&2\end{bmatrix} = 4$};
+  \node[font=\scriptsize,align=left,right] at (6.6,0.6) {$\det\begin{bmatrix}2&3\\0&2\end{bmatrix} = 4$};
+  \draw[<->] (-0.3,0) -- node[left,font=\scriptsize] {height $2$} (-0.3,2);
+\end{tikzpicture}
+\end{center}
+And the parallelepiped of the $3\times3$ example, whose volume is $7$:
+\begin{center}
+\begin{tikzpicture}[x={(-0.55cm,-0.45cm)},y={(1cm,0cm)},z={(0cm,1cm)},scale=1.2,>={Stealth}]
+  \coordinate (O) at (0,0,0);
+  \coordinate (u) at (1,2,0); \coordinate (v) at (0,1,3); \coordinate (w) at (1,0,1);
+  \coordinate (uv) at (1,3,3); \coordinate (uw) at (2,2,1); \coordinate (vw) at (1,1,4); \coordinate (uvw) at (2,3,4);
+  \draw[->,gray] (O) -- (2.6,0,0) node[below left] {$x_1$};
+  \draw[->,gray] (O) -- (0,3.8,0) node[right] {$x_2$};
+  \draw[->,gray] (O) -- (0,0,4.6) node[above] {$x_3$};
+  \fill[blue!10,opacity=0.8] (u) -- (uv) -- (uvw) -- (uw) -- cycle;
+  \fill[blue!15,opacity=0.8] (v) -- (uv) -- (uvw) -- (vw) -- cycle;
+  \draw[blue!50] (u) -- (uv) -- (v) -- (vw) -- (w) -- (uw) -- cycle;
+  \draw[blue!50] (uv) -- (uvw) (uw) -- (uvw) (vw) -- (uvw);
+  \draw[->,very thick,red!70!black] (O) -- (u) node[below] {$(1,2,0)$};
+  \draw[->,very thick,green!50!black] (O) -- (v) node[left] {$(0,1,3)$};
+  \draw[->,very thick,orange!80!black] (O) -- (w) node[left] {$(1,0,1)$};
+\end{tikzpicture}
+\end{center}
 
 \section*{Summary}
 \begin{itemize}

@@ -34,6 +34,22 @@ Since the mid-1990s Canadian CPI inflation has averaged close to 2\%, and it was
 inside the 1--3\% range until the post-pandemic surge in 2021.
 \end{remark}
 
+\begin{center}
+\begin{tikzpicture}[x=0.9cm, y=0.8cm, every node/.style={font=\small}]
+  \fill[green!12] (0,1) rectangle (10,3);
+  \draw[->] (0,0) -- (10.4,0) node[right] {time};
+  \draw[->] (0,0) -- (0,4.4) node[above] {CPI inflation (\%)};
+  \foreach \v in {1,2,3,4} \draw (0.08,\v) -- (-0.08,\v) node[left] {\v};
+  \draw[thick, green!50!black] (0,2) -- (10,2) node[right] {target $2\%$};
+  \draw[green!50!black, dashed] (0,1) -- (10,1) node[right, font=\scriptsize] {$1\%$};
+  \draw[green!50!black, dashed] (0,3) -- (10,3) node[right, font=\scriptsize] {$3\%$};
+  \draw[thick, blue] plot[smooth] coordinates {(0,2.4) (1,1.8) (2,2.2) (3,1.5) (4,1.2) (5,1.9) (6,2.3) (7,2.6) (8,3.6) (9,2.9) (10,2.2)};
+  \node[font=\scriptsize, blue] at (8,4.0) {outside the range: the Bank must explain};
+\end{tikzpicture}
+\end{center}
+An illustrative inflation path: the Bank aims for $2\%$ and treats the $1$--$3\%$ band as
+the range within which inflation is expected to stay most of the time.
+
 \subsection{Responsibility for monetary policy}
 
 The \emph{Governing Council} of the Bank (the Governor, the Senior Deputy Governor and
@@ -84,6 +100,22 @@ are short of reserves, the Bank buys securities (supplying reserves) until the r
 back at 1.75\%. In March 2020 the Bank cut the target in three steps from 1.75\% to
 0.25\%, which it called its \emph{effective lower bound}.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[x=0.75cm, y=4.5cm, every node/.style={font=\small}]
+  \fill[blue!8] (0,1.5) rectangle (10,2.0);
+  \draw[->] (0,1.4) -- (10.4,1.4) node[right] {days};
+  \draw[->] (0,1.4) -- (0,2.2) node[above] {interest rate (\%)};
+  \draw[thick, red!70!black] (0,2.0) -- (10,2.0) node[right] {bank rate $2.00$};
+  \draw[thick, green!50!black] (0,1.75) -- (10,1.75) node[right] {target $1.75$};
+  \draw[thick, orange!80!black] (0,1.5) -- (10,1.5) node[right] {settlement balances rate $1.50$};
+  \draw[thick, blue] plot[smooth] coordinates {(0,1.75) (1,1.77) (2,1.74) (3,1.8) (4,1.85) (5,1.79) (6,1.75) (7,1.73) (8,1.76) (9,1.75) (10,1.75)};
+  \draw[->, gray] (4.6,2.08) node[above, font=\scriptsize, text=black] {drift up: Bank buys securities} -- (4.1,1.87);
+  \foreach \v in {1.5,1.75,2.0} \draw (0.08,\v) -- (-0.08,\v);
+\end{tikzpicture}
+\end{center}
+No bank borrows above the bank rate or lends below the settlement balances rate, so the
+overnight rate (blue) is trapped in the band; open market operations keep it at the target.
 
 \subsection{The policy decision}
 
@@ -186,6 +218,23 @@ A rise in the overnight rate works the same way in reverse.
         grow more slowly, spending falls and AD shifts leftward, closing the gap and
         bringing inflation down toward 2\%.
 \end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.85, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (7,0) node[right] {Real GDP};
+  \draw[->] (0,0) -- (0,6) node[above] {Price level};
+  \draw[thick] (3,0.3) -- (3,5.6) node[above] {LRAS};
+  \draw[thick, red] (1,0.6) -- (6,4.6) node[right] {SRAS};
+  \draw[thick, blue] (1.8,5.2) -- (6,1.0) node[right] {AD$_0$};
+  \draw[thick, blue, dashed] (0.6,4.6) -- (4.2,1.0) node[below right] {AD$_1$};
+  \fill (4,3) circle (2.5pt) node[above right] {A};
+  \fill (3,2.2) circle (2.5pt) node[below left] {B};
+  \draw[<->] (3,0.4) -- node[below] {gap} (4,0.4);
+\end{tikzpicture}
+\end{center}
+Tightening: at A real GDP exceeds potential (an inflationary gap). A higher overnight rate
+shifts AD from AD$_0$ to AD$_1$, bringing the economy to B at potential GDP with a lower
+price level than A.
 
 \subsection{Loose links and long and variable lags}
 

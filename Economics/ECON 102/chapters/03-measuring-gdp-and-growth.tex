@@ -30,6 +30,22 @@ the contribution to GDP is \$5, not $1 + 3 + 5 = \$9$. Equivalently, add the \em
 added} at each stage: $1 + (3 - 1) + (5 - 3) = \$5$.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[x=0.95cm, y=1cm, every node/.style={font=\small}]
+  \fill[green!25] (0,1.2) rectangle (1,1.9); \draw (0,1.2) rectangle (1,1.9);
+  \fill[orange!30] (1,1.2) rectangle (3,1.9); \draw (1,1.2) rectangle (3,1.9);
+  \fill[blue!25] (3,1.2) rectangle (5,1.9); \draw (3,1.2) rectangle (5,1.9);
+  \node at (0.5,1.55) {\$1}; \node at (2,1.55) {\$2}; \node at (4,1.55) {\$2};
+  \node[font=\scriptsize] at (0.5,2.15) {farmer}; \node[font=\scriptsize] at (2,2.15) {miller}; \node[font=\scriptsize] at (4,2.15) {baker};
+  \node[anchor=east] at (-0.1,1.55) {value added};
+  \draw[very thick, red!70!black] (5,0.9) -- (5,2.3) node[above] {GDP $=$ \$5};
+  \fill[gray!20] (0,-0.1) rectangle (9,0.6); \draw (0,-0.1) rectangle (1,0.6); \draw (1,-0.1) rectangle (4,0.6); \draw (4,-0.1) rectangle (9,0.6);
+  \node at (0.5,0.25) {\$1}; \node at (2.5,0.25) {\$3 flour}; \node at (6.5,0.25) {\$5 bread};
+  \node[anchor=east] at (-0.1,0.25) {all sales};
+  \node[anchor=north east, text=gray, font=\scriptsize] at (9,-0.15) {total \$9 double counts the flour and wheat};
+\end{tikzpicture}
+\end{center}
+
 \begin{important}[What GDP excludes]
 \begin{itemize}
   \item Purchases of \emph{used} goods (produced in an earlier period).
@@ -165,6 +181,31 @@ indirect taxes less subsidies 240, depreciation 200. Then
 matching the expenditure approach, with no statistical discrepancy.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small}]
+  \fill[blue!20] (0,0.000) rectangle (2.3,2.880); \draw (0,0.000) rectangle (2.3,2.880);
+  \node[font=\scriptsize] at (1.15,1.440) {$C$ 1200};
+  \fill[blue!35] (0,2.880) rectangle (2.3,3.840); \draw (0,2.880) rectangle (2.3,3.840);
+  \node[font=\scriptsize] at (1.15,3.360) {$I$ 400};
+  \fill[blue!12] (0,3.840) rectangle (2.3,5.040); \draw (0,3.840) rectangle (2.3,5.040);
+  \node[font=\scriptsize] at (1.15,4.440) {$G$ 500};
+  \fill[blue!50] (0,5.040) rectangle (2.3,5.160); \draw (0,5.040) rectangle (2.3,5.160);
+  \node[font=\scriptsize] at (1.15,5.100) {};
+  \node[below] at (1.15,0) {expenditure};
+  \fill[orange!20] (3.6,0.000) rectangle (5.9,2.760); \draw (3.6,0.000) rectangle (5.9,2.760);
+  \node[font=\scriptsize] at (4.75,1.380) {wages 1150};
+  \fill[orange!35] (3.6,2.760) rectangle (5.9,4.104); \draw (3.6,2.760) rectangle (5.9,4.104);
+  \node[font=\scriptsize] at (4.75,3.432) {other factor 560};
+  \fill[orange!12] (3.6,4.104) rectangle (5.9,4.680); \draw (3.6,4.104) rectangle (5.9,4.680);
+  \node[font=\scriptsize] at (4.75,4.392) {ind.\ taxes 240};
+  \fill[orange!45] (3.6,4.680) rectangle (5.9,5.160); \draw (3.6,4.680) rectangle (5.9,5.160);
+  \node[font=\scriptsize] at (4.75,4.920) {depr.\ 200};
+  \node[below] at (4.75,0) {income};
+  \draw[<-] (2.3,5.100) -- (2.8,5.6) node[above, font=\scriptsize] {$X - M = 50$};
+  \draw[dashed, red!70!black] (-0.3,5.160) -- (6.2,5.160) node[right] {GDP $= 2150$};
+\end{tikzpicture}
+\end{center}
+
 \section{Nominal GDP and real GDP}
 
 \begin{definition}[Real and nominal GDP]
@@ -250,6 +291,21 @@ $70/g$. At 2\% per year real GDP per person doubles in about 35 years; at 7\% in
 10 years. Small differences in growth rates compound into huge differences in living
 standards.
 \end{important}
+
+\begin{center}
+\begin{tikzpicture}[x=0.28cm, y=0.006cm, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (37,0) node[right] {years};
+  \draw[->] (0,0) -- (0,880) node[above] {real GDP per person (start $= 100$)};
+  \foreach \t in {0,10,20,30} \draw (\t,8) -- (\t,-8) node[below] {\t};
+  \foreach \v in {100,200,400,800} { \draw (0.3,\v) -- (-0.3,\v) node[left] {\v}; \draw[gray!30] (0,\v) -- (36,\v); }
+  \draw[thick, red!70!black, domain=0:31, samples=60] plot (\x, {100*exp(0.0677*\x)});
+  \draw[thick, blue, domain=0:36, samples=60] plot (\x, {100*exp(0.0198*\x)});
+  \node[red!70!black, anchor=west] at (31,820) {$7\%$: doubles every $10$ years};
+  \node[blue, anchor=west] at (26,250) {$2\%$: doubles in $35$ years};
+  \foreach \t/\v in {10/200, 20/400, 30/800} \fill[red!70!black] (\t,\v) circle (2.5pt);
+  \fill[blue] (35,200) circle (2.5pt);
+\end{tikzpicture}
+\end{center}
 
 \begin{definition}[Potential GDP and the business cycle]
 \emph{Potential GDP} is the value of real GDP when all the economy's factors of

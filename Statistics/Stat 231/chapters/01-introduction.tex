@@ -124,6 +124,26 @@ The divisor $n-1$ (rather than $n$) makes $S^2$ an unbiased estimator of $\sigma
 \end{itemize}
 \end{definition}
 
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=k1, width=4.8cm, height=3.6cm, xmin=0, xmax=1, ymin=0, ymax=3.2, axis lines=left,
+    xtick=\empty, ytick=\empty, title={left skew: $g_1<0$}, title style={font=\small}, samples=80]
+  \addplot[thick, blue!60!black, domain=0:1] {20*x^4*(1-x)};
+\end{axis}
+\begin{axis}[name=k2, at={(k1.east)}, anchor=west, xshift=0.4cm, width=4.8cm, height=3.6cm, xmin=0,
+    xmax=1, ymin=0, ymax=3.2, axis lines=left, xtick=\empty, ytick=\empty, title={symmetric: $g_1\approx0$},
+    title style={font=\small}, samples=80]
+  \addplot[thick, blue!60!black, domain=0:1] {30*x^2*(1-x)^2};
+\end{axis}
+\begin{axis}[at={(k2.east)}, anchor=west, xshift=0.4cm, width=4.8cm, height=3.6cm, xmin=0, xmax=1,
+    ymin=0, ymax=3.2, axis lines=left, xtick=\empty, ytick=\empty, title={right skew: $g_1>0$},
+    title style={font=\small}, samples=80]
+  \addplot[thick, blue!60!black, domain=0:1] {20*x*(1-x)^4};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
 \subsection{Bivariate summaries}
 
 For paired data $(x_i,y_i)$, the \emph{sample correlation} is
@@ -174,6 +194,29 @@ Then the total area is $1$ and the histogram can be compared directly with a pro
 density function. With unequal bin widths, using heights $=$ frequencies is a classic
 mistake: wide bins look too important.
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5cm, xmin=2, xmax=14, ymin=0, ymax=0.25, xtick={2,4,...,14},
+    xlabel={waiting time (minutes)}, ylabel={density}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, clip=false]
+  \draw[fill=blue!25, draw=blue!60!black] (axis cs:2,0) rectangle (axis cs:4,0.0417);
+  \node[font=\scriptsize, above] at (axis cs:3.0,0.0417) {1};
+  \draw[fill=blue!25, draw=blue!60!black] (axis cs:4,0) rectangle (axis cs:6,0.2083);
+  \node[font=\scriptsize, above] at (axis cs:5.0,0.2083) {5};
+  \draw[fill=blue!25, draw=blue!60!black] (axis cs:6,0) rectangle (axis cs:8,0.1667);
+  \node[font=\scriptsize, above] at (axis cs:7.0,0.1667) {4};
+  \draw[fill=blue!25, draw=blue!60!black] (axis cs:8,0) rectangle (axis cs:10,0.0417);
+  \node[font=\scriptsize, above] at (axis cs:9.0,0.0417) {1};
+  \draw[fill=blue!25, draw=blue!60!black] (axis cs:12,0) rectangle (axis cs:14,0.0417);
+  \node[font=\scriptsize, above] at (axis cs:13.0,0.0417) {1};
+  \addplot[thick, red!70!black, domain=2:14, samples=80] {exp(-(x-6.4333)^2/(2*6.4006))/sqrt(2*pi*6.4006)};
+  \node[font=\scriptsize, text=red!70!black, anchor=west] at (axis cs:9.3,0.08) {$\Gau(\ybar, s)$ density};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+A relative frequency histogram of the waiting times of Example~\ref{ex:summ} (bins of width
+$2$; counts above the bars). Because the bar areas sum to $1$, a fitted Gaussian density can
+be drawn on the same scale; the long right tail does not match it well.
+
 \subsection{Empirical cumulative distribution function}
 
 \begin{definition}[ECDF]
@@ -183,6 +226,23 @@ observation. It estimates the population c.d.f.\ $F(y) = \Prob(Y\le y)$.
 
 The ECDF uses all the data (no binning choice) and quantiles can be read off it. To check
 a model, plot $\hat F$ together with the fitted model c.d.f.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5cm, xmin=2, xmax=14, ymin=0, ymax=1.05, xtick={2,4,...,14},
+    xlabel={$y$ (minutes)}, ylabel={$\hat F(y)$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, legend style={font=\small, draw=none,
+    at={(0.98,0.3)}, anchor=east}, legend cell align=left]
+  \addplot[const plot, thick, blue!60!black] coordinates {(2,0) (3.2,0.0833) (4.1,0.1667) (4.5,0.2500) (5.0,0.3333) (5.3,0.4167) (5.8,0.5000) (6.1,0.5833) (6.4,0.6667) (7.0,0.7500) (7.9,0.8333) (9.6,0.9167) (12.3,1.0000) (14,1)};
+  \addplot[thick, red!70!black, dashed, smooth] coordinates {(2.00,0.0399) (2.25,0.0491) (2.50,0.0600) (2.75,0.0727) (3.00,0.0874) (3.25,0.1041) (3.50,0.1231) (3.75,0.1444) (4.00,0.1681) (4.25,0.1941) (4.50,0.2224) (4.75,0.2529) (5.00,0.2855) (5.25,0.3200) (5.50,0.3561) (5.75,0.3935) (6.00,0.4320) (6.25,0.4711) (6.50,0.5105) (6.75,0.5498) (7.00,0.5886) (7.25,0.6266) (7.50,0.6634) (7.75,0.6986) (8.00,0.7321) (8.25,0.7636) (8.50,0.7930) (8.75,0.8201) (9.00,0.8448) (9.25,0.8672) (9.50,0.8873) (9.75,0.9051) (10.00,0.9207) (10.25,0.9343) (10.50,0.9460) (10.75,0.9560) (11.00,0.9645) (11.25,0.9715) (11.50,0.9774) (11.75,0.9822) (12.00,0.9861) (12.25,0.9893) (12.50,0.9918) (12.75,0.9937) (13.00,0.9953) (13.25,0.9965) (13.50,0.9974) (13.75,0.9981) (14.00,0.9986)};
+  \addplot[only marks, mark=*, mark size=1.3pt, blue!60!black, forget plot] coordinates {(3.2,0.0833) (4.1,0.1667) (4.5,0.2500) (5.0,0.3333) (5.3,0.4167) (5.8,0.5000) (6.1,0.5833) (6.4,0.6667) (7.0,0.7500) (7.9,0.8333) (9.6,0.9167) (12.3,1.0000)};
+  \draw[gray, dotted] (axis cs:2,0.5) -- (axis cs:5.95,0.5) -- (axis cs:5.95,0);
+  \legend{ECDF $\hat F$, {fitted Gaussian c.d.f.}}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The ECDF of the waiting times jumps by $1/12$ at each observation; reading across at
+height $0.5$ gives the median (dotted). The dashed curve is the Gaussian c.d.f.\ with the
+sample mean and standard deviation.
 
 \subsection{Boxplots}
 A \emph{boxplot} draws a box from $q(0.25)$ to $q(0.75)$ with a line at the median.
@@ -232,6 +292,19 @@ How to read a QQ plot:
         Gaussian (kurtosis $>3$); the reverse S: lighter tails;
   \item some wiggle at the very ends is normal for small $n$, so don't over-interpret.
 \end{itemize}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=8cm, height=6cm, xmin=-2, xmax=2, ymin=0, ymax=14, xlabel={standard normal quantile $z_i$},
+    ylabel={ordered data $y_{(i)}$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, grid=major, grid style={gray!20}]
+  \addplot[thick, red!70!black, dashed, domain=-2:2] {6.4333+2.5299*x};
+  \addplot[only marks, mark=*, mark size=1.8pt, blue!60!black] coordinates {(-1.426,3.2) (-1.020,4.1) (-0.736,4.5) (-0.502,5.0) (-0.293,5.3) (-0.097,5.8) (0.097,6.1) (0.293,6.4) (0.502,7.0) (0.736,7.9) (1.020,9.6) (1.426,12.3)};
+  \node[font=\scriptsize, text=red!70!black, anchor=west] at (axis cs:-1.9,1.5) {line $\ybar + s z$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+For the $12$ waiting times, the points bend upward at the right end (the largest values are
+too large for a Gaussian): the concave-up pattern of right skewness.
 
 \begin{important}[Common pitfalls]
 \begin{itemize}

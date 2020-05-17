@@ -31,6 +31,22 @@ The output is identical, but the mechanism is different:
   \item \code{cat < sample.txt}: the \emph{shell} opens the file and sends its
         contents to \code{cat}'s stdin; \code{cat} never sees a filename.
 \end{itemize}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,
+  prog/.style={draw,fill=gray!15,minimum width=1.6cm,minimum height=0.9cm},
+  file/.style={draw,fill=yellow!10,minimum height=0.7cm}]
+  \node[prog] (c1) at (0,0) {\code{cat}};
+  \node[file] (f1) at (-4.2,0) {\code{sample.txt}};
+  \draw[->] (c1.west) -- node[above,font=\scriptsize]{opens (argument)} (f1.east);
+  \node[font=\scriptsize,anchor=west] at (1.2,0) {\code{cat sample.txt}};
+  \node[prog] (c2) at (0,-1.6) {\code{cat}};
+  \node[file] (f2) at (-4.2,-1.6) {\code{sample.txt}};
+  \node[draw,dashed,rounded corners,font=\scriptsize] (sh) at (-4.2,-2.6) {shell opens it};
+  \draw[->] (f2.east) -- node[above,font=\scriptsize]{stdin} (c2.west);
+  \draw[dashed] (sh) -- (f2);
+  \node[font=\scriptsize,anchor=west] at (1.2,-1.6) {\code{cat < sample.txt}};
+\end{tikzpicture}
+\end{center}
 The difference is visible with \code{wc}:
 \begin{lstlisting}[style=bash]
 $ wc sample.txt
@@ -87,6 +103,15 @@ The \emph{shell} intercepts the pattern:
 \end{enumerate}
 So \code{ls} actually receives \code{ls sample.txt sample2.txt}. Because the
 shell does the work, globbing works with any command:
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,node distance=0.8cm]
+  \node[draw,fill=yellow!10] (t) {\code{ls *.txt}};
+  \node[draw,rounded corners,fill=blue!6,right=of t,align=center] (s) {shell\\ \scriptsize expands the glob};
+  \node[draw,fill=yellow!10,right=of s] (t2) {\code{ls sample.txt sample2.txt}};
+  \node[draw,fill=gray!15,right=of t2] (l) {\code{ls}};
+  \draw[->] (t) -- (s); \draw[->] (s) -- (t2); \draw[->] (t2) -- (l);
+\end{tikzpicture}
+\end{center}
 \begin{lstlisting}[style=bash]
 cat *.txt
 echo *.txt      # a cheap way to see what a pattern expands to
@@ -118,6 +143,20 @@ duplicate-free list of all the words in all the files.
 \begin{lstlisting}[style=bash]
 cat words*.txt | sort | uniq
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,node distance=1.4cm,
+  prog/.style={draw,fill=gray!15,minimum width=1.4cm,minimum height=0.8cm}]
+  \node[prog] (a) {\code{cat}};
+  \node[prog,right=of a] (b) {\code{sort}};
+  \node[prog,right=of b] (c) {\code{uniq}};
+  \node[right=of c] (d) {screen};
+  \node[draw,fill=yellow!10,left=0.9cm of a,align=center,font=\scriptsize] (f) {\code{words1.txt}\\ \code{words2.txt}};
+  \draw[->] (f) -- (a);
+  \draw[->] (a) -- node[above,font=\scriptsize]{stdout} node[below,font=\scriptsize]{stdin} (b);
+  \draw[->] (b) -- node[above,font=\scriptsize]{stdout} node[below,font=\scriptsize]{stdin} (c);
+  \draw[->] (c) -- node[above,font=\scriptsize]{stdout} (d);
+\end{tikzpicture}
+\end{center}
 \code{uniq} only removes \emph{adjacent} duplicates, which is why we
 \code{sort} first.
 \end{example}

@@ -84,6 +84,29 @@ collection of parts. If A has-a B, then typically
   \item destroying A does not destroy B;
   \item copying A does not copy B (shallow copy: the copies share the B's).
 \end{enumerate}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small]
+  \node[draw,fill=blue!5,minimum width=2.6cm,minimum height=2cm] (bas) at (0,0) {};
+  \node[font=\scriptsize,anchor=north] at (bas.north) {\code{Basis b}};
+  \node[draw,fill=green!10,minimum width=1.8cm] at (0,0) {\code{v1}};
+  \node[draw,fill=green!10,minimum width=1.8cm] at (0,-0.6) {\code{v2}};
+  \node[font=\scriptsize,align=center] at (0,-1.5) {composition: the Vecs\\ live inside the Basis};
+  \begin{scope}[xshift=6cm]
+  \node[draw,fill=blue!5,minimum width=2.4cm,minimum height=1.4cm] (cat) at (0,0) {};
+  \node[font=\scriptsize,anchor=north] at (cat.north) {\code{Catalogue}};
+  \node[draw,minimum width=0.5cm,minimum height=0.45cm] (q1) at (-0.5,-0.2) {};
+  \node[draw,minimum width=0.5cm,minimum height=0.45cm] (q2) at (0.0,-0.2) {};
+  \node[draw,minimum width=0.5cm,minimum height=0.45cm] (q3) at (0.5,-0.2) {};
+  \node[draw,fill=green!10] (pa) at (2.6,0.6) {Part};
+  \node[draw,fill=green!10] (pb) at (2.6,-0.2) {Part};
+  \node[draw,fill=green!10] (pc) at (2.6,-1.0) {Part};
+  \draw[->] (q1.center) to[bend left=25] (pa.west);
+  \draw[->] (q2.center) to[bend left=10] (pb.west);
+  \draw[->] (q3.center) to[bend right=15] (pc.west);
+  \node[font=\scriptsize,align=center] at (0.6,-1.5) {aggregation: the Catalogue only\\ points to Parts that live elsewhere};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
 \begin{lstlisting}[style=cpp]
 class Catalogue {
     Part *parts[100];   // pointers to parts that live elsewhere
@@ -199,6 +222,19 @@ Text::Text(const string &t, const string &a, int n, const string &topic)
 \end{lstlisting}
 Option 2 is the right one: the superclass ctor might do work (like enforcing
 invariants) that subclasses shouldn't have to repeat.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,f/.style={draw,minimum width=2.4cm,minimum height=0.55cm}]
+  \node[f,fill=blue!6] (t) at (0,0) {\code{title}};
+  \node[f,fill=blue!6,below=0pt of t] (a) {\code{author}};
+  \node[f,fill=blue!6,below=0pt of a] (n) {\code{numPages}};
+  \node[f,fill=green!10,below=0pt of n] (tp) {\code{topic}};
+  \node[font=\scriptsize,anchor=south] at (t.north) {a \code{Text} object};
+  \draw[decorate,decoration={brace,amplitude=5pt}] ([xshift=3pt]t.north east) -- ([xshift=3pt]n.south east) node[midway,right=7pt,font=\scriptsize,align=left]{2.\ Book part, built by \code{Book\{t, a, n\}}};
+  \draw[decorate,decoration={brace,amplitude=5pt}] ([xshift=3pt]tp.north east) -- ([xshift=3pt]tp.south east) node[midway,right=7pt,font=\scriptsize]{3.\ \code{topic\{topic\}} from the MIL};
+  \node[font=\scriptsize,anchor=north] at ([yshift=-2pt]tp.south) {1.\ space for all four fields is allocated first; 4.\ then the body runs};
+\end{tikzpicture}
+\end{center}
 
 \section{Protected Visibility}
 A \code{protected} member is accessible by the class and all of its subclasses

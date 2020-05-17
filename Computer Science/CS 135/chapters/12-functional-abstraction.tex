@@ -76,6 +76,22 @@ bindings it captures is called a \textbf{closure}. Lexical scope determines
 which \code{n} is meant. Combining \code{local} and \code{lambda} gives the same
 effect with a named helper.
 
+A closure can be pictured as the code of the \code{lambda} packaged with the
+bindings it refers to:
+
+\begin{center}
+\begin{tikzpicture}[arr/.style={-{Stealth},thick}]
+  \node[draw,rounded corners,fill=blue!6,font=\small\ttfamily] (call) at (0,0) {(make-adder 5)};
+  \draw[rounded corners,fill=green!6] (2.9,-0.85) rectangle (9.4,0.85);
+  \node[font=\scriptsize\bfseries,anchor=north west] at (2.9,0.85) {closure};
+  \node[draw,fill=white,font=\small\ttfamily] (code) at (5.15,-0.2) {(lambda (x) (+ x n))};
+  \node[draw,fill=white,font=\small\ttfamily] (env) at (8.45,-0.2) {n = 5};
+  \draw[arr] (call) -- node[above,font=\scriptsize]{produces} (2.9,0);
+  \node[font=\scriptsize\ttfamily,anchor=west] (nm) at (9.8,0) {add5};
+  \draw[arr,gray] (nm) -- (9.4,0);
+\end{tikzpicture}
+\end{center}
+
 \section{The built-in abstract list functions}
 
 \begin{center}
@@ -142,6 +158,36 @@ Trace:
 (check-expect (my-reverse '(1 2 3)) '(3 2 1))
 \end{lstlisting}
 
+Drawn as trees, the two folds nest the applications of \code{f} in opposite
+directions: \code{foldr} puts \code{base} next to the \emph{last} element,
+\code{foldl} next to the \emph{first}.
+
+\begin{center}
+\begin{tikzpicture}[level distance=9mm,
+  fn/.style={circle,draw,fill=blue!8,font=\ttfamily\small,minimum size=6mm,inner sep=0pt},
+  lv/.style={draw,rounded corners,fill=green!8,font=\small,minimum size=5mm,inner sep=2pt},
+  level/.style={sibling distance=12mm}]
+  \node[fn] {f}
+    child {node[lv] {$x_1$}}
+    child {node[fn] {f}
+      child {node[lv] {$x_2$}}
+      child {node[fn] {f}
+        child {node[lv] {$x_3$}}
+        child {node[lv] {base}}}};
+  \node[font=\scriptsize\ttfamily] at (0.9,0.6) {(foldr f base (list x1 x2 x3))};
+  \begin{scope}[xshift=7.6cm]
+  \node[fn] {f}
+    child {node[lv] {$x_3$}}
+    child {node[fn] {f}
+      child {node[lv] {$x_2$}}
+      child {node[fn] {f}
+        child {node[lv] {$x_1$}}
+        child {node[lv] {base}}}};
+  \node[font=\scriptsize\ttfamily] at (0.9,0.6) {(foldl f base (list x1 x2 x3))};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
 \subsection{build-list}
 \code{(build-list n f)} $=$ \code{(list (f 0) (f 1) ... (f (sub1 n)))}; it abstracts recursion on \code{Nat}.
 \begin{lstlisting}[style=racket]
@@ -158,6 +204,21 @@ Trace:
 (define (sum-of-even-squares lon)
   (foldr + 0 (map sqr (filter even? lon))))
 \end{lstlisting}
+
+Read from the inside out, the body is a pipeline:
+
+\begin{center}
+\begin{tikzpicture}[v/.style={draw,rounded corners,fill=green!8,font=\small\ttfamily,minimum height=6mm},
+  arr/.style={-{Stealth},thick}]
+  \node[v] (a) {'(1 2 3 4)};
+  \node[v,right=23mm of a] (b) {'(2 4)};
+  \node[v,right=23mm of b] (c) {'(4 16)};
+  \node[v,right=23mm of c] (d) {20};
+  \draw[arr] (a) -- node[above,font=\scriptsize\ttfamily]{filter even?} (b);
+  \draw[arr] (b) -- node[above,font=\scriptsize\ttfamily]{map sqr} (c);
+  \draw[arr] (c) -- node[above,font=\scriptsize\ttfamily]{foldr + 0} (d);
+\end{tikzpicture}
+\end{center}
 
 \section{Abstraction with local and lambda}
 Parameters of the enclosing function are visible inside a \code{lambda}:

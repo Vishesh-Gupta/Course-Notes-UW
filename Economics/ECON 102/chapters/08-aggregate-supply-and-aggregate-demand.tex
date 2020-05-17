@@ -78,6 +78,26 @@ The money wage rate changes because of a departure from full employment (unemplo
 above the natural rate pushes it down; below pushes it up) and because of expected
 inflation (workers bargain for higher money wages to protect their real wages).
 
+\begin{center}
+\begin{tikzpicture}[scale=0.75, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (6.5,0) node[below left] {Real GDP};
+  \draw[->] (0,0) -- (0,5.5) node[above] {Price level};
+  \draw[thick] (3,0.3) -- (3,5) node[above left] {LRAS$_0$};
+  \draw[thick, dashed] (4,0.3) -- (4,5) node[above right] {LRAS$_1$};
+  \draw[thick, red] (1,0.5) -- (4.6,4.1) node[above left] {SRAS$_0$};
+  \draw[thick, red, dashed] (2,0.5) -- (6,4.5) node[right] {SRAS$_1$};
+  \node[align=center] at (3,-0.9) {(a) potential GDP rises:\\both curves shift right};
+  \begin{scope}[xshift=8.5cm]
+    \draw[->] (0,0) -- (6.5,0) node[below left] {Real GDP};
+    \draw[->] (0,0) -- (0,5.5) node[above] {Price level};
+    \draw[thick] (3,0.3) -- (3,5) node[above] {LRAS};
+    \draw[thick, red] (1.5,0.5) -- (5.5,4.5) node[right] {SRAS$_0$};
+    \draw[thick, red, dashed] (0.5,0.5) -- (4.5,4.5) node[above] {SRAS$_1$};
+    \node[align=center] at (3,-0.9) {(b) money wage rises:\\only SRAS shifts left};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
 \section{Aggregate demand}
 
 The \emph{quantity of real GDP demanded} is the total amount of final goods and services
@@ -241,6 +261,25 @@ A decrease in AD (e.g.\ the 2008--2009 collapse in world demand for Canadian exp
 the economy down along SRAS: real GDP and the price level both fall, creating a
 recessionary gap. An increase in AD creates an inflationary gap as in the example above.
 
+\begin{center}
+\begin{tikzpicture}[scale=0.9, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (7,0) node[right] {Real GDP};
+  \draw[->] (0,0) -- (0,5) node[above] {Price level};
+  \draw[thick] (3,0.2) -- (3,4.6) node[above] {LRAS};
+  \draw[thick, red] (1.5,0.5) -- (5,4) node[above] {SRAS$_0$};
+  \draw[thick, red, dashed] (2.4,0.4) -- (5.8,3.8) node[below right] {SRAS$_1$};
+  \draw[thick, blue] (0.8,4.2) -- (4.6,0.4) node[right] {AD$_0$};
+  \draw[thick, blue, dashed] (0.5,3.5) -- (3.6,0.4) node[below right] {AD$_1$};
+  \fill (3,2) circle (2.5pt) node[above right] {A};
+  \fill (2.5,1.5) circle (2.5pt) node[left] {B};
+  \fill (3,1) circle (2.5pt) node[right] {C};
+  \draw[<->] (2.5,0.15) -- node[below] {gap} (3,0.15);
+\end{tikzpicture}
+\end{center}
+AD falls from AD$_0$ to AD$_1$: the economy moves from A to B, below potential GDP, with a
+lower price level. Only as money wages slowly fall does SRAS shift right (SRAS$_1$), taking
+the economy to C at potential GDP and an even lower price level.
+
 \subsection{Fluctuations in aggregate supply}
 
 A rise in the price of oil (or another key input) increases costs and shifts SRAS
@@ -248,6 +287,24 @@ leftward without changing potential GDP. Real GDP \emph{falls} and the price lev
 \emph{rises}: a combination called \emph{stagflation} (as in the 1970s). Policy faces a
 dilemma: increasing AD to restore output raises the price level further; doing nothing
 leaves a recessionary gap until money wages fall.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9, every node/.style={font=\small}]
+  \draw[->] (0,0) -- (7,0) node[right] {Real GDP};
+  \draw[->] (0,0) -- (0,5) node[above] {Price level};
+  \draw[thick] (3,0.2) -- (3,4.6) node[above] {LRAS};
+  \draw[thick, red] (1.5,0.5) -- (5,4) node[right] {SRAS$_0$};
+  \draw[thick, red, dashed] (1,1) -- (4.2,4.2) node[above right] {SRAS$_1$};
+  \draw[thick, blue] (0.8,4.2) -- (4.6,0.4) node[right] {AD};
+  \fill (3,2) circle (2.5pt) node[right] {A};
+  \fill (2.5,2.5) circle (2.5pt) node[left] {B};
+  \draw[dotted] (0,2) node[left] {$P_0$} -- (3,2);
+  \draw[dotted] (0,2.5) node[left] {$P_1$} -- (2.5,2.5) -- (2.5,0) node[below] {$Y_1$};
+  \node[below] at (3,0) {$Y^{*}$};
+\end{tikzpicture}
+\end{center}
+A cost shock moves the economy from A to B: real GDP falls below potential while the
+price level rises.
 
 \begin{important}[Summary of shifts]
 \begin{center}

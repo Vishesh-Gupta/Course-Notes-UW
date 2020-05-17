@@ -45,6 +45,18 @@ are not means of payment: they are \emph{liquid assets} that can be converted in
 of payment quickly and at a known price. (The Bank of Canada also publishes broader
 measures, M1+ and M2+, that include credit unions and trust companies.)
 
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small}]
+  \draw[thick, rounded corners, fill=blue!5] (0,0) rectangle (9,3.4);
+  \node[anchor=north west] at (0.1,3.35) {\textbf{M2}};
+  \draw[thick, rounded corners, fill=blue!15] (0.4,0.3) rectangle (5.4,2.7);
+  \node[anchor=north west] at (0.5,2.65) {\textbf{M1}};
+  \node[draw, fill=white, align=center] at (1.8,1.2) {currency held\\outside banks};
+  \node[draw, fill=white, align=center] at (4.0,1.2) {chequable\\deposits};
+  \node[draw, fill=white, align=center] at (7.2,1.6) {non-chequable\\and fixed term\\deposits};
+\end{tikzpicture}
+\end{center}
+
 \begin{important}[What is not money]
 \begin{itemize}
   \item \textbf{Cheques} are instructions to a bank to transfer money; the
@@ -84,6 +96,17 @@ A bank's balance sheet:
 A bank makes a profit from the spread between the interest it earns on loans and
 securities and the interest it pays on deposits. It balances profit against the risk of
 not being able to meet depositors' withdrawals.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small}]
+  \node[font=\bfseries] at (3.6,3.2) {A bank's balance sheet};
+  \draw[thick] (0,2.8) -- (7.2,2.8); \draw[thick] (3.8,2.8) -- (3.8,0);
+  \node at (1.9,2.5) {\textbf{Assets}}; \node at (5.5,2.5) {\textbf{Liabilities}};
+  \node[anchor=west, align=left] at (0.1,1.2) {reserves\\liquid assets (T-bills)\\securities\\loans};
+  \node[anchor=west, align=left] at (3.9,1.6) {deposits\\owners' equity};
+  \draw[->, gray] (-0.3,2.0) -- (-0.3,0.4) node[midway, left, font=\scriptsize, align=right] {less liquid,\\higher yield};
+\end{tikzpicture}
+\end{center}
 
 Depository institutions provide four economic benefits:
 \begin{enumerate}
@@ -155,6 +178,30 @@ lends. The \$900 is spent and redeposited, and that bank lends \$810, and so on:
 \]
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small}]
+  \draw[->] (0,0) -- (7.3,0) node[right] {round};
+  \draw[->] (-0.2,0) -- (-0.2,3.0) node[above] {new deposits (\$)};
+  \fill[blue!35] (0.00,0) rectangle (0.50,2.500);
+  \fill[blue!33] (0.62,0) rectangle (1.12,2.250);
+  \fill[blue!31] (1.24,0) rectangle (1.74,2.025);
+  \fill[blue!29] (1.86,0) rectangle (2.36,1.823);
+  \fill[blue!27] (2.48,0) rectangle (2.98,1.640);
+  \fill[blue!25] (3.10,0) rectangle (3.60,1.476);
+  \fill[blue!23] (3.72,0) rectangle (4.22,1.329);
+  \fill[blue!21] (4.34,0) rectangle (4.84,1.196);
+  \fill[blue!19] (4.96,0) rectangle (5.46,1.076);
+  \fill[blue!17] (5.58,0) rectangle (6.08,0.969);
+  \node[above, font=\scriptsize] at (0.25,2.5) {1000};
+  \node[above, font=\scriptsize] at (0.87,2.25) {900};
+  \node[above, font=\scriptsize] at (1.49,2.025) {810};
+  \node at (6.6,0.6) {$\cdots$};
+  \node[anchor=west, align=left] at (3.3,2.3) {total $= 1000/(1-0.9)$\\$= \$10{,}000$};
+\end{tikzpicture}
+\end{center}
+Each round of lending is $90\%$ of the previous deposit (the bank keeps $10\%$ as
+reserves), so the deposits shrink geometrically and sum to $1/b$ times the first.
+
 The quantity of deposits that banks can create is limited by three factors.
 \begin{enumerate}
   \item \textbf{The monetary base}: its size limits the total quantity of money the
@@ -196,6 +243,24 @@ quantity of money rises by \$250 million. Deposits rise by $100/0.6 \approx 166.
 currency by $0.5 \times 166.7 \approx 83.3$ and reserves by $0.1 \times 166.7 \approx 16.7$;
 check: $83.3 + 16.7 = 100$ (the base) and $83.3 + 166.7 = 250$ (money).
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[y=0.022cm, every node/.style={font=\small}]
+  % monetary base
+  \fill[orange!35] (0,0) rectangle (2.0,83.3); \fill[green!25] (0,83.3) rectangle (2.0,100);
+  \draw (0,0) rectangle (2.0,83.3) (0,83.3) rectangle (2.0,100);
+  \node at (1.0,41.7) {currency}; \node[font=\scriptsize] at (1.0,91.7) {reserves 16.7};
+  \node[below] at (1.0,0) {$\Delta MB = 100$};
+  % money
+  \fill[orange!35] (3.4,0) rectangle (5.6,83.3); \fill[blue!20] (3.4,83.3) rectangle (5.6,250);
+  \draw (3.4,0) rectangle (5.6,83.3) (3.4,83.3) rectangle (5.6,250);
+  \node at (4.5,41.7) {currency 83.3}; \node at (4.5,166.7) {deposits 166.7};
+  \node[below] at (4.5,0) {$\Delta M = 250$};
+  \draw[->, thick] (2.1,60) -- node[above, font=\scriptsize] {$\times 2.5$} (3.3,60);
+\end{tikzpicture}
+\end{center}
+The same \$83.3 of currency appears in both bars. The \$16.7 of reserves supports
+\$166.7 of deposits ($b = 0.1$), which is where the multiplication happens.
 
 \begin{important}[Pitfall]
 With no currency drain ($a = 0$) the formula reduces to the simple deposit multiplier

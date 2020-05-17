@@ -62,6 +62,41 @@ has its own page table; the hardware \textbf{page table register} points to
 the current one.
 \end{definition}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >=Stealth, thick, scale=0.9, transform shape]
+  % virtual address
+  \draw[fill=blue!10] (0,5) rectangle (4,5.7); \node at (2,5.35) {VPN (20)};
+  \draw[fill=orange!15] (4,5) rectangle (6.4,5.7); \node at (5.2,5.35) {offset (12)};
+  \node[anchor=east] at (-0.1,5.35) {virtual address};
+  % page table
+  \node[draw, fill=gray!15, font=\scriptsize, align=center] (ptr) at (-1.6,4.0) {page table\\register};
+  \foreach \y in {0.8,1.3,...,4.3} \draw (1,\y) -- (4,\y);
+  \draw (1,0.8) rectangle (4,4.3);
+  \draw (1.5,0.8) -- (1.5,4.3);
+  \node[font=\scriptsize] at (1.25,4.5) {V};
+  \node[font=\scriptsize] at (2.75,4.5) {PPN};
+  \fill[green!20] (1,2.3) rectangle (4,2.8);
+  \draw (1,2.3) rectangle (4,2.8) (1.5,2.3) -- (1.5,2.8);
+  \node[font=\scriptsize] at (1.25,2.55) {1};
+  \node[font=\scriptsize] at (2.75,2.55) {PPN};
+  \node[font=\scriptsize, below] at (2.5,0.8) {page table (in memory)};
+  \draw[->] (ptr.east) -- (-0.2,4.0) |- node[pos=0.75, above, font=\scriptsize]{base} (1,4.3);
+  \draw[->] (0.5,5) -- (0.5,2.55) -- (1,2.55);
+  \node[font=\scriptsize, anchor=west] at (0.55,3.0) {index};
+  % physical address
+  \draw[fill=green!12] (5.5,1.3) rectangle (8.5,2); \node at (7,1.65) {PPN (18)};
+  \draw[fill=orange!15] (8.5,1.3) rectangle (10.9,2); \node at (9.7,1.65) {offset (12)};
+  \node[anchor=north] at (8.2,1.2) {physical address};
+  \draw[->] (4,2.55) -- (4.75,2.55) -- (4.75,1.65) -- (5.5,1.65);
+  \draw[->] (5.2,5) -- (5.2,4.2) -- (9.7,4.2) -- (9.7,2);
+  \node[font=\scriptsize, above] at (8,4.2) {copied unchanged};
+\end{tikzpicture}
+\caption{Translation with a single-level page table (32-bit virtual
+addresses, 4\,KB pages, a 30-bit physical address assumed for the picture).
+The VPN indexes the table; the offset is not translated.}
+\end{figure}
+
 \begin{example}[Page table size]
 32-bit virtual addresses, 4\,KB pages, 4-byte PTEs. Offset = 12 bits,
 VPN = 20 bits, so $2^{20}$ entries $\times$ 4\,B = 4\,MB per process. For
@@ -69,6 +104,36 @@ VPN = 20 bits, so $2^{20}$ entries $\times$ 4\,B = 4\,MB per process. For
 \textbf{multi-level (hierarchical) page tables}, where only the parts of the
 table actually in use are allocated, or inverted/hashed page tables.
 \end{example}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, >=Stealth, thick]
+  \draw[fill=blue!10] (0,4) rectangle (2,4.6); \node at (1,4.3) {P1 (10)};
+  \draw[fill=blue!20] (2,4) rectangle (4,4.6); \node at (3,4.3) {P2 (10)};
+  \draw[fill=orange!15] (4,4) rectangle (6,4.6); \node at (5,4.3) {offset (12)};
+  % level 1
+  \draw (0,0) rectangle (1.6,3.2); \node[below] at (0.8,0) {outer table};
+  \foreach \y in {0.4,0.8,...,2.8} \draw (0,\y) -- (1.6,\y);
+  \fill[green!20] (0,2.0) rectangle (1.6,2.4); \draw (0,2.0) rectangle (1.6,2.4);
+  \node at (0.8,0.6) {invalid};
+  \node at (0.8,1.0) {invalid};
+  \draw[->] (1,4) -- (1,3.5) -- (-0.3,3.5) -- (-0.3,2.2) -- (0,2.2);
+  % level 2
+  \draw (3,0) rectangle (4.6,3.2); \node[below, align=center] at (3.8,0) {one second-level\\table};
+  \foreach \y in {0.4,0.8,...,2.8} \draw (3,\y) -- (4.6,\y);
+  \fill[green!20] (3,1.2) rectangle (4.6,1.6); \draw (3,1.2) rectangle (4.6,1.6);
+  \node at (3.8,1.4) {PPN};
+  \draw[->] (1.6,2.2) -- (2.3,2.2) -- (2.3,3.2) -- (3,3.2);
+  \draw[->] (3,4) -- (3,3.5) -- (2.7,3.5) -- (2.7,1.4) -- (3,1.4);
+  % physical page
+  \draw[fill=green!8] (6,0.4) rectangle (7.6,2.4); \node[align=center] at (6.8,1.4) {physical\\page};
+  \draw[->] (4.6,1.4) -- (6,1.4);
+  \draw[->] (5,4) -- (5,3) -- (6.8,3) -- (6.8,2.4);
+\end{tikzpicture}
+\caption{A two-level page table splits the VPN in two. Outer entries for
+unused regions are simply invalid, so their second-level tables are never
+allocated.}
+\end{figure}
 
 \section{Page Faults}
 

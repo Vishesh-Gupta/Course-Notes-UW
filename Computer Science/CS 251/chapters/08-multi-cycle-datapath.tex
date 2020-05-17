@@ -170,6 +170,27 @@ ability to have instructions of very different lengths (e.g.\ floating
 point divide) without slowing everything else.
 \end{example}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, x=0.0045cm, y=0.8cm,
+  cyc/.style={draw, minimum height=0.55cm, inner sep=0pt, font=\tiny, anchor=west}]
+  \node[anchor=east] at (-30,1) {single-cycle};
+  \node[anchor=east] at (-30,0) {multi-cycle};
+  \foreach \i/\name/\c in {0/\code{lw}/blue!12, 1/\code{add}/green!15, 2/\code{beq}/orange!20}
+    \node[cyc, fill=\c, minimum width=800*0.0045cm, font=\scriptsize] at (\i*800,1) {\name};
+  \foreach \s/\c/\lab in {0/blue!12/IF, 200/blue!12/ID, 400/blue!12/EX, 600/blue!12/MEM, 800/blue!12/WB,
+      1000/green!15/IF, 1200/green!15/ID, 1400/green!15/EX, 1600/green!15/WB,
+      1800/orange!20/IF, 2000/orange!20/ID, 2200/orange!20/EX}
+    \node[cyc, fill=\c, minimum width=200*0.0045cm] at (\s,0) {\lab};
+  \draw (0,-0.6) -- (2450,-0.6);
+  \foreach \v in {0,400,...,2400} \draw (\v,-0.6) -- (\v,-0.7) node[below, font=\tiny]{\v};
+  \node[font=\scriptsize, anchor=west] at (2460,-0.6) {ps};
+\end{tikzpicture}
+\caption{\code{lw}, \code{add}, \code{beq} on both designs: three 800\,ps
+cycles versus $5 + 4 + 3 = 12$ cycles of 200\,ps. Short instructions finish
+early on the multi-cycle machine, but \code{lw} is slower.}
+\end{figure}
+
 \begin{important}[Exam tip]
 To compare designs, always compute time per instruction (or total time) =
 CPI $\times$ cycle time, never CPI alone or clock rate alone.

@@ -180,6 +180,24 @@ absence. Testing should happen \emph{while} you write code, not only at the end.
         the code changes, to make sure nothing that used to work is now broken.
 \end{itemize}
 
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small]
+  \node[draw,fill=black!80,text=white,minimum width=2cm,minimum height=1.2cm] (bb) at (0,0) {program};
+  \draw[->] (-2.2,0.3) -- node[above,font=\scriptsize]{input} (-1,0.3);
+  \draw[->] (1,0.3) -- node[above,font=\scriptsize]{output} (2.2,0.3);
+  \node[font=\scriptsize,align=center] at (0,-1.1) {black box: tests come\\ from the specification};
+  \begin{scope}[xshift=6.5cm]
+  \draw (-1.3,-0.8) rectangle (1.3,0.8);
+  \node[draw,diamond,aspect=1.6,inner sep=1pt,font=\scriptsize] (d) at (0,0.25) {$?$};
+  \draw[->,blue!60!black,thick] (d.west) -- ++(-0.6,-0.6);
+  \draw[->,red!60!black,thick] (d.east) -- ++(0.6,-0.6);
+  \draw[->] (-2.2,0.25) -- node[above,font=\scriptsize]{input} (-1.3,0.25);
+  \draw (-1.3,0.25) -- (d.west);
+  \node[font=\scriptsize,align=center] at (0,-1.3) {white box: tests chosen so\\ every branch is taken};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
 A1 asks us to automate regression testing with a script. A minimal version: for
 each test stem listed in a suite file, run the program on \code{stem.in} and
 compare with \code{stem.out}.
@@ -195,6 +213,22 @@ for stem in $(cat "$1"); do
     rm "${tmp}"
 done
 \end{lstlisting}
+For each test stem the script does the following:
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,node distance=1.1cm,
+  file/.style={draw,fill=yellow!10,minimum height=0.7cm},
+  prog/.style={draw,fill=gray!15,minimum height=0.8cm,rounded corners}]
+  \node[file] (in) {\code{stem.in}};
+  \node[prog,right=of in] (p) {program \code{\$2}};
+  \node[file,right=of p] (tmp) {\code{\$\{tmp\}}};
+  \node[prog,right=of tmp] (d) {\code{diff}};
+  \node[file,below=0.5cm of d] (out) {\code{stem.out}};
+  \node[right=0.7cm of d,align=left,font=\scriptsize] (r) {differ $\Rightarrow$\\ ``Test failed''};
+  \draw[->] (in) -- node[above,font=\scriptsize]{stdin} (p);
+  \draw[->] (p) -- node[above,font=\scriptsize]{stdout} (tmp);
+  \draw[->] (tmp) -- (d); \draw[->] (out) -- (d); \draw[->] (d) -- (r);
+\end{tikzpicture}
+\end{center}
 
 \section{Introduction to C++}
 C++ was designed by Bjarne Stroustrup (early 1980s) as ``C with classes''. It is

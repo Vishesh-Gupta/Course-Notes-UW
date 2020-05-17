@@ -9,6 +9,17 @@ characters and splits it into \textbf{tokens}, each a pair (\emph{kind}, \emph{l
 (\mathrm{INT},\mathtt{int})\ (\mathrm{ID},\mathtt{x})\ (\mathrm{BECOMES},\mathtt{=})\
 (\mathrm{NUM},\mathtt{42})\ (\mathrm{SEMI},\mathtt{;})
 \]
+\begin{center}
+\begin{tikzpicture}[x=0.6cm,font=\small]
+  \foreach \k in {3,5,7} \fill[gray!25] (\k-0.5,-0.3) rectangle (\k+0.5,0.3);
+  \foreach \ch [count=\k from 0] in {i,n,t,{\textvisiblespace},x,{\textvisiblespace},=,{\textvisiblespace},4,2,{;}}
+    \node[draw,minimum width=0.6cm,minimum height=0.6cm,font=\ttfamily] at (\k,0) {\ch};
+  \foreach \a/\b/\t in {0/2/INT,4/4/ID,6/6/BECOMES,8/9/NUM,10/10/SEMI}
+    \draw[decorate,decoration={brace,amplitude=4pt,mirror}] (\a-0.45,-0.4) -- (\b+0.45,-0.4) node[midway,below=5pt,font=\scriptsize]{\t};
+\end{tikzpicture}
+
+\small Characters in, tokens out; the shaded spaces separate tokens and are discarded.
+\end{center}
 Whitespace and comments are discarded. Each token kind is a regular language, so the
 language of all valid token sequences, $L = (T_1 \mid T_2 \mid \dots \mid T_k)^*$ (with
 whitespace interleaved), is regular too.
@@ -122,6 +133,22 @@ it is a prefix of $aab$), then the third $a$ kills it after $aa$. The state for 
 accepting, so simplified munch reports an error. Yet $aaa = a\cdot a\cdot a$ is a valid
 decomposition, and full maximal munch would find it by backing up.
 \end{example}
+\begin{center}
+\begin{tikzpicture}[shorten >=1pt,node distance=3cm,on grid,auto,>=Stealth,every state/.style={minimum size=0.9cm,font=\small}]
+  \node[state,initial] (0) {};
+  \node[state,accepting] (1) [right=of 0] {$a$};
+  \node[state] (2) [right=of 1] {$aa$};
+  \node[state,accepting] (3) [right=of 2] {$aab$};
+  \path[->]
+    (0) edge node {$a$} (1)
+    (1) edge node {$a$} (2)
+    (2) edge node {$b$} (3);
+  \draw[->,red!60!black,dashed] (2.south) -- ++(0,-0.7) node[below,font=\scriptsize,align=center]{third $a$: stuck here,\\not accepting $\Rightarrow$ error};
+  \draw[->,blue!60!black,dashed] (1.south) -- ++(0,-0.7) node[below,font=\scriptsize,align=center]{full munch backs up\\to here: token $a$};
+\end{tikzpicture}
+
+\small The token DFA for $\{a,\ aab\}$ on input $aaa$.
+\end{center}
 
 \begin{example}[Maximal munch is not always what you want]
 In C++03, \code{vector<vector<int>{}>} scanned \code{>{}>} as a single shift token, a famous

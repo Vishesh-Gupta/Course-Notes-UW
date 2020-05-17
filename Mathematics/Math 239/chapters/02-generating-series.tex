@@ -34,6 +34,25 @@ total. Then $\Phi_S(x) = (x + x^2 + \cdots + x^6)^2$, and
 $\coef{7}\Phi_S(x) = 6$: there are six ways to roll a total of $7$.
 \end{example}
 
+Laying out the $36$ outcomes in a grid, the outcomes of a given weight lie on an anti-diagonal;
+the shaded one has the six outcomes of total $7$:
+\begin{center}
+\begin{tikzpicture}[scale=0.55]
+  \foreach \i in {1,...,6} { \foreach \j in {1,...,6} {
+    \pgfmathtruncatemacro{\s}{\i+\j}
+    \ifnum\s=7 \fill[blue!25] (\i-1,6-\j) rectangle (\i,7-\j); \fi
+    \node[font=\scriptsize] at (\i-0.5,6.5-\j) {\s};
+  } }
+  \draw (0,0) grid (6,6);
+  \foreach \i in {1,...,6} {
+    \node[font=\scriptsize] at (\i-0.5,6.45) {\i};
+    \node[font=\scriptsize] at (-0.45,6.5-\i) {\i};
+  }
+  \node[font=\small] at (3,7.3) {first die};
+  \node[font=\small,rotate=90] at (-1.3,3) {second die};
+\end{tikzpicture}
+\end{center}
+
 Two simple facts are worth knowing: $\Phi_S(1) = \abs{S}$ when $S$ is finite, and
 $\Phi_S'(1) = \sum_{\sigma \in S} w(\sigma)$, so the average weight is $\Phi_S'(1)/\Phi_S(1)$.
 For subsets of $[n]$: $\frac{n(1+1)^{n-1}}{2^n} = \frac{n}{2}$, as expected.
@@ -132,6 +151,21 @@ by $w(a,b) = \alpha(a) + \beta(b)$. Then $\Phi_{A\times B}(x) = \Phi_A(x)\,\Phi_
 
 By induction the product lemma extends to $A_1 \times \cdots \times A_k$, so
 $\Phi_{A^k}(x) = \Phi_A(x)^k$.
+
+The same picture explains the product of two series: in $A(x)B(x)$ the coefficient of $x^n$
+collects the products $a_kb_{n-k}$ along the $n$-th anti-diagonal of the table of all
+products $a_ib_j$ (the dice grid above is the case $a_i = b_j = 1$ for $1\le i,j\le 6$):
+\begin{center}
+\begin{tikzpicture}[scale=0.8]
+  \foreach \i in {0,...,4} { \foreach \j in {0,...,4} {
+    \pgfmathtruncatemacro{\s}{\i+\j}
+    \ifnum\s=3 \fill[orange!30] (\i,-\j) rectangle (\i+1,-\j-1); \fi
+    \node[font=\scriptsize] at (\i+0.5,-\j-0.5) {$a_{\i}b_{\j}$};
+  } }
+  \draw (0,0) grid (5,-5);
+  \node[right,font=\small,align=left] at (5.3,-2.5) {$\coef{3}A(x)B(x) =$\\$a_0b_3 + a_1b_2 + a_2b_1 + a_3b_0$};
+\end{tikzpicture}
+\end{center}
 
 \begin{lemma}[String lemma]
 Let $A$ be a set with weight function $w$ and \emph{no element of weight $0$}. Let

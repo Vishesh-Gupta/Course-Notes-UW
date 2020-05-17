@@ -67,6 +67,25 @@ $d \equiv -17 \equiv 103 \Mod{120}$. Check: $7 \cdot 103 = 721 = 6\cdot 120 + 1$
 Public key $(e,n) = (7, 143)$; private key $(d,n) = (103, 143)$.
 \end{example}
 
+The whole exchange, with the numbers from these examples (the encryption and decryption are
+computed below):
+\begin{center}
+\begin{tikzpicture}[box/.style={draw,rounded corners,align=center,minimum height=0.9cm,inner sep=4pt,font=\small},
+                    >={Stealth}]
+  \node[box,fill=green!10] (keys) at (0,2.6) {\textbf{Bob} (receiver)\\$p = 11$, $q = 13$, $n = 143$\\$\varphi = 120$, $e = 7$, $d = 103$};
+  \node[box,fill=blue!8] (pub) at (5.6,2.6) {public key\\$(e,n) = (7,143)$};
+  \node[box] (m) at (0,0) {\textbf{Alice}\\message $M = 9$};
+  \node[box,fill=orange!15] (c) at (5.6,0) {ciphertext\\$C = 48$};
+  \node[box,fill=green!10] (r) at (10.2,0) {\textbf{Bob}\\$C^{d} \bmod n = 9 = M$};
+  \draw[->,thick] (keys) -- node[above,font=\scriptsize] {publish} (pub);
+  \draw[->,thick] (m) -- node[below,font=\scriptsize] {$M^{e} \bmod n$} (c);
+  \draw[->,dashed] (pub) -- (c);
+  \draw[->,thick] (c) -- node[below,font=\scriptsize] {sent openly} (r);
+  \draw[->,dashed] (keys.north) -- ++(0,0.4) -| node[pos=0.25,above,font=\scriptsize] {private key $d$ (never sent)} (r.north);
+\end{tikzpicture}
+\end{center}
+An eavesdropper sees $(e,n)$ and $C$, but not $d$, $p$, $q$ or $\varphi$.
+
 \begin{example}[Encryption]
 Encrypt $M = 9$: compute $9^7 \bmod 143$ by repeated squaring.
 \begin{align*}
@@ -126,6 +145,17 @@ RSA also gives signatures. To sign $M$, Alice computes $S \equiv M^{d} \Mod{n}$ 
 \emph{private} key. Anyone can verify by checking $S^{e} \equiv M \Mod n$ with her public key;
 only someone knowing $d$ could have produced $S$. Correctness is the same theorem with the roles
 of $e$ and $d$ swapped (since $ed = de$).
+
+\begin{center}
+\begin{tikzpicture}[box/.style={draw,rounded corners,align=center,minimum height=0.9cm,inner sep=4pt},>={Stealth}]
+  \node[box] (m) at (0,0) {message $M$};
+  \node[box,fill=orange!15] (s) at (4.6,0) {signature $S$};
+  \node[box] (v) at (9.2,0) {is $S^{e} \equiv M$?};
+  \draw[->,thick] (m) -- node[above,font=\scriptsize] {$M^{d} \bmod n$} node[below,font=\scriptsize] {Alice's private key} (s);
+  \draw[->,thick] (s) -- node[above,font=\scriptsize] {$S^{e} \bmod n$} node[below,font=\scriptsize] {Alice's public key} (v);
+\end{tikzpicture}
+\end{center}
+Compared with encryption, the keys are used in the opposite order.
 
 \begin{example}
 With Alice's keys above, signing $M = 2$: $S \equiv 2^{103} \Mod{143}$. Mod $11$: $2^{3} = 8$.

@@ -54,6 +54,26 @@ else:
 endif:
 \end{lstlisting}
 \code{beq \$0, \$0, label} is the standard unconditional branch.
+The resulting control flow:
+\begin{center}
+\begin{tikzpicture}[>=Stealth,node distance=0.5cm,font=\small,
+  blk/.style={draw,rounded corners,minimum width=3.6cm,minimum height=0.6cm,align=center}]
+  \node[blk] (t) {\code{slt \$5, \$1, \$2}};
+  \node[blk,below=of t] (b) {\code{beq \$5, \$0, else}};
+  \node[blk,below=of b,fill=blue!5] (s1) {S1};
+  \node[blk,below=of s1] (j) {\code{beq \$0, \$0, endif}};
+  \node[blk,below=of j,fill=blue!5] (s2) {S2};
+  \node[blk,below=of s2,draw=none] (e) {\textit{next statement}};
+  \node[font=\ttfamily\small,anchor=east] at ([xshift=-1.4cm]s2.west) {else:};
+  \node[font=\ttfamily\small,anchor=east] at ([xshift=-1.4cm]e.west) {endif:};
+  \draw[->] (t) -- (b);
+  \draw[->] (b) -- node[right,font=\scriptsize]{$a<b$ (fall through)} (s1);
+  \draw[->] (s1) -- (j);
+  \draw[->] (b.west) -- ++(-1,0) |- node[pos=0.25,left,font=\scriptsize]{$a\ge b$} (s2.west);
+  \draw[->] (j.east) -- ++(1,0) |- node[pos=0.25,right,font=\scriptsize]{always} (e.east);
+  \draw[->] (s2) -- (e);
+\end{tikzpicture}
+\end{center}
 
 \subsection{Comparisons}
 Only \code{slt}/\code{sltu} exist; derive the rest:
@@ -106,6 +126,19 @@ skip:
 \end{lstlisting}
 Pointer increment (``walk a pointer'') is cheaper than recomputing $\$1 + 4i$ each time.
 To index directly: \code{mult \$i, \$4; mflo \$t; add \$t, \$t, \$1; lw \$x, 0(\$t)}.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,cell/.style={draw,minimum width=1.6cm,minimum height=0.65cm,font=\small}]
+  \node[cell] (c0) at (0,0) {$a[0]$};
+  \node[cell,right=0pt of c0] (c1) {$a[1]$};
+  \node[cell,right=0pt of c1,fill=blue!6] (c2) {$a[2]$};
+  \node[cell,right=0pt of c2] (c3) {$\cdots$};
+  \node[cell,right=0pt of c3] (c4) {$a[n-1]$};
+  \foreach \c/\t in {c0/\$1,c1/\$1+4,c2/\$1+8,c4/\$1+4(n-1)} \node[below,font=\scriptsize] at (\c.south) {\code{\t}};
+  \draw[<-,thick,blue!60!black] (c2.north) -- ++(0,0.8) node[above,font=\small]{\code{\$5} ($p$)};
+  \draw[->,gray] (c1.north) to[bend left=50] node[above,font=\scriptsize]{$p \mathrel{+}= 4$} (c2.north west);
+  \draw[<-] (c0.west) -- ++(-0.8,0) node[left,font=\small]{\code{\$1}};
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \section{The stack}
@@ -255,6 +288,26 @@ fdone:
 \end{lstlisting}
 After pushing, the saved $\$1$ is at offset 8 from the new \code{\$30} (frame is
 $\$30{+}0$: \code{\$31}, $\$30{+}4$: \code{\$2}, $\$30{+}8$: \code{\$1}).
+The stack at the deepest point of computing $3!$ (called from \code{main}) holds three frames:
+\begin{center}
+\begin{tikzpicture}[>=Stealth,cell/.style={draw,minimum width=4.4cm,minimum height=0.5cm,font=\small}]
+  \node[cell,fill=gray!10] (top) at (0,0) {caller's data};
+  \node[cell,below=0pt of top] (a1) {\code{\$1} $=3$};
+  \node[cell,below=0pt of a1] (a2) {\code{\$2} (caller's value)};
+  \node[cell,below=0pt of a2] (a3) {\code{\$31}: return into \code{main}};
+  \node[cell,below=0pt of a3,fill=blue!4] (b1) {\code{\$1} $=2$};
+  \node[cell,below=0pt of b1,fill=blue!4] (b2) {\code{\$2} $=$ address of \code{fact}};
+  \node[cell,below=0pt of b2,fill=blue!4] (b3) {\code{\$31}: return into \code{fact}};
+  \node[cell,below=0pt of b3] (c1) {\code{\$1} $=1$};
+  \node[cell,below=0pt of c1] (c2) {\code{\$2} $=$ address of \code{fact}};
+  \node[cell,below=0pt of c2] (c3) {\code{\$31}: return into \code{fact}};
+  \draw[decorate,decoration={brace,amplitude=5pt}] ([xshift=2pt]a1.north east) -- ([xshift=2pt]a3.south east) node[midway,right=6pt,font=\small]{frame of \code{fact(3)}};
+  \draw[decorate,decoration={brace,amplitude=5pt}] ([xshift=2pt]b1.north east) -- ([xshift=2pt]b3.south east) node[midway,right=6pt,font=\small]{frame of \code{fact(2)}};
+  \draw[decorate,decoration={brace,amplitude=5pt}] ([xshift=2pt]c1.north east) -- ([xshift=2pt]c3.south east) node[midway,right=6pt,font=\small]{frame of \code{fact(1)}};
+  \draw[<-] (c3.west) -- ++(-1,0) node[left]{\code{\$30}};
+\end{tikzpicture}
+\end{center}
+Each frame is popped as its activation returns, and \code{\$3} carries $1$, then $2\cdot1$, then $3\cdot2$ back up.
 \end{example}
 
 \paragraph{Recursion depth.} Each call uses a fixed amount of stack, so depth $d$ uses

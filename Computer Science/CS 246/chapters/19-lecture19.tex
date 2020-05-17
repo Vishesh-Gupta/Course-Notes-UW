@@ -1,4 +1,8 @@
 \chapter{Lecture 19: Abstract Base Classes, Factory Method, Template Method, NVI, Maps}
+
+\tikzset{umlc/.style={draw,fill=blue!4,rectangle split,rectangle split parts=2,
+    rectangle split part align={center,left},font=\small,inner sep=3pt,minimum width=2.6cm},
+  inh/.style={-{Triangle[open,length=3mm,width=3mm]}}}
 \begin{center}
 \textit{March 15, 2018}
 \end{center}
@@ -111,6 +115,22 @@ make a class's constructors private/protected and provide methods that create
 objects for the client. We have seen this already: \code{List::addToFront}
 creates Nodes; \code{List::begin}/\code{List::end} create Iterators.
 
+\begin{center}
+\begin{tikzpicture}[>=Stealth]
+  \node[umlc] (l) at (0,0) {\textit{Level}\nodepart{second}\code{+}\textit{createEnemy(): Enemy*}};
+  \node[umlc,rectangle split parts=1,minimum width=1.8cm] (n) at (-1.6,-2) {Normal};
+  \node[umlc,rectangle split parts=1,minimum width=1.8cm] (c) at (1.6,-2) {Castle};
+  \draw[inh] (n.north) -- (l.south west); \draw[inh] (c.north) -- (l.south east);
+  \node[umlc,rectangle split parts=1] (e) at (7,0) {\textit{Enemy}};
+  \node[umlc,rectangle split parts=1,minimum width=1.8cm] (t) at (5.6,-2) {Turtle};
+  \node[umlc,rectangle split parts=1,minimum width=1.8cm] (b) at (8.4,-2) {Bullet};
+  \draw[inh] (t.north) -- (e.south west); \draw[inh] (b.north) -- (e.south east);
+  \draw[->,dashed] (l.east) -- node[above,font=\scriptsize]{creates} (e.west);
+\end{tikzpicture}
+
+\small Each level subclass decides which concrete enemies its \code{createEnemy} returns.
+\end{center}
+
 \section{The Template Method Pattern}
 We want to allow subclasses to override \emph{some} aspects of the superclass's
 behaviour, while other aspects must remain the same.
@@ -143,6 +163,15 @@ class GreenTurtle : public Turtle {
 Subclasses can't change the overall drawing algorithm (\code{draw} is not
 virtual) but they can (must) supply the shell. Note that a subclass may override
 a private virtual method, even though it cannot call it.
+\begin{center}
+\begin{tikzpicture}
+  \node[umlc,minimum width=4.4cm] (t) at (0,0) {\textit{Turtle}\nodepart{second}\begin{tabular}{@{}l@{}}\code{+draw()} \scriptsize(non-virtual)\\ \code{-drawHead()}\\ \code{-}\textit{drawShell()}\\ \code{-drawFeet()}\end{tabular}};
+  \node[umlc] (r) at (-2.4,-2.8) {RedTurtle\nodepart{second}\code{-drawShell()}};
+  \node[umlc] (g) at (2.4,-2.8) {GreenTurtle\nodepart{second}\code{-drawShell()}};
+  \draw[inh] (r.north) -- (t.south west); \draw[inh] (g.north) -- (t.south east);
+  \node[draw,rounded corners,fill=yellow!10,font=\scriptsize,align=left,anchor=west] at (3.0,0) {\code{draw()} \{\\ \quad\code{drawHead();}\\ \quad\code{drawShell();} \textit{// varies}\\ \quad\code{drawFeet();}\\ \}};
+\end{tikzpicture}
+\end{center}
 
 \section{The Non-Virtual Interface (NVI) Idiom}
 Think about what a \textbf{public virtual} method means:
@@ -217,6 +246,17 @@ for (auto &p : m) {
 }
 \end{lstlisting}
 Iteration happens in sorted key order.
+Inside, the map from the example is typically a balanced binary search tree ordered by key:
+\begin{center}
+\begin{tikzpicture}[level distance=11mm,level 1/.style={sibling distance=30mm},
+  every node/.style={draw,rounded corners,fill=blue!5,font=\small}]
+\node {\code{"def"} $\mapsto$ 4}
+  child {node {\code{"abc"} $\mapsto$ 1}}
+  child {node {\code{"ghi"} $\mapsto$ 0}};
+\end{tikzpicture}
+
+\small (Before \code{m.erase("abc")}; note that \code{m["ghi"]} inserted the key \code{"ghi"}.)
+\end{center}
 
 \section{The Visitor Pattern: Double Dispatch}
 The Visitor pattern is used for \textbf{double dispatch}: choosing which method to
@@ -297,6 +337,18 @@ e->strike(*w);
   \item \code{useOn} is virtual: \code{Stick::useOn(Turtle\&)} runs (dispatch on
         the weapon).
 \end{enumerate}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,node distance=1.2cm,
+  s/.style={draw,rounded corners,fill=blue!5,minimum height=0.8cm,align=center}]
+  \node[s] (a) {\code{e->strike(*w)}};
+  \node[s,right=of a] (b) {\code{Turtle::strike}\\ \scriptsize\code{w.useOn(*this)}};
+  \node[s,right=of b,fill=green!10] (c) {\code{Stick::useOn(Turtle\&)}};
+  \draw[->] (a) -- node[above,font=\scriptsize]{virtual} node[below,font=\scriptsize]{enemy} (b);
+  \draw[->] (b) -- node[above,font=\scriptsize]{virtual} node[below,font=\scriptsize]{weapon} (c);
+\end{tikzpicture}
+
+\small Two virtual calls in a row: the first resolves the enemy's type, the second the weapon's.
+\end{center}
 More uses of Visitor next lecture.
 
 \section*{Summary}

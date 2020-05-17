@@ -20,7 +20,27 @@ marks are given for every component, not only for working code.
 
 The order of \emph{writing} is roughly: contract and purpose first (to
 understand the problem), then examples (to understand the answer), then the
-header and body, then tests. The standard order \emph{in the file} is:
+header and body, then tests. Each step feeds the next, and failures send you
+back to an earlier step:
+
+\begin{center}
+\begin{tikzpicture}[st/.style={draw,rounded corners,fill=blue!6,minimum width=2.15cm,
+  minimum height=9mm,align=center,font=\small},
+  arr/.style={-{Stealth},thick},
+  back/.style={-{Stealth},dashed,gray!70!black},
+  lbl/.style={font=\scriptsize,text=gray!30!black}]
+  \node[st] (p) {1. Purpose};
+  \node[st,right=4mm of p] (c) {2. Contract};
+  \node[st,right=4mm of c] (e) {3. Examples};
+  \node[st,right=4mm of e] (d) {4. Definition};
+  \node[st,right=4mm of d] (t) {5. Tests};
+  \foreach \a/\b in {p/c,c/e,e/d,d/t} \draw[arr] (\a) -- (\b);
+  \draw[back] (e.north) to[out=135,in=45] node[lbl,above]{cannot write an example? re-read the problem} (p.north);
+  \draw[back] (t.south) to[out=-135,in=-45] node[lbl,below]{a test fails: fix the definition (or the test)} (d.south);
+\end{tikzpicture}
+\end{center}
+
+The standard order \emph{in the file} is:
 
 \begin{lstlisting}[style=racket]
 ;; (sum-of-squares a b) produces the sum of the squares of a and b.
@@ -105,6 +125,22 @@ function:
 \end{enumerate}
 Every function consuming that type begins as a copy of the template. Later
 chapters develop templates for structures, lists, natural numbers, and trees.
+
+\begin{center}
+\begin{tikzpicture}[st/.style={draw,rounded corners,fill=blue!6,minimum height=9mm,
+  align=center,font=\small,text width=2.6cm},
+  fn/.style={draw,rounded corners,fill=green!6,minimum height=7mm,font=\small\ttfamily,minimum width=2.6cm},
+  arr/.style={-{Stealth},thick}]
+  \node[st] (dd) {data definition\\{\scriptsize(once per type)}};
+  \node[st,right=15mm of dd] (tm) {template\\{\scriptsize(once per type)}};
+  \node[fn,right=16mm of tm,yshift=10mm] (f1) {count-items};
+  \node[fn,right=16mm of tm] (f2) {sum};
+  \node[fn,right=16mm of tm,yshift=-10mm] (f3) {contains?};
+  \draw[arr] (dd) -- node[above,font=\scriptsize]{shape of} (tm);
+  \foreach \f in {f1,f2,f3} \draw[arr] (tm.east) -- (\f.west);
+  \node[font=\scriptsize,text=gray!30!black,above=1mm of f1] {copy the template, fill in the \code{...}};
+\end{tikzpicture}
+\end{center}
 
 \section{A complete example}
 

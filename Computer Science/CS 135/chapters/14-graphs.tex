@@ -112,7 +112,23 @@ nodes, and it is generative: the neighbours are computed by \code{neighbours}.
 \end{lstlisting}
 
 This strategy is called \textbf{backtracking}: explore one choice fully; if
-it fails, back up and try the next choice.
+it fails, back up and try the next choice. The search for a route from \code{'A} to
+\code{'F} explores the graph as a tree; here the first choice succeeds, so the
+other neighbours of \code{'A} are never tried:
+
+\begin{center}
+\begin{tikzpicture}[level distance=11mm,level 1/.style={sibling distance=18mm},
+  v/.style={circle,draw,minimum size=7mm,fill=blue!6},
+  u/.style={circle,draw=gray!60,dashed,minimum size=7mm,text=gray},
+  g/.style={circle,draw,very thick,minimum size=7mm,fill=green!15}]
+  \node[v] {A}
+    child {node[v] {C} child {node[v] {D} child {node[g] {F}}}}
+    child {node[u] {D} edge from parent[dashed,gray!60]}
+    child {node[u] {E} edge from parent[dashed,gray!60]};
+  \node[font=\scriptsize,align=left,anchor=west] at (2.4,-1.1) {dashed: not explored,\\a route was already found};
+  \node[font=\scriptsize\ttfamily,anchor=west,green!40!black] at (2.4,-2.6) {result: '(A C D F)};
+\end{tikzpicture}
+\end{center}
 
 \paragraph{Condensed trace.}
 \begin{lstlisting}[style=racket]
@@ -131,6 +147,26 @@ If the graph has a cycle, say we add the edge $D \to A$, then searching from
 \code{'A} for an unreachable node such as \code{'B} can go
 $A \to C \to D \to A \to C \to \cdots$ forever. The functions above do not
 terminate on cyclic graphs.
+
+\begin{center}
+\begin{tikzpicture}[->, >={Stealth}, node distance=16mm,
+  every node/.style={circle,draw,minimum size=7mm}]
+  \node (A) {A};
+  \node (C) [right=of A] {C};
+  \node (B) [below=of A] {B};
+  \node (D) [below=of C] {D};
+  \node (E) [right=of C] {E};
+  \node (F) [right=of D] {F};
+  \draw[very thick,red!70!black] (A) -- (C);
+  \draw (A) -- (D); \draw (A) -- (E);
+  \draw (B) -- (E); \draw (B) -- (F);
+  \draw[very thick,red!70!black] (C) -- (D);
+  \draw (D) -- (F);
+  \draw (E) -- (F);
+  \draw[very thick,red!70!black] (D) to[bend left=25] (A);
+  \node[draw=none,font=\scriptsize,red!70!black,align=left,anchor=west] at ($(F.east)+(0.4,0.8)$) {new edge $D \to A$ closes\\the cycle $A \to C \to D \to A$};
+\end{tikzpicture}
+\end{center}
 
 \subsection{Fix: an accumulator of visited nodes}
 Keep a list of nodes already on the current path (or already visited) and

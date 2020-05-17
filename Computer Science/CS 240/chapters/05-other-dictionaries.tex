@@ -29,6 +29,68 @@ S0: -inf - 10 - 23 - 31 - 37 - 44 - 65 - 83 - 92 - +inf
 \end{verbatim}
 \end{example}
 
+Drawn as towers, with the search path for 65 in red: it ends at 44, the
+predecessor of 65 in $S_0$, and 65 is the next key.
+\begin{center}
+\begin{tikzpicture}[sk/.style={draw,minimum width=8mm,minimum height=5mm,inner sep=1pt,font=\scriptsize}]
+  \node[font=\scriptsize,anchor=east] at (-0.6,0.00) {$S_0$};
+  \node[sk,fill=gray!15] (n0_0) at (0.00,0.00) {$-\infty$};
+  \node[sk,fill=white] (n0_1) at (1.10,0.00) {10};
+  \node[sk,fill=white] (n0_2) at (2.20,0.00) {23};
+  \node[sk,fill=white] (n0_3) at (3.30,0.00) {31};
+  \node[sk,fill=orange!25] (n0_4) at (4.40,0.00) {37};
+  \node[sk,fill=orange!25] (n0_5) at (5.50,0.00) {44};
+  \node[sk,fill=white] (n0_6) at (6.60,0.00) {65};
+  \node[sk,fill=white] (n0_7) at (7.70,0.00) {83};
+  \node[sk,fill=white] (n0_8) at (8.80,0.00) {92};
+  \node[sk,fill=gray!15] (n0_9) at (9.90,0.00) {$+\infty$};
+  \draw[-{Stealth}] (n0_0) -- (n0_1);
+  \draw[-{Stealth}] (n0_1) -- (n0_2);
+  \draw[-{Stealth}] (n0_2) -- (n0_3);
+  \draw[-{Stealth}] (n0_3) -- (n0_4);
+  \draw[-{Stealth}] (n0_4) -- (n0_5);
+  \draw[-{Stealth}] (n0_5) -- (n0_6);
+  \draw[-{Stealth}] (n0_6) -- (n0_7);
+  \draw[-{Stealth}] (n0_7) -- (n0_8);
+  \draw[-{Stealth}] (n0_8) -- (n0_9);
+  \node[font=\scriptsize,anchor=east] at (-0.6,0.80) {$S_1$};
+  \node[sk,fill=gray!15] (n1_0) at (0.00,0.80) {$-\infty$};
+  \node[sk,fill=white] (n1_2) at (2.20,0.80) {23};
+  \node[sk,fill=orange!25] (n1_4) at (4.40,0.80) {37};
+  \node[sk,fill=white] (n1_7) at (7.70,0.80) {83};
+  \node[sk,fill=gray!15] (n1_9) at (9.90,0.80) {$+\infty$};
+  \draw[-{Stealth}] (n1_0) -- (n1_2);
+  \draw[-{Stealth}] (n1_2) -- (n1_4);
+  \draw[-{Stealth}] (n1_4) -- (n1_7);
+  \draw[-{Stealth}] (n1_7) -- (n1_9);
+  \draw[gray] (n1_0) -- (n0_0);
+  \draw[gray] (n1_2) -- (n0_2);
+  \draw[gray] (n1_4) -- (n0_4);
+  \draw[gray] (n1_7) -- (n0_7);
+  \draw[gray] (n1_9) -- (n0_9);
+  \node[font=\scriptsize,anchor=east] at (-0.6,1.60) {$S_2$};
+  \node[sk,fill=orange!25] (n2_0) at (0.00,1.60) {$-\infty$};
+  \node[sk,fill=orange!25] (n2_4) at (4.40,1.60) {37};
+  \node[sk,fill=gray!15] (n2_9) at (9.90,1.60) {$+\infty$};
+  \draw[-{Stealth}] (n2_0) -- (n2_4);
+  \draw[-{Stealth}] (n2_4) -- (n2_9);
+  \draw[gray] (n2_0) -- (n1_0);
+  \draw[gray] (n2_4) -- (n1_4);
+  \draw[gray] (n2_9) -- (n1_9);
+  \node[font=\scriptsize,anchor=east] at (-0.6,2.40) {$S_3$};
+  \node[sk,fill=orange!25] (n3_0) at (0.00,2.40) {$-\infty$};
+  \node[sk,fill=gray!15] (n3_9) at (9.90,2.40) {$+\infty$};
+  \draw[-{Stealth}] (n3_0) -- (n3_9);
+  \draw[gray] (n3_0) -- (n2_0);
+  \draw[gray] (n3_9) -- (n2_9);
+  \draw[-{Stealth},very thick,red!70!black,shorten <=1pt,shorten >=1pt] ($(n3_0)+(0.15,-0.27)$) -- ($(n2_0)+(0.15,0.27)$);
+  \draw[-{Stealth},very thick,red!70!black,shorten <=1pt,shorten >=1pt] ($(n2_0)+(0.42,0.13)$) -- ($(n2_4)+(-0.42,0.13)$);
+  \draw[-{Stealth},very thick,red!70!black,shorten <=1pt,shorten >=1pt] ($(n2_4)+(0.15,-0.27)$) -- ($(n1_4)+(0.15,0.27)$);
+  \draw[-{Stealth},very thick,red!70!black,shorten <=1pt,shorten >=1pt] ($(n1_4)+(0.15,-0.27)$) -- ($(n0_4)+(0.15,0.27)$);
+  \draw[-{Stealth},very thick,red!70!black,shorten <=1pt,shorten >=1pt] ($(n0_4)+(0.42,0.13)$) -- ($(n0_5)+(-0.42,0.13)$);
+\end{tikzpicture}
+\end{center}
+
 \subsection{Search}
 
 Start at the top-left sentinel. Move right while the next key is smaller than
@@ -185,6 +247,40 @@ List $[A, B, C, D, E]$, accesses D, D, B, D.
 \begin{itemize}
   \item MTF: D (cost 4) gives $[D,A,B,C,E]$; D (1); B (3) gives $[B,D,A,C,E]$;
         D (2). Total 10.
+\begin{center}
+\begin{tikzpicture}[mt/.style={draw,minimum size=6mm,font=\small}]
+  \node[mt,fill=white] at (0.0,0.0) {A};
+  \node[mt,fill=white] at (0.7,0.0) {B};
+  \node[mt,fill=white] at (1.4,0.0) {C};
+  \node[mt,fill=white] at (2.1,0.0) {D};
+  \node[mt,fill=white] at (2.8,0.0) {E};
+  \node[font=\scriptsize,anchor=east] at (-0.5,0.0) {start};
+  \node[mt,fill=orange!25] at (0.0,-0.7) {D};
+  \node[mt,fill=white] at (0.7,-0.7) {A};
+  \node[mt,fill=white] at (1.4,-0.7) {B};
+  \node[mt,fill=white] at (2.1,-0.7) {C};
+  \node[mt,fill=white] at (2.8,-0.7) {E};
+  \node[font=\scriptsize,anchor=east] at (-0.5,-0.7) {D (cost 4)};
+  \node[mt,fill=orange!25] at (0.0,-1.4) {D};
+  \node[mt,fill=white] at (0.7,-1.4) {A};
+  \node[mt,fill=white] at (1.4,-1.4) {B};
+  \node[mt,fill=white] at (2.1,-1.4) {C};
+  \node[mt,fill=white] at (2.8,-1.4) {E};
+  \node[font=\scriptsize,anchor=east] at (-0.5,-1.4) {D (cost 1)};
+  \node[mt,fill=orange!25] at (0.0,-2.1) {B};
+  \node[mt,fill=white] at (0.7,-2.1) {D};
+  \node[mt,fill=white] at (1.4,-2.1) {A};
+  \node[mt,fill=white] at (2.1,-2.1) {C};
+  \node[mt,fill=white] at (2.8,-2.1) {E};
+  \node[font=\scriptsize,anchor=east] at (-0.5,-2.1) {B (cost 3)};
+  \node[mt,fill=orange!25] at (0.0,-2.8) {D};
+  \node[mt,fill=white] at (0.7,-2.8) {B};
+  \node[mt,fill=white] at (1.4,-2.8) {A};
+  \node[mt,fill=white] at (2.1,-2.8) {C};
+  \node[mt,fill=white] at (2.8,-2.8) {E};
+  \node[font=\scriptsize,anchor=east] at (-0.5,-2.8) {D (cost 2)};
+\end{tikzpicture}
+\end{center}
   \item Transpose: D (4) gives $[A,B,D,C,E]$; D (3) gives $[A,D,B,C,E]$;
         B (3) gives $[A,B,D,C,E]$; D (3). Total 13.
 \end{itemize}

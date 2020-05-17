@@ -1,5 +1,13 @@
 \chapter{Lists}\label{ch:lists}
 
+\tikzset{
+  lcell/.style={draw,minimum width=7mm,minimum height=6mm,inner sep=1pt},
+  lptr/.style={-{Stealth}},
+  rarr/.style={-{Stealth},thick},
+  rcall/.style={draw,rounded corners,fill=blue!6,font=\ttfamily\small,minimum height=6mm},
+  rval/.style={draw,rounded corners,fill=green!8,font=\ttfamily\small,minimum height=6mm,minimum width=8mm}
+}
+
 Structures hold a \emph{fixed} number of values. To represent an arbitrary
 number of values --- a class list, the words in a sentence, a sequence of
 measurements --- we need a type whose values can be any size. The list is
@@ -59,6 +67,23 @@ The set of lists is defined \textbf{recursively} (self-referentially):
 ;; * empty
 ;; * (cons Num (listof Num))
 \end{lstlisting}
+
+Drawn as nested boxes, each non-empty list holds a first element and,
+inside it, a smaller list --- until the innermost box is \code{empty}:
+
+\begin{center}
+\begin{tikzpicture}[lab/.style={font=\scriptsize\ttfamily,anchor=north west,inner sep=2pt}]
+  \draw[rounded corners,fill=blue!4] (0,0) rectangle (5.6,2.7);
+  \node[lab] at (0,2.7) {(cons 2 \_)};
+  \node[lcell,fill=white] at (0.7,1.0) {2};
+  \draw[rounded corners,fill=blue!10] (1.4,0.2) rectangle (5.4,2.15);
+  \node[lab] at (1.4,2.15) {(cons 3 \_)};
+  \node[lcell,fill=white] at (2.1,0.85) {3};
+  \draw[rounded corners,fill=blue!18] (2.8,0.4) rectangle (5.2,1.4);
+  \node[font=\ttfamily\small] at (4.0,0.9) {empty};
+  \node[font=\scriptsize,align=left,anchor=west] at (6.0,1.35) {first: a value\\rest: again a list\\(the self-reference)};
+\end{tikzpicture}
+\end{center}
 
 The definition is not circular because the base case \code{empty} is not
 self-referential, and every self-reference refers to a smaller list. We use
@@ -133,6 +158,28 @@ a proof by induction.
 => (+ 2 3)
 => 5
 \end{lstlisting}
+The same computation as a picture: the calls go down the list one
+\code{rest} at a time, and the answers come back up, each level adding its
+own first element.
+
+\begin{center}
+\begin{tikzpicture}
+  \node[rcall] (c1) at (0,0) {(sum (list 2 3))};
+  \node[rcall] (c2) at (0,-1.2) {(sum (list 3))};
+  \node[rcall] (c3) at (0,-2.4) {(sum empty)};
+  \node[rval] (r3) at (5,-2.4) {0};
+  \node[rval] (r2) at (5,-1.2) {3};
+  \node[rval] (r1) at (5,0) {5};
+  \draw[rarr] (c1) -- node[left,font=\scriptsize]{rest} (c2);
+  \draw[rarr] (c2) -- node[left,font=\scriptsize]{rest} (c3);
+  \draw[rarr] (c3) -- node[above,font=\scriptsize]{base case} (r3);
+  \draw[rarr,green!40!black] (r3) -- node[right,font=\scriptsize\ttfamily]{(+ 3 0)} (r2);
+  \draw[rarr,green!40!black] (r2) -- node[right,font=\scriptsize\ttfamily]{(+ 2 3)} (r1);
+  \draw[densely dotted] (c1) -- (r1);
+  \draw[densely dotted] (c2) -- (r2);
+\end{tikzpicture}
+\end{center}
+
 For comparison, the first few full steps are:
 \begin{lstlisting}[style=racket]
 (sum (cons 2 (cons 3 empty)))
@@ -161,6 +208,28 @@ In \emph{Beginning Student with List Abbreviations}:
 at all in the teaching languages (it is an error, since the second argument
 must be a list). \code{(cons (list 1 2) (list 3))} is the two-element list
 \code{(list (list 1 2) 3)}.
+
+In box-and-pointer form, the first element of the outer list is itself a
+pointer to the inner list:
+
+\begin{center}
+\begin{tikzpicture}
+  \node[lcell] (a1) at (0,0) {}; \node[lcell] (a2) at (0.7,0) {};
+  \node[lcell] (b1) at (2.1,0) {3}; \node[lcell] (b2) at (2.8,0) {};
+  \node[font=\ttfamily\small] (e1) at (4.3,0) {empty};
+  \node[lcell] (c1) at (0,-1.4) {1}; \node[lcell] (c2) at (0.7,-1.4) {};
+  \node[lcell] (d1) at (2.1,-1.4) {2}; \node[lcell] (d2) at (2.8,-1.4) {};
+  \node[font=\ttfamily\small] (e2) at (4.3,-1.4) {empty};
+  \fill (a1.center) circle (1.2pt);
+  \draw[lptr] (a1.center) -- (c1.north);
+  \draw[lptr] (a2.center) -- (b1.west);
+  \draw[lptr] (b2.center) -- (e1.west);
+  \draw[lptr] (c2.center) -- (d1.west);
+  \draw[lptr] (d2.center) -- (e2.west);
+  \node[font=\scriptsize,anchor=east] at (-0.5,0) {outer list};
+  \node[font=\scriptsize,anchor=east] at (-0.5,-1.4) {\code{(list 1 2)}};
+\end{tikzpicture}
+\end{center}
 
 \section{Lists of structures and strings}
 

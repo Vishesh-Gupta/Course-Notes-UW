@@ -59,6 +59,23 @@ random access & bidirectional $+$ \code{it + n}, \code{it[n]}, \code{<} & \code{
 Algorithms state which category they need; e.g.\ \code{sort} needs random access,
 so it works on a \code{vector} but not on a \code{list}.
 
+The categories are nested: every random-access iterator is also bidirectional, every
+bidirectional one is forward, and every forward one can be used as an input iterator.
+\begin{center}
+\begin{tikzpicture}[font=\small]
+  \draw[fill=gray!6] (0,0) ellipse (5.4cm and 2.1cm);
+  \draw[fill=blue!6] (0.6,-0.3) ellipse (4.2cm and 1.6cm);
+  \draw[fill=blue!12] (1.2,-0.55) ellipse (3cm and 1.1cm);
+  \draw[fill=blue!20] (1.7,-0.75) ellipse (1.8cm and 0.6cm);
+  \node at (-3.6,0.9) {input};
+  \node at (-2.4,0.2) {forward};
+  \node at (-0.8,-0.3) {bidirectional};
+  \node[align=center,font=\scriptsize] at (1.7,-0.75) {random access\\ (\code{vector}, pointers)};
+\end{tikzpicture}
+
+\small (Output iterators form a separate category, used only for writing.)
+\end{center}
+
 \section{The \code{<algorithm>} Library}
 A suite of template functions, most of which work over iterator ranges
 \code{[start, finish)} (start included, finish excluded).
@@ -101,6 +118,21 @@ vector<int> v{1, 2, 3, 4, 5, 6, 7};
 vector<int> w(4);                                  // 4 zeros: room for 4
 copy(v.begin() + 1, v.begin() + 5, w.begin());     // w = {2, 3, 4, 5}
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,x=0.8cm,c/.style={draw,minimum width=0.8cm,minimum height=0.6cm}]
+  \node[anchor=east] at (-0.6,0) {\code{v}};
+  \foreach \x [count=\k from 0] in {1,2,3,4,5,6,7} \node[c] (v\k) at (\k,0) {\x};
+  \foreach \k in {1,...,4} \node[c,fill=blue!10] at (\k,0) {\the\numexpr\k+1\relax};
+  \node[anchor=east] at (-0.6,-1.8) {\code{w}};
+  \foreach \x [count=\k from 0] in {2,3,4,5} \node[c,fill=green!10] (w\k) at (\k+1,-1.8) {\x};
+  \draw[<-] (v1.north) -- ++(0,0.5) node[above,font=\scriptsize]{\code{v.begin()+1}};
+  \draw[<-] (v5.north) -- ++(0,0.5) node[above,font=\scriptsize]{\code{v.begin()+5} (excluded)};
+  \draw[<-] (w0.south) -- ++(0,-0.5) node[below,font=\scriptsize]{\code{w.begin()}};
+  \foreach \k in {1,...,4} {\pgfmathtruncatemacro\j{\k-1}\draw[->,gray] (v\k.south) -- (w\j.north);}
+\end{tikzpicture}
+
+\small The half-open range \code{[first, last)} holds \code{last - first} $=4$ elements, and \code{w} must already have room for them.
+\end{center}
 Copying into an empty vector writes past its end: undefined behaviour.
 \end{important}
 

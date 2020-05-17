@@ -72,6 +72,20 @@ sub $30, $30, $4
 \end{lstlisting}
 The $k$-th variable (counting from 0) is at offset $-4k$ from \code{\$29}.
 Reading a variable: \code{lw \$3, off(\$29)}; writing: \code{sw \$3, off(\$29)}.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,cell/.style={draw,minimum width=3.2cm,minimum height=0.55cm,font=\small}]
+  \node[cell,fill=gray!10] (t) at (0,0) {loader's stack};
+  \node[cell,below=0pt of t,fill=blue!5] (a) {\code{a} (from \code{\$1})};
+  \node[cell,below=0pt of a,fill=blue!5] (b) {\code{b} (from \code{\$2})};
+  \node[cell,below=0pt of b,fill=blue!5] (x) {\code{x} $=7$};
+  \node[cell,below=0pt of x,fill=gray!5,draw=gray] (f) {\textcolor{gray}{free}};
+  \foreach \c/\o in {a/0,b/-4,x/-8} \node[font=\scriptsize,anchor=east] at ([xshift=-2pt]\c.west) {offset $\o$};
+  \draw[<-] (a.east) -- ++(0.8,0) node[right]{\code{\$29} (fixed)};
+  \draw[<-] (x.east) -- ++(0.8,0) node[right]{\code{\$30} (moves)};
+\end{tikzpicture}
+
+\small \code{wain}'s frame after the prologue (higher addresses at the top).
+\end{center}
 \paragraph{Epilogue.} \code{add \$30, \$29, \$4} (pop the frame) then \code{jr \$31}.
 
 \section{Expressions}
@@ -338,6 +352,29 @@ add $30, $29, $4
 jr $31
 \end{lstlisting}
 \end{example}
+
+How the stack evolves while the body computes \code{a + b * 2}:
+\begin{center}
+\begin{tikzpicture}[>=Stealth,cell/.style={draw,minimum width=2cm,minimum height=0.5cm,font=\small},
+  tmp/.style={cell,fill=orange!12}]
+  \foreach \x/\i/\t in {0/0/{after \code{push(a)}},3.4/1/{after \code{push(b)}},6.8/2/{after both pops}} {
+    \node[font=\scriptsize] at (\x,0.55) {\t};
+    \node[cell,fill=blue!5] (a\i) at (\x,0) {\code{a}};
+    \node[cell,fill=blue!5,below=0pt of a\i] (b\i) {\code{b}};
+  }
+  \node[tmp,below=0pt of b0] (p0) {copy of \code{a}};
+  \node[tmp,below=0pt of b1] (p1) {copy of \code{a}};
+  \node[tmp,below=0pt of p1] (q1) {copy of \code{b}};
+  \draw[<-] (p0.west) -- ++(-0.5,0) node[left,font=\scriptsize]{\code{\$30}};
+  \draw[<-] (q1.west) -- ++(-0.5,0) node[left,font=\scriptsize]{\code{\$30}};
+  \draw[<-] (b2.west) -- ++(-0.5,0) node[left,font=\scriptsize]{\code{\$30}};
+  \node[font=\scriptsize,below=4pt of p0] {\code{\$3} $=$ \code{a}};
+  \node[font=\scriptsize,below=4pt of q1] {\code{\$3} $=2$, then \code{b*2}};
+  \node[font=\scriptsize,below=4pt of b2] {\code{\$3} $=$ \code{a + b*2}};
+\end{tikzpicture}
+\end{center}
+Each binary operator pushes exactly one temporary and pops it again, so the stack is back to
+the bare frame when the expression is done.
 
 \section{Summary}
 \begin{itemize}

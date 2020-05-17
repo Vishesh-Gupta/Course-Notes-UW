@@ -119,6 +119,28 @@ of which there is exactly one. (2) $T + e - f$ is connected ($f$ lies on a cycle
 bridge of $T + e$) and has $p - 1$ edges, so it is a tree.
 \end{proof}
 
+\begin{center}
+\begin{tikzpicture}[every label/.style={font=\scriptsize}]
+  \foreach \s/\title in {0/{$T$ (thick)},1/{$T + e$ has one cycle},2/{$T + e - f$}} {
+    \begin{scope}[xshift=\s*4.2cm]
+      \node[vtx] (a\s) at (0,0) {}; \node[vtx] (b\s) at (1,0.9) {}; \node[vtx] (c\s) at (2,0) {};
+      \node[vtx] (d\s) at (3,0.9) {}; \node[vtx] (e\s) at (1,-0.9) {}; \node[vtx] (f\s) at (2.6,-0.9) {};
+      \draw[gray!50] (a\s)--(b\s)--(c\s)--(d\s) (a\s)--(e\s)--(c\s)--(f\s) (b\s)--(d\s) (e\s)--(f\s);
+      \node[font=\small] at (1.5,-1.6) {\title};
+    \end{scope}
+  }
+  \draw[very thick] (a0)--(b0)--(c0)--(d0) (a0)--(e0) (c0)--(f0);
+  \draw[very thick] (a1)--(b1)--(c1)--(d1) (a1)--(e1) (c1)--(f1);
+  \draw[very thick,blue!70!black] (e1)--node[below,font=\scriptsize] {$e$}(f1);
+  \draw[very thick,red!70!black] (a1)--(b1)--(c1)--(f1) (a1)--(e1);
+  \node[font=\scriptsize,red!70!black] at (5.0,0.65) {$f$};
+  \draw[very thick] (b2)--(c2)--(d2) (a2)--(e2) (c2)--(f2);
+  \draw[very thick,blue!70!black] (e2)--(f2);
+\end{tikzpicture}
+\end{center}
+Adding the non-tree edge $e$ (blue) creates exactly one cycle (red, together with $e$);
+deleting any tree edge $f$ of that cycle (here the top-left one) leaves a new spanning tree.
+
 \section{Breadth-first search}
 
 Breadth-first search (BFS) finds a spanning tree of a connected graph, and in fact decides
@@ -145,6 +167,26 @@ $uv$ is an edge, then when $u$ is processed either $v$ is already seen (with lev
 $\mathrm{level}(u) + 1$, and at least $\mathrm{level}(u)$ since it comes later) or $v$ gets level
 $\mathrm{level}(u) + 1$.
 \end{proof}
+
+\begin{example}
+A BFS of $Q_3$ from $r = 000$: the levels are the numbers of $1$s. Tree edges are solid, the
+remaining edges of $Q_3$ are dashed, and every edge joins consecutive levels.
+\begin{center}
+\begin{tikzpicture}[every label/.style={font=\scriptsize}]
+  \node[vtx,label=left:$000$] (000) at (0,0) {};
+  \node[vtx,label=left:$100$] (100) at (-2,-1.2) {};
+  \node[vtx,label=left:$010$] (010) at (0,-1.2) {};
+  \node[vtx,label=right:$001$] (001) at (2,-1.2) {};
+  \node[vtx,label=left:$110$] (110) at (-2,-2.4) {};
+  \node[vtx,label=left:$101$] (101) at (0,-2.4) {};
+  \node[vtx,label=right:$011$] (011) at (2,-2.4) {};
+  \node[vtx,label=left:$111$] (111) at (0,-3.6) {};
+  \draw[very thick] (000)--(100) (000)--(010) (000)--(001) (100)--(110) (100)--(101) (010)--(011) (110)--(111);
+  \draw[dashed,gray] (010)--(110) (001)--(101) (001)--(011) (101)--(111) (011)--(111);
+  \foreach \l/\y in {0/0,1/-1.2,2/-2.4,3/-3.6} \node[font=\scriptsize,gray] at (4,\y) {level \l};
+\end{tikzpicture}
+\end{center}
+\end{example}
 
 \section{Odd cycles and bipartite graphs}
 
@@ -193,6 +235,20 @@ Vertices $a,b,c,d$ with costs $ab = 1$, $bc = 2$, $ac = 3$, $cd = 4$, $bd = 5$. 
 add $ab$ ($1$), then the cheapest edge leaving $\{a,b\}$ is $bc$ ($2$), then leaving $\{a,b,c\}$ is
 $cd$ ($4$). The MST $\{ab,bc,cd\}$ has cost $7$.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[every label/.style={font=\small}]
+  \node[vtx,label=left:$a$] (a) at (0,0) {};
+  \node[vtx,label=above:$b$] (b) at (1.8,1.2) {};
+  \node[vtx,label=below:$c$] (c) at (1.8,-1.2) {};
+  \node[vtx,label=right:$d$] (d) at (3.8,0) {};
+  \draw[very thick,blue!70!black] (a)--node[above left,font=\scriptsize]{$1$}(b);
+  \draw[very thick,blue!70!black] (b)--node[right,font=\scriptsize]{$2$}(c);
+  \draw[gray] (a)--node[below left,font=\scriptsize]{$3$}(c);
+  \draw[very thick,blue!70!black] (c)--node[below right,font=\scriptsize]{$4$}(d);
+  \draw[gray] (b)--node[above right,font=\scriptsize]{$5$}(d);
+\end{tikzpicture}
+\end{center}
 
 \section{Summary}
 \begin{itemize}

@@ -111,6 +111,36 @@ The pseudo-instruction \code{li \$t0, 0x12345678} expands to exactly this
     plus two implied zero bits covers 256\,MB within the current region.
 \end{enumerate}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, x=0.32cm, y=0.8cm, >=Stealth]
+  % instruction
+  \draw[thick, fill=gray!15] (0,3) rectangle (6,4);
+  \draw[thick, fill=blue!10] (6,3) rectangle (32,4);
+  \node at (3,3.5) {\scriptsize op = 2};
+  \node at (19,3.5) {\scriptsize address (26 bits)};
+  \node[anchor=east] at (-0.3,3.5) {\code{j} instruction};
+  % PC+4
+  \draw[thick, fill=orange!15] (0,1.5) rectangle (4,2.5);
+  \draw[thick] (4,1.5) rectangle (32,2.5);
+  \node at (2,2) {\scriptsize 31--28};
+  \node at (18,2) {\scriptsize (rest of $PC+4$, unused)};
+  \node[anchor=east] at (-0.3,2) {$PC+4$};
+  % target
+  \draw[thick, fill=orange!15] (0,0) rectangle (4,1);
+  \draw[thick, fill=blue!10] (4,0) rectangle (30,1);
+  \draw[thick, fill=green!15] (30,0) rectangle (32,1);
+  \node at (2,0.5) {\scriptsize 4 bits};
+  \node at (17,0.5) {\scriptsize address (26 bits)};
+  \node at (31,0.5) {\scriptsize 00};
+  \node[anchor=east] at (-0.3,0.5) {jump target};
+  \draw[->, blue!60!black] (19,3) -- (17,1);
+  \draw[->, orange!70!black] (2,1.5) -- (2,1);
+\end{tikzpicture}
+\caption{Pseudo-direct addressing: the 32-bit jump target is the top four
+bits of $PC+4$, the 26-bit address field, and two zero bits.}
+\end{figure}
+
 \begin{example}[Encoding a branch]
 At address 0x00400010: \code{beq \$t0, \$t1, L} where \code{L} is at
 0x00400024. Offset $= (0x24 - 0x14)/4 = 4$. Encoding: op 4, rs 8, rt 9,
@@ -211,12 +241,54 @@ L1:   addi $a0, $a0, -1
 (\code{mul} is a pseudo-instruction for \code{mult} + \code{mflo}.)
 \end{example}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >=Stealth, x=1cm, y=0.55cm]
+  \node[font=\scriptsize, anchor=south] at (1.5,0.2) {high addresses};
+  \foreach \y/\txt/\c in {0/{caller's frame}/gray!15,
+      -1/{\$ra (into main)}/blue!10, -2/{\$a0 = 3}/blue!10,
+      -3/{\$ra (into fact)}/green!12, -4/{\$a0 = 2}/green!12,
+      -5/{\$ra (into fact)}/orange!15, -6/{\$a0 = 1}/orange!15,
+      -7/{\$ra (into fact)}/red!12, -8/{\$a0 = 0}/red!12} {
+    \node[draw, fill=\c, minimum width=3cm, minimum height=0.55cm, anchor=north west, font=\scriptsize] at (0,\y) {\txt};
+  }
+  \foreach \y/\lab in {-1/{fact(3)}, -3/{fact(2)}, -5/{fact(1)}, -7/{fact(0)}} {
+    \draw[decorate, decoration={brace, amplitude=4pt}] (3.1,\y) -- (3.1,\y-2)
+      node[midway, right=4pt, font=\scriptsize] {frame of \lab};
+  }
+  \draw[<-, thick] (-0.05,-9) -- ++(-1,0) node[left]{\code{\$sp}};
+  \draw[->, thick, gray] (-0.6,-1) -- node[left, font=\scriptsize, align=center]{stack\\grows\\down} (-0.6,-7);
+\end{tikzpicture}
+\caption{The stack at the deepest point of \code{fact(3)}: each call pushed
+an 8-byte frame holding its return address and its argument $n$.}
+\end{figure}
+
 \subsection{Memory layout}
 
 From low to high addresses: reserved, \textbf{text} (code, starting at
 0x00400000), \textbf{static data} (globals, accessed via \code{\$gp}),
 \textbf{heap} (dynamic, grows up), and the \textbf{stack} (grows down from
 0x7FFFFFFC). Heap and stack grow toward each other.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >=Stealth, x=1cm, y=1cm]
+  \draw[thick, fill=gray!15] (0,0) rectangle (3.2,0.6); \node at (1.6,0.3) {reserved};
+  \draw[thick, fill=blue!10] (0,0.6) rectangle (3.2,1.4); \node at (1.6,1.0) {text (code)};
+  \draw[thick, fill=green!12] (0,1.4) rectangle (3.2,2.2); \node at (1.6,1.8) {static data};
+  \draw[thick, fill=orange!15] (0,2.2) rectangle (3.2,3.0); \node at (1.6,2.6) {heap};
+  \draw[thick] (0,3.0) rectangle (3.2,4.4); \node[gray] at (1.6,3.7) {free};
+  \draw[thick, fill=red!12] (0,4.4) rectangle (3.2,5.2); \node at (1.6,4.8) {stack};
+  \draw[->, thick] (2.6,3.0) -- (2.6,3.45);
+  \draw[->, thick] (2.6,4.4) -- (2.6,3.95);
+  \foreach \y/\a in {0.6/0x00400000, 1.4/0x10000000, 5.2/0x7FFFFFFC}
+    \node[anchor=east, font=\ttfamily\scriptsize] at (-0.1,\y) {\a};
+  \draw[<-] (3.2,1.9) -- (4,1.9) node[right, font=\scriptsize]{\code{\$gp}};
+  \draw[<-] (3.2,4.4) -- (4,4.4) node[right, font=\scriptsize]{\code{\$sp}};
+  \draw[<-] (3.2,0.9) -- (4,0.9) node[right, font=\scriptsize]{PC};
+\end{tikzpicture}
+\caption{MIPS memory layout (low addresses at the bottom).}
+\end{figure}
 
 \section{From Source to Execution}
 

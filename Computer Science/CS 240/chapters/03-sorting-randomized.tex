@@ -37,6 +37,23 @@ partition(A, p):
 Invariant: $A[0..i-1] \le v$ and $A[j+1..n-2] \ge v$. Runs in $\Theta(n)$ time
 with $\bigO(1)$ extra space.
 
+\begin{center}
+\begin{tikzpicture}[r/.style={draw,minimum height=7mm,font=\small}]
+  \node[font=\scriptsize\bfseries,anchor=east] at (-0.2,0) {during};
+  \node[r,fill=blue!10,minimum width=3cm,anchor=west] (lo) at (0,0) {$\le v$};
+  \node[r,minimum width=3.2cm,anchor=west] (un) at (lo.east) {not yet examined};
+  \node[r,fill=orange!20,minimum width=2.8cm,anchor=west] (hi) at (un.east) {$\ge v$};
+  \node[r,fill=gray!20,minimum width=0.8cm,anchor=west] (pv) at (hi.east) {$v$};
+  \draw[-{Stealth}] ($(un.south west)+(0.2,-0.5)$) node[below,font=\scriptsize]{$i$} -- ($(un.south west)+(0.2,0)$);
+  \draw[-{Stealth}] ($(un.south east)+(-0.2,-0.5)$) node[below,font=\scriptsize]{$j$} -- ($(un.south east)+(-0.2,0)$);
+  \node[font=\scriptsize\bfseries,anchor=east] at (-0.2,-1.9) {after};
+  \node[r,fill=blue!10,minimum width=4.6cm,anchor=west] (lo2) at (0,-1.9) {$\le v$};
+  \node[r,fill=gray!20,minimum width=0.8cm,anchor=west] (pv2) at (lo2.east) {$v$};
+  \node[r,fill=orange!20,minimum width=4.4cm,anchor=west] (hi2) at (pv2.east) {$> v$};
+  \node[font=\scriptsize,below=0pt of pv2] {index $i$};
+\end{tikzpicture}
+\end{center}
+
 \subsection{QuickSelect}
 
 \begin{lstlisting}
@@ -59,6 +76,21 @@ and the subarrays are again random). Then
 \[
 T^{\text{avg}}(n) \le cn + \frac1n \sum_{i=0}^{n-1} \max\{T(i), T(n-i-1)\}.
 \]
+
+\begin{center}
+\begin{tikzpicture}
+  \fill[red!10] (0,0) rectangle (2.5,0.6);
+  \fill[green!15] (2.5,0) rectangle (7.5,0.6);
+  \fill[red!10] (7.5,0) rectangle (10,0.6);
+  \draw (0,0) rectangle (10,0.6);
+  \draw (2.5,0) -- (2.5,0.6) (7.5,0) -- (7.5,0.6);
+  \node[font=\scriptsize] at (1.25,0.3) {bad};
+  \node[font=\scriptsize] at (5,0.3) {good pivot position $i$};
+  \node[font=\scriptsize] at (8.75,0.3) {bad};
+  \foreach \x/\t in {0/0,2.5/{n/4},7.5/{3n/4},10/n} \node[font=\scriptsize,below] at (\x,0) {$\t$};
+\end{tikzpicture}
+\end{center}
+A good pivot leaves at most $3n/4$ items on either side.
 
 \begin{theorem}
 $T^{\text{avg}}(n) \in \Theta(n)$ for QuickSelect.
@@ -196,6 +228,33 @@ height at least $\log_2(n!)$. Finally
 The worst-case number of comparisons is the height, so it is $\Omega(n\log n)$.
 \end{proof}
 
+\begin{center}
+\begin{tikzpicture}[level distance=12mm,
+  level 1/.style={sibling distance=60mm},
+  level 2/.style={sibling distance=30mm},
+  level 3/.style={sibling distance=15mm},
+  q/.style={draw,rounded corners,fill=blue!6,font=\scriptsize,inner sep=2pt},
+  lf/.style={draw,fill=green!10,font=\scriptsize,inner sep=2pt}]
+  \node[q] {$a_1 < a_2$?}
+    child {node[q] {$a_2 < a_3$?}
+      child {node[lf] {$a_1 a_2 a_3$} edge from parent node[left,font=\tiny] {yes}}
+      child {node[q] {$a_1 < a_3$?}
+        child {node[lf] {$a_1 a_3 a_2$} edge from parent node[left,font=\tiny] {yes}}
+        child {node[lf] {$a_3 a_1 a_2$} edge from parent node[right,font=\tiny] {no}}
+        edge from parent node[right,font=\tiny] {no}}
+      edge from parent node[above left,font=\tiny] {yes}}
+    child {node[q] {$a_1 < a_3$?}
+      child {node[lf] {$a_2 a_1 a_3$} edge from parent node[left,font=\tiny] {yes}}
+      child {node[q] {$a_2 < a_3$?}
+        child {node[lf] {$a_2 a_3 a_1$} edge from parent node[left,font=\tiny] {yes}}
+        child {node[lf] {$a_3 a_2 a_1$} edge from parent node[right,font=\tiny] {no}}
+        edge from parent node[right,font=\tiny] {no}}
+      edge from parent node[above right,font=\tiny] {no}};
+\end{tikzpicture}
+\end{center}
+A decision tree for sorting three items: $3! = 6$ leaves, so some leaf has depth
+at least $\ceil{\log_2 6} = 3$.
+
 So MergeSort and HeapSort are asymptotically optimal among comparison sorts. To
 beat $n \log n$ we must use more than comparisons, e.g.\ the digits of the keys.
 
@@ -241,6 +300,47 @@ Sort $\{123, 230, 21, 320, 210, 232, 101\}$ ($R = 10$, $m = 3$, pad 21 as 021):
   \item by middle digit: 101, 210, 320, 021, 123, 230, 232;
   \item by first digit: 021, 101, 123, 210, 230, 232, 320.
 \end{itemize}
+\begin{center}
+\begin{tikzpicture}
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (0.0,0.00) {\texttt{123}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (0.0,-0.55) {\texttt{230}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (0.0,-1.10) {\texttt{021}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (0.0,-1.65) {\texttt{320}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (0.0,-2.20) {\texttt{210}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (0.0,-2.75) {\texttt{232}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (0.0,-3.30) {\texttt{101}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (2.9,0.00) {\texttt{23\textcolor{red!70!black}{\textbf{0}}}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (2.9,-0.55) {\texttt{32\textcolor{red!70!black}{\textbf{0}}}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (2.9,-1.10) {\texttt{21\textcolor{red!70!black}{\textbf{0}}}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (2.9,-1.65) {\texttt{02\textcolor{red!70!black}{\textbf{1}}}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (2.9,-2.20) {\texttt{10\textcolor{red!70!black}{\textbf{1}}}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (2.9,-2.75) {\texttt{23\textcolor{red!70!black}{\textbf{2}}}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (2.9,-3.30) {\texttt{12\textcolor{red!70!black}{\textbf{3}}}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (5.8,0.00) {\texttt{1\textcolor{red!70!black}{\textbf{0}}1}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (5.8,-0.55) {\texttt{2\textcolor{red!70!black}{\textbf{1}}0}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (5.8,-1.10) {\texttt{3\textcolor{red!70!black}{\textbf{2}}0}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (5.8,-1.65) {\texttt{0\textcolor{red!70!black}{\textbf{2}}1}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (5.8,-2.20) {\texttt{1\textcolor{red!70!black}{\textbf{2}}3}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (5.8,-2.75) {\texttt{2\textcolor{red!70!black}{\textbf{3}}0}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (5.8,-3.30) {\texttt{2\textcolor{red!70!black}{\textbf{3}}2}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (8.7,0.00) {\texttt{\textcolor{red!70!black}{\textbf{0}}21}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (8.7,-0.55) {\texttt{\textcolor{red!70!black}{\textbf{1}}01}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (8.7,-1.10) {\texttt{\textcolor{red!70!black}{\textbf{1}}23}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (8.7,-1.65) {\texttt{\textcolor{red!70!black}{\textbf{2}}10}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (8.7,-2.20) {\texttt{\textcolor{red!70!black}{\textbf{2}}30}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (8.7,-2.75) {\texttt{\textcolor{red!70!black}{\textbf{2}}32}};
+  \node[draw,minimum width=1.2cm,minimum height=5.5mm,font=\small] at (8.7,-3.30) {\texttt{\textcolor{red!70!black}{\textbf{3}}20}};
+  \node[font=\scriptsize] at (0.0,0.6) {input};
+  \node[font=\scriptsize] at (2.9,0.6) {by last digit};
+  \node[font=\scriptsize] at (5.8,0.6) {by middle digit};
+  \node[font=\scriptsize] at (8.7,0.6) {by first digit};
+  \draw[-{Stealth},thick,gray] (0.8,-1.65) -- (2.1,-1.65);
+  \draw[-{Stealth},thick,gray] (3.7,-1.65) -- (5.0,-1.65);
+  \draw[-{Stealth},thick,gray] (6.6,-1.65) -- (7.9,-1.65);
+\end{tikzpicture}
+\end{center}
+Each pass is stable: e.g.\ 210, 230 and 232 tie on the first digit, so the last
+pass keeps the order they had after the middle-digit pass, which is already correct.
 \end{example}
 
 \subsection{MSD Radix Sort}

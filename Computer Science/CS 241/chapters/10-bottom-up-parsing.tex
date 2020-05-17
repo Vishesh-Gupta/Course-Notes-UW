@@ -34,6 +34,23 @@ $\vdash E \dashv$ & & reduce $S' \to\ \vdash E\dashv$, accept \\
 \end{center}
 \end{example}
 
+Each reduction creates one interior node of the parse tree, from the leaves upward. Numbering
+the nodes in the order the reductions happen:
+\begin{center}
+\begin{tikzpicture}[level distance=0.85cm,every node/.style={font=\small},
+  level 1/.style={sibling distance=2cm},level 2/.style={sibling distance=1.1cm},
+  num/.style={label={[font=\scriptsize,text=white,fill=red!60!black,circle,inner sep=1pt]right:#1}}]
+\node[num=5] {$S'$}
+  child {node {$\vdash$}}
+  child {node[num=4] {$E$}
+    child {node[num=2] {$E$} child {node[num=1] {$T$} child {node {id}}}}
+    child {node {$+$}}
+    child {node[num=3] {$T$} child {node {id}}}}
+  child {node {$\dashv$}};
+\end{tikzpicture}
+\end{center}
+Reading the reductions backwards (5, 4, 3, 2, 1) expands the rightmost non-terminal each time.
+
 The hard question is \emph{when} to shift and when to reduce (and by which rule). Note that
 the stack in the third row could be reduced in many ways; we must only reduce when the result
 can still be extended to a valid parse.
@@ -161,6 +178,16 @@ E \to T\bullet + E \qquad\text{and}\qquad E\to T\bullet
 \]
 a shift-reduce conflict: should we reduce $T$ to $E$, or shift the $+$?
 \end{example}
+\begin{center}
+\begin{tikzpicture}[>=Stealth, st/.style={draw,rectangle,rounded corners,align=left,font=\scriptsize,inner sep=3pt}]
+  \node[st] (1) at (0,0) {$S'\to\ \vdash\bullet E\dashv$\\ $E\to\bullet T+E$\\ $E\to\bullet T$\\ $T\to\bullet\mathtt{id}$};
+  \node[st,draw=red!70!black,very thick] (c) at (4,0) {$E\to T\bullet + E$\\ $E\to T\bullet$};
+  \node[st] (n) at (8,0) {$E\to T+\bullet E$\\ $E\to\bullet T+E$\\ $E\to\bullet T$\\ $T\to\bullet\mathtt{id}$};
+  \draw[->] (1) -- node[above,font=\scriptsize]{$T$} (c);
+  \draw[->] (c) -- node[above,font=\scriptsize]{$+$} (n);
+  \node[font=\scriptsize,red!70!black,align=center,below=3pt of c] {shift $+$ \emph{or}\\ reduce $E\to T$?};
+\end{tikzpicture}
+\end{center}
 
 \section{SLR(1)}
 
@@ -200,6 +227,17 @@ state is $\{[A\to c\bullet, d], [B\to c\bullet, e]\}$; after $b\,c$ it is
 $\{[A\to c\bullet, e], [B\to c\bullet, d]\}$. Both have the same core, so LALR merges them into
 $\{[A\to c\bullet, d/e], [B\to c\bullet, d/e]\}$: a reduce-reduce conflict.
 \end{example}
+\begin{center}
+\begin{tikzpicture}[>=Stealth, st/.style={draw,rectangle,rounded corners,align=left,font=\scriptsize,inner sep=3pt}]
+  \node[st] (a) at (0,0.9) {after $a\,c$:\\ $[A\to c\bullet,\ d]$\\ $[B\to c\bullet,\ e]$};
+  \node[st] (b) at (0,-0.9) {after $b\,c$:\\ $[A\to c\bullet,\ e]$\\ $[B\to c\bullet,\ d]$};
+  \node[st,draw=red!70!black,very thick] (m) at (5,0) {LALR merge:\\ $[A\to c\bullet,\ d/e]$\\ $[B\to c\bullet,\ d/e]$};
+  \draw[->] (a.east) -- (m.west);
+  \draw[->] (b.east) -- (m.west);
+  \node[font=\scriptsize,align=center] at (0,-2.0) {LR(1): each state reduces\\ by a different rule on $d$ and on $e$};
+  \node[font=\scriptsize,red!70!black,align=center,below=3pt of m] {on $d$ (and on $e$):\\ reduce by $A\to c$ or $B\to c$?};
+\end{tikzpicture}
+\end{center}
 
 \begin{center}
 \begin{tabular}{lll}

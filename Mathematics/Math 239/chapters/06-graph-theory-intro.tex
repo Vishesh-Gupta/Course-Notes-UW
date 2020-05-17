@@ -87,6 +87,26 @@ is an edge or not), but far fewer isomorphism classes: for $n=4$ there are $64$ 
 but only $11$ graphs up to isomorphism.
 \end{aside}
 
+\begin{example}
+Equal degree sequences do not imply isomorphism. Both graphs below are $2$-regular with $6$
+vertices and $6$ edges, but the left one is connected and the right one is not (equivalently:
+the right one contains a triangle and the left one does not), so they are not isomorphic.
+\begin{center}
+\begin{tikzpicture}
+  \foreach \i in {1,...,6} \node[vtx] (c\i) at ({60*\i}:1) {};
+  \draw (c1)--(c2)--(c3)--(c4)--(c5)--(c6)--(c1);
+  \node at (0,-1.5) {$C_6$};
+  \begin{scope}[xshift=3.5cm]
+    \foreach \i in {1,2,3} \node[vtx] (t\i) at ({120*\i+90}:0.7) {};
+    \draw (t1)--(t2)--(t3)--(t1);
+    \foreach \i in {1,2,3} \node[vtx] (s\i) at ($({120*\i+90}:0.7)+(2,0)$) {};
+    \draw (s1)--(s2)--(s3)--(s1);
+    \node at (1,-1.5) {two disjoint triangles};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+\end{example}
+
 \section{The handshake lemma}
 
 \begin{theorem}[Handshake lemma]
@@ -238,6 +258,21 @@ every edge joins $X$ to $Y$.
   \draw (a)--(b)--(d)--(c)--(a) (e)--(f)--(h)--(g)--(e)
         (a)--(e) (b)--(f) (c)--(g) (d)--(h);
   \node at (1.4,-0.9) {$Q_3$};
+\end{tikzpicture}
+\end{center}
+
+Redrawing $Q_3$ with the even-weight strings on top and the odd-weight strings below makes the
+bipartition visible: every edge goes between the two rows.
+\begin{center}
+\begin{tikzpicture}[every label/.style={font=\scriptsize}]
+  \foreach \s [count=\i] in {000,011,101,110} \node[vtx,fill=blue!70!black,label=above:$\s$] (x\s) at (1.6*\i,1.6) {};
+  \foreach \s [count=\i] in {001,010,100,111} \node[vtx,fill=red!70!black,label=below:$\s$] (y\s) at (1.6*\i,0) {};
+  \draw (x000)--(y001) (x000)--(y010) (x000)--(y100)
+        (x011)--(y001) (x011)--(y010) (x011)--(y111)
+        (x101)--(y001) (x101)--(y100) (x101)--(y111)
+        (x110)--(y010) (x110)--(y100) (x110)--(y111);
+  \node[left,blue!70!black] at (0.9,1.6) {$X$};
+  \node[left,red!70!black] at (0.9,0) {$Y$};
 \end{tikzpicture}
 \end{center}
 

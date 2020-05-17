@@ -29,6 +29,24 @@ almost interchangeably.
     anything; in C it is the file that contains \code{main}.
 \end{itemize}
 
+\begin{center}
+\begin{tikzpicture}[m/.style={draw,rounded corners,fill=blue!6,font=\small\ttfamily,minimum height=7mm,minimum width=2.2cm},
+  arr/.style={-{Stealth},thick}]
+  \node[m,fill=orange!15] (main) at (0,0) {main.c};
+  \node[m] (dict) at (-2.6,-1.4) {dictionary};
+  \node[m] (io) at (2.6,-1.4) {input};
+  \node[m] (bst) at (-2.6,-2.8) {bst};
+  \node[m] (str) at (2.6,-2.8) {strings};
+  \draw[arr] (main) -- (dict);
+  \draw[arr] (main) -- (io);
+  \draw[arr] (dict) -- (bst);
+  \draw[arr] (io) -- (str);
+  \draw[arr] (dict) -- (str);
+  \node[font=\scriptsize,anchor=west,align=left] at (4.1,-0.1) {root: only a client};
+  \node[font=\scriptsize,anchor=west,align=left] at (4.1,-2.15) {arrow: ``requires''\\(no cycles allowed)};
+\end{tikzpicture}
+\end{center}
+
 \subsection{Motivation}
 
 \begin{enumerate}
@@ -170,6 +188,19 @@ int main(void) {
 The implementation includes its own header so the compiler can check that the declarations
 and definitions match.
 
+\begin{center}
+\begin{tikzpicture}[m/.style={draw,rounded corners,font=\small\ttfamily,minimum height=8mm,minimum width=2.6cm,align=center},
+  arr/.style={-{Stealth},thick}]
+  \node[m,fill=blue!8] (h) at (0,0) {sum.h\\{\scriptsize\rmfamily interface}};
+  \node[m,fill=green!8] (c) at (-3.8,-1.8) {sum.c\\{\scriptsize\rmfamily implementation}};
+  \node[m,fill=orange!15] (mn) at (3.8,-1.8) {main.c\\{\scriptsize\rmfamily client}};
+  \draw[arr] (c) -- node[above left,font=\scriptsize\ttfamily]{\#include} (h);
+  \draw[arr] (mn) -- node[above right,font=\scriptsize\ttfamily]{\#include} (h);
+  \draw[dashed,red!60!black,thick] (0,-0.9) -- (0,-2.6);
+  \node[font=\scriptsize,red!60!black,align=center] at (0,-3.0) {the client never sees \code{sum.c}};
+\end{tikzpicture}
+\end{center}
+
 \paragraph{Testing.} It is good practice to write a separate \emph{testing client} for each
 module that calls every provided function, so that all tests should pass (in Racket every test
 expression should produce \code{\#t}; in C every \code{assert} should succeed).
@@ -255,6 +286,19 @@ Operations:
   \item \code{is\_empty}: determine if the stack is empty.
 \end{itemize}
 
+\begin{center}
+\begin{tikzpicture}[it/.style={draw,minimum width=1.6cm,minimum height=6mm,fill=blue!6},
+  arr/.style={-{Stealth},thick}]
+  \node[it] (a) at (0,0) {1};
+  \node[it] (b) at (0,0.6) {2};
+  \node[it,fill=orange!20] (c) at (0,1.2) {3};
+  \draw[thick] (-0.95,1.6) -- (-0.95,-0.4) -- (0.95,-0.4) -- (0.95,1.6);
+  \node[font=\scriptsize,anchor=west] at (1.1,1.2) {top};
+  \draw[arr] (-2.4,2.4) node[left,font=\scriptsize\ttfamily]{push} to[out=0,in=90] (-0.3,1.6);
+  \draw[arr] (0.3,1.6) to[out=90,in=180] (2.4,2.4) node[right,font=\scriptsize\ttfamily]{pop};
+\end{tikzpicture}
+\end{center}
+
 \paragraph{Stack vs.\ Racket list.} The operations correspond closely to \code{cons},
 \code{rest}, \code{first} and \code{empty?}. The significant difference is that only the top
 item of a stack is accessible, whereas any element of a list can be accessed (e.g.\ with
@@ -270,6 +314,18 @@ first in, first out (FIFO), like a line-up at a restaurant. Operations:
   \item \code{front}: produce the front item;
   \item \code{is\_empty}: determine if the queue is empty.
 \end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[it/.style={draw,minimum width=9mm,minimum height=7mm,fill=blue!6},
+  arr/.style={-{Stealth},thick}]
+  \foreach \v [count=\i] in {4,7,2,9} \node[it] (q\i) at (\i*0.9,0) {\v};
+  \node[it,fill=orange!20] (q1b) at (0.9,0) {4};
+  \draw[arr] (q1.west) -- ++(-1.3,0) node[left,font=\scriptsize\ttfamily]{remove\_front};
+  \draw[arr] ($(q4.east)+(1.5,0)$) node[right,font=\scriptsize\ttfamily]{add\_back} -- (q4.east);
+  \node[font=\scriptsize,below=1mm of q1] {front};
+  \node[font=\scriptsize,below=1mm of q4] {back};
+\end{tikzpicture}
+\end{center}
 
 \subsection{Sequence}
 

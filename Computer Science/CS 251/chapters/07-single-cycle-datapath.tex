@@ -143,6 +143,24 @@ ALUOp & funct & Operation & ALU control \\
 This two-level decoding (main control + ALU control) keeps the main
 control small and fast.
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[>=Stealth, thick, font=\small,
+  blk/.style={draw, rounded corners, fill=blue!6, align=center, minimum height=1.1cm, text width=2cm}]
+  \node[blk] (mc) at (0,0) {Main\\control};
+  \node[blk] (ac) at (3.6,-1.6) {ALU\\control};
+  \node[draw, minimum height=1cm, minimum width=1cm] (alu) at (6.8,-1.6) {ALU};
+  \draw[->] (-2.6,0) node[left, align=right]{opcode\\{\scriptsize Instr[31:26]}} -- (mc);
+  \draw[->] (-2.6,-1.9) node[left, align=right]{funct\\{\scriptsize Instr[5:0]}} -- ($(ac.west)+(0,-0.3)$);
+  \draw[->] (mc.south) |- node[pos=0.75, above, font=\scriptsize]{ALUOp (2)} ($(ac.west)+(0,0.3)$);
+  \draw[->] (ac) -- node[above, font=\scriptsize]{4 bits} (alu);
+  \draw[->] (mc.east) -- (3.2,0) node[right, font=\scriptsize, align=left]
+    {RegDst, ALUSrc, MemtoReg, RegWrite,\\MemRead, MemWrite, Branch (, Jump)};
+\end{tikzpicture}
+\caption{Two-level decoding: main control sees only the opcode; the ALU
+control combines \code{ALUOp} with \code{funct}.}
+\end{figure}
+
 \subsection{Adding jump}
 
 For \code{j}: the target is $\{(PC+4)[31{:}28], \text{addr}[25{:}0], 00\}$.
@@ -187,6 +205,32 @@ a hypothetical variable-length clock would average
 $0.25(800) + 0.10(700) + 0.45(600) + 0.20(500) = 640$\,ps,
 so single-cycle wastes $800/640 = 1.25\times$.
 \end{example}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, x=0.011cm, y=0.75cm,
+  seg/.style={draw, minimum height=0.55cm, inner sep=0pt, font=\scriptsize}]
+  \foreach \row/\name/\parts in {0/R-type/{200/IMem/blue!12, 100/Reg/green!15, 200/ALU/orange!20, 100/Reg/green!15},
+      1/\code{lw}/{200/IMem/blue!12, 100/Reg/green!15, 200/ALU/orange!20, 200/DMem/red!15, 100/Reg/green!15},
+      2/\code{sw}/{200/IMem/blue!12, 100/Reg/green!15, 200/ALU/orange!20, 200/DMem/red!15},
+      3/\code{beq}/{200/IMem/blue!12, 100/Reg/green!15, 200/ALU/orange!20}} {
+    \node[anchor=east] at (-10,-\row) {\name};
+    \def\x{0}
+    \foreach \w/\lab/\c in \parts {
+      \node[seg, fill=\c, minimum width=\w*0.011cm, anchor=west] at (\x,-\row) {\lab};
+      \pgfmathsetmacro{\nx}{\x+\w}
+      \xdef\x{\nx}
+    }
+  }
+  \draw[red!70!black, thick, densely dashed] (800,0.6) -- (800,-3.5);
+  \draw (0,-3.6) -- (900,-3.6);
+  \foreach \v in {0,200,...,800} \draw (\v,-3.6) -- (\v,-3.7) node[below, font=\tiny] {\v};
+  \node[font=\scriptsize, anchor=west] at (905,-3.6) {ps};
+  \node[font=\scriptsize, red!70!black, anchor=west] at (810,0.4) {clock period};
+\end{tikzpicture}
+\caption{Per-instruction latency in the example. The single-cycle clock
+must fit \code{lw}; every other instruction wastes the rest of the cycle.}
+\end{figure}
 
 \begin{important}[Problems with single-cycle]
 \begin{itemize}

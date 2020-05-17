@@ -58,6 +58,24 @@ mean the fully parenthesised formula):
         associative semantically the choice rarely matters.
 \end{itemize}
 So $\neg p \land q \to r \lor s$ abbreviates $(((\neg p) \land q) \to (r \lor s))$.
+The conventions decide the shape of the parse tree (drawn formally later in this chapter):
+\begin{center}
+\begin{tikzpicture}[level distance=10mm,level 1/.style={sibling distance=26mm},
+  level 2/.style={sibling distance=12mm}]
+\node {$\to$}
+  child {node {$\land$} child {node {$\neg$} child {node {$p$}}} child {node {$q$}}}
+  child {node {$\lor$} child {node {$r$}} child {node {$s$}}};
+\end{tikzpicture}
+\hspace{2cm}
+\begin{tikzpicture}[level distance=10mm,level 1/.style={sibling distance=16mm},
+  level 2/.style={sibling distance=12mm}]
+\node {$\to$}
+  child {node {$p$}}
+  child {node {$\to$} child {node {$q$}} child {node {$r$}}};
+\end{tikzpicture}
+
+\small Left: $\neg p\land q\to r\lor s$. Right: $p\to q\to r$, which associates to the right.
+\end{center}
 
 \section{Structural induction}
 
@@ -103,6 +121,24 @@ $($, or $(\neg$, or $(\neg A'$ where $A'$ is a prefix of $A$ (a proper prefix, o
 itself); in each case the extra leading $($ is unmatched, using the IH for proper
 prefixes of $A$ and the balance lemma for $A$ itself. The case $(A\star B)$ is similar.
 \end{example}
+
+Plotting the running count of unmatched left parentheses makes the lemma visible: for
+$((p\land q)\to(\neg r))$ the count stays positive on every proper prefix and returns to
+$0$ only at the very end.
+\begin{center}
+\begin{tikzpicture}[x=0.8cm,y=0.6cm,font=\small]
+  \fill[blue!5] (0.5,0) rectangle (11.5,2.4);
+  \draw[->] (0,0) -- (12.8,0);
+  \draw[->] (0,0) -- (0,2.8) node[above,font=\scriptsize]{\# ``$($'' $-$ \# ``$)$''};
+  \foreach \y in {1,2} {\draw (-0.08,\y) -- (0.08,\y); \node[left,font=\scriptsize] at (0,\y) {\y};}
+  \foreach \s [count=\k] in {{(},{(},{$p$},{$\land$},{$q$},{)},{$\to$},{(},{$\neg$},{$r$},{)},{)}}
+    \node at (\k,-0.5) {\s};
+  \draw[thick,blue!60!black] (0,0) \foreach \k/\d in {1/1,2/2,3/2,4/2,5/2,6/1,7/1,8/2,9/2,10/2,11/1,12/0} { -- (\k,\d) };
+  \foreach \k/\d in {1/1,2/2,3/2,4/2,5/2,6/1,7/1,8/2,9/2,10/2,11/1} \fill[blue!60!black] (\k,\d) circle (1.6pt);
+  \fill[red!70!black] (12,0) circle (2pt);
+  \node[font=\scriptsize,blue!60!black] at (6.5,0.45) {proper prefixes: count $\ge 1$};
+\end{tikzpicture}
+\end{center}
 
 \begin{example}[Counting]
 Let $c(A)$ be the number of occurrences of binary connectives and $a(A)$ the number of

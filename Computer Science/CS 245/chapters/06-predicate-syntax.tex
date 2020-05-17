@@ -58,6 +58,15 @@ A term with no variables is a \emph{closed} (ground) term.
 In arithmetic, $0$, $x$, $s(s(0))$, $(x+s(0))\cdot y$ are terms. $s(0)<x$ is \emph{not} a
 term (it is a formula), and neither is $s$ alone.
 \end{example}
+Terms have parse trees too; for $(x+s(0))\cdot y$:
+\begin{center}
+\begin{tikzpicture}[level distance=10mm,level 1/.style={sibling distance=22mm},
+  level 2/.style={sibling distance=14mm}]
+\node {$\cdot$}
+  child {node {$+$} child {node {$x$}} child {node {$s$} child {node {$0$}}}}
+  child {node {$y$}};
+\end{tikzpicture}
+\end{center}
 
 \section{Formulas}
 
@@ -120,6 +129,25 @@ With $L(x,y)$ meaning ``$x$ loves $y$'':
 \end{itemize}
 The second implies the first but not conversely.
 \end{example}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,p/.style={circle,fill=blue!50!black,inner sep=1.8pt}]
+  \node[p,label=left:{\small $a$}] (a) at (0,0) {};
+  \node[p,label=right:{\small $b$}] (b) at (1.6,0) {};
+  \node[p,label=below:{\small $c$}] (c) at (0.8,-1.3) {};
+  \draw[->] (a) -- (b); \draw[->] (b) -- (c); \draw[->] (c) -- (a);
+  \node[font=\small] at (0.8,-2.2) {$\forall x\,\exists y\,L(x,y)$ only};
+  \begin{scope}[xshift=5cm]
+  \node[p,label=left:{\small $a$}] (a) at (0,0) {};
+  \node[p,label=right:{\small $b$}] (b) at (1.6,0) {};
+  \node[p,label=below left:{\small $c$}] (c) at (0.8,-1.3) {};
+  \draw[->] (a) -- (c); \draw[->] (b) -- (c);
+  \draw[->] (c) to[out=-30,in=30,looseness=12] (c);
+  \node[font=\small] at (0.8,-2.2) {$\exists y\,\forall x\,L(x,y)$ (and so both)};
+  \end{scope}
+\end{tikzpicture}
+
+\small An arrow $x\to y$ means ``$x$ loves $y$''. Left: everyone loves someone. Right: everyone loves $c$.
+\end{center}
 
 \begin{example}
 ``Every natural number has a larger prime'':
@@ -160,6 +188,32 @@ In $\forall x\,(P(x,y)\to\exists y\,Q(y,x))\land R(x)$:
 So $FV = \{x,y\}$. The same variable can occur both free and bound in one formula.
 \end{example}
 
+In the parse tree, each bound occurrence can be linked to the quantifier that binds it:
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small]
+  \node (and) at (0,0) {$\land$};
+  \node (fa) at (-2,-1) {$\forall x$};
+  \node (R) at (2.4,-1) {$R$};
+  \node[red!70!black] (xR) at (2.4,-2) {$x$};
+  \node (imp) at (-2,-2) {$\to$};
+  \node (P) at (-3.4,-3) {$P$};
+  \node (ey) at (-0.6,-3) {$\exists y$};
+  \node[blue!60!black] (xP) at (-4,-4) {$x$};
+  \node[red!70!black] (yP) at (-2.8,-4) {$y$};
+  \node (Q) at (-0.6,-4) {$Q$};
+  \node[blue!60!black] (yQ) at (-1.2,-5) {$y$};
+  \node[blue!60!black] (xQ) at (0,-5) {$x$};
+  \draw (and) -- (fa); \draw (and) -- (R); \draw (R) -- (xR);
+  \draw (fa) -- (imp); \draw (imp) -- (P); \draw (imp) -- (ey);
+  \draw (P) -- (xP); \draw (P) -- (yP); \draw (ey) -- (Q);
+  \draw (Q) -- (yQ); \draw (Q) -- (xQ);
+  \draw[->,dashed,blue!60!black] (xP) to[out=120,in=180] (fa);
+  \draw[->,dashed,blue!60!black] (xQ) to[out=20,in=0,looseness=1.3] (fa);
+  \draw[->,dashed,blue!60!black] (yQ) to[out=160,in=200] (ey);
+  \node[font=\scriptsize,align=left,anchor=west] at (1.3,-3.6) {\textcolor{blue!60!black}{blue}: bound (arrow to its quantifier)\\ \textcolor{red!70!black}{red}: free};
+\end{tikzpicture}
+\end{center}
+
 Bound variables are ``dummy'' names: $\forall x\,P(x)$ and $\forall y\,P(y)$ say the same
 thing (they are \emph{alpha-equivalent}), just as $\sum_i a_i = \sum_j a_j$.
 
@@ -197,6 +251,22 @@ $x$). Then
 The fix is to rename the bound variable first: $\exists y\,(x<y)\equiv\exists w\,(x<w)$, so
 $\varphi[y/x]$ should be taken as $\exists w\,(y<w)$.
 \end{example}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,s/.style={inner sep=1pt}]
+  \foreach \row/\y/\lab/\a/\b/\q/\note in {1/0/{$\varphi$}/x/y/y/{$x$ free},2/-1.3/{$\varphi[y/x]$, naive}/y/y/y/{captured!},3/-2.6/{after renaming}/y/w/w/{$y$ stays free}} {
+    \node[anchor=east] at (-0.2,\y) {\lab};
+    \node[s] (q\row) at (0.4,\y) {$\exists \q$};
+    \node[s,right=2pt of q\row] (p\row) {$($};
+    \node[s,right=1pt of p\row] (a\row) {$\a$};
+    \node[s,right=1pt of a\row] (lt\row) {$<$};
+    \node[s,right=1pt of lt\row] (b\row) {$\b$};
+    \node[s,right=1pt of b\row] {$)$};
+    \node[anchor=west,font=\scriptsize] at (2.8,\y) {\note};
+    \draw[->,blue!60!black] (b\row.north) to[out=90,in=70,looseness=1.1] ([xshift=3pt]q\row.north);
+  }
+  \draw[->,red!70!black,thick] (a2.north) to[out=110,in=80,looseness=1.2] ([xshift=1pt]q2.north);
+\end{tikzpicture}
+\end{center}
 
 \begin{important}[Substitution rules of thumb]
 \begin{itemize}

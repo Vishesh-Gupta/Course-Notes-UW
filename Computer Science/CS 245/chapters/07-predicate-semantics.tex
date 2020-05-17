@@ -70,6 +70,17 @@ and $\psi = \exists y\,\forall x\,R(x,y)$.
   \item $I_3$: $D=\{1,2\}$, $R^{I_3}=\{(1,2)\}$. Then $I_3\not\models\varphi$ since $2$
         is not related to anything.
 \end{itemize}
+Small interpretations are easy to draw: elements as dots, a binary relation as arrows.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,p/.style={circle,fill=blue!50!black,inner sep=2pt}]
+  \draw[rounded corners,gray] (-0.7,-0.7) rectangle (3.1,0.8);
+  \node[font=\scriptsize,gray,anchor=north west] at (-0.7,0.8) {$D$};
+  \node[p,label=below:{\small $1$}] (a) at (0,0) {};
+  \node[p,label=below:{\small $2$}] (b) at (2.4,0) {};
+  \draw[->,thick] (a) -- node[above,font=\scriptsize]{$R$} (b);
+  \node[font=\scriptsize,red!70!black,anchor=west] at (3.3,0) {no arrow leaves $2$, so $\forall x\,\exists y\,R(x,y)$ fails};
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \begin{example}[Evaluating with an environment]
@@ -93,6 +104,20 @@ $I\models\forall x\,\varphi$.
   \item $\varphi\equiv\psi$ if $\varphi\models\psi$ and $\psi\models\varphi$.
 \end{itemize}
 \end{definition}
+
+\begin{center}
+\begin{tikzpicture}[font=\small]
+  \draw[rounded corners] (-3.6,-1.7) rectangle (3.6,1.7);
+  \node[anchor=north west,font=\scriptsize] at (-3.6,1.7) {all pairs $(I,E)$};
+  \draw[fill=green!10] (0.3,-0.15) ellipse (2.9cm and 1.3cm);
+  \draw[fill=blue!12] (-0.4,-0.35) ellipse (1.4cm and 0.7cm);
+  \node[font=\scriptsize] at (-0.4,-0.35) {satisfy all of $\Sigma$};
+  \node[font=\scriptsize] at (0.3,0.75) {satisfy $\varphi$};
+\end{tikzpicture}
+
+\small $\Sigma\models\varphi$: every model of $\Sigma$ is a model of $\varphi$. $\varphi$ is valid when its
+region is the whole rectangle, and satisfiable when its region is non-empty.
+\end{center}
 
 The same facts as before hold: $\Sigma\models\varphi$ iff $\Sigma\cup\{\neg\varphi\}$ is
 unsatisfiable, and $\Sigma\cup\{\varphi\}\models\psi$ iff $\Sigma\models\varphi\to\psi$
@@ -122,6 +147,18 @@ Show $\forall x\,(P(x)\lor Q(x))\not\models\forall x\,P(x)\lor\forall x\,Q(x)$.
 
 Take $D=\{1,2\}$, $P^I=\{1\}$, $Q^I=\{2\}$. Every element is in $P^I$ or $Q^I$, so the
 premise holds; but neither $P^I$ nor $Q^I$ is all of $D$, so the conclusion fails.
+\begin{center}
+\begin{tikzpicture}[p/.style={circle,fill=blue!50!black,inner sep=2pt}]
+  \draw[rounded corners,gray] (-1.4,-1) rectangle (3.4,1);
+  \node[font=\scriptsize,gray,anchor=north west] at (-1.4,1) {$D$};
+  \draw[fill=blue!10,fill opacity=0.8] (0,0) circle (0.75cm);
+  \draw[fill=green!12,fill opacity=0.8] (2,0) circle (0.75cm);
+  \node[p,label=below:{\small $1$}] at (0,0) {};
+  \node[p,label=below:{\small $2$}] at (2,0) {};
+  \node[font=\small] at (0,0.45) {$P^I$};
+  \node[font=\small] at (2,0.45) {$Q^I$};
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \begin{example}
@@ -180,6 +217,30 @@ Language: binary predicate $\le$. Axioms:
 \end{align*}
 Models include $(\N,\le)$, $(\mathcal{P}(S),\subseteq)$ and $(\Z^+,\mid)$. Adding
 $\forall x\,\forall y\,(x\le y\lor y\le x)$ excludes $\subseteq$ and $\mid$.
+Hasse diagrams of two of these models (an edge going up means ``$\le$''):
+\begin{center}
+\begin{tikzpicture}[font=\small]
+  \node (e) at (0,0) {$\emptyset$};
+  \node (a) at (-0.9,1.1) {$\{a\}$};
+  \node (b) at (0.9,1.1) {$\{b\}$};
+  \node (ab) at (0,2.2) {$\{a,b\}$};
+  \draw (e) -- (a) -- (ab) -- (b) -- (e);
+  \node at (0,-0.7) {$(\mathcal{P}(\{a,b\}),\subseteq)$};
+  \begin{scope}[xshift=5cm]
+  \node (1) at (0,0) {$1$};
+  \node (2) at (-0.8,0.9) {$2$};
+  \node (3) at (0.8,0.9) {$3$};
+  \node (4) at (-1.2,1.8) {$4$};
+  \node (6) at (0.4,1.8) {$6$};
+  \node (12) at (-0.4,2.7) {$12$};
+  \draw (1) -- (2) -- (4) -- (12) -- (6) -- (3) -- (1);
+  \draw (2) -- (6);
+  \node at (0,-0.7) {divisors of $12$ under $\mid$};
+  \end{scope}
+\end{tikzpicture}
+
+\small Neither is a total order: $\{a\}$ and $\{b\}$ are incomparable, as are $4$ and $6$.
+\end{center}
 \end{example}
 
 \begin{example}[Expressing size]

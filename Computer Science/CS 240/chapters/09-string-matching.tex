@@ -1,5 +1,11 @@
 \chapter{String Matching}
 
+\tikzset{
+  sc/.style={draw,minimum width=5.5mm,minimum height=5.5mm,inner sep=0pt,font=\small\ttfamily},
+  ok/.style={sc,fill=green!15},
+  bad/.style={sc,fill=red!20}
+}
+
 \section{The Problem}
 
 \begin{definition}
@@ -53,6 +59,54 @@ E.g.\ $F[6] = 3$ because \texttt{aba} is both a prefix of $P$ and a suffix of
 \texttt{abacaba} (proper).
 \end{example}
 
+For example, with $T = \texttt{abacabcaba}$, the first mismatch is at $j = 6$. Since
+$F[5] = 2$, the pattern slides so that its prefix \texttt{ab} sits under the
+\texttt{ab} just matched at $T[4..5]$, and comparison continues at $T[6]$:
+\begin{center}
+\begin{tikzpicture}
+  \node[sc,fill=gray!8] at (0.00,0) {a};
+  \node[font=\tiny,gray] at (0.00,0.45) {0};
+  \node[sc,fill=gray!8] at (0.55,0) {b};
+  \node[font=\tiny,gray] at (0.55,0.45) {1};
+  \node[sc,fill=gray!8] at (1.10,0) {a};
+  \node[font=\tiny,gray] at (1.10,0.45) {2};
+  \node[sc,fill=gray!8] at (1.65,0) {c};
+  \node[font=\tiny,gray] at (1.65,0.45) {3};
+  \node[sc,fill=gray!8] at (2.20,0) {a};
+  \node[font=\tiny,gray] at (2.20,0.45) {4};
+  \node[sc,fill=gray!8] at (2.75,0) {b};
+  \node[font=\tiny,gray] at (2.75,0.45) {5};
+  \node[sc,fill=gray!8] at (3.30,0) {c};
+  \node[font=\tiny,gray] at (3.30,0.45) {6};
+  \node[sc,fill=gray!8] at (3.85,0) {a};
+  \node[font=\tiny,gray] at (3.85,0.45) {7};
+  \node[sc,fill=gray!8] at (4.40,0) {b};
+  \node[font=\tiny,gray] at (4.40,0.45) {8};
+  \node[sc,fill=gray!8] at (4.95,0) {a};
+  \node[font=\tiny,gray] at (4.95,0.45) {9};
+  \node[ok] at (0.00,-0.75) {a};
+  \node[ok] at (0.55,-0.75) {b};
+  \node[ok] at (1.10,-0.75) {a};
+  \node[ok] at (1.65,-0.75) {c};
+  \node[ok] at (2.20,-0.75) {a};
+  \node[ok] at (2.75,-0.75) {b};
+  \node[bad] at (3.30,-0.75) {a};
+  \node[ok] at (2.20,-1.65) {a};
+  \node[ok] at (2.75,-1.65) {b};
+  \node[sc] at (3.30,-1.65) {a};
+  \node[sc] at (3.85,-1.65) {c};
+  \node[sc] at (4.40,-1.65) {a};
+  \node[sc] at (4.95,-1.65) {b};
+  \node[sc] at (5.50,-1.65) {a};
+  \node[font=\scriptsize,anchor=east] at (-0.4,0) {$T$};
+  \node[font=\scriptsize,anchor=east] at (-0.4,-0.75) {$P$};
+  \node[font=\scriptsize,anchor=east] at (-0.4,-1.65) {shifted};
+  \node[font=\scriptsize,anchor=west,align=left] at (6.1,-0.75) {mismatch at $j = 6$};
+  \node[font=\scriptsize,anchor=west,align=left] at (6.1,-1.65) {$j \leftarrow F[5] = 2$: \texttt{ab} is already matched};
+  \draw[-{Stealth},red!70!black,thick] (3.3,-0.4) -- (3.3,-0.5);
+\end{tikzpicture}
+\end{center}
+
 \begin{lstlisting}
 KMP(T, P):
   F <- failure-array(P)
@@ -80,6 +134,35 @@ failure-array(P):
   return F
 \end{lstlisting}
 The failure array is computed by running KMP on $P$ against itself.
+Viewed as a machine, state $j$ means ``the last $j$ characters read match
+$P[0..j-1]$''; solid edges advance on a match, and the dashed failure link from
+state $j$ goes to state $F[j-1]$:
+\begin{center}
+\begin{tikzpicture}[ks/.style={circle,draw,minimum size=6.5mm,inner sep=0pt,font=\small,fill=blue!6}]
+  \node[ks] (k0) at (0.0,0) {0};
+  \node[ks] (k1) at (1.3,0) {1};
+  \node[ks] (k2) at (2.6,0) {2};
+  \node[ks] (k3) at (3.9,0) {3};
+  \node[ks] (k4) at (5.2,0) {4};
+  \node[ks] (k5) at (6.5,0) {5};
+  \node[ks] (k6) at (7.8,0) {6};
+  \node[ks,fill=green!15] (k7) at (9.1,0) {7};
+  \draw[-{Stealth},thick] (k0) -- node[above,font=\small\ttfamily]{a} (k1);
+  \draw[-{Stealth},thick] (k1) -- node[above,font=\small\ttfamily]{b} (k2);
+  \draw[-{Stealth},thick] (k2) -- node[above,font=\small\ttfamily]{a} (k3);
+  \draw[-{Stealth},thick] (k3) -- node[above,font=\small\ttfamily]{c} (k4);
+  \draw[-{Stealth},thick] (k4) -- node[above,font=\small\ttfamily]{a} (k5);
+  \draw[-{Stealth},thick] (k5) -- node[above,font=\small\ttfamily]{b} (k6);
+  \draw[-{Stealth},thick] (k6) -- node[above,font=\small\ttfamily]{a} (k7);
+  \draw[-{Stealth},dashed,red!70!black] (k1.south) to[out=-110,in=-70] (k0.south);
+  \draw[-{Stealth},dashed,red!70!black] (k2.south) to[out=-120,in=-60,looseness=0.8] (k0.south);
+  \draw[-{Stealth},dashed,red!70!black] (k3.south) to[out=-120,in=-60,looseness=0.8] (k1.south);
+  \draw[-{Stealth},dashed,red!70!black] (k4.south) to[out=-120,in=-60,looseness=1.0] (k0.south);
+  \draw[-{Stealth},dashed,red!70!black] (k5.south) to[out=-120,in=-60,looseness=1.0] (k1.south);
+  \draw[-{Stealth},dashed,red!70!black] (k6.south) to[out=-120,in=-60,looseness=1.0] (k2.south);
+  \draw[-{Stealth},dashed,red!70!black] (k7.south) to[out=-120,in=-60,looseness=1.0] (k3.south);
+\end{tikzpicture}
+\end{center}
 
 \begin{theorem}
 KMP runs in $\Theta(n)$ time after $\Theta(m)$ preprocessing.
@@ -132,6 +215,50 @@ boyer-moore(T, P):
       j <- m - 1
   return FAIL
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}
+  \node[sc,fill=gray!8] at (0.00,0) {a};
+  \node[font=\tiny,gray] at (0.00,0.45) {0};
+  \node[sc,fill=gray!8] at (0.55,0) {b};
+  \node[font=\tiny,gray] at (0.55,0.45) {1};
+  \node[sc,fill=gray!8] at (1.10,0) {a};
+  \node[font=\tiny,gray] at (1.10,0.45) {2};
+  \node[sc,fill=gray!8] at (1.65,0) {d};
+  \node[font=\tiny,gray] at (1.65,0.45) {3};
+  \node[sc,fill=gray!8] at (2.20,0) {a};
+  \node[font=\tiny,gray] at (2.20,0.45) {4};
+  \node[sc,fill=gray!8] at (2.75,0) {b};
+  \node[font=\tiny,gray] at (2.75,0.45) {5};
+  \node[sc,fill=gray!8] at (3.30,0) {a};
+  \node[font=\tiny,gray] at (3.30,0.45) {6};
+  \node[sc,fill=gray!8] at (3.85,0) {c};
+  \node[font=\tiny,gray] at (3.85,0.45) {7};
+  \node[sc,fill=gray!8] at (4.40,0) {a};
+  \node[font=\tiny,gray] at (4.40,0.45) {8};
+  \node[sc,fill=gray!8] at (4.95,0) {b};
+  \node[font=\tiny,gray] at (4.95,0.45) {9};
+  \node[sc] at (0.00,-0.75) {a};
+  \node[sc] at (0.55,-0.75) {b};
+  \node[sc] at (1.10,-0.75) {a};
+  \node[bad] at (1.65,-0.75) {c};
+  \node[ok] at (2.20,-0.75) {a};
+  \node[ok] at (2.75,-0.75) {b};
+  \node[ok] at (2.20,-1.65) {a};
+  \node[ok] at (2.75,-1.65) {b};
+  \node[ok] at (3.30,-1.65) {a};
+  \node[ok] at (3.85,-1.65) {c};
+  \node[ok] at (4.40,-1.65) {a};
+  \node[ok] at (4.95,-1.65) {b};
+  \node[font=\scriptsize,anchor=east] at (-0.4,0) {$T$};
+  \node[font=\scriptsize,anchor=east] at (-0.4,-0.75) {$P$};
+  \node[font=\scriptsize,anchor=east] at (-0.4,-1.65) {shifted};
+  \node[font=\scriptsize,anchor=west,align=left] at (5.9,-0.75) {checks right to left; $T[3] = \texttt{d}$, $L(\texttt{d}) = -1$};
+  \node[font=\scriptsize,anchor=west,align=left] at (5.9,-1.65) {shift $P$ completely past $T[3]$: match};
+\end{tikzpicture}
+\end{center}
+Only three characters are checked before the pattern jumps four positions to the
+right.
+
 With only the bad character rule, the update is
 $i \leftarrow i + m - \min(j, 1 + L(T[i]))$, which always shifts the pattern
 forward by at least one.
@@ -219,6 +346,35 @@ Searching \texttt{ana} walks down the path spelling \texttt{a}, \texttt{n},
 \texttt{a} (some of these letters lie inside compressed edges) and ends in a
 subtree whose leaves are the suffixes starting at 1 and 3: two occurrences.
 \end{example}
+
+
+\begin{center}
+\begin{tikzpicture}[level distance=13mm,
+  level 1/.style={sibling distance=30mm},
+  level 2/.style={sibling distance=16mm},
+  level 3/.style={sibling distance=13mm},
+  inn/.style={circle,draw,fill=blue!6,minimum size=4mm,inner sep=0pt},
+  lf/.style={draw,fill=green!10,font=\scriptsize,inner sep=2pt},
+  el/.style={font=\scriptsize\ttfamily,fill=white,inner sep=1pt}]
+  \node[inn] {}
+    child {node[lf] {6} edge from parent node[el] {\$}}
+    child {node[inn,fill=orange!25] {}
+      child {node[lf] {5} edge from parent node[el] {\$}}
+      child {node[inn,fill=orange!25] {}
+        child {node[lf,fill=orange!25] {3} edge from parent node[el] {\$}}
+        child {node[lf,fill=orange!25] {1} edge from parent node[el] {na\$}}
+        edge from parent node[el] {na}}
+      edge from parent node[el] {a}}
+    child {node[lf] {0} edge from parent node[el] {banana\$}}
+    child {node[inn] {}
+      child {node[lf] {4} edge from parent node[el] {\$}}
+      child {node[lf] {2} edge from parent node[el] {na\$}}
+      edge from parent node[el] {na}};
+\end{tikzpicture}
+\end{center}
+The suffix tree of \texttt{banana\$}: leaves are suffix start indices. Searching
+\texttt{ana} follows \texttt{a}, then \texttt{na} (orange), and the two leaves below, 3
+and 1, are the occurrences.
 
 \section{Suffix Arrays}
 

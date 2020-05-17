@@ -98,6 +98,23 @@ Node::Node(const Node &other)
 copies the rest of the list. The check is needed because \code{other.next} could
 be \code{nullptr}, and dereferencing it would crash.
 
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, minimum width=13mm, minimum height=7mm},>={Stealth}]
+\node[box] (np) at (0,0) {\code{np}};
+\node[box] (a) at (2.5,0) {1 \,$\bullet$};
+\node[box] (b) at (5,0) {2 \,$\bullet$};
+\node[box] (c) at (7.5,0) {3 \,/};
+\node[box,fill=blue!6] (m) at (2.5,-1.5) {1 \,$\bullet$};
+\node[box,fill=blue!6] (m2) at (5,-1.5) {2 \,$\bullet$};
+\node[box,fill=blue!6] (m3) at (7.5,-1.5) {3 \,/};
+\node[left=2mm of m] {\code{m}};
+\draw[->] (np) -- (a); \draw[->] (a) -- (b); \draw[->] (b) -- (c);
+\draw[->] (m) -- (m2); \draw[->] (m2) -- (m3);
+\end{tikzpicture}
+
+\small With the deep copy, \code{m} heads its own copy of the list (shaded); nothing is shared.
+\end{center}
+
 \subsection{When Is the Copy Constructor Called?}
 \begin{enumerate}
   \item when an object is initialized from another object of the same type;
@@ -169,6 +186,21 @@ Node::~Node() { delete next; }
 \end{lstlisting}
 This recursively deletes the rest of the list; the recursion ends at the last
 node because \code{delete nullptr} does nothing.
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, minimum width=13mm, minimum height=7mm},>={Stealth},font=\small]
+\node[box] (np) at (0,0) {\code{np}};
+\node[box] (a) at (2.5,0) {1 \,$\bullet$};
+\node[box] (b) at (5,0) {2 \,$\bullet$};
+\node[box] (c) at (7.5,0) {3 \,/};
+\draw[->] (np) -- (a); \draw[->] (a) -- (b); \draw[->] (b) -- (c);
+\draw[->,red!60!black,dashed] (np.south) to[bend right=30] node[below,font=\scriptsize]{\code{delete np}} (a.south);
+\draw[->,red!60!black,dashed] (a.south) to[bend right=30] node[below,font=\scriptsize]{\code{\textasciitilde Node}: \code{delete next}} (b.south);
+\draw[->,red!60!black,dashed] (b.south) to[bend right=30] node[below,font=\scriptsize]{\code{delete next}} (c.south);
+\draw[->,red!60!black,dashed] (c.south) to[bend right=30] node[below,font=\scriptsize]{\code{delete nullptr}: stop} ++(2.2,0);
+\end{tikzpicture}
+\end{center}
+Each node's destructor runs before its own memory is released, so the nodes are freed
+from the back of the list to the front.
 
 \section{The Copy Assignment Operator}
 \begin{lstlisting}[style=cpp]
@@ -213,6 +245,15 @@ Without the check, \code{other.next} is the same pointer as \code{next}. We
 \code{delete next}, which makes \code{other.next} a dangling pointer, and then
 \code{new Node\{*other.next\}} copies freed memory. Solution: check for
 self-assignment first.
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, minimum width=13mm, minimum height=7mm},>={Stealth},font=\small]
+\node[box] (n) at (0,0) {1 \,$\bullet$};
+\node[box,fill=red!10,draw=red!60!black,text=red!60!black] (b) at (4,0) {freed};
+\node[above=2mm of n,font=\scriptsize] {\code{*this} and \code{other} are both \code{n}};
+\draw[->] (n) -- node[above,font=\scriptsize]{\code{next} $=$ \code{other.next}} (b);
+\node[font=\scriptsize,align=left,anchor=west] at (4.9,0) {after \code{delete next}, \code{new Node\{*other.next\}}\\ reads this freed node};
+\end{tikzpicture}
+\end{center}
 
 \paragraph{Q.} What happens if \code{new} fails (no memory)?
 

@@ -90,6 +90,17 @@ class C {
 Now \code{f} has the strong guarantee (assuming \code{g} and \code{h} have no
 non-local side effects). This is the same idea as copy-and-swap for
 \code{operator=}.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,c/.style={draw,fill=blue!5,minimum width=1.4cm,minimum height=0.65cm}]
+  \node[c] (pi) at (0,0) {\code{pImpl}};
+  \node[c] (t) at (0,-1.2) {\code{temp}};
+  \node[draw,fill=gray!12,minimum width=2.2cm,minimum height=0.7cm] (old) at (3.6,0) {old \code{a}, \code{b}};
+  \node[draw,fill=green!12,minimum width=2.2cm,minimum height=0.7cm] (new) at (3.6,-1.2) {modified copy};
+  \draw[->] (pi) -- (old); \draw[->] (t) -- (new);
+  \draw[<->,thick,blue!60!black] (-0.9,0) to[bend right=40] node[left,font=\scriptsize]{\code{swap}} (-0.9,-1.2);
+  \node[font=\scriptsize,align=left,anchor=west] at (5.0,-0.6) {all throwing work happens on the copy;\\ the swap of two pointers cannot throw};
+\end{tikzpicture}
+\end{center}
 
 \begin{important}[Rule of thumb]
 Do everything that might throw on the side (on copies/temporaries), then commit
@@ -129,6 +140,17 @@ But copying is expensive; moving would be much faster. However, if a \emph{move}
 throws midway, some elements of the old array have already been gutted, and the
 original state can't be restored. So \code{vector} only moves elements if the
 move ctor is guaranteed not to throw; otherwise it copies.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,x=0.8cm,c/.style={draw,minimum width=0.8cm,minimum height=0.6cm}]
+  \node[anchor=east,font=\scriptsize] at (-0.6,0) {old array (full)};
+  \foreach \k in {0,...,3} \node[c,fill=gray!12] (o\k) at (\k,0) {$e_\k$};
+  \node[anchor=east,font=\scriptsize] at (-0.6,-1.4) {new array};
+  \foreach \k in {0,...,3} \node[c,fill=green!10] (n\k) at (\k,-1.4) {$e_\k$};
+  \foreach \k in {4,...,7} \node[c] at (\k,-1.4) {};
+  \foreach \k in {0,...,3} \draw[->] (o\k) -- (n\k);
+  \node[font=\scriptsize,anchor=west,align=left] at (4.4,0) {copied, or moved if the move ctor\\ is \code{noexcept}; then the old array is freed};
+\end{tikzpicture}
+\end{center}
 
 \begin{important}[Advice]
 Declare move constructors and move assignment operators (and \code{swap}) as

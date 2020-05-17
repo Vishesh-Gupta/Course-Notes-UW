@@ -153,12 +153,46 @@ Chapter 4).
 \end{center}
 \end{example}
 
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5cm, xmin=0.15, xmax=0.45, ymin=0, ymax=1.1, xlabel={$\theta$},
+    ylabel={$R(\theta)$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=150, xticklabel style={/pgf/number format/fixed},
+    legend style={font=\small, draw=none}, legend cell align=left]
+  \addplot[thick, orange!80!black, domain=0.15:0.45] {exp(14.499999999999998*ln(x/0.29)+35.5*ln((1-x)/0.71))};
+  \addplot[thick, blue!60!black, domain=0.15:0.45] {exp(57.99999999999999*ln(x/0.29)+142.0*ln((1-x)/0.71))};
+  \addplot[thick, red!70!black, domain=0.15:0.45] {exp(231.99999999999997*ln(x/0.29)+568.0*ln((1-x)/0.71))};
+  \legend{$n=50$, $n=200$, $n=800$}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+With the same sample proportion $0.29$, larger samples give a narrower relative likelihood:
+more data rule out more values of $\theta$.
+
 \begin{example}[Poisson counts and invariance]
 The numbers of help-desk calls in $10$ randomly chosen five-minute periods were
 $3,5,2,4,6,1,3,4,2,5$. Assuming independent $\Poi(\theta)$ counts, $\sum y_i = 35$ and
 $\thetahat = 35/10 = 3.5$ calls per period. The relative likelihood is
 $R(\theta) = (\theta/3.5)^{35}e^{10(3.5-\theta)}$.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=r1, width=6.8cm, height=5cm, xmin=1.5, xmax=6, ymin=0, ymax=1.1, xlabel={$\theta$},
+    ylabel={$R(\theta)$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=100, title={relative likelihood}, title style={font=\small}]
+  \addplot[thick, blue!60!black, domain=1.5:6] {exp(35*ln(x/3.5)+10*(3.5-x))};
+  \draw[dotted] (axis cs:3.5,0) -- (axis cs:3.5,1);
+\end{axis}
+\begin{axis}[at={(r1.east)}, anchor=west, xshift=1.3cm, width=6.8cm, height=5cm, xmin=1.5, xmax=6,
+    ymin=-5, ymax=0.4, xlabel={$\theta$}, ylabel={$\log R(\theta)$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=100,
+    title={log relative likelihood}, title style={font=\small}]
+  \addplot[thick, blue!60!black, domain=1.5:6] {35*ln(x/3.5)+10*(3.5-x)};
+  \draw[dotted] (axis cs:3.5,-5) -- (axis cs:3.5,0);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Both curves peak at $\thetahat = 3.5$ (dotted). Taking logs turns the product of $10$
+Poisson probabilities into a sum and makes the curve close to a parabola near its maximum.
 
 \begin{theorem}[Invariance property]
 If $\thetahat$ is the MLE of $\theta$ and $\tau = h(\theta)$, then the MLE of $\tau$ is
@@ -222,6 +256,18 @@ $46.68, 67.92, 49.41, 23.96, 12.02$. The agreement is reasonable, with somewhat 
 zeros and more ones than the model predicts; Chapter 7 shows that this discrepancy is
 well within chance variation.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5cm, ybar, bar width=12pt, ymin=0, ymax=90, xtick={0,1,2,3,4},
+    xticklabels={$0$,$1$,$2$,$3$,$\ge4$}, xlabel={cars per minute}, ylabel={frequency}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed},
+    enlarge x limits=0.15, legend style={font=\small, draw=none}, legend cell align=left]
+  \addplot[fill=blue!35, draw=blue!60!black] coordinates {(0,38) (1,80) (2,50) (3,20) (4,12)};
+  \addplot[fill=orange!50, draw=orange!70!black] coordinates {(0,46.68) (1,67.92) (2,49.41) (3,23.96) (4,12.02)};
+  \legend{observed, {expected, $\Poi(1.455)$}}
+\end{axis}
+\end{tikzpicture}
+\end{center}
 
 \begin{important}[Common pitfalls]
 \begin{itemize}

@@ -1,5 +1,8 @@
 \chapter{Graph Basics, BFS and DFS}
 
+\tikzset{gv/.style={circle, draw, thick, minimum size=6.5mm, inner sep=0pt, font=\small},
+  ge/.style={thick}, gd/.style={thick, -{Stealth[length=2.2mm]}}}
+
 \section{Definitions and representations}
 A graph $G=(V,E)$ has $n=|V|$ vertices and $m=|E|$ edges. In an undirected graph, $m\le\binom n2$; in a directed graph, $m\le n(n-1)$.
 A graph is \emph{connected} if every pair of vertices is joined by a path; a \emph{tree} is a connected acyclic graph (with $n-1$ edges).
@@ -44,6 +47,27 @@ $\mathrm{dist}[v]=\mathrm{dist}[u]+1$) or already discovered from a vertex deque
 \end{proof}
 
 The parent edges form the \textbf{BFS tree}. In an undirected graph every non-tree edge joins vertices whose levels differ by at most 1.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1.4cm, y=1.1cm]
+  \foreach \l in {0,1,2,3} \node[font=\scriptsize, gray, anchor=east] at (-0.4,-\l) {level \l};
+  \node[gv, fill=gray!20] (s) at (1.5,0) {$s$};
+  \node[gv] (a) at (0.8,-1) {$a$};
+  \node[gv] (b) at (2.2,-1) {$b$};
+  \node[gv] (c) at (0.2,-2) {$c$};
+  \node[gv] (d) at (1.5,-2) {$d$};
+  \node[gv] (e) at (2.8,-2) {$e$};
+  \node[gv] (f) at (0.2,-3) {$f$};
+  \foreach \u/\v in {s/a, s/b, a/c, a/d, b/e, c/f} \draw[ge, very thick, blue!60!black] (\u) -- (\v);
+  \draw[ge, densely dashed] (b) -- (d);
+  \draw[ge, red!70!black, densely dashed] (d) -- (e);
+  \node[font=\scriptsize, red!70!black, anchor=north] at (2.15,-2.25) {same level};
+\end{tikzpicture}
+\caption{BFS from $s$: tree edges (solid) and non-tree edges (dashed), which
+join equal or adjacent levels. The edge $de$ joins two vertices of level 2,
+so $b,d,e$ form an odd cycle and the graph is not bipartite.}
+\end{figure}
 
 \subsection{Testing bipartiteness}
 $G$ is \emph{bipartite} if $V=A\cup B$ with every edge between $A$ and $B$; equivalently, $G$ is 2-colourable.
@@ -102,6 +126,30 @@ Cross edge & black, $d[v]<d[u]$ & $d[v]<f[v]<d[u]<f[u]$ \\
 \end{center}
 In an undirected graph, every edge is a tree edge or a back edge.
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=2.1cm, y=1.7cm, lab/.style={font=\scriptsize, fill=white, inner sep=1pt}]
+  \node[gv] (u) at (0,1) {$u$}; \node[font=\scriptsize, above=1pt] at (u.north) {1/8};
+  \node[gv] (v) at (1,1) {$v$}; \node[font=\scriptsize, above=1pt] at (v.north) {2/7};
+  \node[gv] (w) at (2,1) {$w$}; \node[font=\scriptsize, above=1pt] at (w.north) {9/12};
+  \node[gv] (x) at (0,0) {$x$}; \node[font=\scriptsize, below=1pt] at (x.south) {4/5};
+  \node[gv] (y) at (1,0) {$y$}; \node[font=\scriptsize, below=1pt] at (y.south) {3/6};
+  \node[gv] (z) at (2,0) {$z$}; \node[font=\scriptsize, below=1pt] at (z.south) {10/11};
+  \draw[gd, very thick, blue!60!black] (u) -- (v);
+  \draw[gd, very thick, blue!60!black] (v) -- (y);
+  \draw[gd, very thick, blue!60!black] (y) -- (x);
+  \draw[gd, very thick, blue!60!black] (w) -- (z);
+  \draw[gd] (x) -- node[lab]{B} (v);
+  \draw[gd] (u) -- node[lab]{F} (x);
+  \draw[gd] (w) -- node[lab]{C} (y);
+  \draw[gd] (z) to[out=-20, in=20, looseness=6] node[lab, right]{B} (z);
+\end{tikzpicture}
+\caption{A DFS of a directed graph (vertices in alphabetical order),
+labelled with discovery/finish times $d/f$. Tree edges are bold; B, F and C
+mark back, forward and cross edges. The back edge $(x,v)$ closes the cycle
+$v\to y\to x\to v$.}
+\end{figure}
+
 \begin{lemma}
 A directed graph has a cycle iff DFS finds a back edge.
 \end{lemma}
@@ -115,6 +163,26 @@ let $u$ be its predecessor on $C$. At $d[v]$ the rest of $C$ is a white path fro
 A \emph{topological order} of a DAG lists the vertices so that every edge $(u,v)$ has $u$ before $v$. A directed graph has one iff it is acyclic.
 
 \textbf{DFS algorithm}: run DFS and output vertices in \emph{decreasing finish time} (prepend each vertex to a list when it finishes).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1.6cm, font=\scriptsize,
+  tv/.style={draw, rounded corners, thick, fill=blue!6, minimum height=6mm, minimum width=1.35cm, inner sep=1pt, font=\scriptsize}]
+  \foreach \n/\lab [count=\i] in {us/undershorts, pa/pants, so/socks, sh/shoes, sr/shirt, be/belt, ti/tie, ja/jacket}
+    \node[tv] (\n) at (\i,0) {\lab};
+  \draw[gd] (us) -- (pa);
+  \draw[gd] (so) -- (sh);
+  \draw[gd] (sr) -- (be);
+  \draw[gd] (ti) -- (ja);
+  \draw[gd] (us.north) to[out=50, in=130] (sh.north);
+  \draw[gd] (sr.north) to[out=50, in=130] (ti.north);
+  \draw[gd] (pa.south) to[out=-50, in=-130] (sh.south);
+  \draw[gd] (pa.south east) to[out=-60, in=-120] (be.south);
+  \draw[gd] (be.south east) to[out=-50, in=-130] (ja.south);
+\end{tikzpicture}
+\caption{A DAG (getting dressed) drawn in a topological order: every edge
+points to the right.}
+\end{figure}
 \begin{proof}[Correctness]
 For any edge $(u,v)$ in a DAG we show $f[v]<f[u]$. When $(u,v)$ is explored, $v$ is not grey (that would be a back edge, i.e.\ a cycle).
 If $v$ is white, it becomes a descendant of $u$ and finishes first. If $v$ is black, it has already finished, while $u$ has not.
@@ -125,6 +193,30 @@ and it detects a cycle when vertices remain but none has in-degree 0.
 \section{Strongly connected components}
 In a directed graph, $u$ and $v$ are \emph{strongly connected} if each is reachable from the other. This is an equivalence relation; its classes are
 the \textbf{strongly connected components} (SCCs). Contracting each SCC to a vertex gives the \textbf{component graph} $G^{SCC}$, which is a DAG.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1.1cm, y=1.1cm]
+  \fill[blue!8, rounded corners=12pt] (-0.5,-0.5) rectangle (1.5,1.5);
+  \fill[green!10, rounded corners=12pt] (2.5,0.5) rectangle (4.5,1.5);
+  \fill[orange!12, rounded corners=12pt] (2.5,-1.6) rectangle (4.5,0.3);
+  \node[gv] (a) at (0,1) {$a$}; \node[gv] (b) at (1,1) {$b$}; \node[gv] (c) at (0.5,0) {$c$};
+  \node[gv] (d) at (3,1) {$d$}; \node[gv] (e) at (4,1) {$e$};
+  \node[gv] (f) at (3,-0.2) {$f$}; \node[gv] (g) at (4,-0.2) {$g$}; \node[gv] (h) at (3.5,-1.1) {$h$};
+  \draw[gd] (a) -- (b); \draw[gd] (b) -- (c); \draw[gd] (c) -- (a);
+  \draw[gd] (d) to[bend left=20] (e); \draw[gd] (e) to[bend left=20] (d);
+  \draw[gd] (f) -- (g); \draw[gd] (g) -- (h); \draw[gd] (h) -- (f);
+  \draw[gd] (b) -- (d); \draw[gd] (c) -- (f); \draw[gd] (e) -- (g);
+  % component graph
+  \node[gv, fill=blue!8, minimum size=9mm] (C1) at (6.2,0.5) {$abc$};
+  \node[gv, fill=green!10, minimum size=9mm] (C2) at (7.8,1.2) {$de$};
+  \node[gv, fill=orange!12, minimum size=9mm] (C3) at (7.8,-0.4) {$fgh$};
+  \draw[gd] (C1) -- (C2); \draw[gd] (C1) -- (C3); \draw[gd] (C2) -- (C3);
+  \node[font=\scriptsize] at (7.1,-1.4) {$G^{SCC}$ (a DAG)};
+  \node[font=\scriptsize] at (2,-1.9) {$G$};
+\end{tikzpicture}
+\caption{A directed graph with three SCCs (shaded) and its component graph.}
+\end{figure}
 
 \subsection{Kosaraju's algorithm}
 \begin{lstlisting}[style=pseudo]

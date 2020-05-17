@@ -54,6 +54,26 @@ For $C_5$, $\alpha = 2$, so $\chi \ge 5/2$, i.e.\ $\chi \ge 3$, even though $C_5
 triangle. The clique bound is not always tight.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[cv/.style={circle,draw,minimum size=0.55cm,inner sep=0pt,font=\scriptsize}]
+  \foreach \i/\c/\col in {1/1/blue!30,2/2/red!30,3/1/blue!30,4/2/red!30,5/3/green!40} {
+    \node[cv,fill=\col] (c\i) at ({90+72*(\i-1)}:1.1) {$\c$};
+  }
+  \draw (c1)--(c2)--(c3)--(c4)--(c5)--(c1);
+  \node at (0,-1.6) {$\chi(C_5) = 3$};
+  \begin{scope}[xshift=4cm]
+    \foreach \i/\col in {1/blue!30,2/red!30,3/green!40,4/orange!40} {
+      \node[cv,fill=\col] (k\i) at ({90*\i+45}:1) {$\i$};
+    }
+    \draw (k1)--(k2)--(k3)--(k4)--(k1)--(k3) (k2)--(k4);
+    \node at (0,-1.6) {$\chi(K_4) = 4$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+In the $3$-colouring of $C_5$ the colour classes are $\{\text{top}, \text{lower left}\}$,
+$\{\text{upper left}, \text{lower right}\}$ and the single remaining vertex: at most
+$\alpha(C_5) = 2$ vertices each.
+
 \section{Upper bounds: greedy colouring}
 
 \begin{important}[Greedy colouring]
@@ -82,6 +102,18 @@ $v_3v_4$, $v_4v_2$) in the order $v_1, v_2, v_3, v_4$: $v_1 \gets 1$, $v_2 \gets
 $v_4 \gets 3$. Three colours for a bipartite graph! Some ordering always gives an optimal colouring,
 but finding it is hard.
 \end{important}
+
+\begin{center}
+\begin{tikzpicture}[cv/.style={circle,draw,minimum size=0.6cm,inner sep=0pt,font=\scriptsize}]
+  \node[cv,fill=blue!30] (1) at (0,0) {$v_1$};
+  \node[cv,fill=red!30] (3) at (1.6,0) {$v_3$};
+  \node[cv,fill=green!40] (4) at (3.2,0) {$v_4$};
+  \node[cv,fill=blue!30] (2) at (4.8,0) {$v_2$};
+  \draw (1)--(3)--(4)--(2);
+  \foreach \n/\c in {1/1,3/2,4/3,2/1} \node[below=2pt,font=\scriptsize] at (\n.south) {colour \c};
+  \node[font=\scriptsize,align=left,right] at (5.5,0) {order $v_1,v_2,v_3,v_4$:\\$v_4$ sees colours $1,2$};
+\end{tikzpicture}
+\end{center}
 
 A useful refinement: if $G$ has a vertex of degree at most $k$ in every subgraph (a
 \emph{$k$-degenerate} graph), then ordering the vertices by repeatedly removing a vertex of
@@ -150,6 +182,19 @@ $\chi'(C_5) = 3$: each colour class is a matching of $C_5$ with at most $2$ edge
 $5$ edges. $\chi'(K_4) = 3$: the three perfect matchings $\{12,34\},\{13,24\},\{14,23\}$
 partition the edges.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[every label/.style={font=\small}]
+  \node[vtx,label=above left:$1$] (1) at (0,1.6) {};
+  \node[vtx,label=above right:$2$] (2) at (1.6,1.6) {};
+  \node[vtx,label=below right:$3$] (3) at (1.6,0) {};
+  \node[vtx,label=below left:$4$] (4) at (0,0) {};
+  \draw[very thick,blue!70!black] (1)--(2) (3)--(4);
+  \draw[very thick,red!70!black] (1)--(3) (2)--(4);
+  \draw[very thick,green!50!black,dashed] (1)--(4) (2)--(3);
+  \node[font=\scriptsize,align=left,right] at (2.3,0.8) {{\color{blue!70!black}$\{12,34\}$}\\{\color{red!70!black}$\{13,24\}$}\\{\color{green!50!black}$\{14,23\}$}};
+\end{tikzpicture}
+\end{center}
 
 \section{Summary}
 \begin{itemize}

@@ -48,6 +48,68 @@ $95\%$ refers to the procedure: if we repeated the study many times and built an
 each time, about $95\%$ of those intervals would contain the true $\theta$.
 \end{important}
 
+\begin{center}
+\begin{tikzpicture}[x=5cm, y=0.22cm, every node/.style={font=\small}]
+  \draw[->] (11.85,0) -- (13.15,0) node[right] {$\mu$};
+  \foreach \v in {12.0,12.5,13.0} \draw (\v,0.3) -- (\v,-0.3) node[below] {\v};
+  \draw[thick, gray] (12.5,0.5) -- (12.5,26.5);
+  \node[above] at (12.5,26.5) {true $\mu = 12.5$};
+  \draw[blue!60!black, thick] (12.193,1.5) -- (12.937,1.5);
+  \fill[blue!60!black] (12.565,1.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (11.775,2.5) -- (12.518,2.5);
+  \fill[blue!60!black] (12.146,2.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.150,3.5) -- (12.894,3.5);
+  \fill[blue!60!black] (12.522,3.5) circle (1.2pt);
+  \draw[red!75!black, very thick] (12.618,4.5) -- (13.362,4.5);
+  \fill[red!75!black] (12.990,4.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.236,5.5) -- (12.980,5.5);
+  \fill[blue!60!black] (12.608,5.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.358,6.5) -- (13.101,6.5);
+  \fill[blue!60!black] (12.730,6.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (11.986,7.5) -- (12.730,7.5);
+  \fill[blue!60!black] (12.358,7.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.124,8.5) -- (12.868,8.5);
+  \fill[blue!60!black] (12.496,8.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.226,9.5) -- (12.970,9.5);
+  \fill[blue!60!black] (12.598,9.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.072,10.5) -- (12.815,10.5);
+  \fill[blue!60!black] (12.443,10.5) circle (1.2pt);
+  \draw[red!75!black, very thick] (11.658,11.5) -- (12.401,11.5);
+  \fill[red!75!black] (12.029,11.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (11.989,12.5) -- (12.733,12.5);
+  \fill[blue!60!black] (12.361,12.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.229,13.5) -- (12.972,13.5);
+  \fill[blue!60!black] (12.601,13.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.117,14.5) -- (12.861,14.5);
+  \fill[blue!60!black] (12.489,14.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (11.996,15.5) -- (12.740,15.5);
+  \fill[blue!60!black] (12.368,15.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.334,16.5) -- (13.078,16.5);
+  \fill[blue!60!black] (12.706,16.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.015,17.5) -- (12.759,17.5);
+  \fill[blue!60!black] (12.387,17.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (11.883,18.5) -- (12.627,18.5);
+  \fill[blue!60!black] (12.255,18.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.039,19.5) -- (12.783,19.5);
+  \fill[blue!60!black] (12.411,19.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.274,20.5) -- (13.018,20.5);
+  \fill[blue!60!black] (12.646,20.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.145,21.5) -- (12.889,21.5);
+  \fill[blue!60!black] (12.517,21.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (11.859,22.5) -- (12.603,22.5);
+  \fill[blue!60!black] (12.231,22.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.494,23.5) -- (13.238,23.5);
+  \fill[blue!60!black] (12.866,23.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (12.214,24.5) -- (12.958,24.5);
+  \fill[blue!60!black] (12.586,24.5) circle (1.2pt);
+  \draw[blue!60!black, thick] (11.981,25.5) -- (12.725,25.5);
+  \fill[blue!60!black] (12.353,25.5) circle (1.2pt);
+\end{tikzpicture}
+\end{center}
+Twenty-five simulated studies, each with $n=10$ observations from $\Gau(12.5, 0.6)$ and the
+interval $\ybar\pm1.96(0.6/\sqrt{10})$. The intervals move from sample to sample while $\mu$
+stays fixed; here two of the $25$ (red) miss it, close to the long-run $5\%$.
+
 \section{Pivotal quantities}
 
 \begin{definition}[Pivotal quantity]
@@ -146,6 +208,25 @@ the likelihood, and is generally more accurate for small $n$ and parameters near
 boundary (e.g.\ $\theta$ near $0$).
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10.5cm, height=5.5cm, xmin=1.5, xmax=6, ymin=0, ymax=1.15, xlabel={$\theta$ (calls per period)},
+    ylabel={$R(\theta)$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=120, ytick={0,0.15,0.5,1}, clip=false]
+  \addplot[draw=none, fill=blue!15, domain=2.466:4.790] {exp(35*ln(x/3.5)+10*(3.5-x))} \closedcycle;
+  \addplot[thick, blue!60!black, domain=1.5:6] {exp(35*ln(x/3.5)+10*(3.5-x))};
+  \draw[dashed, gray] (axis cs:1.5,0.15) -- (axis cs:6,0.15);
+  \draw[very thick, blue!60!black, |-|] (axis cs:2.466,0.15) -- (axis cs:4.790,0.15);
+  \draw[very thick, orange!80!black, |-|] (axis cs:2.340,0.05) -- (axis cs:4.660,0.05);
+  \node[font=\scriptsize, anchor=west, text=blue!60!black] at (axis cs:4.5,0.8) {upper bar: $15\%$ LI $[2.47, 4.79]$};
+  \node[font=\scriptsize, anchor=west, text=orange!80!black] at (axis cs:4.5,0.68) {lower bar: CLT $[2.34, 4.66]$};
+  \draw[dotted] (axis cs:3.5,0) -- (axis cs:3.5,1);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+For the help-desk data the relative likelihood is skewed to the right, so the $15\%$
+likelihood interval (where the curve is above the dashed line) extends further right of
+$\thetahat=3.5$ than left, while the CLT interval is forced to be symmetric.
+
 \section{The chi-squared and $t$ distributions}
 
 \begin{definition}[Chi-squared]
@@ -171,6 +252,32 @@ If $Z\sim\Gau(0,1)$ and $W\sim\chi^2(k)$ are independent, then
 $T = \frac{Z}{\sqrt{W/k}}\sim t(k)$. The $t(k)$ density is symmetric about $0$, bell
 shaped, with heavier tails than $\Gau(0,1)$; as $k\to\infty$, $t(k)\to\Gau(0,1)$.
 \end{definition}
+
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=c1, width=7cm, height=5cm, xmin=0, xmax=16, ymin=0, ymax=0.55, xlabel={$w$},
+    title={$\chi^2(k)$ densities}, title style={font=\small}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=120,
+    legend style={font=\scriptsize, draw=none}, legend cell align=left]
+  \addplot[thick, blue!60!black, domain=0.08:16] {x^(-0.5)*exp(-x/2)/sqrt(2*pi)};
+  \addplot[thick, orange!80!black, domain=0:16] {exp(-x/2)/2};
+  \addplot[thick, red!70!black, domain=0:16] {x*exp(-x/2)/4};
+  \addplot[thick, green!50!black, domain=0:16] {x^3*exp(-x/2)/96};
+  \legend{$k=1$, $k=2$, $k=4$, $k=8$}
+\end{axis}
+\begin{axis}[at={(c1.east)}, anchor=west, xshift=1cm, width=7cm, height=5cm, xmin=-4, xmax=4,
+    ymin=0, ymax=0.45, xlabel={$t$}, title={$t(k)$ vs.\ $\Gau(0,1)$}, title style={font=\small}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed},
+    samples=120, legend style={font=\scriptsize, draw=none}, legend cell align=left]
+  \addplot[thick, gray, dashed, domain=-4:4] {exp(-x^2/2)/sqrt(2*pi)};
+  \addplot[thick, orange!80!black, domain=-4:4] {0.35355*(1+x^2/2)^(-1.5)};
+  \addplot[thick, blue!60!black, domain=-4:4] {0.38803*(1+x^2/9)^(-5)};
+  \legend{{$\Gau(0,1)$}, $t(2)$, $t(9)$}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The $\chi^2(k)$ density is right-skewed with mean $k$ and becomes more symmetric as $k$
+grows. The $t$ densities have heavier tails than $\Gau(0,1)$, which is why $t$ table values
+($2.262$ for $t(9)$) exceed $1.96$.
 
 \begin{theorem}[Gaussian sampling theory]
 If $Y_1,\dots,Y_n$ are independent $\Gau(\mu,\sigma)$, then $\Ybar$ and $S^2$ are independent,
@@ -217,6 +324,24 @@ $\Prob(W\le19.023) = 0.975$. The $95\%$ CI for $\sigma^2$ is
 and for $\sigma$: $[0.426,\ 1.131]$. Note how wide it is: $10$ observations say little
 about variability. The interval is not symmetric about $s^2$.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=4.8cm, xmin=0, xmax=26, ymin=0, ymax=0.12, xlabel={$w$},
+    xtick={0,2.7,9,19.023,25}, xticklabels={0,$2.700$,9,$19.023$,25}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed}, samples=120,
+    title={$W\sim\chi^2(9)$}, title style={font=\small}]
+  \addplot[draw=none, fill=red!30, domain=0:2.7] {x^3.5*exp(-x/2)/263.2} \closedcycle;
+  \addplot[draw=none, fill=red!30, domain=19.023:26] {x^3.5*exp(-x/2)/263.2} \closedcycle;
+  \addplot[draw=none, fill=blue!12, domain=2.7:19.023] {x^3.5*exp(-x/2)/263.2} \closedcycle;
+  \addplot[thick, blue!60!black, domain=0:26] {x^3.5*exp(-x/2)/263.2};
+  \node[font=\small] at (axis cs:8.5,0.04) {$0.95$};
+  \node[font=\scriptsize, text=red!70!black] at (axis cs:1.3,0.035) {$0.025$};
+  \node[font=\scriptsize, text=red!70!black] at (axis cs:21.5,0.02) {$0.025$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Because the $\chi^2$ density is skewed, the two cut-offs are not symmetric about the mean
+$9$, and neither is the resulting interval for $\sigma^2$.
 
 \begin{example}[Exact CI for an exponential mean]
 For the $8$ component lifetimes of Chapter 2, $\sum y_i = 24$. Since $2\sum Y_i/\theta\sim

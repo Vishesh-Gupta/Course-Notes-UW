@@ -101,6 +101,22 @@ $0011101$ has blocks $00$, $111$, $0$, $1$.
 
 Every binary string is uniquely of the form ``some $0$s, then alternating blocks, then some $1$s'':
 
+\begin{center}
+\begin{tikzpicture}[x=0.7cm]
+  \foreach \bit [count=\i] in {0,0,1,1,1,0,1} {
+    \ifnum\bit=0 \def\col{white}\else\def\col{blue!15}\fi
+    \node[draw,minimum size=0.6cm,fill=\col] at (\i,0) {\texttt{\bit}};
+  }
+  \foreach \a/\b/\l in {1/2/{0^*\colon 00},3/6/{1\,1^*\,0\,0^*\colon 1110},7/7/{1^*\colon 1}} {
+    \draw[decorate,decoration={brace,amplitude=4pt,mirror}] (\a-0.45,-0.45) -- (\b+0.45,-0.45) node[midway,below=4pt,font=\scriptsize] {$\l$};
+  }
+  \foreach \x in {2.5,5.5,6.5} { \draw[red!70!black,thick] (\x,-0.35) -- (\x,0.35); }
+\end{tikzpicture}
+\end{center}
+Above, the blocks of $0011101$ are separated by red bars; grouping them as below the string
+gives its factorization in the first decomposition of the next theorem (with one copy of
+$1\,1^*\,0\,0^*$).
+
 \begin{theorem}[Block decompositions]
 The expressions
 \[
@@ -158,6 +174,21 @@ $\{0,1\}^* = (1^*0)^*1^*$ unambiguously: cut after every $0$. Each unit is a (po
 run of $1$s followed by a $0$, and the tail is the final run of $1$s. Check:
 $\frac{1}{1 - \frac{x}{1-x}}\cdot\frac{1}{1-x} = \frac{1}{1-2x}$.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[x=0.7cm]
+  \foreach \bit [count=\i] in {1,1,0,1,0,0,1,1} {
+    \ifnum\bit=0 \def\col{orange!25}\else\def\col{white}\fi
+    \node[draw,minimum size=0.6cm,fill=\col] at (\i,0) {\texttt{\bit}};
+  }
+  \foreach \x in {3.5,5.5,6.5} { \draw[red!70!black,very thick] (\x,-0.45) -- (\x,0.45); }
+  \foreach \a/\b/\l in {1/3/{110},4/5/{10},6/6/{0},7/8/{11}} {
+    \draw[decorate,decoration={brace,amplitude=4pt,mirror}] (\a-0.45,-0.45) -- (\b+0.45,-0.45) node[midway,below=4pt,font=\scriptsize] {\texttt{\l}};
+  }
+  \node[font=\scriptsize,right] at (8.7,-0.9) {units $1^*0$, then tail $1^*$};
+\end{tikzpicture}
+\end{center}
+Cutting $11010011$ after each $0$ gives the units $110$, $10$, $0$ and the tail $11$.
 
 \begin{example}[No $1$ is followed by another $1$]
 Strings avoiding $11$: cut after each $0$; each unit is $0$ or $10$, and the tail is $\eps$ or

@@ -69,6 +69,23 @@ for (List::Iterator it = l.begin(); it != l.end(); ++it) {
     cout << *it << endl;     // prints 3, 2, 1 -- in Theta(n) total
 }
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, minimum width=11mm, minimum height=7mm},>={Stealth},font=\small]
+  \node[draw,fill=blue!5,minimum width=1.6cm,minimum height=0.75cm] (l) at (0,0) {\code{theList}};
+  \node[box] (a) at (2.5,0) {3 \,$\bullet$};
+  \node[box] (b) at (4.3,0) {2 \,$\bullet$};
+  \node[box] (c) at (6.1,0) {1 \,$\bullet$};
+  \node (nul) at (7.6,0) {\code{nullptr}};
+  \draw[->] (l) -- (a); \draw[->] (a) -- (b); \draw[->] (b) -- (c); \draw[->] (c) -- (nul);
+  \node[draw,fill=orange!15,rounded corners,font=\scriptsize] (it) at (2.5,-1.4) {\code{l.begin()}};
+  \draw[->] (it) -- node[left,font=\scriptsize]{\code{curr}} (a);
+  \node[draw,fill=orange!15,rounded corners,font=\scriptsize] (en) at (7.6,-1.4) {\code{l.end()}};
+  \draw[->] (en) -- (nul);
+  \draw[->,orange!70!black,dashed] (it.east) to[bend right=20] node[below,font=\scriptsize]{\code{++it}} (4.3,-0.4);
+\end{tikzpicture}
+
+\small An iterator is a wrapped \code{Node*}; \code{++} follows \code{next}, and the loop stops when it equals \code{end()}.
+\end{center}
 
 \subsection{\code{auto}}
 As of C++11, \code{auto x = y;} declares \code{x} with the same type as
@@ -210,6 +227,20 @@ struct Student {
 Student billy{60, 70, 80}, bobby{70, 80, 90};
 Student::printObjCount();   // outputs 2
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,f/.style={draw,fill=blue!5,minimum width=1.7cm,minimum height=0.55cm}]
+  \node[font=\scriptsize] at (0,0.6) {\code{billy}};
+  \node[f] (b1) at (0,0) {\code{assns} 60};
+  \node[f,below=0pt of b1] (b2) {\code{mt} 70};
+  \node[f,below=0pt of b2] {\code{final} 80};
+  \node[font=\scriptsize] at (3.4,0.6) {\code{bobby}};
+  \node[f] (c1) at (3.4,0) {\code{assns} 70};
+  \node[f,below=0pt of c1] (c2) {\code{mt} 80};
+  \node[f,below=0pt of c2] {\code{final} 90};
+  \node[draw,fill=orange!15,minimum width=2.6cm,minimum height=0.6cm] (s) at (7.4,-0.55) {\code{Student::objCount} 2};
+  \node[font=\scriptsize,anchor=south] at (s.north) {one copy, belongs to the class};
+\end{tikzpicture}
+\end{center}
 
 \section*{Summary}
 \begin{itemize}
