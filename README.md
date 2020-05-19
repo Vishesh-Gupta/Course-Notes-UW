@@ -4,7 +4,7 @@ This repository contains course notes for the UW courses that I have taken.
 
 Every course is a LaTeX book split into one file per chapter/lecture. The original notes I wrote during each term (Markdown, Word and LaTeX) are kept next to them for reference; their content is part of the LaTeX books, which are the one version on the website and in the PDFs.
 
-- **Website:** https://course-notes-uw.pages.dev — every chapter as a page (hosted free on Cloudflare Pages, so this repository can stay private).
+- **Website:** https://course-notes-uw.pages.dev — each course as one continuous scroll, with notes, highlights and Apple Pencil handwriting (hosted free on Cloudflare Pages, so this repository can stay private).
 - **PDFs:** built by CI on every change and attached to the [`notes-latest` release](https://github.com/Vishesh-Gupta/Course-Notes-UW/releases/tag/notes-latest) (also linked from each course page on the website).
 
 ## Courses
@@ -38,18 +38,18 @@ Every course is a LaTeX book split into one file per chapter/lecture. The origin
   *.md, *.docx, ...   original notes from the term (their content is in the LaTeX book)
 common/preamble.tex   packages, theorem environments, boxes and macros shared by every book
 scripts/              check_latex.py (compile + checks), new_course.py (scaffold a course)
-website/              static site generator (pandoc + KaTeX + TikZ->SVG)
+website/              site generator (pandoc + KaTeX + TikZ->SVG) and its TypeScript page scripts
 .github/workflows/    CI: compile all PDFs, build and check the website, publish PDFs, deploy
 ```
 
 ## Working on the notes
 
-Needs TeX Live (latex-extra), `latexmk`, `pandoc` and `pdftocairo` (poppler-utils); Node only for the formula and search checks.
+Needs TeX Live (latex-extra), `latexmk`, `pandoc`, `pdftocairo` (poppler-utils) and Node 20 (the website scripts are TypeScript, bundled with esbuild; see `website/README.md`).
 
 ```
 make pdfs COURSE="CS 246"     # compile one course (omit COURSE for all) into build/pdfs
 make site COURSE="CS 246"     # build the website into website/_site
-make check                    # everything CI checks: PDFs, strict site build, KaTeX formulas
+make check                    # everything CI checks: PDFs, TypeScript, strict site build, KaTeX formulas
 make serve                    # preview the site on http://localhost:8000
 make new-course SUBJECT=Mathematics CODE="Math 237" TITLE="Calculus 3 for Honours Mathematics"
 ```

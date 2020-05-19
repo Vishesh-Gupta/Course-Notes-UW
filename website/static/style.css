@@ -805,3 +805,153 @@ kbd { display: inline-block; min-width: 18px; padding: 0 4px; border: 1px solid 
   }
   .show-search .search .pagefind-ui__drawer { position: static; width: auto; box-shadow: none; border: 0; }
 }
+
+/* ---------- one continuous scroll per course ---------- */
+.course-head { padding-bottom: 8px; }
+.course-title { font-size: 2.3rem; line-height: 1.2; margin: 0 0 12px; letter-spacing: -0.01em; }
+.contents { margin: 18px 0 8px; }
+.contents summary { cursor: pointer; font-weight: 600; color: var(--text-muted); padding: 4px 0; }
+.contents .chapter-list { margin-top: 10px; }
+@media (min-width: 901px) { .contents { display: none; } }  /* the sidebar is the contents */
+
+section.chapter {
+  position: relative;
+  padding-top: 56px;
+  margin-top: 40px;
+  border-top: 1px solid var(--border);
+}
+section.chapter:first-of-type { margin-top: 24px; }
+.chapter-kicker { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.chapter-label {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font: 700 12.5px "JetBrains Mono", monospace;
+}
+.chapter-anchor { color: var(--text-muted); opacity: 0; font-weight: 700; }
+.chapter-head:hover .chapter-anchor { opacity: 1; }
+.toc-chapter[hidden] { display: none; }
+
+/* ---------- handwriting ---------- */
+svg.ink-layer {
+  position: absolute;
+  top: 0; left: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 2;
+}
+.ink-pen.ink-default { stroke: var(--text); }
+.ink-hl { mix-blend-mode: multiply; }
+:root[data-theme="dark"] .ink-hl { mix-blend-mode: screen; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ink-hl { mix-blend-mode: screen; } }
+
+.drawing main.content { cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.drawing[data-ink-tool="eraser"] main.content { cursor: cell; }
+.drawing main.content a { pointer-events: none; }
+
+.ink-toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 45;
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  transform: translateX(-50%);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.2);
+}
+.ink-toolbar.open { display: flex; }
+.ink-btn {
+  min-width: 36px; height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--text);
+  font: 600 17px Inter, system-ui, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.ink-btn:hover { background: var(--bg-soft); }
+.ink-btn.active { background: var(--primary-soft); color: var(--primary); }
+.ink-btn.ink-text { font-size: 13.5px; }
+.ink-btn.ink-done { background: var(--primary); color: var(--bg); margin-left: 4px; }
+.ink-dot { display: inline-block; width: 16px; height: 16px; border-radius: 50%; vertical-align: middle; box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--border); }
+.ink-color.active .ink-dot { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--primary); }
+.ink-hl-icon { display: inline-block; width: 16px; height: 9px; border-radius: 2px; background: #facc15; opacity: 0.8; vertical-align: middle; }
+.ink-sep { width: 1px; height: 22px; margin: 0 4px; background: var(--border); }
+#draw-toggle.active { border-color: var(--primary); color: var(--primary); }
+body[data-kind="page"] #draw-toggle { display: none; }
+
+.ink-pad {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--bg);
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, var(--border) 31px, var(--border) 32px);
+}
+.ink-pad-svg { display: block; width: 100%; touch-action: none; cursor: crosshair; }
+.ink-pad-actions { display: flex; justify-content: space-between; margin-top: 6px; }
+
+@media (max-width: 560px) {
+  .ink-toolbar { left: 8px; right: 8px; transform: none; overflow-x: auto; }
+  .ink-btn { min-width: 32px; padding: 0 6px; }
+}
+@media print { .ink-toolbar { display: none !important; } }
+
+/* ---------- notes typed into the page ---------- */
+.user-note {
+  position: relative;
+  margin: 14px 0 18px;
+  padding: 10px 14px 12px;
+  border: 1px dashed color-mix(in srgb, var(--primary) 55%, transparent);
+  border-left: 4px solid var(--primary);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--primary) 5%, var(--bg));
+  font-family: "Kalam", "Segoe Print", "Bradley Hand", Inter, system-ui, sans-serif;
+}
+.user-note-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; font-family: Inter, system-ui, sans-serif; }
+.user-note-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--primary); }
+.user-note .link-btn { opacity: 0; transition: opacity 0.15s; font-size: 12px; }
+.user-note:hover .link-btn, .user-note:focus-within .link-btn { opacity: 1; }
+.user-note-view { cursor: text; font-size: 1.02rem; }
+.user-note-view > :first-child { margin-top: 0; }
+.user-note-view > :last-child { margin-bottom: 0; }
+.user-note-edit {
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  padding: 2px 0;
+  background: transparent;
+  color: var(--text);
+  font: 15.5px/1.6 Inter, system-ui, sans-serif;
+  resize: none;
+  outline: none;
+}
+.user-note.flash { outline: 2px solid var(--primary); outline-offset: 2px; }
+.hl-item-note { border-color: var(--primary); }
+
+.add-note-btn {
+  position: absolute;
+  left: -34px;
+  z-index: 3;
+  width: 24px; height: 24px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--primary);
+  font: 700 16px/1 Inter, system-ui, sans-serif;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+.add-note-btn.show { opacity: 1; pointer-events: auto; }
+.add-note-btn:hover { border-color: var(--primary); background: var(--primary-soft); }
+@media (max-width: 900px) { .add-note-btn { left: auto; right: -6px; } }
+@media print { .add-note-btn, .user-note .link-btn { display: none !important; } }
