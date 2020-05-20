@@ -483,7 +483,7 @@ def render_index(courses, out):
         sections.append(f'<h2 class="subject">{subject}</h2>\n<div class="cards">{cards}</div>')
     body = f"""<section class="hero">
 <h1>{SITE_TITLE}</h1>
-<p class="lead">Notes for the core University of Waterloo Computer Science, Mathematics, Statistics and Economics courses, written in LaTeX and split by chapter.</p>
+<p class="lead">Notes for my University of Waterloo courses in Computer Science, Mathematics, Statistics, Economics, languages and East Asian studies, written in LaTeX and split by chapter.</p>
 </section>
 <div id="recent-pages"></div>
 {"".join(sections)}"""
