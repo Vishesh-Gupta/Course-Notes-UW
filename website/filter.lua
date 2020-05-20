@@ -137,8 +137,34 @@ function Span(el)
   return nil
 end
 
+-- A line break in the source becomes a space, which Chinese and Japanese text
+-- must not have: drop soft breaks between two CJK characters (not Hangul,
+-- which uses spaces).
+local function is_cjk(cp)
+  return cp and ((cp >= 0x3000 and cp <= 0x30FF) or (cp >= 0x3400 and cp <= 0x9FFF)
+    or (cp >= 0xF900 and cp <= 0xFAFF) or (cp >= 0xFF00 and cp <= 0xFFEF))
+end
+
+local function edge_char(el, last)
+  local text = pandoc.utils.stringify(el)
+  if text == "" then return nil end
+  local cps = {}
+  for _, c in utf8.codes(text) do cps[#cps + 1] = c end
+  return last and cps[#cps] or cps[1]
+end
+
+function Inlines(inlines)
+  for i = #inlines - 1, 2, -1 do
+    if inlines[i].t == "SoftBreak"
+        and is_cjk(edge_char(inlines[i - 1], true)) and is_cjk(edge_char(inlines[i + 1], false)) then
+      inlines:remove(i)
+    end
+  end
+  return inlines
+end
+
 -- Pandoc runs Meta first when filters are given as a list of tables.
 return {
   { Meta = Meta },
-  { CodeBlock = CodeBlock, Image = Image, Div = Div, Span = Span },
+  { CodeBlock = CodeBlock, Image = Image, Div = Div, Span = Span, Inlines = Inlines },
 }
