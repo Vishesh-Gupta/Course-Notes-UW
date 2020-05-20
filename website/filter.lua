@@ -126,8 +126,19 @@ function Div(el)
   return nil
 end
 
+-- \zh, \zht, \ja and \ko reach pandoc as \foreignlanguage spans (see
+-- pandoc_defs in build.py); give them their real language tags so browsers
+-- pick the right glyph forms.
+local span_lang = { is = "zh-Hans", ga = "zh-Hant", jp = "ja", ko = "ko" }
+
+function Span(el)
+  local lang = span_lang[el.attributes.lang]
+  if lang then el.attributes.lang = lang return el end
+  return nil
+end
+
 -- Pandoc runs Meta first when filters are given as a list of tables.
 return {
   { Meta = Meta },
-  { CodeBlock = CodeBlock, Image = Image, Div = Div },
+  { CodeBlock = CodeBlock, Image = Image, Div = Div, Span = Span },
 }

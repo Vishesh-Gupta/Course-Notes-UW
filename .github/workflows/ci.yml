@@ -17,6 +17,7 @@ env:
   TEX_PACKAGES: >-
     texlive-latex-base texlive-latex-recommended texlive-latex-extra
     texlive-fonts-recommended texlive-pictures lmodern latexmk
+    texlive-xetex texlive-lang-cjk texlive-lang-chinese fonts-noto-cjk
 
 jobs:
   latex:

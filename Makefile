@@ -16,7 +16,7 @@ help:
 	@echo "make search      build the Pagefind search index for the site"
 	@echo "make check       pdfs + typecheck + site + math: what CI runs"
 	@echo "make serve       serve the built site on http://localhost:8000"
-	@echo "make new-course  SUBJECT=Mathematics CODE=\"Math 237\" TITLE=\"Calculus 3\""
+	@echo "make new-course  SUBJECT=Mathematics CODE=\"Math 237\" TITLE=\"Calculus 3\" (XELATEX=1 for CJK text)"
 	@echo "make clean       remove build outputs"
 	@echo "Add COURSE=\"CS 246\" to pdfs/site/check to work on one course."
 
@@ -48,7 +48,7 @@ serve:
 	python3 -m http.server -d $(SITE_DIR) 8000
 
 new-course:
-	python3 scripts/new_course.py "$(SUBJECT)" "$(CODE)" "$(TITLE)"
+	python3 scripts/new_course.py $(if $(XELATEX),--xelatex) "$(SUBJECT)" "$(CODE)" "$(TITLE)"
 
 clean:
 	rm -rf build $(SITE_DIR) website/.cache website/dist

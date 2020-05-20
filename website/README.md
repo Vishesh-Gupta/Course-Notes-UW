@@ -38,7 +38,10 @@ npm run build       # src/*.ts -> dist/*.js
 ## Build locally
 
 The repository `Makefile` wraps everything (`make js`, `make site`, `make check`).
-Needs `pandoc`, TeX Live (latex-extra), `pdftocairo` (poppler-utils) and Node 20.
+Needs `pandoc`, TeX Live (latex-extra; xetex and lang-chinese with the Noto CJK fonts for the
+language books), `pdftocairo` (poppler-utils) and Node 20. TikZ figures are compiled with the
+book's own engine (pdflatex, or xelatex when `main.tex` starts with `% !TEX program = xelatex`).
+`\zh`, `\zht`, `\ja` and `\ko` become `lang`-tagged spans so browsers use the right CJK fonts.
 
 ```
 make site COURSE="CS 246"   # bundles the scripts, then builds that course

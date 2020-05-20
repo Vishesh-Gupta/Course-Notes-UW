@@ -24,7 +24,8 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SUBJECTS = ["Computer Science", "Mathematics", "Statistics", "Economics"]
+SUBJECTS = ["Computer Science", "Mathematics", "Statistics", "Economics", "Languages",
+            "East Asian Studies"]
 
 LOG_PROBLEMS = [
     (re.compile(r"^! .*", re.M), "error"),
@@ -59,10 +60,21 @@ def check_includes(course):
     return problems
 
 
+def engine(main_tex):
+    """"xelatex" when main.tex starts with "% !TEX program = xelatex", else "pdflatex"."""
+    first = Path(main_tex).read_text().split("\n", 1)[0]
+    m = re.match(r"%\s*!TEX\s+program\s*=\s*(\w+)", first)
+    return m.group(1).lower() if m else "pdflatex"
+
+
+def engine_flag(main_tex):
+    return "-xelatex" if engine(main_tex) == "xelatex" else "-pdf"
+
+
 def compile_course(course, pdf_dir):
     with tempfile.TemporaryDirectory() as out:
         r = subprocess.run(
-            ["latexmk", "-pdf", "-interaction=nonstopmode", "-halt-on-error",
+            ["latexmk", engine_flag(course / "main.tex"), "-interaction=nonstopmode", "-halt-on-error",
              f"-outdir={out}", "main.tex"],
             cwd=course, capture_output=True, text=True)
         log_path = Path(out) / "main.log"
