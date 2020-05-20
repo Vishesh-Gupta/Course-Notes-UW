@@ -83,7 +83,10 @@ def main():
     (folder / "main.tex").write_text(main)
     (folder / "chapters" / "01-introduction.tex").write_text(CHAPTER.substitute(values))
     if not (folder / "Readme.md").exists():
-        (folder / "Readme.md").write_text(README.substitute(values))
+        readme = README.substitute(values)
+        if xelatex:
+            readme = readme.replace("latexmk -pdf", "latexmk -xelatex")
+        (folder / "Readme.md").write_text(readme)
     print(f"Created {folder.relative_to(ROOT)}")
 
 
