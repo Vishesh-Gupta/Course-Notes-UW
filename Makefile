@@ -4,6 +4,12 @@ PDF_DIR := build/pdfs
 SITE_DIR := website/_site
 course_arg = $(if $(COURSE),"$(COURSE)")
 site_course_arg = $(if $(COURSE),--course "$(COURSE)")
+# MacTeX installs into /Library/TeX/texbin, which a terminal opened before the
+# install does not have on PATH yet.
+ifneq ($(wildcard /Library/TeX/texbin),)
+export PATH := /Library/TeX/texbin:$(PATH)
+endif
+TOOLS := latexmk xelatex pdflatex pandoc pdftocairo node npm python3
 PAGES_PROJECT ?= course-notes-uw
 WRANGLER := npx -y wrangler@4.20.0
 # Same packages CI installs (Ubuntu/Debian); macOS uses Homebrew and MacTeX.
@@ -11,7 +17,7 @@ APT_PACKAGES := texlive-latex-base texlive-latex-recommended texlive-latex-extra
   texlive-fonts-recommended texlive-pictures lmodern latexmk texlive-xetex \
   texlive-lang-cjk texlive-lang-chinese fonts-noto-cjk pandoc poppler-utils nodejs npm
 
-.PHONY: no-course help deps pdfs js typecheck site math search check build serve login deploy upload new-course clean
+.PHONY: tools no-course help deps pdfs js typecheck site math search check build serve login deploy upload new-course clean
 
 help:
 	@echo "make deps        install TeX Live, pandoc, poppler, Node and the CJK fonts (Homebrew or apt)"
@@ -41,7 +47,12 @@ else
 	sudo apt-get install -y --no-install-recommends $(APT_PACKAGES)
 endif
 
-pdfs:
+# Stop early with a clear message when a build tool is missing.
+tools:
+	@missing=""; for t in $(TOOLS); do command -v $$t >/dev/null 2>&1 || missing="$$missing $$t"; done; \
+	if [ -n "$$missing" ]; then echo "Missing:$$missing. Run make deps (then open a new terminal)."; exit 1; fi
+
+pdfs: tools
 	python3 scripts/check_latex.py --pdf-dir $(PDF_DIR) $(course_arg)
 
 website/node_modules: website/package.json website/package-lock.json
@@ -54,7 +65,7 @@ js: website/node_modules
 typecheck: website/node_modules
 	cd website && npm run typecheck
 
-site: js
+site: tools js
 	python3 website/build.py --strict --pdf-dir $(PDF_DIR) --out $(SITE_DIR) $(site_course_arg)
 
 math: website/node_modules
