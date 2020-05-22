@@ -15,12 +15,14 @@ import argparse
 import hashlib
 import html
 import json
+import os
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import urllib.parse
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -29,6 +31,7 @@ SUBJECTS = ["Computer Science", "Mathematics", "Statistics", "Economics", "Langu
             "East Asian Studies"]
 PREAMBLE = ROOT / "common" / "preamble.tex"
 CACHE = SITE_SRC / ".cache" / "tikz"
+PANDOC_CACHE = SITE_SRC / ".cache" / "pandoc"
 REPO_URL = "https://github.com/Vishesh-Gupta/Course-Notes-UW"
 SITE_TITLE = "Course Notes UW"
 TIKZ_ZOOM = 1.4
@@ -158,9 +161,10 @@ def compile_tikz(preamble, pictures, engine="pdflatex"):
             if r.returncode != 0:
                 return False
             for page, key in enumerate(batch, start=1):
+                svg = Path(tmp) / f"{key}.svg"
                 subprocess.run(["pdftocairo", "-svg", "-f", str(page), "-l", str(page),
-                                str(Path(tmp) / "pics.pdf"), str(CACHE / f"{key}.svg")],
-                               check=True)
+                                str(Path(tmp) / "pics.pdf"), str(svg)], check=True)
+                os.replace(svg, CACHE / f"{key}.svg")
             return True
 
     if run(todo):
@@ -233,6 +237,27 @@ def strip_tags(s):
     return html.unescape(s).strip()
 
 
+def run_pandoc(cmd, defs, tex, ch):
+    """pandoc's (stdout, stderr), cached by everything that affects them."""
+    source = defs + tex
+    h = hashlib.sha1("\0".join(cmd).encode() + b"\0" + source.encode())
+    for f in (SITE_SRC / "filter.lua", SITE_SRC / "templates" / "fragment.html"):
+        h.update(f.read_bytes())
+    cached = PANDOC_CACHE / f"{h.hexdigest()}.json"
+    if cached.exists():
+        return tuple(json.loads(cached.read_text()))
+    r = subprocess.run(cmd, input=source, capture_output=True, text=True)
+    if r.returncode != 0:
+        offset = defs.count("\n")
+        err = re.sub(r"line (\d+)", lambda m: f"line {int(m.group(1)) - offset}", r.stderr)
+        raise SystemExit(f"pandoc failed on {ch.path}:\n{err}")
+    PANDOC_CACHE.mkdir(parents=True, exist_ok=True)
+    tmp = cached.with_suffix(f".{os.getpid()}.{id(ch)}.tmp")
+    tmp.write_text(json.dumps([r.stdout, r.stderr]))
+    os.replace(tmp, cached)
+    return r.stdout, r.stderr
+
+
 def convert_chapter(ch, defs, out_dir, warnings):
     tex = ch.path.read_text()
     tex = TITLE_RE.sub(lambda m: "\\begin{important}\n\n\\textbf{@@T@@" + m.group(1) + "}\n\n", tex)
@@ -266,15 +291,11 @@ def convert_chapter(ch, defs, out_dir, warnings):
            "--number-sections", f"--number-offset={ch.number - 1}", f"--id-prefix={ch.slug}-",
            "-M", f"chapnum={ch.number}", "-M", "imgprefix=", "-M", "pagetitle=chapter",
            "--wrap=none"]
-    r = subprocess.run(cmd, input=defs + tex, capture_output=True, text=True)
-    if r.returncode != 0:
-        offset = defs.count("\n")
-        err = re.sub(r"line (\d+)", lambda m: f"line {int(m.group(1)) - offset}", r.stderr)
-        raise SystemExit(f"pandoc failed on {ch.path}:\n{err}")
-    for line in r.stderr.splitlines():
+    stdout, stderr = run_pandoc(cmd, defs, tex, ch)
+    for line in stderr.splitlines():
         if "WARNING" in line:
             warnings.append(f"{ch.course.code} {ch.slug}: {line.strip()}")
-    body = r.stdout.split("<!--@@SPLIT@@-->", 1)[-1]
+    body = stdout.split("<!--@@SPLIT@@-->", 1)[-1]
 
     def size_tikz(m):
         # pdftocairo writes the size in pt; show figures a bit larger than print.
@@ -549,6 +570,7 @@ def main():
     if args.course:
         courses = [c for c in courses if c.code in args.course or c.folder.name in args.course]
     warnings = []
+    jobs = []
     for course in courses:
         course.tikz_pre = tikz_preamble(course.main_tex)
         course.engine = engine(course.main_tex)
@@ -556,10 +578,15 @@ def main():
         course.macros = katex_macros(defs)
         cdir = out / course.slug
         cdir.mkdir(parents=True)
-        for ch in course.chapters:
-            convert_chapter(ch, defs, cdir, warnings)
+        jobs += [(ch, defs, cdir) for ch in course.chapters]
         if args.pdf_dir and (Path(args.pdf_dir) / f"{course.slug}.pdf").exists():
             course.pdf = Path(args.pdf_dir) / f"{course.slug}.pdf"
+    # Chapters convert in parallel (pandoc and TikZ run as separate processes).
+    with ThreadPoolExecutor(max_workers=os.cpu_count() or 2) as pool:
+        for job in [pool.submit(convert_chapter, ch, defs, cdir, warnings)
+                    for ch, defs, cdir in jobs]:
+            job.result()
+    for course in courses:
         print(f"{course.code}: {len(course.chapters)} chapters", flush=True)
     for course in courses:
         render_course(course, courses, out)
