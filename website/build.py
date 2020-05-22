@@ -237,6 +237,19 @@ def strip_tags(s):
     return html.unescape(s).strip()
 
 
+_katex_option = None
+
+
+def katex_option():
+    """--math-method=katex on newer pandoc (which deprecates --katex), else --katex."""
+    global _katex_option
+    if _katex_option is None:
+        r = subprocess.run(["pandoc", "-f", "latex", "-t", "html5", "--math-method=katex"],
+                           input="$x$", capture_output=True, text=True)
+        _katex_option = "--math-method=katex" if r.returncode == 0 else "--katex"
+    return _katex_option
+
+
 def run_pandoc(cmd, defs, tex, ch):
     """pandoc's (stdout, stderr), cached by everything that affects them."""
     source = defs + tex
@@ -285,7 +298,7 @@ def convert_chapter(ch, defs, out_dir, warnings):
         if key not in failed:
             shutil.copy(CACHE / f"{key}.svg", tikz_out / f"{key}.svg")
 
-    cmd = ["pandoc", "-f", "latex", "-t", "html5", "--katex",
+    cmd = ["pandoc", "-f", "latex", "-t", "html5", katex_option(),
            "--template", str(SITE_SRC / "templates" / "fragment.html"),
            "--lua-filter", str(SITE_SRC / "filter.lua"),
            "--number-sections", f"--number-offset={ch.number - 1}", f"--id-prefix={ch.slug}-",
