@@ -1,0 +1,14 @@
+{
+  "name": "course-notes-uw",
+  "private": true,
+  "description": "Builds the course notes website with Marginalia (settings in marginalia.toml).",
+  "scripts": {
+    "build": "marginalia build",
+    "check": "marginalia check",
+    "serve": "marginalia serve",
+    "deploy": "marginalia deploy"
+  },
+  "devDependencies": {
+    "marginalia": "github:Soboku-Labs/marginalia#edd3b8e9dbc82411dd5461692e0b36bb01c26004"
+  }
+}
