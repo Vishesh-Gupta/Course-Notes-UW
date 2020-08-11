@@ -1,7 +1,9 @@
-% Shared preamble for the course notes (Computer Science, Mathematics, Statistics).
+% Shared preamble for the course notes (every subject).
 % Each course has a main.tex that does \input{../../common/preamble} and then
 % \include's one file per chapter/lecture from its chapters/ directory.
 %------------------------------------------------------------------------------
+\usepackage{iftex}
+\ifPDFTeX
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[english]{babel}
@@ -10,6 +12,21 @@
 % turn them into guillemets, e.g. in cin >> x).
 \usepackage[protrusion=false,expansion=false]{microtype}
 \DisableLigatures[<,>]{encoding = T1, family = tt*}
+\else
+% XeLaTeX (courses whose main.tex starts with "% !TEX program = xelatex"):
+% Unicode fonts, so Chinese, Japanese, Korean and pinyin tone marks just work.
+\usepackage{fontspec}
+\usepackage[english]{babel}
+\usepackage{xeCJK}
+\xeCJKsetup{CJKspace=true}
+\setCJKmainfont{Noto Serif CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+\setCJKmonofont{Noto Sans CJK SC}
+\setCJKfamilyfont{tc}{Noto Serif CJK TC}
+\setCJKfamilyfont{jp}{Noto Serif CJK JP}
+\setCJKfamilyfont{kr}{Noto Serif CJK KR}
+\usepackage[protrusion=false,expansion=false]{microtype}
+\fi
 \usepackage[margin=1in]{geometry}
 \usepackage{mathtools}
 \usepackage{amsmath}
@@ -40,6 +57,13 @@
 \newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
 \newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
 \newcommand{\code}[1]{\texttt{#1}}
+% Text in another language (the right glyph forms in the PDF, a lang tag on the
+% website): \zh simplified Chinese, \zht traditional Chinese, \ja Japanese,
+% \ko Korean. Only needed in XeLaTeX courses.
+\newcommand{\zh}[1]{#1}
+\newcommand{\zht}[1]{{\CJKfamily{tc}#1}}
+\newcommand{\ja}[1]{{\CJKfamily{jp}#1}}
+\newcommand{\ko}[1]{{\CJKfamily{kr}#1}}
 
 %------------------------------------------------------------------------------
 % Theorem-like environments (numbered per chapter)
