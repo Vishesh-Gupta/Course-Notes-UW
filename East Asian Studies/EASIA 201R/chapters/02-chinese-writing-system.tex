@@ -1,0 +1,264 @@
+\chapter{The Chinese Writing System and Its Spread}
+
+\section{Why writing comes first}
+
+The single most important shared element of East Asian civilization is the Chinese
+script. Until the late nineteenth century an educated person in Seoul, Kyoto or Hanoi could
+read the same Classical Chinese texts and communicate in writing (``brush talk'') with a
+Chinese scholar without sharing a spoken language. Writing carried everything else in this
+course: Confucian classics, Buddhist sutras, law codes and the examination system.
+
+\begin{definition}[Literary (Classical) Chinese]
+\emph{Literary Chinese} (\zht{文言文}, wényánwén) is the terse written language based on
+the texts of the late Zhou and Han periods. It was never anyone's spoken language after
+antiquity, and it remained the prestige written language of the whole region until the
+twentieth century, much as Latin did in medieval Europe.
+\end{definition}
+
+\section{Origins}
+
+\begin{itemize}
+  \item \textbf{Oracle bones} (\zht{甲骨文}, jiǎgǔwén), late Shang dynasty (c.\ 1250--1050
+        BCE): questions to ancestors were carved on turtle plastrons and ox scapulae, the
+        bone was heated, and the cracks were read as answers. This is the earliest
+        substantial body of Chinese writing.
+  \item \textbf{Bronze inscriptions} (Zhou): records cast inside ritual vessels.
+  \item \textbf{Qin standardization} (221 BCE): the First Emperor imposed a single
+        ``small seal'' script, along with standard weights, measures and axle widths.
+  \item \textbf{Clerical and standard scripts} (Han onward): the brush-written forms that
+        are recognizably modern.
+\end{itemize}
+
+\begin{important}[Characters are not ``pictures of ideas'']
+A common misconception is that Chinese characters are pictographs or ``ideograms''. Only a
+small fraction began as pictures, and over 80\% of characters are \emph{phono-semantic
+compounds}: one component gives a hint to meaning, another a hint to pronunciation. The
+script is \emph{logographic}: each character writes a \emph{morpheme} (a meaningful
+syllable) of the language.
+\end{important}
+
+\section{How characters are built}
+
+Traditional analysis (from the Han dictionary \emph{Shuowen jiezi}, c.\ 100 CE) recognized
+six types. We only need four.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Type & Example & Pinyin & How it works \\
+\midrule
+Pictograph & \zht{山} \quad \zht{木} & shān, mù & stylized drawing of a mountain, a tree \\
+Simple indicative & \zht{上} \quad \zht{本} & shàng, běn & a mark above a line; a mark at the root of a tree \\
+Compound ideograph & \zht{休} \quad \zht{明} & xiū, míng & person + tree = rest; sun + moon = bright \\
+Phono-semantic & \zht{媽} \quad \zht{河} & mā, hé & semantic radical + sound component \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{A phono-semantic family}
+
+The component \zht{青} (qīng, ``blue-green'') gives the sound to a whole family of
+characters; the radical on the left tells you the field of meaning.
+
+\begin{center}
+\begin{tikzpicture}[comp/.style={draw, thick, minimum size=0.9cm, font=\large},
+                    lab/.style={font=\scriptsize, align=center}]
+  \node[comp, fill=yellow!20] (q) at (0,0) {\zht{青}};
+  \node[lab, below=0.05cm of q] {qīng\\sound component};
+  \foreach \rad/\full/\py/\gl/\x/\i in {%
+      \zht{氵}/\zht{清}/qīng/clear (water)/-4.5/1,
+      \zht{日}/\zht{晴}/qíng/sunny (sun)/-1.5/2,
+      \zht{目}/\zht{睛}/jīng/eyeball (eye)/1.5/3,
+      \zht{言}/\zht{請}/qǐng/to request (speech)/4.5/4} {
+    \node[comp, fill=blue!10] (r\i) at (\x-0.5,2.4) {\rad};
+    \node[comp, fill=yellow!20] (s\i) at (\x+0.5,2.4) {\zht{青}};
+    \node[comp, fill=green!12, minimum size=1.1cm] (f\i) at (\x,4.2) {\full};
+    \node[lab, above=0.05cm of f\i] {\py\\\gl};
+    \draw[->] (r\i.north) -- (f\i.south west);
+    \draw[->] (s\i.north) -- (f\i.south east);
+    \draw[gray, dashed] (q.north) -- (s\i.south);
+  }
+\end{tikzpicture}
+\end{center}
+
+\begin{remark}
+Sound changes over 2000 years mean that the phonetic hint is often only approximate (as
+with jīng above). In Korean and Japanese readings the hint sometimes works better than in
+modern Mandarin, because those readings preserve older pronunciations.
+\end{remark}
+
+\subsection{Radicals}
+
+Dictionaries are organized by \emph{radicals} (\zht{部首}, bùshǒu), the semantic
+components. The Kangxi dictionary (1716) fixed the standard list of 214 radicals that is
+still used in Japanese and Korean character dictionaries.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Radical & Form as component & Meaning & Example \\
+\midrule
+\zht{水} & \zht{氵} & water & \zht{海} sea, \zht{洋} ocean \\
+\zht{人} & \zht{亻} & person & \zht{仁} benevolence, \zht{信} trust \\
+\zht{心} & \zht{忄} & heart/mind & \zht{情} feeling, \zht{性} nature \\
+\zht{言} & \zht{訁} & speech & \zht{語} language, \zht{說} speak \\
+\zht{木} & \zht{木} & tree/wood & \zht{林} grove, \zht{森} forest \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Simplified and traditional characters}
+
+The People's Republic introduced \emph{simplified characters} in 1956 and 1964 to raise
+literacy. Taiwan, Hong Kong and Macau kept \emph{traditional} forms. Japan simplified a
+smaller set independently after 1946 (\ja{新字体}, shinjitai), and South Korea kept
+traditional forms for the hanja it still uses.
+
+\begin{center}
+\begin{tabular}{lllll}
+\toprule
+Meaning & Traditional & Simplified (PRC) & Japanese & Korean hanja \\
+\midrule
+country & \zht{國} & \zh{国} & \ja{国} & \zht{國} \\
+learn & \zht{學} & \zh{学} & \ja{学} & \zht{學} \\
+dragon & \zht{龍} & \zh{龙} & \ja{竜} & \zht{龍} \\
+east & \zht{東} & \zh{东} & \ja{東} & \zht{東} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{The script travels: Korea, Japan, Vietnam}
+
+The basic problem for neighbours was that Chinese is an isolating language (no
+inflection, word order does the grammar) while Korean and Japanese are agglutinative
+(long strings of suffixes and particles, verb at the end). Writing a Japanese or Korean
+sentence in Chinese characters was awkward. Each society developed solutions in roughly
+the same three stages.
+
+\begin{enumerate}
+  \item \textbf{Write in Literary Chinese} and read it in Chinese order.
+  \item \textbf{Annotate Chinese} with marks that show how to read it in native word order
+        with native endings (Japanese \ja{漢文訓読}, kanbun kundoku; Korean \ko{구결},
+        gugyeol).
+  \item \textbf{Borrow characters for their sound} to write native words, then simplify
+        those borrowed characters into a separate script (kana), or invent a new script
+        altogether (hangul).
+\end{enumerate}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.2cm and 1.6cm,
+    st/.style={draw, rounded corners, thick, align=center, font=\small, minimum width=2.6cm},
+    ar/.style={->, thick}]
+  \node[st, fill=orange!20] (cn) {China\\Chinese characters\\(Han, 1st c.\ CE+)};
+  \node[st, fill=green!15, right=of cn, yshift=1.6cm] (kr) {Korea\\idu, hyangchal\\(5th--7th c.)};
+  \node[st, fill=red!12, right=of kr] (jp) {Japan\\man'yōgana\\(7th--8th c.)};
+  \node[st, fill=yellow!20, right=of cn, yshift=-1.6cm] (vn) {Vietnam\\chữ Nôm\\(13th c.+)};
+  \node[st, fill=green!30, below=of kr, yshift=0.4cm, xshift=1.2cm] (hg) {hangul\\(1443/1446)};
+  \node[st, fill=red!25, right=of jp, xshift=-0.6cm] (kana) {hiragana /\\katakana\\(9th c.)};
+  \draw[ar] (cn) -- (kr);
+  \draw[ar] (kr) -- node[above, font=\scriptsize] {via scribes} (jp);
+  \draw[ar] (cn) -- (vn);
+  \draw[ar] (jp) -- (kana);
+  \draw[ar, dashed] (kr) -- node[right, font=\scriptsize, align=left] {invented,\\not derived} (hg);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Japan: kanji and kana}
+
+Japan received writing through Korean scribes (traditionally the scholar Wani from
+Baekje, c.\ 400 CE). The \emph{Man'yōshū} poetry anthology (8th c.) used characters
+purely for sound (\ja{万葉仮名}, man'yōgana). These were then simplified:
+
+\begin{itemize}
+  \item \textbf{Hiragana} (\ja{ひらがな}): cursive simplifications of whole characters,
+        associated with court women's writing (e.g.\ \ja{安} $\to$ \ja{あ},
+        \ja{以} $\to$ \ja{い}).
+  \item \textbf{Katakana} (\ja{カタカナ}): fragments of characters used by monks to annotate
+        Buddhist texts (e.g.\ \ja{阿} $\to$ \ja{ア}, \ja{伊} $\to$ \ja{イ}).
+\end{itemize}
+
+Modern Japanese mixes all three: kanji for content words, hiragana for grammatical
+endings and particles, katakana for loanwords and emphasis. A character typically has an
+\emph{on} reading (borrowed Chinese sound) and a \emph{kun} reading (native Japanese
+word): \ja{山} is read \emph{san} in \ja{富士山} (Fujisan) but \emph{yama} on its own.
+
+\begin{example}[One sentence, three scripts]
+\ja{私はコーヒーを飲みます。} (Watashi wa kōhī o nomimasu, ``I drink coffee.'')
+\ja{私} and \ja{飲} are kanji; \ja{コーヒー} is katakana for an English loanword;
+\ja{は}, \ja{を}, \ja{みます} are hiragana particles and verb endings.
+\end{example}
+
+\subsection{Korea: hanja, idu and hangul}
+
+Korean elites wrote Literary Chinese for over a thousand years. To record Korean they
+used \emph{idu} (\ko{이두}), a system using characters for Korean grammatical elements, and
+\emph{hyangchal} for native poetry (the \emph{hyangga} of Silla). In 1443 King Sejong and
+scholars of the Hall of Worthies created a new alphabet, promulgated in 1446 as
+\emph{Hunmin jeongeum} (\ko{훈민정음}, ``the correct sounds for instructing the
+people''). We return to hangul in the Korea lecture; here note:
+
+\begin{itemize}
+  \item It is a true alphabet, but letters are grouped into syllable blocks so that a
+        text \emph{looks} like a page of characters.
+  \item Consonant shapes depict the speech organs (\ko{ㄱ} the tongue root blocking the
+        throat, \ko{ㅁ} the mouth).
+  \item Elites resisted it for centuries; it became the standard national script only in
+        the twentieth century. South Korea now uses very few hanja; North Korea none.
+\end{itemize}
+
+\subsection{Vietnam}
+
+Vietnam wrote Literary Chinese and later developed \emph{chữ Nôm}, new characters built
+from Chinese components to write Vietnamese. Under French rule a Roman alphabet
+(\emph{quốc ngữ}) devised by missionaries replaced both.
+
+\section{Sino-xenic vocabulary}
+
+Because all four societies borrowed huge numbers of words from Chinese, they share a
+layer of ``Sino-'' vocabulary. Recognizing it is a good party trick and shows the depth of
+shared heritage.
+
+\begin{center}
+\begin{tabular}{lllll}
+\toprule
+Characters & Mandarin & Japanese & Korean & Meaning \\
+\midrule
+\zht{大學} & dàxué & daigaku (\ja{大学}) & daehak (\ko{대학}) & university \\
+\zht{學生} & xuéshēng & gakusei (\ja{学生}) & haksaeng (\ko{학생}) & student \\
+\zht{經濟} & jīngjì & keizai (\ja{経済}) & gyeongje (\ko{경제}) & economy \\
+\zht{文化} & wénhuà & bunka (\ja{文化}) & munhwa (\ko{문화}) & culture \\
+\zht{國家} & guójiā & kokka (\ja{国家}) & gukka (\ko{국가}) & state \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{aside}
+Many of these words (\emph{economy}, \emph{society}, \emph{philosophy}, \emph{science}) were
+actually coined in \emph{Meiji Japan} to translate Western concepts and then borrowed
+\emph{back} into Chinese and Korean around 1900. The flow of the character sphere reversed
+in the modern period. We will see this again in Week 9.
+\end{aside}
+
+\section{Writing, power and literacy}
+
+\begin{itemize}
+  \item Mastery of characters required years of study, so literacy was a marker of elite
+        status (scholar-officials, \emph{yangban}, court nobles, monks).
+  \item Calligraphy (\zht{書法} shūfǎ, \ja{書道} shodō, \ko{서예} seoye) was an art form and
+        a test of moral cultivation.
+  \item Vernacular scripts (kana, hangul) opened writing to women and commoners and
+        produced major literatures (\emph{The Tale of Genji}; Korean \emph{sijo} and
+        novels).
+\end{itemize}
+
+\section*{Summary}
+\begin{itemize}
+  \item Chinese characters are logographic; most are phono-semantic compounds organized
+        by radicals.
+  \item Literary Chinese was the shared written language of the region, like Latin.
+  \item Korea and Japan adapted characters to languages with very different grammar,
+        creating kana (by simplifying characters) and hangul (an invented alphabet).
+  \item Shared Sino-vocabulary is a visible trace of the common heritage, much of it
+        coined in Meiji Japan.
+  \item Simplified vs.\ traditional characters is a twentieth-century political divide.
+\end{itemize}
