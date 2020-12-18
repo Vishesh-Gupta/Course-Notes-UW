@@ -1,0 +1,178 @@
+\chapter{Lesson 10: School Life}
+
+\section{Vocabulary}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Characters & Pinyin & Part of speech & Meaning \\
+\midrule
+\zh{日记} & rìjì & noun & diary \\
+\zh{起床} & qǐ chuáng & verb-object & to get up \\
+\zh{洗澡} & xǐ zǎo & verb-object & to take a shower/bath \\
+\zh{早饭} & zǎofàn & noun & breakfast \\
+\zh{午饭} & wǔfàn & noun & lunch \\
+\zh{晚饭} & wǎnfàn & noun & dinner \\
+\zh{教室} & jiàoshì & noun & classroom \\
+\zh{宿舍} & sùshè & noun & dormitory \\
+\zh{食堂} & shítáng & noun & cafeteria \\
+\zh{先} & xiān & adverb & first \\
+\zh{再} & zài & adverb & then, again (future) \\
+\zh{然后} & ránhòu & conjunction & afterwards \\
+\zh{最后} & zuìhòu & adverb & finally \\
+\zh{就} & jiù & adverb & as early as, right away \\
+\zh{跟} & gēn & preposition & with \\
+\zh{一起} & yìqǐ & adverb & together \\
+\zh{每天} & měi tiān & & every day \\
+\zh{电脑} & diànnǎo & noun & computer \\
+\zh{上网} & shàng wǎng & verb-object & to go online \\
+\zh{同学} & tóngxué & noun & classmate \\
+\zh{专业} & zhuānyè & noun & major \\
+\zh{学期} & xuéqī & noun & semester \\
+\zh{最近} & zuìjìn & adverb & recently \\
+\zh{能} & néng & modal & can, be able to \\
+\zh{会} & huì & modal & can (learned skill); will \\
+\zh{可以} & kěyǐ & modal & may, can (permitted) \\
+\zh{希望} & xīwàng & verb & to hope \\
+\zh{信} & xìn & noun & letter \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{The full Chinese word order}
+
+All the pieces from earlier lessons now fit into one template.
+
+\begin{center}
+\begin{tikzpicture}[slot/.style={draw, thick, rounded corners, minimum height=1.6cm, minimum width=1.9cm, align=center, font=\small}]
+  \node[slot, fill=blue!10] (s) at (0,0) {Subject\\[2pt] \zh{我}};
+  \node[slot, fill=purple!10] (t) at (2.5,0) {Time\\[2pt] \zh{每天早上}\\ \zh{八点}};
+  \node[slot, fill=gray!15] (a) at (5.0,0) {Adverb\\[2pt] \zh{常常}};
+  \node[slot, fill=green!12] (p) at (7.5,0) {Place / \zh{跟}\\[2pt] \zh{跟同学}\\ \zh{在食堂}};
+  \node[slot, fill=orange!18] (v) at (10.0,0) {Verb\\[2pt] \zh{吃}};
+  \node[slot, fill=yellow!25] (o) at (12.5,0) {Object\\[2pt] \zh{早饭}};
+  \foreach \a/\b in {s/t,t/a,a/p,p/v,v/o} \draw[->, thick] (\a) -- (\b);
+  \node[font=\small, align=center] at (6.25,-1.35) {``I often have breakfast with classmates in the cafeteria at 8 every morning.''};
+\end{tikzpicture}
+\end{center}
+
+\begin{important}[Time -- (manner/companion) -- place -- action]
+Subject, then \emph{when}, then adverbs, then \emph{with whom} and \emph{where},
+then the verb and its object. English is almost the mirror image. The time phrase may
+also move in front of the subject (\zh{每天早上八点，我\ldots}), but place, companion
+and adverbs stay between subject and verb.
+\end{important}
+
+\section{Grammar}
+
+\subsection{Sequencing: \zh{先\ldots{}再\ldots{}然后\ldots{}最后}}
+
+\begin{itemize}
+  \item \zh{我先洗澡，再吃早饭。} I shower first, then eat breakfast.
+  \item \zh{我们先去图书馆，然后去食堂吃午饭，最后回宿舍。}
+\end{itemize}
+\zh{再} here is ``then'' for actions not yet done (plans and habits); for past sequences
+use \zh{然后} or \zh{就}.
+
+\subsection{\zh{跟\ldots{}一起}}
+
+\zh{跟} + person (+ \zh{一起}) + verb: ``do something with someone''.
+\begin{itemize}
+  \item \zh{我常常跟室友一起去打球。} I often play ball with my roommate.
+  \item \zh{你想跟我们一起去吗？}
+\end{itemize}
+
+\subsection{\zh{就} vs \zh{才}}
+
+Both come right before the verb, and they express the speaker's attitude to timing.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+ & \zh{就} jiù & \zh{才} cái \\
+\midrule
+Meaning & earlier / sooner than expected & later than expected \\
+\zh{了}? & usually with \zh{了} & never with \zh{了} \\
+Example & \zh{他六点就起床了。} & \zh{他十点才起床。} \\
+ & He was up at six already. & He didn't get up until ten. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}[x=1.1cm]
+  \draw[thick, -{Stealth}] (5,0) -- (11.5,0) node[right, font=\small] {time};
+  \foreach \h in {6,7,...,11} {
+    \draw (\h,0.1) -- (\h,-0.1);
+    \node[below, font=\scriptsize] at (\h,-0.1) {\h:00};
+  }
+  \fill[gray] (8,0) circle (0.09);
+  \node[above, font=\scriptsize, gray] at (8,0.15) {expected};
+  \fill[green!50!black] (6,0) circle (0.11);
+  \node[font=\small, green!40!black] at (6,-0.85) {\zh{就}};
+  \draw[->, green!50!black, thick] (7.85,0.6) to[bend right=25] (6.15,0.6);
+  \fill[red!70!black] (10,0) circle (0.11);
+  \node[font=\small, red!70!black] at (10,-0.85) {\zh{才}};
+  \draw[->, red!70!black, thick] (8.15,0.6) to[bend left=25] (9.85,0.6);
+\end{tikzpicture}
+\end{center}
+
+\subsection{\zh{能}, \zh{会}, \zh{可以}}
+
+All three translate as ``can''. A first look (revisited in CHINA 102R):
+\begin{itemize}
+  \item \zh{会}: a learned skill. \zh{我会说中文，也会开车。}
+  \item \zh{能}: physical ability or circumstances. \zh{我明天有考试，今天晚上不能去。}
+  \item \zh{可以}: permission. \zh{老师，我可以进来吗？}---\zh{可以。}
+\end{itemize}
+The negative of permission is usually \zh{不能} (``not allowed''), not \zh{不可以}
+alone, though both are heard.
+
+\subsection{Reporting a whole day: \zh{的时候} and \zh{以后} in narration}
+
+\begin{itemize}
+  \item \zh{上课的时候，老师说中文，我们也说中文。}
+  \item \zh{吃了晚饭以后，我在宿舍做作业。}
+\end{itemize}
+Note \zh{V了 O 以后}: the \zh{了} marks the first action as complete before the second.
+
+\section{A diary entry}
+
+\begin{example}[\zh{我的一天}]
+\zh{十月二十号 \ 星期三}
+
+\zh{今天我七点就起床了。我先洗澡，再去食堂吃早饭。八点半我去教室上中文课。上课的时候，老师教了我们第十课的语法。第十课的语法不太难，可是生词有点儿多。中午我跟同学一起吃午饭，然后去图书馆用电脑做作业。下午我有数学课，五点才下课。吃了晚饭以后，我跟室友聊天、听音乐。我十一点半睡觉。}
+\end{example}
+
+\section{Writing a letter in Chinese}
+
+\begin{aside}
+A traditional Chinese letter (\zh{信}) has a fixed frame. Start with the addressee on
+the first line followed by a colon: \zh{小王：} or \zh{亲爱的妈妈：} ``Dear Mom:''; then
+\zh{你好！} on its own line. The body is indented two characters. Close with a wish such
+as \zh{祝好！} ``All the best!'' or the formal two-line \zh{此致} / \zh{敬礼}, then
+sign on the right with the date below. In traditional characters the closing is the
+same, \zht{祝好}, while ``Dear'' \zh{亲爱的} is written \zht{親愛的}.
+\end{aside}
+
+\begin{example}[Short letter]
+\zh{亲爱的小林：}
+
+\zh{你好！好久不见，你最近怎么样？我这个学期很忙，因为我有五门课，还要学中文。中文有点儿难，可是很有意思。我希望明年能去北京学习。你什么时候有空？我们一起去喝咖啡吧。}
+
+\zh{祝好！}
+
+\hfill\zh{明}
+
+\hfill\zh{十一月三日}
+\end{example}
+
+\section*{Review}
+\begin{itemize}
+  \item Word order: Subject -- Time -- Adverb -- \zh{跟}/Place -- Verb -- Object.
+  \item \zh{先\ldots{}再\ldots{}然后\ldots{}最后} to sequence actions.
+  \item \zh{就} (early, with \zh{了}) vs \zh{才} (late, no \zh{了}).
+  \item \zh{会} skill, \zh{能} ability/circumstances, \zh{可以} permission.
+  \item V \zh{了} O \zh{以后} for ``after doing''.
+  \item Letter format: \zh{X：}, \zh{你好！}, body, \zh{祝好！}, signature and date.
+\end{itemize}

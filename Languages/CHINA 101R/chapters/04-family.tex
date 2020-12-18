@@ -1,0 +1,204 @@
+\chapter{Lesson 4: Family}
+
+\section{Vocabulary}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Characters & Pinyin & Part of speech & Meaning \\
+\midrule
+\zh{家} & jiā & noun & family, home \\
+\zh{爸爸} & bàba & noun & dad \\
+\zh{妈妈} & māma & noun & mom \\
+\zh{哥哥} & gēge & noun & older brother \\
+\zh{姐姐} & jiějie & noun & older sister \\
+\zh{弟弟} & dìdi & noun & younger brother \\
+\zh{妹妹} & mèimei & noun & younger sister \\
+\zh{儿子} & érzi & noun & son \\
+\zh{女儿} & nǚ'ér & noun & daughter \\
+\zh{孩子} & háizi & noun & child \\
+\zh{有} & yǒu & verb & to have; there is \\
+\zh{没} & méi & adverb & not (only with \zh{有} and past actions) \\
+\zh{几} & jǐ & question word & how many (small number) \\
+\zh{个} & gè & measure word & general measure word \\
+\zh{口} & kǒu & measure word & for members of a family \\
+\zh{两} & liǎng & numeral & two (of something) \\
+\zh{和} & hé & conjunction & and (between nouns) \\
+\zh{都} & dōu & adverb & all, both \\
+\zh{这} / \zh{那} & zhè / nà & pronoun & this / that \\
+\zh{谁} & shéi & question word & who \\
+\zh{照片} & zhàopiàn & noun & photograph \\
+\zh{张} & zhāng & measure word & for flat things \\
+\zh{的} & de & particle & possessive marker \\
+\zh{医生} & yīshēng & noun & doctor \\
+\zh{律师} & lǜshī & noun & lawyer \\
+\zh{工程师} & gōngchéngshī & noun & engineer \\
+\zh{大学生} & dàxuéshēng & noun & university student \\
+\zh{做} & zuò & verb & to do \\
+\zh{工作} & gōngzuò & noun / verb & job; to work \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{The family tree}
+
+Chinese kinship terms are much more specific than English ones: there is no single word
+for ``brother'' or ``sister''; relative age is built in. This is my (made-up) family for
+the oral presentation.
+
+\begin{center}
+\begin{tikzpicture}[p/.style={draw, rounded corners, align=center, font=\small, minimum width=1.9cm, minimum height=1cm}, m/.style={p, fill=blue!8}, f/.style={p, fill=red!8}]
+  \node[f] (nn) at (-3.2,4) {\zh{奶奶}\\ nǎinai};
+  \node[m] (yy) at (-1.0,4) {\zh{爷爷}\\ yéye};
+  \node[m] (wg) at (2.2,4) {\zh{外公}\\ wàigōng};
+  \node[f] (wp) at (4.4,4) {\zh{外婆}\\ wàipó};
+  \draw (nn) -- (yy); \draw (wg) -- (wp);
+  \node[m] (ba) at (-2.1,2) {\zh{爸爸}\\ bàba};
+  \node[f] (ma) at (3.3,2) {\zh{妈妈}\\ māma};
+  \draw (-2.1,4) -- (ba);
+  \draw (3.3,4) -- (ma);
+  \draw (ba) -- (ma);
+  \draw (0.6,2) -- (0.6,1);
+  \draw (-4.2,1) -- (5.4,1);
+  \node[m] (gg) at (-4.2,0) {\zh{哥哥}\\ gēge};
+  \node[f] (jj) at (-1.8,0) {\zh{姐姐}\\ jiějie};
+  \node[p, very thick, fill=yellow!25] (me) at (0.6,0) {\zh{我}\\ wǒ};
+  \node[m] (dd) at (3.0,0) {\zh{弟弟}\\ dìdi};
+  \node[f] (mm) at (5.4,0) {\zh{妹妹}\\ mèimei};
+  \foreach \n in {gg,jj,me,dd,mm} \draw (\n.north) -- ++(0,0.5);
+  \node[font=\scriptsize, gray] at (-4.2,-0.85) {older};
+  \node[font=\scriptsize, gray] at (-1.8,-0.85) {older};
+  \node[font=\scriptsize, gray] at (3.0,-0.85) {younger};
+  \node[font=\scriptsize, gray] at (5.4,-0.85) {younger};
+  \node[font=\scriptsize, align=center] at (-2.1,4.95) {father's side};
+  \node[font=\scriptsize, align=center] at (3.3,4.95) {mother's side (\zh{外} ``outside'')};
+\end{tikzpicture}
+\end{center}
+
+\begin{aside}
+Grandparents differ by side: \zh{爷爷}/\zh{奶奶} for the father's parents, and
+\zh{外公}/\zh{外婆} (southern usage) or \zh{姥爷}/\zh{姥姥} (northern usage) for the
+mother's. The \zh{外} ``outside'' reflects the old patrilineal view that a married
+daughter joined her husband's family. Children also call any adult friend of the family
+\zh{叔叔} \emph{shūshu} ``uncle'' or \zh{阿姨} \emph{āyí} ``auntie''.
+\end{aside}
+
+\section{Grammar}
+
+\subsection{The possessive \zh{的}}
+
+Noun/pronoun + \zh{的} + noun expresses possession: \zh{我的书} ``my book'',
+\zh{老师的照片} ``the teacher's photo''.
+
+\begin{important}[When \zh{的} is dropped]
+With a personal pronoun before a family member, a close relationship or an institution
+one belongs to, \zh{的} is normally omitted:
+\zh{我爸爸}, \zh{你妹妹}, \zh{我家}, \zh{我们学校}. Using \zh{的} here is not wrong, just
+less natural.
+\end{important}
+
+\subsection{\zh{有} and \zh{没有}}
+
+\zh{有} means ``to have'' (and later ``there is''). Its negative is \zh{没有}, never
+*\zh{不有}.
+\begin{itemize}
+  \item \zh{我有两个姐姐。} \emph{Wǒ yǒu liǎng ge jiějie.} I have two older sisters.
+  \item \zh{他没有弟弟。} \emph{Tā méiyǒu dìdi.} He doesn't have a younger brother.
+  \item \zh{你有哥哥吗？} / \zh{你有没有哥哥？} Do you have an older brother?
+\end{itemize}
+
+\subsection{Numbers and measure words}
+
+In Chinese a number cannot directly modify a noun. A \emph{measure word} (\zh{量词}
+liàngcí) goes in between:
+\begin{center}
+\textbf{number} (or \zh{这} / \zh{那} / \zh{几}) \ + \ \textbf{measure word} \ + \ \textbf{noun}
+\end{center}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Measure word & Used for & Example & Meaning \\
+\midrule
+\zh{个} gè & people, general & \zh{三个学生} & three students \\
+\zh{口} kǒu & members of a family & \zh{我家有五口人} & my family has five people \\
+\zh{张} zhāng & flat things & \zh{一张照片} & a photo \\
+\zh{本} běn & books & \zh{两本书} & two books \\
+\zh{位} wèi & people (polite) & \zh{这位老师} & this teacher \\
+\zh{只} zhī & many animals & \zh{一只狗} & a dog \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{important}[\zh{二} vs \zh{两}]
+Before a measure word, ``two'' is \zh{两} liǎng: \zh{两个人}, not *\zh{二个人}. When
+counting, in numbers like 12 or 20, and in ordinals, use \zh{二}: \zh{十二}, \zh{二十},
+\zh{第二}.
+\end{important}
+
+When the noun is clear from context it can be dropped: \zh{这张照片是我的，那张是我哥哥的。}
+
+\subsection{Questions about number: \zh{几}}
+
+\zh{几} asks ``how many'' when the expected answer is small (under about ten). It needs a
+measure word.
+\begin{itemize}
+  \item \zh{你家有几口人？}---\zh{我家有四口人：爸爸、妈妈、弟弟和我。}
+  \item \zh{你有几个姐姐？}---\zh{我有一个姐姐。}
+\end{itemize}
+(For larger numbers we will use \zh{多少} \emph{duōshao} in Lesson 5.)
+
+\begin{aside}
+The enumeration comma \zh{、} (\zh{顿号} dùnhào) separates items in a list; \zh{和} joins
+the last two. \zh{和} only joins nouns or pronouns: ``I study and work'' is \emph{not}
+*\zh{我学习和工作}; use two clauses or \zh{也}.
+\end{aside}
+
+\subsection{The adverb \zh{都}}
+
+\zh{都} ``all, both'' refers back to a plural subject and goes before the verb.
+\begin{itemize}
+  \item \zh{我爸爸妈妈都是医生。} My parents are both doctors.
+  \item \zh{我们都不是律师。} None of us is a lawyer.
+  \item \zh{我们不都是律师。} Not all of us are lawyers.
+\end{itemize}
+
+\begin{important}[\zh{都不} vs \zh{不都}]
+\zh{都不} = ``none'' (all are not); \zh{不都} = ``not all''. With both \zh{也} and
+\zh{都}, the order is \zh{也都}: \zh{他们也都是学生}.
+\end{important}
+
+\subsection{Demonstratives and \zh{谁}}
+
+\begin{itemize}
+  \item \zh{这是谁？}---\zh{这是我姐姐。} Who is this?---This is my older sister.
+  \item \zh{这个男孩子是谁？} Who is this boy? (\zh{这} + MW + noun)
+  \item \zh{这是谁的照片？} Whose photo is this?
+\end{itemize}
+In speech \zh{这} is often \emph{zhèi} and \zh{那} \emph{nèi} before a measure word.
+
+\subsection{Asking about jobs}
+
+\zh{你爸爸做什么工作？}---\zh{他是工程师。} ``What does your dad do?---He's an engineer.''
+A common shorter form is \zh{你爸爸是做什么的？}
+
+\section{Model description}
+
+\begin{example}[Presenting a family photo]
+\zh{这是我家的照片。我家有五口人：爸爸、妈妈、一个哥哥、一个妹妹和我。我爸爸是医生，我妈妈是律师。我哥哥是大学生，在滑铁卢大学学电脑。我妹妹很小，她九岁。我们都很喜欢狗，可是我们家没有狗。}
+
+``This is a photo of my family. There are five of us \ldots\ My older brother is a
+university student studying computers at Waterloo. My little sister is small; she's nine.
+We all like dogs, but we don't have one.''
+(\zh{滑铁卢} Huátiělú = Waterloo; \zh{可是} kěshì = but.)
+\end{example}
+
+\section*{Review}
+\begin{itemize}
+  \item Kin terms encode older/younger and father's/mother's side.
+  \item \zh{的} marks possession; drop it with pronoun + close relation (\zh{我妈妈}).
+  \item \zh{有} is negated only by \zh{没}: \zh{没有}.
+  \item Number + measure word + noun; \zh{个} is general, \zh{口} counts family members.
+  \item \zh{两} before measure words, \zh{二} in counting.
+  \item \zh{几} + MW for small numbers; \zh{都} before the verb; \zh{都不} vs \zh{不都}.
+\end{itemize}
