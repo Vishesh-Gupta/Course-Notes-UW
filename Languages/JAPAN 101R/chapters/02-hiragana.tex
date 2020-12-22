@@ -1,0 +1,401 @@
+\chapter{Lesson 2: Hiragana}
+
+\section{What hiragana is for}
+
+Hiragana (\ja{ひらがな}) is the basic Japanese syllabary. Every Japanese word
+\emph{can} be written in hiragana, and children learn it first. In ordinary adult
+writing it is used for:
+\begin{itemize}
+  \item particles: \ja{は}, \ja{を}, \ja{に}, \ja{の}, \ldots;
+  \item inflectional endings (\emph{okurigana}): the \ja{べます} of \ja{食べます};
+  \item native words that have no kanji or whose kanji is rare: \ja{これ}, \ja{とても};
+  \item \emph{furigana}: small reading aids printed above kanji in textbooks and
+        children's books.
+\end{itemize}
+
+The shapes developed from cursive (grass-script) forms of whole kanji around the 9th
+century. Hiragana was long associated with women's writing; the \emph{Tale of Genji} was
+written largely in it.
+
+\section{The basic chart (\ja{ごじゅうおん}, gojūon)}
+
+The 46 basic hiragana are arranged in a grid called the \emph{gojūon} (``fifty sounds'').
+Each row shares a consonant; each column shares a vowel. Grey cells are gaps where the
+syllable either does not exist in modern Japanese or is written with another symbol.
+
+\begin{center}
+\begin{tikzpicture}[x=1.25cm,y=-1.05cm, cell/.style={draw, minimum width=1.25cm, minimum height=1.05cm, inner sep=0pt}]
+  \node[font=\small\bfseries] at (1,-0.15) {a};
+  \node[font=\small\bfseries] at (2,-0.15) {i};
+  \node[font=\small\bfseries] at (3,-0.15) {u};
+  \node[font=\small\bfseries] at (4,-0.15) {e};
+  \node[font=\small\bfseries] at (5,-0.15) {o};
+  \node[font=\small\bfseries, anchor=east] at (0.35,0.6) {};
+  \node[cell] at (1,0.6) {};
+  \node[font=\Large] at (1,0.5) {\ja{あ}};
+  \node[font=\scriptsize, text=gray!50!black] at (1,0.92) {a};
+  \node[cell] at (2,0.6) {};
+  \node[font=\Large] at (2,0.5) {\ja{い}};
+  \node[font=\scriptsize, text=gray!50!black] at (2,0.92) {i};
+  \node[cell] at (3,0.6) {};
+  \node[font=\Large] at (3,0.5) {\ja{う}};
+  \node[font=\scriptsize, text=gray!50!black] at (3,0.92) {u};
+  \node[cell] at (4,0.6) {};
+  \node[font=\Large] at (4,0.5) {\ja{え}};
+  \node[font=\scriptsize, text=gray!50!black] at (4,0.92) {e};
+  \node[cell] at (5,0.6) {};
+  \node[font=\Large] at (5,0.5) {\ja{お}};
+  \node[font=\scriptsize, text=gray!50!black] at (5,0.92) {o};
+  \node[font=\small\bfseries, anchor=east] at (0.35,1.6) {k};
+  \node[cell] at (1,1.6) {};
+  \node[font=\Large] at (1,1.5) {\ja{か}};
+  \node[font=\scriptsize, text=gray!50!black] at (1,1.92) {ka};
+  \node[cell] at (2,1.6) {};
+  \node[font=\Large] at (2,1.5) {\ja{き}};
+  \node[font=\scriptsize, text=gray!50!black] at (2,1.92) {ki};
+  \node[cell] at (3,1.6) {};
+  \node[font=\Large] at (3,1.5) {\ja{く}};
+  \node[font=\scriptsize, text=gray!50!black] at (3,1.92) {ku};
+  \node[cell] at (4,1.6) {};
+  \node[font=\Large] at (4,1.5) {\ja{け}};
+  \node[font=\scriptsize, text=gray!50!black] at (4,1.92) {ke};
+  \node[cell] at (5,1.6) {};
+  \node[font=\Large] at (5,1.5) {\ja{こ}};
+  \node[font=\scriptsize, text=gray!50!black] at (5,1.92) {ko};
+  \node[font=\small\bfseries, anchor=east] at (0.35,2.6) {s};
+  \node[cell] at (1,2.6) {};
+  \node[font=\Large] at (1,2.5) {\ja{さ}};
+  \node[font=\scriptsize, text=gray!50!black] at (1,2.92) {sa};
+  \node[cell] at (2,2.6) {};
+  \node[font=\Large] at (2,2.5) {\ja{し}};
+  \node[font=\scriptsize, text=gray!50!black] at (2,2.92) {shi};
+  \node[cell] at (3,2.6) {};
+  \node[font=\Large] at (3,2.5) {\ja{す}};
+  \node[font=\scriptsize, text=gray!50!black] at (3,2.92) {su};
+  \node[cell] at (4,2.6) {};
+  \node[font=\Large] at (4,2.5) {\ja{せ}};
+  \node[font=\scriptsize, text=gray!50!black] at (4,2.92) {se};
+  \node[cell] at (5,2.6) {};
+  \node[font=\Large] at (5,2.5) {\ja{そ}};
+  \node[font=\scriptsize, text=gray!50!black] at (5,2.92) {so};
+  \node[font=\small\bfseries, anchor=east] at (0.35,3.6) {t};
+  \node[cell] at (1,3.6) {};
+  \node[font=\Large] at (1,3.5) {\ja{た}};
+  \node[font=\scriptsize, text=gray!50!black] at (1,3.92) {ta};
+  \node[cell] at (2,3.6) {};
+  \node[font=\Large] at (2,3.5) {\ja{ち}};
+  \node[font=\scriptsize, text=gray!50!black] at (2,3.92) {chi};
+  \node[cell] at (3,3.6) {};
+  \node[font=\Large] at (3,3.5) {\ja{つ}};
+  \node[font=\scriptsize, text=gray!50!black] at (3,3.92) {tsu};
+  \node[cell] at (4,3.6) {};
+  \node[font=\Large] at (4,3.5) {\ja{て}};
+  \node[font=\scriptsize, text=gray!50!black] at (4,3.92) {te};
+  \node[cell] at (5,3.6) {};
+  \node[font=\Large] at (5,3.5) {\ja{と}};
+  \node[font=\scriptsize, text=gray!50!black] at (5,3.92) {to};
+  \node[font=\small\bfseries, anchor=east] at (0.35,4.6) {n};
+  \node[cell] at (1,4.6) {};
+  \node[font=\Large] at (1,4.5) {\ja{な}};
+  \node[font=\scriptsize, text=gray!50!black] at (1,4.92) {na};
+  \node[cell] at (2,4.6) {};
+  \node[font=\Large] at (2,4.5) {\ja{に}};
+  \node[font=\scriptsize, text=gray!50!black] at (2,4.92) {ni};
+  \node[cell] at (3,4.6) {};
+  \node[font=\Large] at (3,4.5) {\ja{ぬ}};
+  \node[font=\scriptsize, text=gray!50!black] at (3,4.92) {nu};
+  \node[cell] at (4,4.6) {};
+  \node[font=\Large] at (4,4.5) {\ja{ね}};
+  \node[font=\scriptsize, text=gray!50!black] at (4,4.92) {ne};
+  \node[cell] at (5,4.6) {};
+  \node[font=\Large] at (5,4.5) {\ja{の}};
+  \node[font=\scriptsize, text=gray!50!black] at (5,4.92) {no};
+  \node[font=\small\bfseries, anchor=east] at (0.35,5.6) {h};
+  \node[cell] at (1,5.6) {};
+  \node[font=\Large] at (1,5.5) {\ja{は}};
+  \node[font=\scriptsize, text=gray!50!black] at (1,5.92) {ha};
+  \node[cell] at (2,5.6) {};
+  \node[font=\Large] at (2,5.5) {\ja{ひ}};
+  \node[font=\scriptsize, text=gray!50!black] at (2,5.92) {hi};
+  \node[cell] at (3,5.6) {};
+  \node[font=\Large] at (3,5.5) {\ja{ふ}};
+  \node[font=\scriptsize, text=gray!50!black] at (3,5.92) {fu};
+  \node[cell] at (4,5.6) {};
+  \node[font=\Large] at (4,5.5) {\ja{へ}};
+  \node[font=\scriptsize, text=gray!50!black] at (4,5.92) {he};
+  \node[cell] at (5,5.6) {};
+  \node[font=\Large] at (5,5.5) {\ja{ほ}};
+  \node[font=\scriptsize, text=gray!50!black] at (5,5.92) {ho};
+  \node[font=\small\bfseries, anchor=east] at (0.35,6.6) {m};
+  \node[cell] at (1,6.6) {};
+  \node[font=\Large] at (1,6.5) {\ja{ま}};
+  \node[font=\scriptsize, text=gray!50!black] at (1,6.92) {ma};
+  \node[cell] at (2,6.6) {};
+  \node[font=\Large] at (2,6.5) {\ja{み}};
+  \node[font=\scriptsize, text=gray!50!black] at (2,6.92) {mi};
+  \node[cell] at (3,6.6) {};
+  \node[font=\Large] at (3,6.5) {\ja{む}};
+  \node[font=\scriptsize, text=gray!50!black] at (3,6.92) {mu};
+  \node[cell] at (4,6.6) {};
+  \node[font=\Large] at (4,6.5) {\ja{め}};
+  \node[font=\scriptsize, text=gray!50!black] at (4,6.92) {me};
+  \node[cell] at (5,6.6) {};
+  \node[font=\Large] at (5,6.5) {\ja{も}};
+  \node[font=\scriptsize, text=gray!50!black] at (5,6.92) {mo};
+  \node[font=\small\bfseries, anchor=east] at (0.35,7.6) {y};
+  \node[cell] at (1,7.6) {};
+  \node[font=\Large] at (1,7.5) {\ja{や}};
+  \node[font=\scriptsize, text=gray!50!black] at (1,7.92) {ya};
+  \node[cell, fill=gray!15] at (2,7.6) {};
+  \node[cell] at (3,7.6) {};
+  \node[font=\Large] at (3,7.5) {\ja{ゆ}};
+  \node[font=\scriptsize, text=gray!50!black] at (3,7.92) {yu};
+  \node[cell, fill=gray!15] at (4,7.6) {};
+  \node[cell] at (5,7.6) {};
+  \node[font=\Large] at (5,7.5) {\ja{よ}};
+  \node[font=\scriptsize, text=gray!50!black] at (5,7.92) {yo};
+  \node[font=\small\bfseries, anchor=east] at (0.35,8.6) {r};
+  \node[cell] at (1,8.6) {};
+  \node[font=\Large] at (1,8.5) {\ja{ら}};
+  \node[font=\scriptsize, text=gray!50!black] at (1,8.92) {ra};
+  \node[cell] at (2,8.6) {};
+  \node[font=\Large] at (2,8.5) {\ja{り}};
+  \node[font=\scriptsize, text=gray!50!black] at (2,8.92) {ri};
+  \node[cell] at (3,8.6) {};
+  \node[font=\Large] at (3,8.5) {\ja{る}};
+  \node[font=\scriptsize, text=gray!50!black] at (3,8.92) {ru};
+  \node[cell] at (4,8.6) {};
+  \node[font=\Large] at (4,8.5) {\ja{れ}};
+  \node[font=\scriptsize, text=gray!50!black] at (4,8.92) {re};
+  \node[cell] at (5,8.6) {};
+  \node[font=\Large] at (5,8.5) {\ja{ろ}};
+  \node[font=\scriptsize, text=gray!50!black] at (5,8.92) {ro};
+  \node[font=\small\bfseries, anchor=east] at (0.35,9.6) {w};
+  \node[cell] at (1,9.6) {};
+  \node[font=\Large] at (1,9.5) {\ja{わ}};
+  \node[font=\scriptsize, text=gray!50!black] at (1,9.92) {wa};
+  \node[cell, fill=gray!15] at (2,9.6) {};
+  \node[cell, fill=gray!15] at (3,9.6) {};
+  \node[cell, fill=gray!15] at (4,9.6) {};
+  \node[cell] at (5,9.6) {};
+  \node[font=\Large] at (5,9.5) {\ja{を}};
+  \node[font=\scriptsize, text=gray!50!black] at (5,9.92) {o};
+  \node[font=\small\bfseries, anchor=east] at (0.35,10.6) {};
+  \node[cell] at (1,10.6) {};
+  \node[font=\Large] at (1,10.5) {\ja{ん}};
+  \node[font=\scriptsize, text=gray!50!black] at (1,10.92) {n};
+  \node[cell, fill=gray!15] at (2,10.6) {};
+  \node[cell, fill=gray!15] at (3,10.6) {};
+  \node[cell, fill=gray!15] at (4,10.6) {};
+  \node[cell, fill=gray!15] at (5,10.6) {};
+\end{tikzpicture}
+\end{center}
+
+\begin{important}[Irregular romanizations in the chart]
+Most cells are just consonant + vowel, but note:
+\ja{し} shi (not si), \ja{ち} chi (not ti), \ja{つ} tsu (not tu), \ja{ふ} fu (not hu).
+\ja{を} is pronounced ``o'' and is used \emph{only} as the object particle.
+\ja{ん} is the only kana that is a consonant alone.
+\end{important}
+
+\subsection{Stroke order and look-alikes}
+
+General stroke-order rules (shared with kanji): top to bottom, left to right, horizontal
+before a crossing vertical. Hiragana are written with curved strokes; the end of each
+stroke is a ``stop'' (\emph{tome}), ``flick'' (\emph{hane}) or ``sweep'' (\emph{harai}),
+and the quiz markers do check these.
+
+Pairs and groups that beginners confuse:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Group & How to tell them apart \\
+\midrule
+\ja{あ} a / \ja{お} o & \ja{お} has a separate dot at upper right \\
+\ja{い} i / \ja{り} ri & \ja{り} is taller; left stroke hooks up into the right \\
+\ja{さ} sa / \ja{ち} chi & mirror images: \ja{さ} opens left at the bottom, \ja{ち} opens right \\
+\ja{ぬ} nu / \ja{め} me & \ja{ぬ} has a small loop at the end \\
+\ja{ね} ne / \ja{れ} re / \ja{わ} wa & loop (ne), outward flick (re), inward curve (wa) \\
+\ja{は} ha / \ja{ほ} ho & \ja{ほ} has an extra horizontal stroke on top \\
+\ja{る} ru / \ja{ろ} ro & \ja{る} ends in a loop \\
+\ja{く} ku / \ja{へ} he & \ja{く} opens right (``<''), \ja{へ} is a low hill \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{aside}
+Mnemonics that worked for me: \ja{く} is a beak going ``\emph{cuckoo}''; \ja{ぬ} is a
+bowl of \emph{noodles} with chopsticks; \ja{ね} is a \emph{cat} (\ja{ねこ}) curled up
+with its tail; \ja{つ} is a \emph{tsunami} wave; \ja{し} is a \emph{she}ep's crook. Make
+up your own: the silly ones stick best.
+\end{aside}
+
+\section{Dakuten and handakuten (voiced sounds)}
+
+Two small marks change a kana's consonant:
+\begin{itemize}
+  \item \textbf{dakuten} \ja{゛} (two short strokes, nicknamed \emph{ten-ten}) voices the
+        consonant: k$\to$g, s$\to$z, t$\to$d, h$\to$b.
+  \item \textbf{handakuten} \ja{゜} (a small circle, \emph{maru}) turns h into p.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, rounded corners, minimum width=1.3cm, minimum height=1cm, font=\Large}]
+  \node[box] (k) at (0,0) {\ja{か}};
+  \node[box, fill=blue!8] (g) at (3,0) {\ja{が}};
+  \draw[-Stealth, thick] (k) -- node[above, font=\small] {+ \ja{゛}} (g);
+  \node[font=\small] at (0,-0.8) {ka}; \node[font=\small] at (3,-0.8) {ga};
+  \node[box] (h) at (7,0) {\ja{は}};
+  \node[box, fill=blue!8] (b) at (10,0.9) {\ja{ば}};
+  \node[box, fill=red!8] (p) at (10,-0.9) {\ja{ぱ}};
+  \draw[-Stealth, thick] (h) -- node[above left, font=\small] {+ \ja{゛}} (b);
+  \draw[-Stealth, thick] (h) -- node[below left, font=\small] {+ \ja{゜}} (p);
+  \node[font=\small] at (7,-0.8) {ha};
+  \node[font=\small, anchor=west] at (10.8,0.9) {ba};
+  \node[font=\small, anchor=west] at (10.8,-0.9) {pa};
+\end{tikzpicture}
+\end{center}
+
+\begin{center}
+\begin{tabular}{lccccc}
+\toprule
+ & a & i & u & e & o \\
+\midrule
+g & \ja{が} ga & \ja{ぎ} gi & \ja{ぐ} gu & \ja{げ} ge & \ja{ご} go \\
+z & \ja{ざ} za & \ja{じ} ji & \ja{ず} zu & \ja{ぜ} ze & \ja{ぞ} zo \\
+d & \ja{だ} da & \ja{ぢ} ji & \ja{づ} zu & \ja{で} de & \ja{ど} do \\
+b & \ja{ば} ba & \ja{び} bi & \ja{ぶ} bu & \ja{べ} be & \ja{ぼ} bo \\
+p & \ja{ぱ} pa & \ja{ぴ} pi & \ja{ぷ} pu & \ja{ぺ} pe & \ja{ぽ} po \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{remark}
+\ja{ぢ} and \ja{づ} sound the same as \ja{じ} and \ja{ず}. They are rare and appear mainly
+when a word's \ja{ち}/\ja{つ} gets voiced in a compound or repetition:
+\ja{はな} + \ja{ち} $\to$ \ja{はなぢ} \emph{hanaji} ``nosebleed'',
+\ja{つづく} \emph{tsuzuku} ``to continue''. Otherwise always use \ja{じ} and \ja{ず}.
+\end{remark}
+
+Vocabulary to practise reading:
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Hiragana & Romaji & Meaning \\
+\midrule
+\ja{かぎ} & kagi & key \\
+\ja{ざっし} & zasshi & magazine \\
+\ja{でんわ} & denwa & telephone \\
+\ja{ぶどう} & budō & grapes \\
+\ja{えんぴつ} & enpitsu & pencil \\
+\ja{たんぽぽ} & tanpopo & dandelion \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Contracted sounds: small \ja{ゃ}, \ja{ゅ}, \ja{ょ} (yōon)}
+
+A kana from the \emph{i}-column followed by a \emph{small} \ja{ゃ}, \ja{ゅ} or \ja{ょ}
+makes one combined mora: \ja{き} + \ja{ゃ} = \ja{きゃ} kya.
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+ & ya & yu & yo \\
+\midrule
+k & \ja{きゃ} kya & \ja{きゅ} kyu & \ja{きょ} kyo \\
+s & \ja{しゃ} sha & \ja{しゅ} shu & \ja{しょ} sho \\
+t & \ja{ちゃ} cha & \ja{ちゅ} chu & \ja{ちょ} cho \\
+n & \ja{にゃ} nya & \ja{にゅ} nyu & \ja{にょ} nyo \\
+h & \ja{ひゃ} hya & \ja{ひゅ} hyu & \ja{ひょ} hyo \\
+m & \ja{みゃ} mya & \ja{みゅ} myu & \ja{みょ} myo \\
+r & \ja{りゃ} rya & \ja{りゅ} ryu & \ja{りょ} ryo \\
+g & \ja{ぎゃ} gya & \ja{ぎゅ} gyu & \ja{ぎょ} gyo \\
+j & \ja{じゃ} ja & \ja{じゅ} ju & \ja{じょ} jo \\
+b & \ja{びゃ} bya & \ja{びゅ} byu & \ja{びょ} byo \\
+p & \ja{ぴゃ} pya & \ja{ぴゅ} pyu & \ja{ぴょ} pyo \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{important}[Size matters]
+The small kana is written about half size, in the lower-left of its square (in
+horizontal writing). Compare:
+\ja{びょういん} \emph{byōin} ``hospital'' (4 morae) vs.\
+\ja{びよういん} \emph{biyōin} ``beauty salon'' (5 morae).
+\end{important}
+
+\section{The small \ja{っ}: doubled consonants (sokuon)}
+
+A small \ja{っ} before a consonant doubles that consonant. It is pronounced as a
+one-mora pause (silence with the mouth ready for the next consonant). In romaji, double
+the next consonant letter.
+\begin{itemize}
+  \item \ja{きって} \emph{kitte} ``postage stamp'' vs.\ \ja{きて} \emph{kite} ``come (te-form)''
+  \item \ja{がっこう} \emph{gakkō} ``school''
+  \item \ja{ざっし} \emph{zasshi} ``magazine''
+  \item \ja{いっぱい} \emph{ippai} ``full''
+  \item \ja{まっちゃ} \emph{matcha} ``powdered green tea'' (before \emph{ch} write \emph{tch})
+\end{itemize}
+\ja{っ} never begins a word and does not normally appear before vowels, n, m, r, w
+or y in standard spelling (in exclamations like \ja{あっ！} ``Ah!'' it marks a cut-off).
+
+\section{Long vowels in hiragana}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Long vowel & Written as & Example & Meaning \\
+\midrule
+ā & + \ja{あ} & \ja{おかあさん} okāsan & mother \\
+ī & + \ja{い} & \ja{おにいさん} onīsan & older brother \\
+ū & + \ja{う} & \ja{すうがく} sūgaku & mathematics \\
+ē & + \ja{い} (usually) & \ja{せんせい} sensei & teacher \\
+ē & + \ja{え} (a few words) & \ja{おねえさん} onēsan & older sister \\
+ō & + \ja{う} (usually) & \ja{ひこうき} hikōki & airplane \\
+ō & + \ja{お} (a few words) & \ja{おおきい} ōkii & big \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{remark}
+\ja{えい} and \ja{おう} are written that way for historical reasons but in normal speech
+are just long \emph{ē} and \emph{ō}. The \ja{おお} spelling words are few enough to
+memorise: \ja{おおきい} big, \ja{とお} ten (things), \ja{とおい} far, \ja{おおい} many.
+\end{remark}
+
+\section{Particles that break the spelling rules}
+Three particles keep old spellings:
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Particle & Written & Pronounced & Function \\
+\midrule
+topic & \ja{は} & wa & ``as for \ldots'' \\
+direction & \ja{へ} & e & ``toward \ldots'' \\
+object & \ja{を} & o & marks the direct object \\
+\bottomrule
+\end{tabular}
+\end{center}
+Example: \ja{わたしはがっこうへいきます。} \emph{Watashi wa gakkō e ikimasu.}
+``I go to school.''
+
+\section{Punctuation and writing direction}
+\begin{itemize}
+  \item Full stop \ja{。} (\emph{maru}), comma \ja{、} (\emph{ten}), quotation brackets
+        \ja{「」}.
+  \item No spaces between words in normal writing (beginner textbooks add them).
+  \item Text can be written horizontally (left to right) or vertically (top to bottom,
+        columns right to left). Novels and newspapers are mostly vertical.
+  \item Each character fills an imaginary square of the same size; this is why grid
+        paper (\ja{げんこうようし}, \emph{genkō yōshi}) is used for compositions.
+\end{itemize}
+
+\section*{Lesson 2 review}
+\begin{itemize}
+  \item 46 basic hiragana in the gojūon grid (rows k, s, t, n, h, m, y, r, w + \ja{ん}).
+  \item \ja{゛} voices (g, z, d, b); \ja{゜} gives p.
+  \item Small \ja{ゃゅょ} after an \emph{i}-column kana: one mora (\ja{きょ} kyo).
+  \item Small \ja{っ}: one-mora pause, doubles the next consonant (\ja{きって} kitte).
+  \item Long \emph{ē} and \emph{ō} are usually spelled \ja{えい}, \ja{おう}.
+  \item Particles \ja{は}, \ja{へ}, \ja{を} are read wa, e, o.
+\end{itemize}

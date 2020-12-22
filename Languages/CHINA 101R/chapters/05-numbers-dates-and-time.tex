@@ -1,0 +1,267 @@
+\chapter{Lesson 5: Numbers, Dates and Time}
+
+\section{Numbers}
+
+\subsection{0 to 99}
+
+Chinese numbers are completely regular: 11 is ``ten-one'', 20 is ``two-ten'', 35 is
+``three-ten-five''.
+
+\begin{center}
+\begin{tabular}{llllll}
+\toprule
+0 & \zh{零} líng & 10 & \zh{十} shí & 20 & \zh{二十} èrshí \\
+1 & \zh{一} yī & 11 & \zh{十一} shíyī & 21 & \zh{二十一} èrshíyī \\
+2 & \zh{二} èr & 12 & \zh{十二} shí'èr & 35 & \zh{三十五} sānshíwǔ \\
+3 & \zh{三} sān & 13 & \zh{十三} shísān & 48 & \zh{四十八} sìshíbā \\
+4 & \zh{四} sì & 14 & \zh{十四} shísì & 60 & \zh{六十} liùshí \\
+5 & \zh{五} wǔ & 15 & \zh{十五} shíwǔ & 77 & \zh{七十七} qīshíqī \\
+6 & \zh{六} liù & 16 & \zh{十六} shíliù & 99 & \zh{九十九} jiǔshíjiǔ \\
+7 & \zh{七} qī & 17 & \zh{十七} shíqī & & \\
+8 & \zh{八} bā & 18 & \zh{十八} shíbā & & \\
+9 & \zh{九} jiǔ & 19 & \zh{十九} shíjiǔ & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Larger numbers}
+
+\begin{itemize}
+  \item \zh{百} bǎi = 100: \zh{一百二十} 120, \zh{三百零五} 305 (an internal zero is
+        read as \zh{零}).
+  \item \zh{千} qiān = 1000: \zh{两千零一十六} 2016.
+  \item \zh{万} wàn = 10\,000. Chinese groups digits in fours, not threes:
+        \zh{三万五千} = 35\,000; \zh{十万} = 100\,000.
+\end{itemize}
+
+\begin{aside}
+Phone numbers and room numbers are read digit by digit, and \zh{一} is often said
+\emph{yāo} to avoid confusion with \zh{七} qī: room 107 is \zh{幺零七} \emph{yāo líng
+qī}. Hand signs for 6--10 differ from North American counting; 6 is the ``shaka'' sign
+and 10 is crossed index fingers or a fist.
+\end{aside}
+
+\subsection{\zh{多少} vs \zh{几}}
+
+\zh{多少} \emph{duōshao} ``how many/how much'' is used when the answer may be large; the
+measure word is optional. \zh{几} expects a small number and needs a measure word.
+\begin{itemize}
+  \item \zh{你们班有多少(个)学生？} How many students are in your class?
+  \item \zh{你的电话号码是多少？} What is your phone number?
+  \item \zh{你有几个中国朋友？} How many Chinese friends do you have?
+\end{itemize}
+
+\section{Dates}
+
+\subsection{Months, days and weekdays}
+
+Months are simply numbered: \zh{一月} January, \zh{二月} February, \ldots,
+\zh{十二月} December. Days of the month use \zh{号} hào in speech and \zh{日} rì in
+writing. Weekdays are numbered from Monday.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Characters & Pinyin & Meaning & Note \\
+\midrule
+\zh{星期一} & xīngqīyī & Monday & ``week-one'' \\
+\zh{星期二} & xīngqī'èr & Tuesday & \\
+\zh{星期三} & xīngqīsān & Wednesday & \\
+\zh{星期四} & xīngqīsì & Thursday & \\
+\zh{星期五} & xīngqīwǔ & Friday & \\
+\zh{星期六} & xīngqīliù & Saturday & \\
+\zh{星期天}/\zh{星期日} & xīngqītiān / xīngqīrì & Sunday & \zh{天} in speech \\
+\zh{今天} & jīntiān & today & \\
+\zh{明天} & míngtiān & tomorrow & \\
+\zh{昨天} & zuótiān & yesterday & \\
+\zh{今年} & jīnnián & this year & \\
+\zh{生日} & shēngrì & birthday & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Order: from largest to smallest}
+
+\begin{important}[Big before small]
+Chinese orders dates (and times, and addresses) from the largest unit to the smallest:
+year, month, day, weekday, part of day, hour, minute.
+\end{important}
+
+\begin{center}
+\begin{tikzpicture}[u/.style={draw, rounded corners, minimum height=0.9cm, align=center, font=\small}]
+  \node[u, fill=blue!25] (y) at (0,0) {\zh{二〇一六年}\\ 2016};
+  \node[u, fill=blue!20] (m) at (2.4,0) {\zh{九月}\\ Sept.};
+  \node[u, fill=blue!15] (d) at (4.3,0) {\zh{八号}\\ 8th};
+  \node[u, fill=blue!10] (w) at (6.3,0) {\zh{星期四}\\ Thu.};
+  \node[u, fill=blue!6] (p) at (8.3,0) {\zh{上午}\\ a.m.};
+  \node[u, fill=blue!3] (h) at (10.4,0) {\zh{十点半}\\ 10:30};
+  \foreach \a/\b in {y/m,m/d,d/w,w/p,p/h} \draw[->, thick] (\a) -- (\b);
+  \draw[|-{Stealth}, gray] (0,-0.95) -- (10.4,-0.95) node[midway, below, font=\scriptsize] {larger unit $\rightarrow$ smaller unit};
+\end{tikzpicture}
+\end{center}
+
+Years are read digit by digit: 2016 = \zh{二〇一六年} \emph{èr líng yī liù nián}
+(\zh{〇} is the written form of zero in dates).
+
+\subsection{Nominal predicates}
+
+When telling dates, times and ages, \zh{是} is usually left out: a noun phrase acts as
+the predicate. In the negative, \zh{是} must come back.
+\begin{itemize}
+  \item \zh{今天九月十二号。} Today is September 12.
+  \item \zh{明天星期五。} Tomorrow is Friday.
+  \item \zh{今天不是星期五，是星期四。} Today isn't Friday, it's Thursday.
+  \item \zh{我今年十九岁。} I'm 19 this year.
+\end{itemize}
+
+\subsection{Asking the date and age}
+
+\begin{itemize}
+  \item \zh{今天几月几号？} What's the date today?
+  \item \zh{今天星期几？} What day of the week is it?
+  \item \zh{你的生日是几月几号？} When is your birthday?
+  \item \zh{你今年多大？} How old are you this year? (to peers)
+  \item \zh{你几岁？} How old are you? (to children)
+  \item \zh{您多大年纪？} How old are you? (to the elderly; \zh{年纪} niánjì ``age'')
+\end{itemize}
+
+\begin{aside}
+Chinese people often state their age by zodiac animal: \zh{我属狗。} \emph{Wǒ shǔ gǒu.}
+``I was born in the Year of the Dog.'' Since the animals cycle every 12 years, this
+tells the listener your age without asking directly. (The full zodiac comes back in
+CHINA 102R.)
+\end{aside}
+
+\section{Telling time}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Characters & Pinyin & Meaning & Example \\
+\midrule
+\zh{点(钟)} & diǎn(zhōng) & o'clock & \zh{三点} 3:00 \\
+\zh{分} & fēn & minute & \zh{三点十分} 3:10 \\
+\zh{刻} & kè & quarter hour & \zh{三点一刻} 3:15 \\
+\zh{半} & bàn & half & \zh{三点半} 3:30 \\
+\zh{差} & chà & lacking, to & \zh{差五分四点} 3:55 \\
+\zh{现在} & xiànzài & now & \zh{现在几点？} \\
+\zh{早上} & zǎoshang & morning & \\
+\zh{上午} & shàngwǔ & morning (before noon) & \\
+\zh{中午} & zhōngwǔ & noon & \\
+\zh{下午} & xiàwǔ & afternoon & \\
+\zh{晚上} & wǎnshang & evening & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.15]
+  \draw[thick] (0,0) circle (1.6);
+  \foreach \h in {1,...,12} {
+    \draw (90-\h*30:1.45) -- (90-\h*30:1.6);
+    \node[font=\scriptsize] at (90-\h*30:1.25) {\h};
+  }
+  % 3:15 -> minute hand to 3 (0 deg), hour hand a bit past 3
+  \draw[very thick, -{Stealth}] (0,0) -- (0:1.25);
+  \draw[line width=2pt, -{Stealth}] (0,0) -- (-7.5:0.8);
+  \fill (0,0) circle (0.05);
+  \node[below, font=\small] at (0,-1.7) {\zh{三点一刻} 3:15};
+  \begin{scope}[xshift=4.5cm]
+  \draw[thick] (0,0) circle (1.6);
+  \foreach \h in {1,...,12} {
+    \draw (90-\h*30:1.45) -- (90-\h*30:1.6);
+    \node[font=\scriptsize] at (90-\h*30:1.25) {\h};
+  }
+  \draw[very thick, -{Stealth}] (0,0) -- (-90:1.25);
+  \draw[line width=2pt, -{Stealth}] (0,0) -- (90-6.5*30:0.8);
+  \fill (0,0) circle (0.05);
+  \node[below, font=\small] at (0,-1.7) {\zh{六点半} 6:30};
+  \end{scope}
+  \begin{scope}[xshift=9cm]
+  \draw[thick] (0,0) circle (1.6);
+  \foreach \h in {1,...,12} {
+    \draw (90-\h*30:1.45) -- (90-\h*30:1.6);
+    \node[font=\scriptsize] at (90-\h*30:1.25) {\h};
+  }
+  \draw[very thick, -{Stealth}] (0,0) -- (90-55*6:1.25);
+  \draw[line width=2pt, -{Stealth}] (0,0) -- (90-9.9*30:0.8);
+  \fill (0,0) circle (0.05);
+  \node[below, font=\small] at (0,-1.7) {\zh{差五分十点} 9:55};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+Time expressions also go big-to-small: \zh{明天晚上八点} ``8 p.m.\ tomorrow''.
+
+\section{Time--place--action word order}
+
+\begin{important}[Time before the verb]
+A time-when expression comes \emph{before} the verb, either right after the subject or
+at the very start of the sentence. It never goes at the end as in English.
+\begin{itemize}
+  \item \zh{我明天晚上请你吃饭。} I'll treat you to dinner tomorrow night.
+  \item \zh{明天晚上我请你吃饭。} (same meaning; topic first)
+  \item *\zh{我请你吃饭明天晚上。} (wrong)
+\end{itemize}
+\end{important}
+
+\section{Making a birthday invitation}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Characters & Pinyin & Part of speech & Meaning \\
+\midrule
+\zh{请客} & qǐngkè & verb-object & to treat (pay for others) \\
+\zh{吃饭} & chīfàn & verb-object & to eat a meal \\
+\zh{怎么样} & zěnmeyàng & question word & how about it \\
+\zh{太\ldots{}了} & tài \ldots le & & too / extremely \ldots \\
+\zh{为什么} & wèishénme & question word & why \\
+\zh{因为} & yīnwèi & conjunction & because \\
+\zh{还是} & háishi & conjunction & or (in questions) \\
+\zh{可是} & kěshì & conjunction & but \\
+\zh{喜欢} & xǐhuan & verb & to like \\
+\zh{菜} & cài & noun & dish, cuisine \\
+\zh{认识} & rènshi & verb & to know (a person) \\
+\zh{朋友} & péngyou & noun & friend \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Suggestions with \zh{怎么样}}
+
+``Proposal, \zh{怎么样}？'' = ``How about \ldots?''
+\begin{itemize}
+  \item \zh{星期六我请你吃饭，怎么样？}---\zh{太好了！谢谢！}
+\end{itemize}
+
+\subsection{Alternative questions with \zh{还是}}
+
+``A \zh{还是} B'' asks the listener to choose; no \zh{吗}.
+\begin{itemize}
+  \item \zh{你喜欢吃中国菜还是美国菜？} Do you like Chinese food or American food?
+  \item \zh{你是大学生还是研究生？} Are you an undergraduate or a graduate student?
+\end{itemize}
+
+\begin{example}[Short exchange]\leavevmode
+\begin{itemize}
+  \item \textbf{A:} \zh{小林，九月十二号是星期几？}
+  \item \textbf{B:} \zh{是星期四。为什么？}
+  \item \textbf{A:} \zh{那天是我的生日。我请你吃饭，怎么样？}
+  \item \textbf{B:} \zh{太好了！几点？}
+  \item \textbf{A:} \zh{晚上七点半。}
+\end{itemize}
+\end{example}
+
+\section*{Review}
+\begin{itemize}
+  \item Numbers are regular; \zh{万} = 10\,000 groups digits in fours.
+  \item \zh{多少} for possibly large numbers, \zh{几} + MW for small ones.
+  \item Dates and times go from big to small: year, month, day, weekday, part of day,
+        hour, minute.
+  \item Dates, times and ages can be predicates without \zh{是}; the negative needs
+        \zh{不是}.
+  \item Time: \zh{点, 分, 刻, 半, 差}.
+  \item Time-when expressions go before the verb.
+  \item \zh{怎么样} for suggestions; A \zh{还是} B for choices.
+\end{itemize}
