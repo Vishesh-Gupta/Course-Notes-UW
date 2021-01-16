@@ -1,0 +1,193 @@
+\chapter{Lesson 9: Dating and Relationships}
+
+\section{Vocabulary}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Characters & Pinyin & Part of speech & Meaning \\
+\midrule
+\zh{约会} & yuēhuì & noun / verb & date; to go on a date \\
+\zh{约} & yuē & verb & to make an appointment with, ask out \\
+\zh{男朋友} & nánpéngyou & noun & boyfriend \\
+\zh{女朋友} & nǚpéngyou & noun & girlfriend \\
+\zh{谈恋爱} & tán liàn'ài & verb-object & to be in a relationship \\
+\zh{爱} & ài & verb & to love \\
+\zh{印象} & yìnxiàng & noun & impression \\
+\zh{一见钟情} & yí jiàn zhōng qíng & idiom & love at first sight \\
+\zh{演} & yǎn & verb & to act, perform \\
+\zh{电影票} & diànyǐngpiào & noun & movie ticket \\
+\zh{京剧} & Jīngjù & noun & Peking opera \\
+\zh{同意} & tóngyì & verb & to agree \\
+\zh{吵架} & chǎo jià & verb-object & to quarrel \\
+\zh{分手} & fēn shǒu & verb-object & to break up \\
+\zh{结婚} & jié hūn & verb-object & to get married \\
+\zh{担心} & dānxīn & verb & to worry \\
+\zh{互相} & hùxiāng & adverb & mutually \\
+\zh{过} & guo & particle & (experiential aspect) \\
+\zh{好像} & hǎoxiàng & adverb & seem, be like \\
+\zh{让} & ràng & verb & to let, to make (someone do) \\
+\zh{叫} & jiào & verb & to tell, ask (someone to do) \\
+\zh{得} / \zh{不} & de / bu & infix & (potential complement) \\
+\zh{清楚} & qīngchu & adjective & clear \\
+\zh{幽默} & yōumò & adjective & humorous \\
+\zh{害羞} & hàixiū & adjective & shy \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Grammar}
+
+\subsection{The experiential particle \zh{过}}
+
+V + \zh{过} says that something has happened \emph{at least once} at some time in the
+past: it is about experience, not about one particular event.
+\begin{itemize}
+  \item \zh{你看过京剧吗？}---\zh{看过一次。} Have you ever seen Peking opera?---Once.
+  \item \zh{我没去过中国。} I've never been to China. (keeps \zh{过} in the negative)
+  \item \zh{他以前谈过两个女朋友。} He's had two girlfriends before.
+  \item \zh{你们见过面吗？} Have you met before? (split verb--object: \zh{见过面})
+\end{itemize}
+
+\begin{important}[\zh{过} vs \zh{了}]
+\begin{itemize}
+  \item \zh{他去了北京。} He went to Beijing (and may still be there).
+  \item \zh{他去过北京。} He has been to Beijing (at some point; he's back now).
+  \item Negation: \zh{没去} (didn't go) vs \zh{没去过} (has never been).
+\end{itemize}
+\end{important}
+
+\subsection{Aspect review: \zh{了}, \zh{过}, \zh{着}}
+
+\begin{center}
+\begin{tikzpicture}[x=1cm]
+  \draw[thick, -{Stealth}] (0,0) -- (12,0) node[right, font=\small] {time};
+  \draw[very thick] (9,0.25) -- (9,-0.25); \node[below, font=\small] at (9,-0.3) {now};
+  % guo
+  \foreach \x in {1.2, 3.0} \fill[purple] (\x,0) circle (0.12);
+  \node[above, font=\small, purple, align=center] at (2.1,0.3) {V\zh{过}: has happened\\ (some time, $\ge 1$ times)};
+  % le
+  \fill[blue!70!black] (6,0) circle (0.12);
+  \draw[->, blue!70!black] (6,0.15) -- (6,0.6);
+  \node[above, font=\small, blue!70!black, align=center] at (6,0.6) {V\zh{了}: completed\\ (a specific event)};
+  % zhe
+  \draw[line width=4pt, orange!80!black] (8,-0.9) -- (10.5,-0.9);
+  \node[below, font=\small, orange!70!black, align=center] at (9.25,-1.1) {V\zh{着}: ongoing state\\ (around the reference time)};
+\end{tikzpicture}
+\end{center}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Particle & Meaning & Negative & Example \\
+\midrule
+\zh{了} & completed / took place & \zh{没} V (no \zh{了}) & \zh{我们昨天约会了。} \\
+\zh{过} & experience & \zh{没} V\zh{过} & \zh{我没谈过恋爱。} \\
+\zh{着} & continuing state / manner & (rare) & \zh{她笑着说。} \\
+\zh{在} (adverb) & action in progress & \zh{没在} V & \zh{他们在吵架。} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Potential complements}
+
+Insert \zh{得} or \zh{不} between a verb and its resultative/directional complement to say
+whether the result \emph{can} or \emph{cannot} be achieved.
+
+\begin{center}
+\begin{tikzpicture}[w/.style={draw, rounded corners, minimum height=0.85cm, minimum width=1.3cm, align=center, font=\small}]
+  \node[w, fill=orange!20] (v) at (0,0) {\zh{听}\\ verb};
+  \node[w, fill=green!15] (c) at (3.2,0) {\zh{懂}\\ result};
+  \node[w, fill=blue!10] (de) at (1.6,1.1) {\zh{得}};
+  \node[w, fill=red!15] (bu) at (1.6,-1.1) {\zh{不}};
+  \draw[->, thick] (v) -- (de); \draw[->, thick] (de) -- (c);
+  \draw[->, thick] (v) -- (bu); \draw[->, thick] (bu) -- (c);
+  \node[font=\small, anchor=west] at (4.3,1.1) {\zh{听得懂} can understand (by listening)};
+  \node[font=\small, anchor=west] at (4.3,-1.1) {\zh{听不懂} can't understand};
+  \node[font=\small, anchor=west] at (4.3,0) {\zh{听懂} understood (actual result)};
+\end{tikzpicture}
+\end{center}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Positive & Negative & Meaning \\
+\midrule
+\zh{看得见} & \zh{看不见} & can / can't see \\
+\zh{听得清楚} & \zh{听不清楚} & can / can't hear clearly \\
+\zh{买得到} & \zh{买不到} & can / can't get (by buying) \\
+\zh{做得完} & \zh{做不完} & can / can't finish \\
+\zh{回得来} & \zh{回不来} & can / can't come back \\
+\zh{吃得了} (liǎo) & \zh{吃不了} & can / can't eat (that much) \\
+\zh{来得及} & \zh{来不及} & there is / isn't enough time \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{important}[Potential complement vs \zh{不能}]
+\zh{不能} is about permission or general ability; the potential complement is about
+whether circumstances allow the result.
+\begin{itemize}
+  \item \zh{电影票买不到了。} Tickets can't be had (sold out). Not *\zh{不能买到}.
+  \item \zh{你不能进去。} You're not allowed in. Not *\zh{进不去} (which would mean the
+        door is physically blocked).
+\end{itemize}
+Questions: \zh{你听得懂听不懂？} or \zh{你听得懂吗？}. Objects follow the complement
+or are topicalized: \zh{中文电影你看得懂吗？}
+\end{important}
+
+\subsection{\zh{好像}}
+
+\zh{好像} ``it seems'' expresses an impression.
+\begin{itemize}
+  \item \zh{她好像对你有意思。} She seems to be interested in you.
+  \item \zh{他们好像吵架了。} It looks like they had a fight.
+\end{itemize}
+
+\subsection{Causatives with \zh{让} and \zh{叫}}
+
+A \zh{让}/\zh{叫} B + verb: ``A makes/lets/tells B (do something)''.
+\begin{itemize}
+  \item \zh{妈妈不让我晚上出去。} Mom won't let me go out at night.
+  \item \zh{他叫我在门口等他。} He told me to wait for him at the door.
+  \item \zh{这个电影让我很感动。} This movie moved me. (with an adjective: ``makes B feel'')
+\end{itemize}
+
+\section{Culture: love and dates}
+
+\begin{aside}
+\begin{itemize}
+  \item 520 (\emph{wǔ èr líng}) sounds like \zh{我爱你} \emph{wǒ ài nǐ}, so May 20 has
+        become an unofficial Valentine's Day. 1314 (\zh{一生一世} ``one life, one
+        world'') means ``forever''.
+  \item \zh{七夕} Qīxī (7th day of the 7th lunar month) is the traditional lovers'
+        festival, from the legend of the cowherd and the weaver girl.
+  \item November 11 (11/11, four ones) started as \zh{光棍节} ``Singles' Day'' among
+        university students and became the world's largest online shopping day.
+  \item Saying \zh{我爱你} out loud is less common than in English; affection is shown
+        through care: \zh{你吃饭了吗？多穿点儿衣服。}
+\end{itemize}
+\end{aside}
+
+\section{Model conversation}
+
+\begin{itemize}
+  \item \textbf{A:} \zh{你这个周末有空吗？我买到了两张电影票。}
+  \item \textbf{B:} \zh{什么电影？中文的吗？我怕我听不懂。}
+  \item \textbf{A:} \zh{有英文字幕，看得懂。你看过这个导演的电影吗？}
+  \item \textbf{B:} \zh{没看过，可是我听说过他。好啊，几点？}
+  \item \textbf{A:} \zh{星期六晚上七点。我先请你吃饭，怎么样？}
+  \item \textbf{B:} \zh{好像来不及吧？我六点半才下班。}
+  \item \textbf{A:} \zh{那看完电影再去吃宵夜吧。}
+\end{itemize}
+(\zh{字幕} zìmù = subtitles; \zh{导演} dǎoyǎn = director; \zh{下班} xià bān = get off
+work; \zh{宵夜} xiāoyè = late-night snack.)
+
+\section*{Review}
+\begin{itemize}
+  \item V\zh{过} = experience; negative \zh{没}V\zh{过}.
+  \item \zh{了} completed event, \zh{过} experience, \zh{着} state, \zh{在} progressive.
+  \item Potential complement V\zh{得}C / V\zh{不}C; \zh{不能} is different.
+  \item \zh{来得及/来不及}, \zh{吃得了/吃不了}.
+  \item \zh{好像} = seems; \zh{让/叫} B V = make/tell B to V.
+\end{itemize}
