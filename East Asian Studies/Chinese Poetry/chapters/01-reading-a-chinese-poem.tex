@@ -1,0 +1,281 @@
+\chapter{How to Read a Chinese Poem}
+
+\section{Course overview}
+
+This course reads classical Chinese poetry (\zht{詩} \emph{shī}, and later the lyric
+\zht{詞} \emph{cí}) from the \emph{Book of Songs} (c.\ 1000--600 BCE) to the Song dynasty
+(960--1279), with a brief look at what came after. Everything is read in English
+translation alongside the originals: you do not need to read Chinese, but you need to
+be able to \emph{look} at Chinese.
+By the end of term we should be able to count characters in a line, spot a rhyme, find a
+parallel couplet and say what a translator has gained or lost.
+
+\begin{important}[Assessment (from the syllabus)]
+\begin{itemize}
+  \item Weekly reading responses (short, one poem each): 20\%.
+  \item Two ``close reading'' papers: take one short poem, compare two translations, and
+        argue about what the original does that the translations cannot.
+  \item Midterm (identifications: poet, dynasty, form, one key image) and final exam
+        (identifications + essay).
+  \item Translation exercise: produce your own version of a short poem from a
+        character-by-character gloss and defend your choices.
+\end{itemize}
+\end{important}
+
+\section{A timeline to hang everything on}
+
+Chinese literary history is conventionally organised by dynasty. We will not need every
+dynasty, but we need these.
+
+\begin{center}
+\begin{tikzpicture}[x=0.0062cm, y=1cm, every node/.style={font=\scriptsize}]
+  \draw[thick, -{Stealth}] (-1100,0) -- (1400,0);
+  \foreach \yr in {-1000,-500,0,500,1000} {
+    \draw (\yr,0.1) -- (\yr,-0.1) node[below] {\yr};
+  }
+  % dynasty bars
+  \fill[orange!30] (-1046,0.25) rectangle (-256,0.65);
+  \node at (-650,0.45) {Zhou \zht{周}};
+  \fill[red!25] (-206,0.25) rectangle (220,0.65);
+  \node at (7,0.45) {Han \zht{漢}};
+  \fill[gray!25] (220,0.25) rectangle (589,0.65);
+  \node at (405,0.45) {Six Dyn.};
+  \fill[blue!25] (618,0.25) rectangle (907,0.65);
+  \node at (762,0.45) {Tang \zht{唐}};
+  \fill[green!25] (960,0.25) rectangle (1279,0.65);
+  \node at (1120,0.45) {Song \zht{宋}};
+  % works and poets
+  \draw[gray] (-800,0.65) -- (-800,1.3) node[above] {\emph{Shijing} \zht{詩經}};
+  \draw[gray] (-300,0.65) -- (-300,1.9) node[above] {Qu Yuan \zht{屈原}};
+  \draw[gray] (150,0.65) -- (150,1.3) node[above] {\emph{Nineteen Old Poems}};
+  \draw[gray] (400,0.65) -- (400,1.9) node[above] {Tao Yuanming \zht{陶淵明}};
+  \draw[gray] (730,0.65) -- (730,3.0) node[above] {Wang Wei, Li Bai, Du Fu};
+  \draw[gray] (840,0.65) -- (840,2.5) node[above right, xshift=-6pt] {Bai Juyi, Li Shangyin};
+  \draw[gray] (1090,0.65) -- (1090,1.9) node[above] {Su Shi, Li Qingzhao};
+  \node[text=red!60!black] at (755,-0.75) {An Lushan rebellion 755};
+  \draw[red!60!black, thick] (755,-0.1) -- (755,-0.55);
+\end{tikzpicture}
+\end{center}
+
+\begin{remark}
+``Six Dynasties'' (\zht{六朝}, 220--589) is a convenient name for the period of
+division between the Han and the reunification under the Sui (581--618). Tao Yuanming
+lives here. The Tang is the ``golden age'' of \emph{shī}; the Song is the golden age of
+\emph{cí}.
+\end{remark}
+
+\section{Four features of the language}
+
+\subsection{Monosyllables and the character}
+
+Each Chinese character (\zht{字} \emph{zì}) is written as one block and read as one
+syllable, and in Classical Chinese most characters are whole words. So ``a five-character
+line'' (\zht{五言} \emph{wǔyán}) is literally five syllables and usually five words. A
+twenty-character quatrain can hold an entire scene. English needs articles, prepositions,
+tense markers and pronouns that the original simply does not have.
+
+\begin{example}[Counting]
+\zht{床前明月光} \emph{chuáng qián míng yuè guāng} = ``bed / front / bright / moon /
+light''. Five characters, five syllables, no verb, no ``I'', no ``the''. Any English
+version has to decide whose bed, what time, and whether the light is \emph{on} the floor
+or merely \emph{in front of} the bed.
+\end{example}
+
+\subsection{What the grammar leaves open}
+
+Classical poetic language routinely omits:
+\begin{itemize}
+  \item \textbf{the subject}: who is looking at the moon is never said;
+  \item \textbf{tense}: there is no grammatical past/present, only context;
+  \item \textbf{number}: \zht{山} \emph{shān} can be ``a mountain'' or ``mountains'';
+  \item \textbf{connectives}: lines are juxtaposed without ``because'', ``while'', ``so''.
+\end{itemize}
+This openness is not vagueness for its own sake. It lets the poem present a scene
+\emph{as it is experienced}, before the experiencer is separated from it. Translators into
+English must constantly decide what the poem chose not to decide.
+
+\begin{aside}
+The ``Imagist'' poets of the 1910s (Ezra Pound's \emph{Cathay}, 1915) were excited
+precisely by this juxtaposition of images without connectives. Pound worked from Ernest
+Fenollosa's notes and did not read Chinese; his versions are wonderful English poems and
+often unreliable translations. We will come back to this tension all term.
+\end{aside}
+
+\subsection{Imagery: the image carries the feeling}
+
+Classical poets rarely announce emotions outright; they set out images whose conventional
+associations do the work. A short list of images we will meet constantly:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Image & Pinyin & Conventional association \\
+\midrule
+\zht{月} moon & yuè & distance, separated people looking at the same moon \\
+\zht{柳} willow & liǔ & parting (\zht{柳} sounds like \zht{留} ``stay''; branches given at farewells) \\
+\zht{雁} wild goose & yàn & letters, news from far away, autumn \\
+\zht{秋} autumn & qiū & decline, ageing, the scholar's melancholy \\
+\zht{酒} wine & jiǔ & conviviality; also escape, carpe diem \\
+\zht{浮雲} drifting clouds & fúyún & the wanderer; things that obscure (slanderers) \\
+\zht{菊} chrysanthemum & jú & reclusion, Tao Yuanming, endurance into autumn \\
+\zht{猿} gibbon & yuán & its cry in the Yangzi gorges makes travellers weep \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Allusion}
+
+An \emph{allusion} (\zht{典故} \emph{diǎngù}) points to an earlier text or story. A
+learned reader hears two poems at once. Allusion becomes denser over time: Tao Yuanming
+alludes to the classics, Du Fu to everything, and Li Shangyin's allusions are sometimes the
+whole puzzle.
+
+\section{Parallelism}
+
+\begin{definition}[Parallel couplet]
+A \emph{parallel couplet} (\zht{對仗} \emph{duìzhàng}) is a pair of lines in which each
+position in the first line matches the same position in the second by grammatical
+category (noun with noun, verb with verb, number with number, colour with colour) and
+usually by meaning (contrast or complement).
+\end{definition}
+
+The classic small example is the first couplet of Wang Zhihuan's (\zht{王之渙}, 688--742)
+``Climbing Stork Tower'' (\zht{登鸛雀樓}):
+
+\begin{center}
+\begin{tikzpicture}[ch/.style={draw, minimum size=0.85cm, font=\large},
+  gl/.style={font=\scriptsize, text width=1.3cm, align=center}]
+  \foreach \c [count=\i] in {白,日,依,山,盡} {
+    \node[ch] (a\i) at (1.5*\i,1.6) {\zht{\c}};
+  }
+  \foreach \c [count=\i] in {黃,河,入,海,流} {
+    \node[ch] (b\i) at (1.5*\i,0) {\zht{\c}};
+  }
+  \foreach \i in {1,...,5} { \draw[blue!60, thick, <->] (a\i.south) -- (b\i.north); }
+  \node[gl] at (1.5,2.35) {white};   \node[gl] at (3,2.35) {sun};
+  \node[gl] at (4.5,2.35) {lean on}; \node[gl] at (6,2.35) {mountain};
+  \node[gl] at (7.5,2.35) {end};
+  \node[gl] at (1.5,-0.75) {yellow}; \node[gl] at (3,-0.75) {river};
+  \node[gl] at (4.5,-0.75) {enter};  \node[gl] at (6,-0.75) {sea};
+  \node[gl] at (7.5,-0.75) {flow};
+  \node[font=\scriptsize, text=blue!60!black, anchor=west] at (8.3,0.8)
+    {colour $\cdot$ noun $\cdot$ verb $\cdot$ noun $\cdot$ verb};
+\end{tikzpicture}
+\end{center}
+
+\begin{center}
+\begin{tabular}{p{0.32\textwidth}p{0.58\textwidth}}
+\toprule
+\zht{白日依山盡，} & The white sun, leaning on the hills, is gone; \\
+\zht{黃河入海流。} & the Yellow River flows on into the sea. \\
+\zht{欲窮千里目，} & If you would see to the end of a thousand miles, \\
+\zht{更上一層樓。} & climb one more storey of the tower. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Note how the parallel couplet sets up a cosmos: west (mountains, sunset) against east
+(the river running to the sea), sky against earth, an ending against a continuing. The
+second couplet is \emph{also} parallel (``wish / exhaust / thousand / \emph{li} / eye'' and
+``further / ascend / one / storey / tower'': number against number), but it reads as a
+single flowing sentence. This ``flowing-water pair'' (\zht{流水對}) was much admired.
+
+\section{The problem of translation}
+
+\subsection{Choices every translator faces}
+\begin{enumerate}
+  \item \textbf{Line length.} Five-character lines become English lines of 8--12 words.
+        Do you keep them short (and choppy) or let them breathe?
+  \item \textbf{Rhyme.} Nearly every Chinese poem rhymes. English rhyme often forces
+        padding; most modern translators drop it.
+  \item \textbf{Pronouns and tense.} Must be added. ``I'' makes the poem personal; leaving
+        the speaker out makes it impersonal and imagistic.
+  \item \textbf{Allusions.} Explain in the line, in a footnote, or not at all?
+  \item \textbf{Proper names.} ``Yellow River'' (translated) or ``the Huang He''
+        (transliterated)?
+\end{enumerate}
+
+\subsection{Case study: Li Bai's ``Quiet Night Thoughts''}
+
+\begin{center}
+\begin{tabular}{p{0.25\textwidth}p{0.30\textwidth}p{0.35\textwidth}}
+\toprule
+Original & Pinyin & Character gloss \\
+\midrule
+\zht{床前明月光，} & chuáng qián míng yuè guāng & bed front bright moon light \\
+\zht{疑是地上霜。} & yí shì dì shàng shuāng & suspect is ground on frost \\
+\zht{舉頭望明月，} & jǔ tóu wàng míng yuè & raise head gaze bright moon \\
+\zht{低頭思故鄉。} & dī tóu sī gù xiāng & lower head think old village \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Here are two versions I wrote for the first close-reading exercise, deliberately at
+opposite ends.
+
+\begin{example}[Version A: literal, keeping the line count]
+Before my bed, the bright moon's light: \\
+I took it for frost upon the ground. \\
+I lift my head and gaze at the bright moon; \\
+I lower my head and think of home.
+\end{example}
+
+\begin{example}[Version B: free, imagistic]
+Moonlight by the bed ---\\
+frost on the floor?\\
+Head up: the moon.\\
+Head down: home.
+\end{example}
+
+\begin{important}[What each version gains and loses]
+\begin{itemize}
+  \item A keeps the four-line shape and the repeated \zht{明月} ``bright moon'' (lines 1
+        and 3), and the strict parallel of lines 3--4 (\zht{舉頭} / \zht{低頭}, ``raise
+        head'' / ``lower head''). But it adds ``my'' and ``I'' four times, which the
+        original never says, and the past tense ``took'' is a guess.
+  \item B keeps the speed and impersonality and makes the head-up / head-down hinge very
+        visible. But it loses \zht{疑} ``to suspect, to be in doubt'' (turned into a
+        question mark), loses \zht{思} ``to think of, to long for'', and its brevity
+        sounds like a modern haiku rather than a Tang song.
+  \item Neither can reproduce the rhyme \emph{guāng / shuāng / xiāng}, nor the fact that
+        the poem is made of the plainest possible words: every Chinese schoolchild knows
+        it.
+\end{itemize}
+\end{important}
+
+\begin{aside}
+The text above is the version taught in schools since the Ming dynasty. Song-dynasty
+editions read \zht{床前看月光} ``before my bed I look at the moonlight'' and \zht{舉頭望山月}
+``raise my head to gaze at the mountain moon''. Also, \zht{床} may not be a bed at all:
+some scholars argue it is a folding seat, or the railing round a well. Even the most famous
+poem in the language has textual and lexical uncertainty.
+\end{aside}
+
+\section{A procedure for close reading}
+
+When you meet a new poem, work through these steps (this became the structure of every
+reading response):
+\begin{enumerate}
+  \item \textbf{Count}: characters per line, lines per poem. Five or seven? Four or eight?
+        Irregular?
+  \item \textbf{Listen}: which line-final characters rhyme? (Read the pinyin aloud, but
+        remember that modern Mandarin is not Tang pronunciation.)
+  \item \textbf{Map}: which couplets are parallel? Draw the lines between matched words.
+  \item \textbf{Picture}: list the images. What are their conventional associations?
+  \item \textbf{Locate}: when, where, under what circumstances? Is there a title that
+        tells you the occasion (``Seeing off \ldots'', ``Climbing \ldots'')?
+  \item \textbf{Turn}: where does the poem shift, usually in the last couplet, from scene
+        (\zht{景} \emph{jǐng}) to feeling (\zht{情} \emph{qíng})?
+\end{enumerate}
+
+\section*{Summary}
+\begin{itemize}
+  \item One character = one syllable = (usually) one word; lines are counted in
+        characters (five- and seven-character lines dominate).
+  \item The poetic language omits subject, tense, number and connectives; translators must
+        supply them, and every choice is an interpretation.
+  \item Images carry conventional emotional associations (moon, willow, goose, autumn).
+  \item Parallel couplets match position by position in grammar and meaning.
+  \item Close reading: count, listen, map, picture, locate, find the turn from scene to
+        feeling.
+\end{itemize}
