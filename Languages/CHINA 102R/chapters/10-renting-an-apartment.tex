@@ -1,0 +1,182 @@
+\chapter{Lesson 10: Renting an Apartment}
+
+\section{Vocabulary}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Characters & Pinyin & Part of speech & Meaning \\
+\midrule
+\zh{租} & zū & verb & to rent \\
+\zh{房租} & fángzū & noun & rent \\
+\zh{房东} & fángdōng & noun & landlord \\
+\zh{押金} & yājīn & noun & deposit \\
+\zh{公寓} & gōngyù & noun & apartment \\
+\zh{房间} & fángjiān & noun & room \\
+\zh{卧室} & wòshì & noun & bedroom \\
+\zh{客厅} & kètīng & noun & living room \\
+\zh{厨房} & chúfáng & noun & kitchen \\
+\zh{卫生间} & wèishēngjiān & noun & bathroom \\
+\zh{家具} & jiājù & noun & furniture \\
+\zh{床} & chuáng & noun & bed \\
+\zh{书桌} & shūzhuō & noun & desk \\
+\zh{椅子} & yǐzi & noun & chair \\
+\zh{沙发} & shāfā & noun & sofa \\
+\zh{水电费} & shuǐdiànfèi & noun & water and electricity bills \\
+\zh{包括} & bāokuò & verb & to include \\
+\zh{宠物} & chǒngwù & noun & pet \\
+\zh{安静} & ānjìng & adjective & quiet \\
+\zh{吵} & chǎo & adjective & noisy \\
+\zh{干净} & gānjìng & adjective & clean \\
+\zh{搬家} & bān jiā & verb-object & to move house \\
+\zh{搬出去} & bān chūqu & verb + complement & to move out \\
+\zh{室友} & shìyǒu & noun & roommate \\
+\zh{连\ldots{}也/都} & lián \ldots yě/dōu & & even \ldots \\
+\zh{多} & duō & numeral & more than (approx.) \\
+\zh{走路} & zǒu lù & verb-object & to walk \\
+\zh{合同} & hétong & noun & lease, contract \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Reading a listing}
+
+Chinese rental ads describe layouts with a compact code: \zh{X室Y厅Z卫} = X bedrooms,
+Y living rooms, Z bathrooms. A typical student apartment near campus is \zh{两室一厅一卫}.
+
+\begin{center}
+\begin{tikzpicture}[x=1cm, y=1cm]
+  \draw[very thick] (0,0) rectangle (10,6);
+  % walls
+  \draw[very thick] (4,0) -- (4,3.5);
+  \draw[very thick] (0,3.5) -- (1.5,3.5); \draw[very thick] (2.6,3.5) -- (4,3.5);
+  \draw[very thick] (6.5,6) -- (6.5,3.5) -- (7.2,3.5); \draw[very thick] (8.3,3.5) -- (10,3.5);
+  \draw[very thick] (4,3.5) -- (4.5,3.5); \draw[very thick] (5.5,3.5) -- (6.5,3.5);
+  \draw[very thick] (4,3.5) -- (4,4.6); \draw[very thick] (4,5.6) -- (4,6);
+  \draw[very thick] (7,0) -- (7,1.2); \draw[very thick] (7,2.2) -- (7,3.5);
+  \fill[white] (4.4,-0.1) rectangle (5.6,0.1);
+  \node[font=\scriptsize] at (5,-0.35) {\zh{门} door};
+  % labels
+  \node[align=center] at (2.75,1.3) {\zh{卧室} 1\\ \scriptsize bedroom};
+  \node[align=center] at (7.8,1.3) {\zh{卧室} 2\\ \scriptsize bedroom};
+  \node[align=center] at (5.5,2.4) {\zh{客厅}\\ \scriptsize living room};
+  \node[align=center] at (2,4.75) {\zh{厨房}\\ \scriptsize kitchen};
+  \node[align=center] at (5.25,4.75) {\zh{卫生间}\\ \scriptsize bathroom};
+  \node[align=center] at (8.25,4.75) {\zh{阳台}\\ \scriptsize balcony};
+  % furniture
+  \draw[fill=brown!20] (0.3,0.3) rectangle (1.6,2.3); \node[font=\scriptsize] at (0.95,1.3) {\zh{床}};
+  \draw[fill=brown!20] (8.6,0.3) rectangle (9.7,2.3); \node[font=\scriptsize] at (9.15,1.3) {\zh{床}};
+  \draw[fill=blue!10] (4.4,0.6) rectangle (6.6,1.2); \node[font=\scriptsize] at (5.5,0.9) {\zh{沙发}};
+  \draw[fill=brown!10] (2.6,2.6) rectangle (3.8,3.2); \node[font=\scriptsize] at (3.2,2.9) {\zh{书桌}};
+\end{tikzpicture}
+\end{center}
+
+\begin{example}[An ad]
+\zh{出租：两室一厅一卫，带家具，离滑铁卢大学走路十分钟。房租每月一千五百加元，水电费不包括，押金一个月。不能养宠物。}
+
+``For rent: 2 bed, 1 living, 1 bath, furnished, 10 minutes' walk from UW. Rent \$1500 a
+month, utilities not included, one month's deposit. No pets.''
+(\zh{加元} jiāyuán = Canadian dollar; \zh{出租} chūzū = for rent; \zh{带} = come with; \zh{养} yǎng = to keep (a pet).)
+\end{example}
+
+\section{Grammar}
+
+\subsection{Relative clauses with \zh{的}}
+
+Any clause can modify a noun if it is placed \emph{before} the noun with \zh{的}.
+This is the Chinese equivalent of ``which/that/who'' clauses.
+
+\begin{center}
+\begin{tikzpicture}[w/.style={draw, rounded corners, minimum height=0.85cm, align=center, font=\small}]
+  \node[w, fill=green!15, minimum width=4.2cm] (cl) at (0,0) {\zh{离学校很近}\\ clause};
+  \node[w, fill=red!15] (de) at (3.0,0) {\zh{的}};
+  \node[w, fill=yellow!25] (n) at (4.6,0) {\zh{公寓}\\ noun};
+  \draw[->, thick] (cl) -- (de); \draw[->, thick] (de) -- (n);
+  \node[font=\small, anchor=west] at (5.6,0) {``an apartment that is close to school''};
+  \node[w, fill=green!15, minimum width=4.2cm] at (0,-1.4) {\zh{我上个月租}\\ clause (object gap)};
+  \node[w, fill=red!15] at (3.0,-1.4) {\zh{的}};
+  \node[w, fill=yellow!25] at (4.6,-1.4) {\zh{房子}\\ noun};
+  \node[font=\small, anchor=west] at (5.6,-1.4) {``the house I rented last month''};
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}
+  \item \zh{我想找一个安静的、带家具的公寓。}
+  \item \zh{跟我住在一起的室友是工程系的学生。} The roommate who lives with me is an
+        engineering student.
+  \item \zh{房东说的话我都听懂了。} I understood everything the landlord said.
+\end{itemize}
+
+\subsection{\zh{连\ldots{}也/都\ldots} ``even''}
+
+\zh{连} + the extreme case + \zh{也/都} + verb.
+\begin{itemize}
+  \item \zh{这个公寓连床都没有。} This apartment doesn't even have a bed.
+  \item \zh{他忙得连饭都没吃。} He was so busy he didn't even eat.
+  \item \zh{连房东也不知道。} Even the landlord doesn't know.
+\end{itemize}
+
+\subsection{Approximate numbers with \zh{多}}
+
+\begin{itemize}
+  \item Round number + \zh{多} + MW: \zh{一千多块} ``over a thousand dollars'',
+        \zh{二十多个人} ``twenty-odd people''.
+  \item Single digit + MW + \zh{多}: \zh{三个多月} ``more than three months'',
+        \zh{两块多} ``a bit over two dollars''.
+\end{itemize}
+Note the difference: \zh{十多年} (11--19 years) vs \zh{十年多} (ten years and some
+months).
+
+\subsection{Negative comparison: \zh{没有\ldots{}那么}}
+
+\zh{这套公寓没有那套那么大，可是比那套便宜得多。} This apartment isn't as big as that
+one, but it's much cheaper. (\zh{套} tào = measure word for apartments.)
+
+\subsection{\zh{能}, \zh{会}, \zh{可以}: summary}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Modal & Main use & Example \\
+\midrule
+\zh{会} & learned skill; likely future & \zh{我会做饭。} \zh{明天会下雨。} \\
+\zh{能} & ability, circumstances & \zh{我能走路去学校。} \\
+\zh{可以} & permission & \zh{我可以养猫吗？} \\
+\zh{不能} & not allowed; not possible & \zh{这儿不能养宠物。} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Talking to a landlord}
+
+\begin{example}[Phone call about an apartment]\leavevmode
+\begin{itemize}
+  \item \textbf{A:} \zh{喂，您好！我在网上看到您的广告，请问那套公寓租出去了吗？}
+  \item \textbf{Landlord:} \zh{还没有。你想什么时候来看看？}
+  \item \textbf{A:} \zh{今天下午可以吗？请问房租包括水电费吗？}
+  \item \textbf{Landlord:} \zh{不包括，每个月水电费大概一百多块。}
+  \item \textbf{A:} \zh{有家具吗？}
+  \item \textbf{Landlord:} \zh{卧室里有床和书桌，客厅里有沙发。厨房也很大，可以自己做饭。}
+  \item \textbf{A:} \zh{可以养猫吗？}
+  \item \textbf{Landlord:} \zh{对不起，连鱼都不能养。}
+\end{itemize}
+(\zh{广告} guǎnggào = advertisement.)
+\end{example}
+
+\begin{aside}
+In Chinese cities most students live in campus dormitories with four to six students
+per room; renting off-campus (\zh{在外面租房}) is less common and usually goes through an
+agency (\zh{中介} zhōngjiè). Housing is measured in square metres (\zh{平方米}
+píngfāngmǐ, colloquially \zh{平}): a \zh{六十平} apartment is about 650 square feet.
+Waterloo co-op students who rent for only four months look for a \zh{转租} zhuǎnzū
+(sublet).
+\end{aside}
+
+\section*{Review}
+\begin{itemize}
+  \item \zh{X室Y厅Z卫} layouts; rooms and furniture.
+  \item Clause + \zh{的} + noun = relative clause.
+  \item \zh{连} X \zh{也/都} = even X.
+  \item \zh{一千多} vs \zh{三个多月}; \zh{十多年} vs \zh{十年多}.
+  \item \zh{没有\ldots{}那么}; \zh{会/能/可以/不能}.
+\end{itemize}

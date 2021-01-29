@@ -1,0 +1,271 @@
+\chapter{Lesson 4: Family and Honorifics}
+
+Talking
+about your family means talking about people older than you, and Korean grammar requires
+you to show respect to them \emph{even when they are not present}. The tools are the
+honorific infix \ko{\til (으)시\til}, special honorific verbs and nouns, and the
+honorific particles \ko{께서} and \ko{께}.
+
+\section{Family vocabulary}
+
+Kinship terms for siblings depend on the \emph{speaker's} gender as well as the sibling's.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small, align=center},
+    p/.style={draw, rounded corners, minimum width=2.1cm, minimum height=0.95cm, fill=blue!6},
+    me/.style={draw, rounded corners, minimum width=2.1cm, minimum height=0.95cm, fill=orange!25, thick}]
+  \node[p] (gf) at (-1.3,4.2) {\ko{할아버지}\\ \scriptsize harabeoji};
+  \node[p] (gm) at (1.3,4.2) {\ko{할머니}\\ \scriptsize halmeoni};
+  \draw (gf) -- (gm);
+  \node[p] (uncle) at (-4.2,2.4) {\ko{삼촌 / 고모}\\ \scriptsize father's siblings};
+  \node[p] (fa) at (-1.3,2.4) {\ko{아버지}\\ \scriptsize abeoji};
+  \node[p] (mo) at (1.3,2.4) {\ko{어머니}\\ \scriptsize eomeoni};
+  \node[p] (imo) at (4.2,2.4) {\ko{이모 / 외삼촌}\\ \scriptsize mother's siblings};
+  \draw (fa) -- (mo);
+  \draw (0,4.2) -- (0,3.3) -- (-4.2,3.3) -- (uncle.north);
+  \draw (0,3.3) -- (-1.3,3.3) -- (fa.north);
+  \draw[dashed] (mo.east) -- (imo.west);
+  \node[p] (ob) at (-4.5,0.3) {\ko{형} / \ko{오빠}\\ \scriptsize older brother};
+  \node[p] (os) at (-2.2,0.3) {\ko{누나} / \ko{언니}\\ \scriptsize older sister};
+  \node[me] (me) at (0,0.3) {\ko{나} / \ko{저}\\ \scriptsize me};
+  \node[p] (yb) at (2.2,0.3) {\ko{남동생}\\ \scriptsize younger brother};
+  \node[p] (ys) at (4.5,0.3) {\ko{여동생}\\ \scriptsize younger sister};
+  \draw (0,2.4) -- (0,1.3) -- (-4.5,1.3) -- (ob.north);
+  \draw (-2.2,1.3) -- (os.north); \draw (0,1.3) -- (me.north);
+  \draw (0,1.3) -- (4.5,1.3) -- (ys.north); \draw (2.2,1.3) -- (yb.north);
+  \node[font=\scriptsize] at (0,-0.75) {$\longleftarrow$ older \hspace{4cm} younger $\longrightarrow$};
+  \node[font=\scriptsize, align=left, anchor=west] at (-5.6,-1.5) {\ko{형}/\ko{오빠} and \ko{누나}/\ko{언니}: the first form is used by a male speaker, the second by a female speaker.};
+\end{tikzpicture}
+\end{center}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+Term & RR & Meaning & Used by \\
+\midrule
+\ko{형} & hyeong & older brother & males \\
+\ko{오빠} & oppa & older brother & females \\
+\ko{누나} & nuna & older sister & males \\
+\ko{언니} & eonni & older sister & females \\
+\ko{동생} & dongsaeng & younger sibling & everyone \\
+\ko{부모님} & bumonim & parents (honorific) & everyone \\
+\ko{형제} & hyeongje & siblings & everyone \\
+\ko{외할머니} & oehalmeoni & maternal grandmother & everyone \\
+\ko{사촌} & sachon & cousin & everyone \\
+\ko{남편 / 아내} & nampyeon / anae & husband / wife & everyone \\
+\ko{아들 / 딸} & adeul / ttal & son / daughter & everyone \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{remark}
+The prefix \ko{외} oe- (``outside'') marks relatives on the mother's side:
+\ko{외할아버지}, \ko{외할머니}, \ko{외삼촌}. The father's side is unmarked, a trace of the
+traditional patrilineal family. \ko{아빠} appa and \ko{엄마} eomma are the affectionate
+``dad'' and ``mom''; adults talking to non-family usually say \ko{아버지}, \ko{어머니}, or
+\ko{저희 부모님} (my parents).
+\end{remark}
+
+\begin{example}[Describing your family]
+Notice \ko{우리} / \ko{저희} (``our'') instead of ``my'' for family members:
+\begin{itemize}
+  \item \ko{우리 가족은 다섯 명이에요.} Uri gajogeun daseot myeongieyo. (There are five
+        people in my family.)
+  \item \ko{형이 한 명 있고 여동생이 한 명 있어요.} Hyeongi han myeong itgo yeodongsaengi
+        han myeong isseoyo. (I have one older brother and one younger sister.)
+  \item \ko{저는 형제가 없어요. 외동이에요.} Jeoneun hyeongjega eopseoyo. Oedongieyo. (I
+        don't have any siblings. I'm an only child.)
+\end{itemize}
+\end{example}
+
+\section{Grammar 1: The subject honorific \ko{\til (으)시\til}}
+
+When the \emph{subject} of a verb is someone you should respect (a parent, grandparent,
+teacher, customer, or a stranger who is older), insert \ko{\til (으)시\til} after the
+stem.
+
+\begin{itemize}
+  \item Stem ends in a vowel: \ko{시}. \ko{가다} $\to$ \ko{가시다}.
+  \item Stem ends in a consonant: \ko{으시}. \ko{읽다} $\to$ \ko{읽으시다}.
+  \item Stem ends in \ko{ㄹ}: the \ko{ㄹ} drops and \ko{시} is added. \ko{살다} $\to$
+        \ko{사시다}, \ko{알다} $\to$ \ko{아시다}.
+\end{itemize}
+
+In the polite style, \ko{시} + \ko{어요} contracts to \ko{세요}, and in the past
+\ko{시} + \ko{었어요} gives \ko{셨어요}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllll}
+\toprule
+Dictionary & Plain polite & Honorific present & Honorific past & Meaning \\
+\midrule
+\ko{가다} & \ko{가요} & \ko{가세요} & \ko{가셨어요} & go \\
+\ko{오다} & \ko{와요} & \ko{오세요} & \ko{오셨어요} & come \\
+\ko{읽다} & \ko{읽어요} & \ko{읽으세요} & \ko{읽으셨어요} & read \\
+\ko{좋아하다} & \ko{좋아해요} & \ko{좋아하세요} & \ko{좋아하셨어요} & like \\
+\ko{살다} & \ko{살아요} & \ko{사세요} & \ko{사셨어요} & live \\
+\ko{바쁘다} & \ko{바빠요} & \ko{바쁘세요} & \ko{바쁘셨어요} & be busy \\
+\ko{이다} & \ko{이에요/예요} & \ko{이세요/세요} & \ko{이셨어요/셨어요} & be \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{important}[Who gets the honorific?]
+The honorific shows respect to the \emph{subject}, never to yourself. Asking a teacher
+\ko{어디 가세요?} (where are you going?) is correct; answering \ko{*도서관에 가세요} is
+wrong --- you must say \ko{도서관에 가요}. Also, \ko{\til (으)세요} is the same form as the
+polite command (``please do''), so \ko{여기 앉으세요} means ``please sit here''. Context
+decides.
+\end{important}
+
+\section{Grammar 2: Special honorific verbs}
+
+A handful of very common verbs have a completely different honorific form instead of
+taking \ko{\til (으)시\til}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llllll}
+\toprule
+Plain & Meaning & Honorific & RR & Present & Past \\
+\midrule
+\ko{먹다}, \ko{마시다} & eat, drink & \ko{드시다} & deusida & \ko{드세요} & \ko{드셨어요} \\
+\ko{자다} & sleep & \ko{주무시다} & jumusida & \ko{주무세요} & \ko{주무셨어요} \\
+\ko{있다} & be (somewhere) & \ko{계시다} & gyesida & \ko{계세요} & \ko{계셨어요} \\
+\ko{있다} & have & \ko{있으시다} & isseusida & \ko{있으세요} & \ko{있으셨어요} \\
+\ko{말하다} & speak & \ko{말씀하시다} & malsseumhasida & \ko{말씀하세요} & \ko{말씀하셨어요} \\
+\ko{아프다} & be sick & \ko{편찮으시다} & pyeonchaneusida & \ko{편찮으세요} & \ko{편찮으셨어요} \\
+\ko{죽다} & die & \ko{돌아가시다} & doragasida & \ko{돌아가세요} & \ko{돌아가셨어요} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{remark}
+\ko{있다} splits in two. When a respected person \emph{is somewhere}, use \ko{계시다}:
+\ko{선생님은 사무실에 계세요} (the teacher is in the office). When they \emph{have}
+something, use \ko{있으시다}: \ko{선생님은 시간이 있으세요?} (do you have time,
+professor?). \ko{안녕히 계세요} (goodbye, to someone staying) literally means ``stay in
+peace''. The more traditional \ko{잡수시다} japsusida also means ``eat'' and is used for
+the very elderly.
+\end{remark}
+
+\section{Grammar 3: Honorific nouns and particles}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllll}
+\toprule
+Plain & Honorific & RR & Meaning & Typical phrase \\
+\midrule
+\ko{집} & \ko{댁} & daek & home & \ko{댁이 어디세요?} \\
+\ko{나이} & \ko{연세} & yeonse & age & \ko{연세가 어떻게 되세요?} \\
+\ko{이름} & \ko{성함} & seongham & name & \ko{성함이 어떻게 되세요?} \\
+\ko{밥} & \ko{진지} & jinji & meal & \ko{진지 드셨어요?} \\
+\ko{말} & \ko{말씀} & malsseum & words, speech & \ko{말씀 많이 들었어요.} \\
+\ko{생일} & \ko{생신} & saengsin & birthday & \ko{생신 축하드려요.} \\
+\ko{사람}, \ko{명} & \ko{분} & bun & person & \ko{몇 분이세요?} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The particles change too:
+\begin{itemize}
+  \item subject \ko{이/가} $\to$ \ko{께서} kkeseo; topic \ko{은/는} $\to$ \ko{께서는}.
+  \item ``to (a person)'' \ko{에게/한테} $\to$ \ko{께} kke.
+\end{itemize}
+And on the speaker's own side there are \textbf{humble} forms: \ko{저} (I),
+\ko{저희} (we), \ko{드리다} deurida (give to someone higher, replacing \ko{주다}),
+\ko{여쭤보다} yeojjwoboda (ask someone higher, replacing \ko{물어보다}).
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small},
+    w/.style={draw, rounded corners, minimum height=0.8cm, fill=gray!8},
+    h/.style={draw, rounded corners, minimum height=0.8cm, fill=red!12}]
+  \node[w] (a) at (0,1.4) {\ko{동생이}};
+  \node[w] (b) at (2.4,1.4) {\ko{밥을}};
+  \node[w] (c) at (4.6,1.4) {\ko{먹어요.}};
+  \node[h] (d) at (0,0) {\ko{할머니께서}};
+  \node[h] (e) at (2.4,0) {\ko{진지를}};
+  \node[h] (f) at (4.6,0) {\ko{드세요.}};
+  \draw[-{Stealth}, gray] (a) -- (d); \draw[-{Stealth}, gray] (b) -- (e); \draw[-{Stealth}, gray] (c) -- (f);
+  \node[anchor=west, font=\scriptsize] at (6.0,1.4) {My younger sibling eats.};
+  \node[anchor=west, font=\scriptsize] at (6.0,0) {My grandmother eats.};
+  \node[font=\scriptsize] at (0,-0.65) {particle};
+  \node[font=\scriptsize] at (2.4,-0.65) {noun};
+  \node[font=\scriptsize] at (4.6,-0.65) {verb};
+\end{tikzpicture}
+\end{center}
+
+\begin{example}[Honorific sentences]
+All three layers (particle, noun, verb) shift together:
+\begin{itemize}
+  \item \ko{할아버지께서 신문을 읽으세요.} Harabeojikkeseo sinmuneul ilgeuseyo. (Grandpa
+        is reading the newspaper.)
+  \item \ko{할머니께서는 지금 주무세요.} Halmeonikkeseoneun jigeum jumuseyo. (Grandma is
+        sleeping now.)
+  \item \ko{아버지께서는 회사에 계세요.} Abeojikkeseoneun hoesae gyeseyo. (My father is
+        at the office.)
+  \item \ko{어머니께 꽃을 드렸어요.} Eomeonikke kkocheul deuryeosseoyo. (I gave flowers to
+        my mother.)
+  \item \ko{할아버지는 작년에 돌아가셨어요.} Harabeojineun jangnyeone doragasyeosseoyo.
+        (My grandfather passed away last year.)
+  \item \ko{선생님, 주말에 뭐 하셨어요?} Seonsaengnim, jumare mwo hasyeosseoyo?
+        (Professor, what did you do on the weekend?)
+\end{itemize}
+\end{example}
+
+\begin{important}[Two independent axes]
+Korean politeness has two separate dimensions, which students mix up:
+\begin{itemize}
+  \item \textbf{Speech level} (the sentence ending, \ko{\til 요} or not) shows respect to
+        the \emph{listener}.
+  \item \textbf{Honorifics} (\ko{\til 시\til}, \ko{께서}, \ko{드시다}) show respect to the
+        \emph{subject} being talked about.
+\end{itemize}
+So talking to a friend about your grandmother gives \ko{할머니가 주무셔} (casual ending,
+honorific verb), while talking to a teacher about your little brother gives
+\ko{동생이 자요} (polite ending, plain verb).
+\end{important}
+
+\section{Asking politely about someone's family}
+
+\begin{example}[Polite questions]
+Typical first-meeting questions to an older person:
+\begin{itemize}
+  \item \ko{가족이 몇 분이세요?} Gajogi myeot buniseyo? (How many are in your family?)
+  \item \ko{부모님은 어디 사세요?} Bumonimeun eodi saseyo? (Where do your parents live?)
+  \item \ko{아버님은 무슨 일을 하세요?} Abeonimeun museun ireul haseyo? (What does your
+        father do?) --- \ko{아버님} and \ko{어머님} are used for \emph{someone else's}
+        parents.
+\end{itemize}
+\end{example}
+
+\begin{aside}
+\textbf{Titles, age and family words outside the family.} Koreans rarely call anyone
+older than them by their bare name. Family terms are extended to friends and
+acquaintances: a male student calls a slightly older male friend \ko{형} and an older
+female friend \ko{누나}; a female student uses \ko{오빠} and \ko{언니}. Restaurant staff
+may be called \ko{이모} (aunt). At university, upperclassmen are \ko{선배} seonbae and
+underclassmen are \ko{후배} hubae; even a one-year difference matters, and \ko{선배} are
+traditionally expected to pay when they take \ko{후배} out to eat. With colleagues and
+classmates of uncertain status, use full name + \ko{씨} ssi (\ko{김민수 씨}), never
+surname + \ko{씨}, and avoid the dictionary word for ``you'' (\ko{당신}), which sounds
+confrontational or overly intimate. Teachers are \ko{선생님}, and the suffix \ko{\til 님}
+attaches to job titles: \ko{교수님} (professor), \ko{사장님} (company president).
+\end{aside}
+
+\section*{Review summary}
+\begin{itemize}
+  \item Sibling terms depend on your gender: \ko{형/누나} (male speaker),
+        \ko{오빠/언니} (female speaker); \ko{동생} for younger siblings.
+  \item Honorific \ko{\til (으)시\til}: \ko{가세요}, \ko{읽으세요}, \ko{가셨어요};
+        \ko{ㄹ}-stems drop \ko{ㄹ} (\ko{사세요}).
+  \item Special verbs: \ko{드시다, 주무시다, 계시다, 말씀하시다, 편찮으시다,
+        돌아가시다}.
+  \item Special nouns: \ko{댁, 연세, 성함, 진지, 말씀, 생신, 분}; particles \ko{께서},
+        \ko{께}; humble \ko{저, 저희, 드리다}.
+  \item Never honor yourself; speech level (listener) and honorifics (subject) are
+        separate choices.
+\end{itemize}

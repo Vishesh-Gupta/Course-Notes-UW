@@ -1,0 +1,265 @@
+\chapter{Lesson 1: The Weekend}
+
+The first new lesson of the term is about what we did last weekend, which means the
+\textbf{past tense} is the main grammar point. Monday classes for the rest of the term
+opened with the question \ko{주말 잘 보냈어요?} Jumal jal bonaesseoyo? (Did you have a
+good weekend?), so it pays to have a few sentences ready.
+
+\section{Vocabulary}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+Korean & RR & English \\
+\midrule
+\ko{주말} & jumal & weekend \\
+\ko{평일} & pyeongil & weekday \\
+\ko{지난 주말} & jinan jumal & last weekend \\
+\ko{청소하다} & cheongsohada & to clean \\
+\ko{빨래하다} & ppallaehada & to do laundry \\
+\ko{요리하다} & yorihada & to cook \\
+\ko{운동하다} & undonghada & to exercise \\
+\ko{등산하다} & deungsanhada & to go hiking (up a mountain) \\
+\ko{산책하다} & sanchaekhada & to take a walk \\
+\ko{쇼핑하다} & syopinghada & to go shopping \\
+\ko{아르바이트하다} & areubaiteuhada & to work part-time \\
+\ko{친구를 만나다} & chingureul mannada & to meet a friend \\
+\ko{영화를 보다} & yeonghwareul boda & to watch a movie \\
+\ko{늦잠을 자다} & neutjameul jada & to sleep in \\
+\ko{쉬다} & swida & to rest \\
+\ko{놀다} & nolda & to hang out, to play \\
+\ko{보내다} & bonaeda & to spend (time); to send \\
+\ko{재미있다} & jaemiitda & to be fun, interesting \\
+\ko{피곤하다} & pigonhada & to be tired \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Days of the week and time words}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+Korean & RR & English & Element \\
+\midrule
+\ko{월요일} & woryoil & Monday & moon (\ko{월}) \\
+\ko{화요일} & hwayoil & Tuesday & fire (\ko{화}) \\
+\ko{수요일} & suyoil & Wednesday & water (\ko{수}) \\
+\ko{목요일} & mogyoil & Thursday & wood (\ko{목}) \\
+\ko{금요일} & geumyoil & Friday & metal, gold (\ko{금}) \\
+\ko{토요일} & toyoil & Saturday & earth (\ko{토}) \\
+\ko{일요일} & iryoil & Sunday & sun (\ko{일}) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{center}
+\begin{tikzpicture}[x=2.3cm, every node/.style={font=\small}]
+  \draw[-{Stealth}, thick] (-0.3,0) -- (4.4,0) node[right] {time};
+  \foreach \x/\kw/\rr/\ee in {0/그저께/geujeokke/2 days ago, 1/어제/eoje/yesterday, 2/오늘/oneul/today, 3/내일/naeil/tomorrow, 4/모레/more/in 2 days} {
+    \draw (\x,0.1) -- (\x,-0.1);
+    \node[above] at (\x,0.15) {\ko{\kw}};
+    \node[below, font=\scriptsize, align=center] at (\x,-0.15) {\rr\\ \ee};
+  }
+  \draw[-{Stealth}, thick] (-0.3,-2.2) -- (4.4,-2.2) node[right] {weeks};
+  \foreach \x/\kw/\rr in {1/지난주/jinanju, 2/이번 주/ibeon ju, 3/다음 주/daeum ju} {
+    \draw (\x,-2.1) -- (\x,-2.3);
+    \node[above] at (\x,-2.05) {\ko{\kw}};
+    \node[below, font=\scriptsize] at (\x,-2.35) {\rr};
+  }
+  \fill[red!60] (2,0) circle (2.5pt);
+  \fill[red!60] (2,-2.2) circle (2.5pt);
+  \node[font=\scriptsize, red!60!black] at (2,0.85) {now (\ko{지금})};
+\end{tikzpicture}
+\end{center}
+
+Days of the week and clock times take the time particle \ko{에}: \ko{토요일에} toyoire
+(on Saturday), \ko{세 시에} se sie (at three). Relative time words do \emph{not}:
+\ko{어제}, \ko{오늘}, \ko{내일}, \ko{지금}, \ko{지난주} are used bare. (\ko{어제에} is a
+classic beginner mistake.) \ko{주말에} jumare (on the weekend) does take \ko{에}.
+
+\section{Grammar 1: Past tense \ko{\til 았/었어요}}
+
+The past tense is built by inserting \ko{았} or \ko{었} between the stem and the
+polite ending. The choice follows exactly the same vowel-harmony rule as the present
+tense, so if you can form the present you can form the past: take the present
+\ko{해요} form, drop \ko{요}, and add \ko{ㅆ어요}.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small},
+    b/.style={draw, rounded corners, minimum height=0.85cm, minimum width=1.4cm}]
+  \node[b, fill=gray!10] (s) at (0,0) {\ko{먹}};
+  \node[b, fill=orange!15] (t) at (2.0,0) {\ko{었}};
+  \node[b, fill=blue!10] (e) at (4.0,0) {\ko{어요}};
+  \node at (1.0,0) {+}; \node at (3.0,0) {+};
+  \node at (5.3,0) {$=$};
+  \node[b, fill=green!10, minimum width=2cm] at (6.7,0) {\ko{먹었어요}};
+  \node[font=\scriptsize, below=0.2cm of s] {stem};
+  \node[font=\scriptsize, below=0.2cm of t] {past marker};
+  \node[font=\scriptsize, below=0.2cm of e] {polite ending};
+  \node[font=\scriptsize] at (6.7,-0.75) {meogeosseoyo, ``ate''};
+\end{tikzpicture}
+\end{center}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllll}
+\toprule
+Dictionary & Present & Past & RR & Meaning \\
+\midrule
+\ko{가다} & \ko{가요} & \ko{갔어요} & gasseoyo & went \\
+\ko{오다} & \ko{와요} & \ko{왔어요} & wasseoyo & came \\
+\ko{보다} & \ko{봐요} & \ko{봤어요} & bwasseoyo & saw, watched \\
+\ko{만나다} & \ko{만나요} & \ko{만났어요} & mannasseoyo & met \\
+\ko{놀다} & \ko{놀아요} & \ko{놀았어요} & norasseoyo & hung out \\
+\ko{먹다} & \ko{먹어요} & \ko{먹었어요} & meogeosseoyo & ate \\
+\ko{쉬다} & \ko{쉬어요} & \ko{쉬었어요} & swieosseoyo & rested \\
+\ko{마시다} & \ko{마셔요} & \ko{마셨어요} & masyeosseoyo & drank \\
+\ko{배우다} & \ko{배워요} & \ko{배웠어요} & baewosseoyo & learned \\
+\ko{보내다} & \ko{보내요} & \ko{보냈어요} & bonaesseoyo & spent (time) \\
+\ko{쓰다} & \ko{써요} & \ko{썼어요} & sseosseoyo & wrote \\
+\ko{하다} & \ko{해요} & \ko{했어요} & haesseoyo & did \\
+\ko{재미있다} & \ko{재미있어요} & \ko{재미있었어요} & jaemiisseosseoyo & was fun \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{important}[Past of the copula]
+\ko{이다} becomes \ko{이었어요} after a consonant and \ko{였어요} after a vowel:
+\ko{어제는 제 생일이었어요.} Eojeneun je saengirieosseoyo. (Yesterday was my birthday.)
+\ko{그 사람은 가수였어요.} Geu sarameun gasuyeosseoyo. (That person was a singer.) The
+negative is \ko{아니었어요}: \ko{학생이 아니었어요} haksaengi anieosseoyo (wasn't a
+student).
+\end{important}
+
+\begin{example}[Talking about last weekend]
+Some sentences I prepared for the Monday warm-up:
+\begin{itemize}
+  \item \ko{토요일에 늦잠을 잤어요.} Toyoire neutjameul jasseoyo. (I slept in on
+        Saturday.)
+  \item \ko{오후에 도서관에서 숙제를 했어요.} Ohue doseogwaneseo sukjereul haesseoyo. (In
+        the afternoon I did homework at the library.)
+  \item \ko{일요일에는 친구를 만났어요. 같이 영화를 봤어요.} Iryoireneun chingureul
+        mannasseoyo. Gachi yeonghwareul bwasseoyo. (On Sunday I met a friend. We watched
+        a movie together.)
+  \item \ko{영화가 아주 재미있었어요.} Yeonghwaga aju jaemiisseosseoyo. (The movie was
+        really fun.)
+\end{itemize}
+\end{example}
+
+\subsection{Negative past}
+
+There are two ways to negate, and both carry over to the past:
+\begin{itemize}
+  \item \textbf{Short negation} \ko{안} + verb: \ko{안 갔어요} an gasseoyo (didn't go).
+        With \ko{noun + 하다} verbs, \ko{안} goes right before \ko{하다}:
+        \ko{운동 안 했어요} undong an haesseoyo, \emph{not} \ko{안 운동했어요}.
+  \item \textbf{Long negation} stem + \ko{\til 지 않았어요}: \ko{가지 않았어요} gaji
+        anasseoyo. Slightly more formal; common in writing.
+\end{itemize}
+
+\begin{example}[Negative answers]
+Answering a question with the opposite of what was asked:
+\begin{itemize}
+  \item \ko{주말에 청소했어요? --- 아니요, 청소 안 했어요. 너무 피곤했어요.} Jumare
+        cheongsohaesseoyo? --- Aniyo, cheongso an haesseoyo. Neomu pigonhaesseoyo. (Did
+        you clean on the weekend? --- No, I didn't. I was too tired.)
+  \item \ko{어제 아침을 먹지 않았어요.} Eoje achimeul meokji anasseoyo. (I didn't eat
+        breakfast yesterday.)
+\end{itemize}
+\end{example}
+
+\section{Grammar 2: ``and'' and ``with'' for nouns}
+
+Korean has several particles meaning ``and'' (joining nouns) or ``with'' (a companion).
+They differ in register, not meaning.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+Particle & After consonant / vowel & Register & Example \\
+\midrule
+\ko{하고} & \ko{하고} / \ko{하고} & spoken, neutral & \ko{빵하고 우유} \\
+\ko{와/과} & \ko{과} / \ko{와} & written, formal & \ko{책과 공책}, \ko{커피와 차} \\
+\ko{(이)랑} & \ko{이랑} / \ko{랑} & spoken, casual & \ko{동생이랑}, \ko{친구랑} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Notice that \ko{와/과} runs ``backwards'' compared with most particles: \ko{과} after a
+consonant, \ko{와} after a vowel. To say ``together with'', add \ko{같이} gachi or
+\ko{함께} hamkke: \ko{친구하고 같이 등산했어요.} Chinguhago gachi deungsanhaesseoyo. (I
+went hiking with a friend.)
+
+\begin{remark}
+These particles join \emph{nouns} only. To join two \emph{clauses} (``I cleaned and then
+rested'') use \ko{\til 고} (Lesson 3) or the sentence-initial connector \ko{그리고}.
+\end{remark}
+
+\section{Sentence connectors}
+
+Paragraph-length answers sound much better with connecting adverbs at the start of
+sentences.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+Korean & RR & Meaning \\
+\midrule
+\ko{그리고} & geurigo & and, and then \\
+\ko{그래서} & geuraeseo & so, therefore \\
+\ko{그런데} & geureonde & but, by the way (topic shift) \\
+\ko{그렇지만} & geureochiman & however \\
+\ko{그 다음에} & geu daeume & after that \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{example}[A short diary entry]
+A short paragraph in the style of the weekly journal assignment:
+\begin{quote}
+\ko{지난 주말에 날씨가 좋았어요. 그래서 친구랑 공원에서 산책했어요. 그 다음에 식당에서
+비빔밥을 먹었어요. 그런데 저녁에 비가 왔어요. 그래서 집에서 쉬었어요.}
+\end{quote}
+Jinan jumare nalssiga joasseoyo. Geuraeseo chingurang gongwoneseo sanchaekhaesseoyo. Geu
+daeume sikdangeseo bibimbabeul meogeosseoyo. Geureonde jeonyeoge biga wasseoyo.
+Geuraeseo jibeseo swieosseoyo. (Last weekend the weather was nice, so I took a walk in
+the park with a friend. After that I ate bibimbap at a restaurant. But in the evening it
+rained, so I rested at home.)
+\end{example}
+
+\section{Pronunciation notes}
+
+\begin{itemize}
+  \item The past marker \ko{ㅆ} links onto \ko{어요}: \ko{갔어요} is [\ko{가써요}]. When
+        followed by a consonant it neutralizes to [t] and tensifies the next consonant:
+        \ko{갔지만} [\ko{갇찌만}] gatjiman.
+  \item \ko{했어요} is often reduced in fast speech to something like [\ko{해써요}] with
+        a very short first vowel.
+  \item \ko{같이} is [\ko{가치}] by palatalization (Chapter 1).
+\end{itemize}
+
+\begin{aside}
+\textbf{Weekend culture.} Our instructor described typical university-student weekends in
+Seoul: \ko{노래방} noraebang (karaoke rooms rented by the hour), \ko{PC방} PC-bang
+(internet caf\'es for gaming), and \ko{찜질방} jjimjilbang (24-hour bathhouses with
+heated rooms, where families and friends hang out and even sleep over). Hiking
+(\ko{등산}) is hugely popular with middle-aged Koreans, who are known for wearing full
+professional hiking gear even on easy city trails.
+\end{aside}
+
+\section*{Review summary}
+\begin{itemize}
+  \item Past tense: stem + \ko{았} (last vowel \ko{ㅏ/ㅗ}) or \ko{었} (otherwise) +
+        \ko{어요}; \ko{하다} $\to$ \ko{했어요}; contractions as in the present.
+  \item Copula past: \ko{이었어요} / \ko{였어요}; negative \ko{아니었어요}.
+  \item Negation: \ko{안} + verb (before \ko{하다} in noun-\ko{하다} verbs) or
+        \ko{\til 지 않았어요}.
+  \item ``And/with'' for nouns: \ko{하고} (neutral), \ko{와/과} (written),
+        \ko{(이)랑} (casual); add \ko{같이} for ``together''.
+  \item Days of the week and clock times take \ko{에}; \ko{어제, 오늘, 내일} do not.
+\end{itemize}
