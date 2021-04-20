@@ -1,0 +1,183 @@
+\chapter{Lesson 2: Colours and Clothing}
+
+\section{Vocabulary}
+
+\subsection{Colours}
+
+Colour words are adjectives, but most can also take \zh{色} \emph{sè} ``colour'' and
+act as nouns: \zh{红色}, \zh{蓝色}. \zh{咖啡色} ``coffee colour'' is brown.
+
+\begin{center}
+\begin{tikzpicture}[sw/.style={draw, minimum width=1.25cm, minimum height=0.7cm}]
+  \foreach \i/\c/\zhc/\py/\en in {
+      0/red!80!black/红/hóng/red,
+      1/yellow!90!orange/黄/huáng/yellow,
+      2/blue!70/蓝/lán/blue,
+      3/green!55!black/绿/lǜ/green,
+      4/white/白/bái/white,
+      5/black/黑/hēi/black,
+      6/brown!80!black/咖啡色/kāfēisè/brown,
+      7/gray/灰/huī/grey,
+      8/violet!80!black/紫/zǐ/purple,
+      9/pink/粉红/fěnhóng/pink,
+      10/orange/橙/chéng/orange} {
+    \pgfmathsetmacro{\x}{mod(\i,6)*2.5}
+    \pgfmathsetmacro{\y}{-floor(\i/6)*1.9}
+    \node[sw, fill=\c] at (\x,\y) {};
+    \node[font=\small] at (\x,\y-0.6) {\zh{\zhc} \emph{\py}};
+    \node[font=\scriptsize] at (\x,\y-0.95) {\en};
+  }
+\end{tikzpicture}
+\end{center}
+
+\subsection{Clothing}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Characters & Pinyin & Measure word & Meaning \\
+\midrule
+\zh{衣服} & yīfu & \zh{件} & clothes \\
+\zh{衬衫} & chènshān & \zh{件} & shirt \\
+\zh{T恤} & T-xù & \zh{件} & T-shirt \\
+\zh{毛衣} & máoyī & \zh{件} & sweater \\
+\zh{大衣} & dàyī & \zh{件} & overcoat \\
+\zh{裤子} & kùzi & \zh{条} & pants \\
+\zh{牛仔裤} & niúzǎikù & \zh{条} & jeans \\
+\zh{裙子} & qúnzi & \zh{条} & skirt, dress \\
+\zh{鞋} & xié & \zh{双} & shoes \\
+\zh{袜子} & wàzi & \zh{双} & socks \\
+\zh{帽子} & màozi & \zh{顶} dǐng & hat \\
+\zh{眼镜} & yǎnjìng & \zh{副} fù & glasses \\
+\zh{手套} & shǒutào & \zh{副}/\zh{双} & gloves \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Other words}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Characters & Pinyin & Part of speech & Meaning \\
+\midrule
+\zh{穿} & chuān & verb & to wear (clothes, shoes) \\
+\zh{戴} & dài & verb & to wear (accessories) \\
+\zh{换} & huàn & verb & to change, exchange \\
+\zh{合适} & héshì & adjective & suitable, fitting \\
+\zh{好看} & hǎokàn & adjective & good-looking \\
+\zh{长} & cháng & adjective & long \\
+\zh{短} & duǎn & adjective & short \\
+\zh{号} & hào & noun & size \\
+\zh{虽然} & suīrán & conjunction & although \\
+\zh{但是} & dànshì & conjunction & but \\
+\zh{又\ldots{}又\ldots} & yòu \ldots yòu \ldots & & both \ldots and \ldots \\
+\zh{一样} & yíyàng & adjective & the same \\
+\zh{不但\ldots{}而且\ldots} & búdàn \ldots érqiě \ldots & & not only \ldots but also \ldots \\
+\zh{质量} & zhìliàng & noun & quality \\
+\zh{样子} & yàngzi & noun & style, appearance \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{\zh{穿} vs \zh{戴}}
+
+\begin{important}[Two verbs for ``wear'']
+\zh{穿} is for things you get \emph{into}: clothes, pants, socks, shoes.
+\zh{戴} is for things you \emph{put on} or attach: hats, glasses, watches, gloves,
+jewellery, masks.
+\begin{itemize}
+  \item \zh{他穿着一件黑大衣，戴着一顶红帽子。} He's wearing a black coat and a red hat.
+  \item \zh{冬天在滑铁卢得戴手套。} In winter in Waterloo you have to wear gloves.
+\end{itemize}
+\end{important}
+
+\section{Grammar}
+
+\subsection{\zh{又\ldots{}又\ldots}}
+
+\zh{又} A \zh{又} B ``both A and B'' links two adjectives (or verb phrases) that point the
+same way, both positive or both negative.
+\begin{itemize}
+  \item \zh{这条裤子又便宜又好看。} These pants are both cheap and nice.
+  \item \zh{那双鞋又贵又不舒服。} Those shoes are expensive and uncomfortable.
+  \item *\zh{又便宜又不好看} sounds odd: mixed evaluations need \zh{虽然\ldots{}但是}.
+\end{itemize}
+
+\subsection{\zh{虽然\ldots{}但是/可是\ldots}}
+
+Unlike English, Chinese marks both halves of a concession.
+\begin{itemize}
+  \item \zh{虽然这件毛衣很贵，但是质量很好。} Although this sweater is expensive, the
+        quality is good.
+  \item \zh{她虽然很喜欢那条裙子，可是没买。} Although she likes that dress, she didn't
+        buy it.
+\end{itemize}
+\zh{虽然} can come before or after the subject.
+
+\subsection{\zh{跟\ldots{}一样}}
+
+A \zh{跟} B \zh{一样} ``A is the same as B''; add an adjective for ``as \ldots as''.
+\begin{itemize}
+  \item \zh{我的衬衫跟你的一样。} My shirt is the same as yours.
+  \item \zh{这件跟那件一样大。} This one is as big as that one.
+  \item \zh{这条裤子跟那条不一样长。} These pants are not the same length as those.
+\end{itemize}
+
+\subsection{\zh{不但\ldots{}而且\ldots}}
+
+\begin{itemize}
+  \item \zh{这家商店的衣服不但便宜，而且样子很好看。} Not only are this store's clothes
+        cheap, they're also stylish.
+\end{itemize}
+When the two clauses have different subjects, \zh{不但} goes before the first subject.
+
+\subsection{Trying on: verb reduplication and \zh{一下}}
+
+\zh{试试}, \zh{试一下}, \zh{看看}: ``give it a try / take a look''.
+\begin{itemize}
+  \item \zh{我可以试试这件吗？}
+  \item \zh{太长了，能不能换一条短一点儿的？} It's too long; could I exchange it for a
+        slightly shorter one?
+\end{itemize}
+
+\subsection{Sizes}
+
+Chinese sizes: \zh{大号} L, \zh{中号} M, \zh{小号} S. Shoe sizes in China use European
+numbers (\zh{四十二号}). \zh{你穿多大号的？} ``What size do you wear?''
+
+\section{Colour symbolism}
+
+\begin{aside}
+\begin{itemize}
+  \item \zh{红} stands for luck and celebration: weddings, New Year couplets, red
+        envelopes (\zh{红包} hóngbāo) of money.
+  \item \zh{白} is the colour of mourning; wearing all white to a wedding or giving white
+        flowers is a faux pas.
+  \item \zh{黄} was the imperial colour; today \zh{黄色} can also mean ``pornographic''
+        (\zh{黄色电影}).
+  \item \zh{戴绿帽子} ``to wear a green hat'' means one's partner is unfaithful, so no one
+        buys green hats as gifts.
+\end{itemize}
+Traditional forms: \zht{紅} red, \zht{綠} green, \zht{顏色} colour.
+\end{aside}
+
+\section{Model conversation}
+
+\begin{itemize}
+  \item \textbf{A:} \zh{你看，这件咖啡色的大衣怎么样？}
+  \item \textbf{B:} \zh{样子不错，可是有点儿长。你穿多大号的？}
+  \item \textbf{A:} \zh{中号。我试一下。}
+  \item \textbf{B:} \zh{虽然颜色很好看，但是大衣太长了。换一件短一点儿的吧。}
+  \item \textbf{A:} \zh{这件跟那件一样，不过短一点儿。又便宜又合适！就买这件。}
+\end{itemize}
+(\zh{不过} búguò = however.)
+
+\section*{Review}
+\begin{itemize}
+  \item Colours: \zh{红 黄 蓝 绿 白 黑 咖啡色 灰 紫 粉红 橙}.
+  \item \zh{穿} clothes and shoes; \zh{戴} accessories.
+  \item Clothing measure words: \zh{件} tops, \zh{条} pants/skirts, \zh{双} pairs.
+  \item \zh{又}A\zh{又}B (same direction); \zh{虽然\ldots{}但是} (contrast).
+  \item A \zh{跟} B \zh{一样}(+ adj); \zh{不但\ldots{}而且}.
+\end{itemize}
