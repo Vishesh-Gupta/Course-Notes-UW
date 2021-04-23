@@ -1,0 +1,245 @@
+\chapter{Lesson 10: Irregular Verbs and Course Review}
+
+Irregular verbs were introduced one at a time over the term (\ko{덥다} in the weather
+lesson, \ko{듣다} with hobbies, \ko{아프다} at the hospital). In the last week we put them
+all together. The good news is that Korean ``irregulars'' are really \emph{regular
+classes}: every irregular verb belongs to one of a handful of patterns, defined by the
+last letter of the stem, and the change only happens before endings that start with a
+\textbf{vowel} (\ko{\til 아/어요}, \ko{\til 았/었어요}, \ko{\til (으)면},
+\ko{\til (으)세요}, \ko{\til (으)ㄹ 거예요}). Before consonant-initial endings
+(\ko{\til 고}, \ko{\til 지만}, \ko{\til 지 마세요}, \ko{\til 네요}) almost all of them
+behave normally.
+
+\section{How to tell which pattern applies}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small},
+    level distance=1.7cm,
+    level 1/.style={sibling distance=2.25cm},
+    t/.style={draw, rounded corners, fill=blue!6, align=center, text width=1.9cm, font=\scriptsize}]
+  \node[draw, rounded corners, fill=gray!15] {What does the stem end in?}
+    child {node[t] {\ko{ㅂ}\\ \ko{ㅂ} $\to$ \ko{우}\\ \ko{더워요}}}
+    child {node[t] {\ko{ㄷ}\\ \ko{ㄷ} $\to$ \ko{ㄹ}\\ \ko{들어요}}}
+    child {node[t] {\ko{ㅅ}\\ \ko{ㅅ} drops\\ \ko{나아요}}}
+    child {node[t] {\ko{르}\\ \ko{르} $\to$ \ko{ㄹㄹ}\\ \ko{몰라요}}}
+    child {node[t] {\ko{ㅡ}\\ \ko{ㅡ} drops\\ \ko{아파요}}}
+    child {node[t] {\ko{ㅎ}\\ \ko{ㅎ} drops,\\ vowel $\to$ \ko{ㅐ}\\ \ko{어때요}}}
+    child {node[t] {\ko{ㄹ}\\ drops before\\ \ko{ㄴ ㅂ ㅅ}\\ \ko{사세요}}};
+  \node[font=\scriptsize, text width=14cm, align=center] at (0,-3.2) {Only \emph{some} verbs ending in \ko{ㅂ ㄷ ㅅ ㅎ} are irregular (memorize them); \emph{all} verbs ending in \ko{르}, \ko{ㅡ} and \ko{ㄹ} follow their pattern (with very few exceptions).};
+\end{tikzpicture}
+\end{center}
+
+\section{The patterns one by one}
+
+\subsection{\ko{ㅂ} irregular}
+
+\ko{ㅂ} becomes \ko{우} before a vowel; \ko{우} + \ko{어} contracts to \ko{워}. Almost
+every \emph{adjective} ending in \ko{ㅂ} is irregular (\ko{덥다, 춥다, 쉽다, 어렵다,
+맵다, 가깝다, 무겁다, 가볍다, 귀엽다, 반갑다}). The exceptions \ko{돕다} (help) and
+\ko{곱다} (fine, lovely) give \ko{도와요}, \ko{고와요}.
+
+\textbf{Regular}: \ko{입다} (wear) \ko{입어요}, \ko{잡다} (catch) \ko{잡아요},
+\ko{좁다} (narrow) \ko{좁아요}, \ko{씹다} (chew) \ko{씹어요}.
+
+\subsection{\ko{ㄷ} irregular}
+
+\ko{ㄷ} becomes \ko{ㄹ} before a vowel. Common irregulars: \ko{듣다} (listen), \ko{걷다}
+(walk), \ko{묻다} (ask), \ko{싣다} (load).
+
+\textbf{Regular}: \ko{받다} (receive) \ko{받아요}, \ko{닫다} (close) \ko{닫아요},
+\ko{믿다} (believe) \ko{믿어요}, \ko{묻다} (bury) \ko{묻어요} --- note the two different
+verbs \ko{묻다}.
+
+\subsection{\ko{ㅅ} irregular}
+
+\ko{ㅅ} drops before a vowel, but the syllable does \emph{not} contract afterwards:
+\ko{낫다} $\to$ \ko{나아요} (not \ko{*나요}). Common irregulars: \ko{낫다} (get
+better), \ko{짓다} (build; make up a name), \ko{붓다} (swell; pour), \ko{젓다} (stir).
+
+\textbf{Regular}: \ko{웃다} (laugh) \ko{웃어요}, \ko{씻다} (wash) \ko{씻어요},
+\ko{벗다} (take off clothes) \ko{벗어요}.
+
+\subsection{\ko{르} irregular}
+
+Before \ko{\til 아/어}, the \ko{ㅡ} of \ko{르} drops and an extra \ko{ㄹ} is added to the
+preceding syllable, giving \ko{ㄹ라} or \ko{ㄹ러}. The choice of \ko{라/러} follows the
+vowel before \ko{르}: \ko{모르다} $\to$ \ko{몰라요}, \ko{부르다} $\to$ \ko{불러요}.
+Before \ko{\til (으)면} etc.\ nothing changes: \ko{모르면}.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small},
+    b/.style={draw, minimum size=0.95cm}]
+  \node[b, fill=gray!10] (a1) at (0,0) {\ko{모}};
+  \node[b, fill=orange!20] (a2) at (0.95,0) {\ko{르}};
+  \node[b, fill=blue!10] (a3) at (2.4,0) {\ko{아요}};
+  \node at (1.7,0) {+};
+  \node at (3.5,0) {$\Longrightarrow$};
+  \node[b, fill=gray!10] (b1) at (4.6,0) {\ko{몰}};
+  \node[b, fill=orange!20] (b2) at (5.55,0) {\ko{라}};
+  \node[b, fill=blue!10] (b3) at (6.5,0) {\ko{요}};
+  \draw[-{Stealth}, red!70!black] (0.95,-0.55) to[bend right=25] node[below, font=\scriptsize] {\ko{ㄹ} copies back onto \ko{모}} (4.6,-0.55);
+  \node[font=\scriptsize, anchor=west] at (7.2,0) {\ko{몰라요} mollayo, ``I don't know''};
+\end{tikzpicture}
+\end{center}
+
+Common \ko{르} verbs: \ko{모르다} (not know), \ko{부르다} (sing; call; be full),
+\ko{빠르다} (be fast), \ko{다르다} (be different), \ko{고르다} (choose), \ko{자르다}
+(cut), \ko{기르다} (raise, grow), \ko{마르다} (be dry, thin), \ko{누르다} (press).
+Exceptions: \ko{따르다} (follow, pour) $\to$ \ko{따라요} and \ko{들르다} (drop by)
+$\to$ \ko{들러요} follow the \ko{ㅡ} pattern instead.
+
+\subsection{\ko{ㅡ} irregular (``\ko{ㅡ} deletion'')}
+
+\ko{ㅡ} drops before \ko{\til 아/어}; the vowel of the syllable before it decides
+\ko{아} or \ko{어}; one-syllable stems take \ko{어}: \ko{아프다} $\to$ \ko{아파요},
+\ko{예쁘다} $\to$ \ko{예뻐요}, \ko{쓰다} $\to$ \ko{써요}, \ko{끄다} (turn off) $\to$
+\ko{꺼요}. Before \ko{\til (으)면} the stem already ends in a vowel, so it is just
+\ko{아프면}.
+
+\subsection{\ko{ㅎ} irregular}
+
+Colour adjectives and the demonstrative adjectives \ko{이렇다}, \ko{그렇다},
+\ko{저렇다}, \ko{어떻다} lose their \ko{ㅎ}. Before \ko{\til 아/어} the stem vowel and
+ending merge into \ko{ㅐ} (\ko{ㅒ} after \ko{ㅑ}); before \ko{\til (으)} the \ko{으}
+disappears too.
+\begin{itemize}
+  \item \ko{어떻다} $\to$ \ko{어때요?} (how is it?), \ko{어땠어요?}, \ko{어떠면}
+        (rare), \ko{어떤} (what kind of).
+  \item \ko{그렇다} $\to$ \ko{그래요} (that's right; OK), \ko{그러면} / \ko{그럼}
+        (then, in that case).
+  \item \ko{빨갛다} $\to$ \ko{빨개요} (it's red); \ko{노랗다} $\to$ \ko{노래요};
+        \ko{하얗다} $\to$ \ko{하얘요}.
+\end{itemize}
+\textbf{Regular}: \ko{좋다} \ko{좋아요}, \ko{놓다} (put) \ko{놓아요/놔요}, \ko{넣다}
+(put in) \ko{넣어요}.
+
+\subsection{\ko{ㄹ} stems (``\ko{ㄹ} deletion'')}
+
+Strictly speaking \ko{ㄹ}-stem verbs are regular before \ko{\til 아/어}, but their
+\ko{ㄹ} drops before an ending starting with \ko{ㄴ}, \ko{ㅂ} or \ko{ㅅ} (mnemonic:
+``\ko{ㄹ} hates \ko{ㄴ ㅂ ㅅ}''), and they never take the extra \ko{으}.
+\begin{itemize}
+  \item \ko{살다}: \ko{살아요} (regular), \ko{사세요} (\ko{ㅅ}), \ko{삽니다}
+        (\ko{ㅂ}), \ko{사는 곳} (\ko{ㄴ}), \ko{살면}, \ko{살 거예요} (the future
+        \ko{ㄹ} merges with the stem's \ko{ㄹ}).
+  \item Other common ones: \ko{알다} (know), \ko{만들다} (make), \ko{놀다} (play),
+        \ko{길다} (be long), \ko{멀다} (be far), \ko{열다} (open), \ko{팔다} (sell),
+        \ko{돌다} (turn), \ko{걸다} (hang; dial).
+\end{itemize}
+
+\section{Summary table}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{llllllll}
+\toprule
+Class & Verb & \ko{\til 아/어요} & \ko{\til 았/었어요} & \ko{\til (으)면} & \ko{\til (으)세요} & \ko{\til 고} & Meaning \\
+\midrule
+\ko{ㅂ} & \ko{덥다} & \ko{더워요} & \ko{더웠어요} & \ko{더우면} & \ko{더우세요} & \ko{덥고} & hot \\
+\ko{ㅂ} & \ko{돕다} & \ko{도와요} & \ko{도왔어요} & \ko{도우면} & \ko{도우세요} & \ko{돕고} & help \\
+\ko{ㄷ} & \ko{듣다} & \ko{들어요} & \ko{들었어요} & \ko{들으면} & \ko{들으세요} & \ko{듣고} & listen \\
+\ko{ㄷ} & \ko{걷다} & \ko{걸어요} & \ko{걸었어요} & \ko{걸으면} & \ko{걸으세요} & \ko{걷고} & walk \\
+\ko{ㅅ} & \ko{낫다} & \ko{나아요} & \ko{나았어요} & \ko{나으면} & \ko{나으세요} & \ko{낫고} & recover \\
+\ko{ㅅ} & \ko{짓다} & \ko{지어요} & \ko{지었어요} & \ko{지으면} & \ko{지으세요} & \ko{짓고} & build \\
+\ko{르} & \ko{모르다} & \ko{몰라요} & \ko{몰랐어요} & \ko{모르면} & \ko{모르세요} & \ko{모르고} & not know \\
+\ko{르} & \ko{부르다} & \ko{불러요} & \ko{불렀어요} & \ko{부르면} & \ko{부르세요} & \ko{부르고} & sing, call \\
+\ko{ㅡ} & \ko{아프다} & \ko{아파요} & \ko{아팠어요} & \ko{아프면} & \ko{아프세요} & \ko{아프고} & be sick \\
+\ko{ㅡ} & \ko{크다} & \ko{커요} & \ko{컸어요} & \ko{크면} & \ko{크세요} & \ko{크고} & be big \\
+\ko{ㅎ} & \ko{빨갛다} & \ko{빨개요} & \ko{빨갰어요} & \ko{빨가면} & --- & \ko{빨갛고} & be red \\
+\ko{ㄹ} & \ko{살다} & \ko{살아요} & \ko{살았어요} & \ko{살면} & \ko{사세요} & \ko{살고} & live \\
+\midrule
+reg. & \ko{입다} & \ko{입어요} & \ko{입었어요} & \ko{입으면} & \ko{입으세요} & \ko{입고} & wear \\
+reg. & \ko{받다} & \ko{받아요} & \ko{받았어요} & \ko{받으면} & \ko{받으세요} & \ko{받고} & receive \\
+reg. & \ko{웃다} & \ko{웃어요} & \ko{웃었어요} & \ko{웃으면} & \ko{웃으세요} & \ko{웃고} & laugh \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{important}[Exam strategy]
+On the final, irregular verbs appeared in fill-in-the-blank conjugation questions. The
+instructor's advice: (1) look at the last letter of the stem; (2) look at the first
+letter of the ending --- if it is a consonant, do nothing (except for \ko{ㄹ}-stems);
+(3) if it is a vowel, apply the pattern, then apply the usual vowel harmony and
+contraction rules. The most-tested words were \ko{덥다, 춥다, 듣다, 걷다, 모르다,
+부르다, 아프다, 바쁘다, 낫다, 어떻다, 살다, 만들다}.
+\end{important}
+
+\begin{example}[Irregulars in context]
+One sentence for each class:
+\begin{itemize}
+  \item \ko{김치찌개가 너무 매워요.} Gimchijjigaega neomu maewoyo. (The kimchi stew is
+        too spicy.) --- \ko{ㅂ}.
+  \item \ko{매일 30분씩 걸어요.} Maeil samsip bunssik georeoyo. (I walk thirty minutes
+        every day.) --- \ko{ㄷ}.
+  \item \ko{감기가 다 나았어요.} Gamgiga da naasseoyo. (My cold is all better.) ---
+        \ko{ㅅ}.
+  \item \ko{그 사람 이름을 몰라요.} Geu saram ireumeul mollayo. (I don't know that
+        person's name.) --- \ko{르}.
+  \item \ko{요즘 너무 바빠요.} Yojeum neomu bappayo. (I'm so busy these days.) ---
+        \ko{ㅡ}.
+  \item \ko{한국어 수업은 어땠어요?} Hangugeo sueobeun eottaesseoyo? (How was Korean
+        class?) --- \ko{ㅎ}.
+  \item \ko{어디 사세요?} Eodi saseyo? (Where do you live?) --- \ko{ㄹ}.
+\end{itemize}
+\end{example}
+
+\section{Course review: clause connectors and endings}
+
+The second half of the course added a large set of endings. This table, which I made for
+the final exam, collects them all in one place.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+Pattern & Meaning & Example & Lesson \\
+\midrule
+\ko{\til 았/었어요} & past & \ko{봤어요} & 1 \\
+\ko{\til 고 싶다} & want to & \ko{보고 싶어요} & 2 \\
+\ko{\til 아/어 주세요} & please do for me & \ko{보여 주세요} & 2 \\
+\ko{\til 고} & and; and then & \ko{맑고 따뜻해요} & 3 \\
+\ko{\til 지만} & but & \ko{덥지만 좋아요} & 3 \\
+\ko{\til 네요} & (I notice) & \ko{춥네요} & 3 \\
+\ko{\til (으)시\til} & subject honorific & \ko{가세요, 읽으셨어요} & 4 \\
+\ko{\til 는 것} & doing (nominalizer) & \ko{요리하는 것} & 5 \\
+\ko{\til (으)ㄹ 수 있다/없다} & can / cannot & \ko{갈 수 있어요} & 5 \\
+\ko{\til (으)러 가다} & go in order to & \ko{먹으러 가요} & 5 \\
+\ko{\til (으)ㄹ 거예요} & will, going to; probably & \ko{갈 거예요} & 6 \\
+\ko{\til (으)ㄹ까요?} & shall we/I? & \ko{갈까요?} & 6 \\
+\ko{\til (으)ㅂ시다} & let's & \ko{갑시다} & 6 \\
+\ko{\til (으)ㄹ게요} & I'll (promise) & \ko{갈게요} & 6 \\
+\ko{\til 고 있다} & be \ldots ing & \ko{가고 있어요} & 7 \\
+\ko{\til 아서/어서} & because; and then & \ko{늦어서} & 7 \\
+\ko{\til (으)니까} & since (+ commands OK) & \ko{비가 오니까} & 7 \\
+\ko{\til (으)면} & if, when & \ko{아프면} & 9 \\
+\ko{\til 아/어야 하다} & must & \ko{가야 해요} & 9 \\
+\ko{\til 아/어도 되다} & may & \ko{가도 돼요} & 9 \\
+\ko{\til (으)면 안 되다} & must not & \ko{가면 안 돼요} & 9 \\
+\ko{\til 지 마세요} & don't & \ko{가지 마세요} & 9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{aside}
+\textbf{Food culture review.} Many of the term's culture notes came back to food, which
+in Korea is tied up with relationships and etiquette: wait for the eldest person to
+start eating before you pick up your spoon; don't stick chopsticks upright in rice (it
+recalls offerings to the dead); pour drinks for others rather than yourself, holding the
+bottle with two hands for an older person, and turn your head away from elders when you
+drink. The everyday greeting \ko{밥 먹었어요?} (have you eaten?) is less a question than
+a way of saying ``how are you'', and side dishes (\ko{반찬} banchan) are shared and
+refilled for free. Our end-of-term class party at a Korean restaurant in Waterloo was a
+chance to practise all of it.
+\end{aside}
+
+\section*{Review summary}
+\begin{itemize}
+  \item Irregular changes happen only before vowel-initial endings (except
+        \ko{ㄹ}-deletion before \ko{ㄴ ㅂ ㅅ}).
+  \item \ko{ㅂ} $\to$ \ko{우} (\ko{더워요}); \ko{ㄷ} $\to$ \ko{ㄹ} (\ko{들어요});
+        \ko{ㅅ} drops, no contraction (\ko{나아요}); \ko{르} $\to$ \ko{ㄹㄹ}
+        (\ko{몰라요}); \ko{ㅡ} drops (\ko{아파요}); \ko{ㅎ} drops with \ko{ㅐ}
+        (\ko{어때요}); \ko{ㄹ} drops before \ko{ㄴ ㅂ ㅅ} (\ko{사세요}).
+  \item Learn the regular look-alikes: \ko{입다, 잡다, 받다, 닫다, 웃다, 씻다, 좋다}.
+\end{itemize}

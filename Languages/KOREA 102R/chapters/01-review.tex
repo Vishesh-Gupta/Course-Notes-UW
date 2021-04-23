@@ -1,0 +1,443 @@
+\chapter{Review: Hangul, Sound Changes and Basic Grammar}
+
+KOREA 102R picks up where 101R left off. The first week was a fast review of everything
+we were expected to know already: how Hangul syllables are built, the pronunciation rules
+that make written and spoken Korean differ, the polite \ko{해요}체 (haeyo-che) present
+tense, the core particles, and the two number systems. These notes collect that review in
+one place so that the later lessons can refer back to it.
+
+Throughout these notes Korean is followed by its Revised Romanization (RR, the official
+South Korean system used on road signs) and an English gloss. RR spells words roughly as
+they are \emph{pronounced} after liaison and nasalization, but it does not mark tensed
+consonants, so \ko{학교} is written \emph{hakgyo} even though it sounds like
+[\ko{학꾜}]. Grammar patterns are written with a tilde, e.g.\ \ko{\til 고 싶다}, where the
+tilde stands for the verb stem.
+
+\section{How Hangul syllables are built}
+
+Every Hangul syllable block contains an \textbf{initial consonant} (\ko{초성}, choseong), a
+\textbf{vowel} (\ko{중성}, jungseong) and optionally a \textbf{final consonant}
+(\ko{받침}, batchim). A syllable cannot start with a vowel in writing, so the silent
+consonant \ko{ㅇ} fills the initial slot: \ko{아}, \ko{이}, \ko{우}.
+
+The shape of the block depends on the vowel:
+\begin{itemize}
+  \item \textbf{Vertical vowels} (\ko{ㅏ ㅑ ㅓ ㅕ ㅣ ㅐ ㅔ}) sit to the \emph{right} of the
+        initial consonant: \ko{가}, \ko{너}, \ko{비}.
+  \item \textbf{Horizontal vowels} (\ko{ㅗ ㅛ ㅜ ㅠ ㅡ}) sit \emph{below} the initial
+        consonant: \ko{고}, \ko{누}, \ko{스}.
+  \item \textbf{Compound vowels} (\ko{ㅘ ㅝ ㅙ ㅞ ㅚ ㅟ ㅢ}) wrap around the bottom and
+        right: \ko{과}, \ko{뭐}, \ko{의}.
+  \item The \textbf{final consonant} always goes along the bottom: \ko{한}, \ko{국},
+        \ko{닭} (two final consonants side by side).
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm, every node/.style={font=\small}]
+  % C + vertical V
+  \begin{scope}[shift={(0,0)}]
+    \draw[thick] (0,0) rectangle (2,2);
+    \fill[blue!12] (0.05,0.05) rectangle (0.95,1.95);
+    \fill[red!12] (1.05,0.05) rectangle (1.95,1.95);
+    \node at (0.5,1) {\ko{ㄱ}}; \node at (1.5,1) {\ko{ㅏ}};
+    \node at (1,-0.4) {\ko{가} ga};
+    \node[font=\scriptsize] at (1,2.3) {C + vertical V};
+  \end{scope}
+  % C + horizontal V
+  \begin{scope}[shift={(2.8,0)}]
+    \draw[thick] (0,0) rectangle (2,2);
+    \fill[blue!12] (0.05,1.05) rectangle (1.95,1.95);
+    \fill[red!12] (0.05,0.05) rectangle (1.95,0.95);
+    \node at (1,1.5) {\ko{ㄱ}}; \node at (1,0.5) {\ko{ㅗ}};
+    \node at (1,-0.4) {\ko{고} go};
+    \node[font=\scriptsize] at (1,2.3) {C + horizontal V};
+  \end{scope}
+  % C + V + final
+  \begin{scope}[shift={(5.6,0)}]
+    \draw[thick] (0,0) rectangle (2,2);
+    \fill[blue!12] (0.05,1.05) rectangle (0.95,1.95);
+    \fill[red!12] (1.05,1.05) rectangle (1.95,1.95);
+    \fill[green!15] (0.05,0.05) rectangle (1.95,0.95);
+    \node at (0.5,1.5) {\ko{ㅎ}}; \node at (1.5,1.5) {\ko{ㅏ}}; \node at (1,0.5) {\ko{ㄴ}};
+    \node at (1,-0.4) {\ko{한} han};
+    \node[font=\scriptsize] at (1,2.3) {C + V + final};
+  \end{scope}
+  % C + horizontal V + final
+  \begin{scope}[shift={(8.4,0)}]
+    \draw[thick] (0,0) rectangle (2,2);
+    \fill[blue!12] (0.05,1.37) rectangle (1.95,1.95);
+    \fill[red!12] (0.05,0.71) rectangle (1.95,1.29);
+    \fill[green!15] (0.05,0.05) rectangle (1.95,0.63);
+    \node at (1,1.66) {\ko{ㄱ}}; \node at (1,1.0) {\ko{ㅜ}}; \node at (1,0.34) {\ko{ㄱ}};
+    \node at (1,-0.4) {\ko{국} guk};
+    \node[font=\scriptsize] at (1,2.3) {C + horiz.\ V + final};
+  \end{scope}
+  % compound vowel
+  \begin{scope}[shift={(11.2,0)}]
+    \draw[thick] (0,0) rectangle (2,2);
+    \fill[blue!12] (0.05,1.05) rectangle (1.25,1.95);
+    \fill[red!12] (0.05,0.05) rectangle (1.25,0.95);
+    \fill[red!25] (1.35,0.05) rectangle (1.95,1.95);
+    \node at (0.65,1.5) {\ko{ㄱ}}; \node at (0.65,0.5) {\ko{ㅗ}}; \node at (1.65,1) {\ko{ㅏ}};
+    \node at (1,-0.4) {\ko{과} gwa};
+    \node[font=\scriptsize] at (1,2.3) {compound V};
+  \end{scope}
+  \node[font=\scriptsize, blue!60!black] at (2.4,-1.0) {blue: initial};
+  \node[font=\scriptsize, red!60!black] at (6.6,-1.0) {red: vowel};
+  \node[font=\scriptsize, green!40!black] at (10.6,-1.0) {green: final (\ko{받침})};
+\end{tikzpicture}
+\end{center}
+
+\begin{remark}
+Although there are 27 possible written final consonants (including double ones like
+\ko{ㄺ}, \ko{ㅄ}), a syllable-final consonant is only ever \emph{pronounced} as one of
+seven sounds: [k], [n], [t], [l], [m], [p], [ng]. For example \ko{부엌} (kitchen) ends in
+[k], \ko{옷} (clothes) and \ko{낮} (daytime) end in [t], and \ko{앞} (front) ends in [p].
+\end{remark}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+Pronounced as & Written finals & Examples \\
+\midrule
+{[k]} & \ko{ㄱ ㅋ ㄲ ㄳ ㄺ} & \ko{책} chaek, \ko{부엌} bueok, \ko{밖} bak \\
+{[n]} & \ko{ㄴ ㄵ ㄶ} & \ko{산} san, \ko{앉다} anda \\
+{[t]} & \ko{ㄷ ㅌ ㅅ ㅆ ㅈ ㅊ ㅎ} & \ko{옷} ot, \ko{낮} nat, \ko{꽃} kkot \\
+{[l]} & \ko{ㄹ ㄼ ㄽ ㄾ ㅀ} & \ko{물} mul, \ko{여덟} yeodeol \\
+{[m]} & \ko{ㅁ ㄻ} & \ko{밤} bam, \ko{삶} sam \\
+{[p]} & \ko{ㅂ ㅍ ㅄ ㄿ} & \ko{밥} bap, \ko{앞} ap, \ko{없다} eopda \\
+{[ng]} & \ko{ㅇ} & \ko{방} bang \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Sound-change rules}
+
+Written Korean keeps the dictionary spelling of every morpheme; spoken Korean smooths the
+joins. The professor insisted we learn these rules \emph{by name}, since the midterm asks
+for the pronunciation of a written word in square brackets.
+
+\subsection{Liaison (\ko{연음}, yeoneum)}
+
+When a syllable ending in a consonant is followed by a syllable beginning with the silent
+\ko{ㅇ}, the final consonant is pronounced as the initial of the next syllable.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small}]
+  \node[draw, minimum size=1.1cm] (a) at (0,0) {\ko{한}};
+  \node[draw, minimum size=1.1cm] (b) at (1.1,0) {\ko{국}};
+  \node[draw, minimum size=1.1cm] (c) at (2.2,0) {\ko{어}};
+  \draw[-{Stealth}, thick, red!70!black] (1.35,-0.45) to[bend right=50] node[below, font=\scriptsize] {final \ko{ㄱ} moves} (2.0,-0.45);
+  \node at (3.6,0) {$\Longrightarrow$};
+  \node[draw, minimum size=1.1cm] at (5.0,0) {\ko{한}};
+  \node[draw, minimum size=1.1cm] at (6.1,0) {\ko{구}};
+  \node[draw, minimum size=1.1cm] at (7.2,0) {\ko{거}};
+  \node[font=\scriptsize] at (6.1,-0.9) {[\ko{한구거}] hangugeo, ``Korean language''};
+\end{tikzpicture}
+\end{center}
+
+\begin{example}[Liaison]
+Written form, then [pronunciation]:
+\begin{itemize}
+  \item \ko{음악} [\ko{으막}] eumak (music)
+  \item \ko{읽어요} [\ko{일거요}] ilgeoyo (reads): with a double final, only the
+        \emph{second} consonant moves.
+  \item \ko{옷이} [\ko{오시}] osi (clothes + subject particle): the \ko{ㅅ} is heard as
+        [s] again because it is no longer final.
+  \item \ko{좋아요} [\ko{조아요}] joayo (is good): a final \ko{ㅎ} before a vowel
+        simply disappears.
+  \item Final \ko{ㅇ} never moves: \ko{고양이} [\ko{고양이}] goyangi (cat).
+\end{itemize}
+\end{example}
+
+\subsection{Nasalization (\ko{비음화}, bieumhwa)}
+
+A stop consonant in final position becomes the nasal made at the same place in the mouth
+when the next syllable begins with a nasal (\ko{ㄴ} or \ko{ㅁ}).
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small}, box/.style={draw, rounded corners, minimum width=1.5cm, minimum height=0.7cm}]
+  \node[box] (k) at (0,1.6) {\ko{ㄱ} [k]};
+  \node[box] (t) at (0,0.8) {\ko{ㄷ} [t]};
+  \node[box] (p) at (0,0) {\ko{ㅂ} [p]};
+  \node[box, fill=blue!8] (ng) at (5,1.6) {\ko{ㅇ} [ng]};
+  \node[box, fill=blue!8] (n) at (5,0.8) {\ko{ㄴ} [n]};
+  \node[box, fill=blue!8] (m) at (5,0) {\ko{ㅁ} [m]};
+  \draw[-{Stealth}] (k) -- (ng); \draw[-{Stealth}] (t) -- (n); \draw[-{Stealth}] (p) -- (m);
+  \node[font=\scriptsize, align=center] at (2.5,2.3) {before \ko{ㄴ} or \ko{ㅁ}};
+  \node[font=\scriptsize] at (0,-0.65) {velar / alveolar / bilabial stops};
+  \node[font=\scriptsize] at (5,-0.65) {nasals at the same place};
+\end{tikzpicture}
+\end{center}
+
+\begin{example}[Nasalization]
+Each final stop turns into a nasal:
+\begin{itemize}
+  \item \ko{합니다} [\ko{함니다}] hamnida (does; formal)
+  \item \ko{한국말} [\ko{한궁말}] hangungmal (the Korean language)
+  \item \ko{작년} [\ko{장년}] jangnyeon (last year)
+  \item \ko{끝나요} [\ko{끈나요}] kkeunnayo (it ends): \ko{ㅌ} is first neutralized to
+        [t], then nasalized.
+  \item \ko{십만} [\ko{심만}] simman (one hundred thousand)
+\end{itemize}
+\end{example}
+
+Two related rules involve \ko{ㄹ}:
+\begin{itemize}
+  \item \textbf{\ko{ㄹ} after \ko{ㅁ} or \ko{ㅇ} becomes [n]}: \ko{음료수}
+        [\ko{음뇨수}] eumnyosu (soft drink), \ko{정류장} [\ko{정뉴장}] jeongnyujang (bus
+        stop).
+  \item \textbf{Lateralization} (\ko{유음화}): \ko{ㄴ} next to \ko{ㄹ} becomes [l]:
+        \ko{연락} [\ko{열락}] yeollak (contact), \ko{설날} [\ko{설랄}] Seollal (Lunar New
+        Year), \ko{신라} [\ko{실라}] Silla (the ancient kingdom).
+\end{itemize}
+
+\subsection{Tensification (\ko{경음화}, gyeongeumhwa)}
+
+After a final [k], [t] or [p], a following plain consonant \ko{ㄱ ㄷ ㅂ ㅅ ㅈ} is
+pronounced tense (\ko{ㄲ ㄸ ㅃ ㅆ ㅉ}). RR ignores this, so it must be learned by ear.
+
+\begin{example}[Tensification]
+\ko{학교} [\ko{학꾜}] hakgyo (school), \ko{식당} [\ko{식땅}] sikdang (restaurant),
+\ko{숙제} [\ko{숙쩨}] sukje (homework), \ko{잡지} [\ko{잡찌}] japji (magazine),
+\ko{있습니다} [\ko{읻씀니다}] itseumnida (there is; formal).
+\end{example}
+
+\subsection{Aspiration (\ko{격음화}, gyeogeumhwa)}
+
+When \ko{ㅎ} meets \ko{ㄱ ㄷ ㅂ ㅈ} (in either order), the two merge into the aspirated
+consonant \ko{ㅋ ㅌ ㅍ ㅊ}.
+
+\begin{example}[Aspiration]
+\ko{좋다} [\ko{조타}] jota (to be good), \ko{축하해요} [\ko{추카해요}] chukahaeyo
+(congratulations), \ko{좋고} [\ko{조코}] joko (good and), \ko{못해요}
+[\ko{모태요}] motaeyo (cannot do), \ko{따뜻해요} [\ko{따뜨태요}] ttatteutaeyo (it is
+warm).
+\end{example}
+
+\begin{important}[Order of operations]
+Apply the rules from the \emph{written} form: first neutralize the final to one of the
+seven sounds (unless liaison applies), then check the next initial. For \ko{꽃말}
+(flower language): \ko{ㅊ} $\to$ [t], then [t] before \ko{ㅁ} $\to$ [n], giving
+[\ko{꼰말}] kkonmal. Also watch \textbf{palatalization}: \ko{ㄷ}/\ko{ㅌ} before \ko{이}
+become [j]/[ch]: \ko{같이} [\ko{가치}] gachi (together), \ko{굳이} [\ko{구지}] guji.
+\end{important}
+
+\section{The polite present: \ko{해요}체}
+
+The \ko{해요} style is the default polite speech level for talking to classmates you do not
+know well, shopkeepers, teachers in casual settings, and so on. Every verb and adjective
+has a dictionary form ending in \ko{\til 다}; drop \ko{다} to get the \textbf{stem}, then
+choose the ending by the stem's last vowel.
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.9cm and 1.2cm, every node/.style={font=\small},
+    q/.style={draw, diamond, aspect=2.2, inner sep=1pt, align=center},
+    r/.style={draw, rounded corners, fill=blue!6, align=center, minimum height=0.8cm}]
+  \node[draw, rounded corners] (s) {stem = verb $-$ \ko{다}};
+  \node[q, below=of s] (h) {stem is \ko{하}?};
+  \node[r, right=of h] (hae) {\ko{해요}\\ \ko{공부해요}};
+  \node[q, below=of h] (ao) {last vowel\\ \ko{ㅏ} or \ko{ㅗ}?};
+  \node[r, right=of ao] (a) {\ko{\til 아요}\\ \ko{살아요}, \ko{봐요}};
+  \node[r, below=of ao] (eo) {\ko{\til 어요}\\ \ko{먹어요}, \ko{마셔요}};
+  \draw[-{Stealth}] (s) -- (h);
+  \draw[-{Stealth}] (h) -- node[above] {yes} (hae);
+  \draw[-{Stealth}] (h) -- node[left] {no} (ao);
+  \draw[-{Stealth}] (ao) -- node[above] {yes} (a);
+  \draw[-{Stealth}] (ao) -- node[left] {no} (eo);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Contractions}
+
+When the stem ends in a vowel, the ending contracts with it.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllll}
+\toprule
+Dictionary & Stem & Rule & \ko{해요} form & Meaning \\
+\midrule
+\ko{가다} & \ko{가} & \ko{ㅏ}+\ko{아} $\to$ \ko{ㅏ} & \ko{가요} gayo & go \\
+\ko{오다} & \ko{오} & \ko{ㅗ}+\ko{아} $\to$ \ko{ㅘ} & \ko{와요} wayo & come \\
+\ko{보다} & \ko{보} & \ko{ㅗ}+\ko{아} $\to$ \ko{ㅘ} & \ko{봐요} bwayo & see \\
+\ko{서다} & \ko{서} & \ko{ㅓ}+\ko{어} $\to$ \ko{ㅓ} & \ko{서요} seoyo & stand \\
+\ko{배우다} & \ko{배우} & \ko{ㅜ}+\ko{어} $\to$ \ko{ㅝ} & \ko{배워요} baewoyo & learn \\
+\ko{마시다} & \ko{마시} & \ko{ㅣ}+\ko{어} $\to$ \ko{ㅕ} & \ko{마셔요} masyeoyo & drink \\
+\ko{보내다} & \ko{보내} & \ko{ㅐ}+\ko{어} $\to$ \ko{ㅐ} & \ko{보내요} bonaeyo & send \\
+\ko{되다} & \ko{되} & \ko{ㅚ}+\ko{어} $\to$ \ko{ㅙ} & \ko{돼요} dwaeyo & become \\
+\ko{쓰다} & \ko{쓰} & \ko{ㅡ} drops & \ko{써요} sseoyo & write \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The copula \ko{이다} (to be) is special: \ko{학생이에요} haksaengieyo (after a consonant)
+but \ko{의사예요} uisayeyo (after a vowel). Its negative is \ko{아니에요}: \ko{학생이
+아니에요} haksaengi anieyo (I am not a student).
+
+\begin{aside}
+\textbf{Speech levels.} Korean verb endings encode how formal and how polite you are
+being. In 101R we met the formal \ko{\til (스)ㅂ니다} style (news, presentations,
+announcements, the army) and the polite \ko{\til 아요/어요} style. Friends of the same age
+and younger siblings get the casual \ko{반말} (banmal), which is the \ko{해요} form with
+\ko{요} dropped: \ko{뭐 해?} mwo hae? (what are you doing?). Dropping into \ko{반말} with
+someone older without being invited to is rude; a common phrase is \ko{말 놓으세요} mal
+noeuseyo, ``please speak casually (to me)''.
+\end{aside}
+
+\section{Core particles}
+
+Korean is a subject--object--verb (SOV) language; the verb comes last, and particles
+attached to the nouns show their roles, so word order before the verb is fairly free.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small},
+    w/.style={draw, rounded corners, minimum height=0.8cm, fill=gray!8},
+    p/.style={draw, rounded corners, minimum height=0.8cm, fill=orange!15}]
+  \node[w] (n1) at (0,0) {\ko{저}};
+  \node[p, right=0pt of n1] (p1) {\ko{는}};
+  \node[w] (n2) at (2.2,0) {\ko{도서관}};
+  \node[p, right=0pt of n2] (p2) {\ko{에서}};
+  \node[w] (n3) at (5.3,0) {\ko{책}};
+  \node[p, right=0pt of n3] (p3) {\ko{을}};
+  \node[w, fill=green!12] (v) at (7.6,0) {\ko{읽어요}};
+  \node[font=\scriptsize, below=0.25cm of p1] {topic};
+  \node[font=\scriptsize, below=0.25cm of p2] {place of action};
+  \node[font=\scriptsize, below=0.25cm of p3] {object};
+  \node[font=\scriptsize, below=0.25cm of v] {verb (last)};
+  \node[font=\scriptsize] at (3.8,1.0) {jeoneun doseogwaneseo chaegeul ilgeoyo. ``I read books at the library.''};
+\end{tikzpicture}
+\end{center}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+Particle & After consonant / vowel & Function & Example \\
+\midrule
+topic & \ko{은} / \ko{는} & what the sentence is about; contrast & \ko{저는 학생이에요.} \\
+subject & \ko{이} / \ko{가} & grammatical subject; new information & \ko{비가 와요.} \\
+object & \ko{을} / \ko{를} & direct object & \ko{커피를 마셔요.} \\
+location (static) & \ko{에} & place of existence; destination; time & \ko{집에 가요.} \\
+location (action) & \ko{에서} & place where an action happens & \ko{집에서 쉬어요.} \\
+also & \ko{도} & replaces \ko{은/는}, \ko{이/가}, \ko{을/를} & \ko{저도 가요.} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{important}[\ko{은/는} versus \ko{이/가}]
+\begin{itemize}
+  \item Use \ko{은/는} for the topic already known to both speakers, and for
+        \emph{contrast}: \ko{커피는 좋아해요. 차는 안 좋아해요.} Keopineun joahaeyo.
+        Chaneun an joahaeyo. (Coffee I like; tea I don't.)
+  \item Use \ko{이/가} for new information and in answers to ``who/what'' questions:
+        \ko{누가 왔어요? --- 민수가 왔어요.} Nuga wasseoyo? --- Minsuga wasseoyo. (Who
+        came? --- Minsu came.)
+  \item \ko{있다/없다} and adjectives usually take \ko{이/가}: \ko{시간이 없어요.} Sigani
+        eopseoyo. (I don't have time.)
+  \item Special forms: \ko{나} + \ko{가} $\to$ \ko{내가}, \ko{저} + \ko{가} $\to$
+        \ko{제가}, \ko{누구} + \ko{가} $\to$ \ko{누가}.
+\end{itemize}
+\end{important}
+
+\begin{example}[\ko{에} versus \ko{에서}]
+Compare the same room with two different verbs:
+\begin{itemize}
+  \item \ko{동생이 방에 있어요.} Dongsaengi bange isseoyo. (My younger sibling is in the
+        room.) --- existence: \ko{에}.
+  \item \ko{동생이 방에서 자요.} Dongsaengi bangeseo jayo. (My younger sibling is sleeping
+        in the room.) --- action: \ko{에서}.
+  \item \ko{세 시에 학교에 가요.} Se sie hakgyoe gayo. (I go to school at three.) ---
+        time and destination: both \ko{에}.
+\end{itemize}
+\end{example}
+
+\section{Numbers and counters}
+
+Korean has two sets of numbers: \textbf{Sino-Korean} (from Chinese) and \textbf{native
+Korean}. Which set to use depends on the counter.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rllll}
+\toprule
+ & Sino-Korean & RR & Native (before counter) & RR \\
+\midrule
+1 & \ko{일} & il & \ko{하나 (한)} & hana (han) \\
+2 & \ko{이} & i & \ko{둘 (두)} & dul (du) \\
+3 & \ko{삼} & sam & \ko{셋 (세)} & set (se) \\
+4 & \ko{사} & sa & \ko{넷 (네)} & net (ne) \\
+5 & \ko{오} & o & \ko{다섯} & daseot \\
+6 & \ko{육} & yuk & \ko{여섯} & yeoseot \\
+7 & \ko{칠} & chil & \ko{일곱} & ilgop \\
+8 & \ko{팔} & pal & \ko{여덟} & yeodeol \\
+9 & \ko{구} & gu & \ko{아홉} & ahop \\
+10 & \ko{십} & sip & \ko{열} & yeol \\
+20 & \ko{이십} & isip & \ko{스물 (스무)} & seumul (seumu) \\
+100 & \ko{백} & baek & --- & \\
+1000 & \ko{천} & cheon & --- & \\
+10\,000 & \ko{만} & man & --- & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Native numbers stop being used above about 99 (and most people switch to Sino-Korean well
+before that). Note that 10\,000 is its own unit: 50\,000 is \ko{오만} oman (``five
+ten-thousands''), and a million is \ko{백만} baengman (``a hundred ten-thousands'').
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+Native counter & Counts & Sino-Korean counter & Counts \\
+\midrule
+\ko{개} gae & things (general) & \ko{원} won & won (money) \\
+\ko{명}/\ko{사람} & people & \ko{년}/\ko{월}/\ko{일} & year / month / day \\
+\ko{마리} mari & animals & \ko{분} bun & minutes \\
+\ko{권} gwon & books & \ko{층} cheung & floor of a building \\
+\ko{병} byeong & bottles & \ko{학년} hangnyeon & school year \\
+\ko{잔} jan & cups, glasses & \ko{번} beon & number (bus no.\ 5) \\
+\ko{장} jang & flat things (tickets, paper) & \ko{호선} hoseon & subway line \\
+\ko{살} sal & years of age & \ko{인분} inbun & portions \\
+\ko{시} si & o'clock & \ko{달러} dalleo & dollars \\
+\ko{번} beon & times (frequency) & \ko{과} gwa & lesson (textbook) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{example}[Counting]
+The order is always noun, number, counter:
+\begin{itemize}
+  \item \ko{사과 세 개} sagwa se gae (three apples).
+  \item \ko{학생 스무 명} haksaeng seumu myeong (twenty students).
+  \item \ko{지금 두 시 삼십 분이에요.} Jigeum du si samsip bunieyo. (It is 2:30 now.) Hours
+        are native, minutes are Sino-Korean.
+  \item \ko{이천십팔 년 유월 육 일} icheon sippal nyeon yuwol yuk il (June 6, 2018).
+        Note the irregular months \ko{유월} (June, not \ko{육월}) and \ko{시월} (October,
+        not \ko{십월}).
+\end{itemize}
+\end{example}
+
+\begin{aside}
+\textbf{Korean age.} When we learned \ko{살} the instructor explained that age has
+traditionally been counted from 1 at birth, with everyone adding a year on New Year's Day,
+so a Korean may be one or two years ``older'' in Korean age than in international age.
+Because age determines speech level and titles (see the lesson on family and honorifics), asking
+\ko{몇 살이에요?} myeot sarieyo? or the politer \ko{나이가 어떻게 되세요?} naiga eotteoke
+doeseyo? early in a conversation is normal rather than nosy.
+\end{aside}
+
+\section*{Review summary}
+\begin{itemize}
+  \item A syllable block is initial + vowel (+ final); \ko{ㅇ} is a silent placeholder
+        initial; finals are pronounced as only seven sounds.
+  \item Liaison moves a final onto a following \ko{ㅇ}; stops become nasals before
+        \ko{ㄴ/ㅁ}; plain consonants tense after [k t p]; \ko{ㅎ} + stop = aspirated stop.
+  \item \ko{해요}체: \ko{하다} $\to$ \ko{해요}; last vowel \ko{ㅏ/ㅗ} $\to$
+        \ko{\til 아요}; otherwise \ko{\til 어요}; contract vowels.
+  \item Particles: \ko{은/는} topic/contrast, \ko{이/가} subject/new info, \ko{을/를}
+        object, \ko{에} static location/destination/time, \ko{에서} place of action.
+  \item Native numbers with \ko{개, 명, 마리, 권, 시, 살}; Sino-Korean with \ko{원, 분,
+        년, 월, 일, 층}.
+\end{itemize}
