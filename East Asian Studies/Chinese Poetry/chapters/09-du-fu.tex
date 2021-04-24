@@ -1,0 +1,299 @@
+\chapter{Du Fu: Poetry and History}
+
+\section{Life}
+
+Du Fu \zht{杜甫} (712--770), courtesy name Zimei \zht{子美}, came from a distinguished
+scholar-official family (his grandfather Du Shenyan was a leading Early Tang poet). Unlike
+Li Bai, he wanted, above all, a career in government in the Confucian mould: ``to make our
+ruler greater than Yao and Shun''.
+
+\begin{itemize}
+  \item He failed the \emph{jinshi} examination (735) and spent a decade in Chang'an
+        seeking patronage, poor and frustrated, before receiving a minor post in 755.
+  \item The An Lushan rebellion broke out that winter. He was captured by rebels in
+        Chang'an (756--757), escaped to the court of the new emperor Suzong, and was
+        appointed Reminder (\zht{左拾遺}), a junior remonstrance post. His outspokenness
+        soon got him demoted.
+  \item 759: he left office for good and travelled west, then settled in Chengdu
+        (Sichuan), where friends helped him build his famous ``thatched cottage''
+        (\zht{草堂}).
+  \item 766--768: at Kuizhou in the Yangzi gorges, a period of astonishing productivity
+        (over 400 poems), including the great late regulated octaves.
+  \item Died 770 on a boat on the rivers of Hunan, poor and ill.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[x=1.5cm, every node/.style={font=\scriptsize}]
+  \draw[thick, -{Stealth}] (0,0) -- (9.3,0);
+  \foreach \y [count=\i from 0] in {754,755,756,757,758,759,760,761,762,763} {
+    \draw (\i,0.08) -- (\i,-0.08) node[below] {\y};
+  }
+  \fill[red!20] (1.9,0.15) rectangle (9,0.45);
+  \node at (5.45,0.3) {An Lushan / Shi Siming rebellion (755--763)};
+  \draw[red!60!black] (1.9,0.45) -- (1.9,1.0) node[above, align=center] {rebellion\\ breaks out};
+  \draw[red!60!black] (2.5,0.45) -- (2.5,1.9) node[above, align=center] {Chang'an falls;\\ Lady Yang killed};
+  \draw[blue!60!black] (3.2,0.45) -- (3.2,1.0) node[above, align=center] {Du Fu captive:\\ ``Spring View''};
+  \draw[blue!60!black] (4.0,0.45) -- (4.0,1.9) node[above, align=center] {capital\\ recaptured};
+  \draw[blue!60!black] (5.3,0.45) -- (5.3,1.0) node[above, align=center] {Du Fu leaves office;\\ ``Shihao Officer''};
+  \draw[blue!60!black] (6.5,0.45) -- (6.5,1.9) node[above, align=center] {thatched cottage,\\ Chengdu};
+  \draw[red!60!black] (9,0.45) -- (9,1.0) node[above, align=center] {rebellion\\ ends};
+\end{tikzpicture}
+\end{center}
+
+\begin{important}[Why Du Fu is ``the poet-historian'']
+Because his poems record the events of the rebellion and its human cost (conscription,
+famine, refugees, broken families) with precise dates and places, later readers called
+them \zht{詩史} \emph{shīshǐ}, ``history in poetry''. He became the Sage of Poetry
+(\zht{詩聖}): the moral conscience of the tradition, the loyal minister who never stopped
+caring about the dynasty and the common people even when they had no use for him.
+\end{important}
+
+\section{``Spring View'' \zht{春望} (757)}
+
+Written in occupied Chang'an in the spring of 757.
+
+\begin{center}
+\begin{tabular}{p{0.2\textwidth}p{0.28\textwidth}p{0.42\textwidth}}
+\toprule
+Original & Pinyin & My translation \\
+\midrule
+\zht{國破山河在，} & guó pò shān hé zài & The state is broken; hills and rivers remain. \\
+\zht{城春草木深。} & chéng chūn cǎo mù shēn & Spring in the city: grass and trees grow deep. \\
+\zht{感時花濺淚，} & gǎn shí huā jiàn lèi & Moved by the times, flowers splash tears; \\
+\zht{恨別鳥驚心。} & hèn bié niǎo jīng xīn & grieving at parting, birds startle the heart. \\
+\zht{烽火連三月，} & fēng huǒ lián sān yuè & The beacon fires have burned three months on end; \\
+\zht{家書抵萬金。} & jiā shū dǐ wàn jīn & a letter from home is worth ten thousand in gold. \\
+\zht{白頭搔更短，} & bái tóu sāo gèng duǎn & My white hair, scratched, grows ever thinner, \\
+\zht{渾欲不勝簪。} & hún yù bù shēng zān & till it can hardly hold a hairpin. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Tonal pattern}
+
+A pentasyllabic regulated octave in the oblique-start pattern (A B a b A B a b). Red
+outlines mark the departures from the ideal pattern:
+
+\begin{center}
+\begin{tikzpicture}[x=0.75cm,y=0.75cm, every node/.style={font=\small}]
+\node[font=\scriptsize, gray] at (1,1) {1};
+\node[font=\scriptsize, gray] at (2,1) {2};
+\node[font=\scriptsize, gray] at (3,1) {3};
+\node[font=\scriptsize, gray] at (4,1) {4};
+\node[font=\scriptsize, gray] at (5,1) {5};
+\filldraw[fill=gray!45, draw=black, dashed] (0.55,-0.45) rectangle (1.45,0.45);
+\node at (1,0) {\zht{國}};
+\filldraw[fill=gray!45, draw=black] (1.55,-0.45) rectangle (2.45,0.45);
+\node at (2,0) {\zht{破}};
+\filldraw[fill=white, draw=black] (2.55,-0.45) rectangle (3.45,0.45);
+\node at (3,0) {\zht{山}};
+\filldraw[fill=white, draw=black] (3.55,-0.45) rectangle (4.45,0.45);
+\node at (4,0) {\zht{河}};
+\filldraw[fill=gray!45, draw=black] (4.55,-0.45) rectangle (5.45,0.45);
+\node at (5,0) {\zht{在}};
+\filldraw[fill=white, draw=black, dashed] (0.55,-1.55) rectangle (1.45,-0.65);
+\node at (1,-1.1) {\zht{城}};
+\filldraw[fill=white, draw=black] (1.55,-1.55) rectangle (2.45,-0.65);
+\node at (2,-1.1) {\zht{春}};
+\filldraw[fill=gray!45, draw=black] (2.55,-1.55) rectangle (3.45,-0.65);
+\node at (3,-1.1) {\zht{草}};
+\filldraw[fill=gray!45, draw=black] (3.55,-1.55) rectangle (4.45,-0.65);
+\node at (4,-1.1) {\zht{木}};
+\filldraw[fill=white, draw=black] (4.55,-1.55) rectangle (5.45,-0.65);
+\node at (5,-1.1) {\zht{深}};
+\node[font=\scriptsize, blue!60!black, anchor=west] at (5.6,-1.1) {rhyme};
+\filldraw[fill=gray!45, draw=red!80!black, line width=1.6pt] (0.55,-2.65) rectangle (1.45,-1.75);
+\node at (1,-2.2) {\zht{感}};
+\filldraw[fill=white, draw=black] (1.55,-2.65) rectangle (2.45,-1.75);
+\node at (2,-2.2) {\zht{時}};
+\filldraw[fill=white, draw=black] (2.55,-2.65) rectangle (3.45,-1.75);
+\node at (3,-2.2) {\zht{花}};
+\filldraw[fill=gray!45, draw=black] (3.55,-2.65) rectangle (4.45,-1.75);
+\node at (4,-2.2) {\zht{濺}};
+\filldraw[fill=gray!45, draw=black] (4.55,-2.65) rectangle (5.45,-1.75);
+\node at (5,-2.2) {\zht{淚}};
+\filldraw[fill=gray!45, draw=black, dashed] (0.55,-3.75) rectangle (1.45,-2.85);
+\node at (1,-3.3) {\zht{恨}};
+\filldraw[fill=gray!45, draw=black] (1.55,-3.75) rectangle (2.45,-2.85);
+\node at (2,-3.3) {\zht{別}};
+\filldraw[fill=gray!45, draw=black] (2.55,-3.75) rectangle (3.45,-2.85);
+\node at (3,-3.3) {\zht{鳥}};
+\filldraw[fill=white, draw=black] (3.55,-3.75) rectangle (4.45,-2.85);
+\node at (4,-3.3) {\zht{驚}};
+\filldraw[fill=white, draw=black] (4.55,-3.75) rectangle (5.45,-2.85);
+\node at (5,-3.3) {\zht{心}};
+\node[font=\scriptsize, blue!60!black, anchor=west] at (5.6,-3.3) {rhyme};
+\filldraw[fill=white, draw=red!80!black, line width=1.6pt] (0.55,-4.85) rectangle (1.45,-3.95);
+\node at (1,-4.4) {\zht{烽}};
+\filldraw[fill=gray!45, draw=black] (1.55,-4.85) rectangle (2.45,-3.95);
+\node at (2,-4.4) {\zht{火}};
+\filldraw[fill=white, draw=black] (2.55,-4.85) rectangle (3.45,-3.95);
+\node at (3,-4.4) {\zht{連}};
+\filldraw[fill=white, draw=black] (3.55,-4.85) rectangle (4.45,-3.95);
+\node at (4,-4.4) {\zht{三}};
+\filldraw[fill=gray!45, draw=black] (4.55,-4.85) rectangle (5.45,-3.95);
+\node at (5,-4.4) {\zht{月}};
+\filldraw[fill=white, draw=black, dashed] (0.55,-5.95) rectangle (1.45,-5.05);
+\node at (1,-5.5) {\zht{家}};
+\filldraw[fill=white, draw=black] (1.55,-5.95) rectangle (2.45,-5.05);
+\node at (2,-5.5) {\zht{書}};
+\filldraw[fill=gray!45, draw=black] (2.55,-5.95) rectangle (3.45,-5.05);
+\node at (3,-5.5) {\zht{抵}};
+\filldraw[fill=gray!45, draw=black] (3.55,-5.95) rectangle (4.45,-5.05);
+\node at (4,-5.5) {\zht{萬}};
+\filldraw[fill=white, draw=black] (4.55,-5.95) rectangle (5.45,-5.05);
+\node at (5,-5.5) {\zht{金}};
+\node[font=\scriptsize, blue!60!black, anchor=west] at (5.6,-5.5) {rhyme};
+\filldraw[fill=gray!45, draw=red!80!black, line width=1.6pt] (0.55,-7.05) rectangle (1.45,-6.15);
+\node at (1,-6.6) {\zht{白}};
+\filldraw[fill=white, draw=black] (1.55,-7.05) rectangle (2.45,-6.15);
+\node at (2,-6.6) {\zht{頭}};
+\filldraw[fill=white, draw=black] (2.55,-7.05) rectangle (3.45,-6.15);
+\node at (3,-6.6) {\zht{搔}};
+\filldraw[fill=gray!45, draw=black] (3.55,-7.05) rectangle (4.45,-6.15);
+\node at (4,-6.6) {\zht{更}};
+\filldraw[fill=gray!45, draw=black] (4.55,-7.05) rectangle (5.45,-6.15);
+\node at (5,-6.6) {\zht{短}};
+\filldraw[fill=white, draw=red!80!black, line width=1.6pt] (0.55,-8.15) rectangle (1.45,-7.25);
+\node at (1,-7.7) {\zht{渾}};
+\filldraw[fill=gray!45, draw=black] (1.55,-8.15) rectangle (2.45,-7.25);
+\node at (2,-7.7) {\zht{欲}};
+\filldraw[fill=gray!45, draw=black] (2.55,-8.15) rectangle (3.45,-7.25);
+\node at (3,-7.7) {\zht{不}};
+\filldraw[fill=white, draw=black] (3.55,-8.15) rectangle (4.45,-7.25);
+\node at (4,-7.7) {\zht{勝}};
+\filldraw[fill=white, draw=black] (4.55,-8.15) rectangle (5.45,-7.25);
+\node at (5,-7.7) {\zht{簪}};
+\node[font=\scriptsize, blue!60!black, anchor=west] at (5.6,-7.7) {rhyme};
+\filldraw[fill=white] (0.6,-8.95) rectangle (0.9,-8.65); \node[font=\scriptsize, anchor=west] at (0.95,-8.8) {level \zht{平}};
+\filldraw[fill=gray!45] (3.1,-8.95) rectangle (3.4,-8.65); \node[font=\scriptsize, anchor=west] at (3.45,-8.8) {oblique \zht{仄}};
+\end{tikzpicture}
+\end{center}
+
+All four departures are in position 1, the free position: the poem is fully regulated.
+Note the hidden oblique entering tones \zht{國} \emph{guó}, \zht{別} \emph{bié},
+\zht{白} \emph{bái}, \zht{不} \emph{bù}, and the reading \zht{勝} \emph{shēng} ``to bear''
+(level tone), not \emph{shèng} ``victory''. The rhyme words \zht{深} \emph{shēn}, \zht{心}
+\emph{xīn}, \zht{金} \emph{jīn}, \zht{簪} \emph{zān} all ended in \emph{-m} in Middle
+Chinese; Mandarin \emph{zān} has drifted away from the others.
+
+\subsection{Analysis}
+\begin{itemize}
+  \item \textbf{Line 1.} \zht{國破} ``the state is broken'' vs \zht{山河在} ``mountains and
+        rivers remain'': human order collapses, nature is indifferent and endures. The
+        ``remains'' is devastating rather than consoling.
+  \item \textbf{Line 2.} Grass and trees ``deep'' in a city: no one is tending the
+        streets; spring growth is a sign of desolation.
+  \item \textbf{Couplet 2 (parallel), an ambiguity}: \zht{感時花濺淚，恨別鳥驚心}. Two
+        readings:
+        \begin{enumerate}
+          \item \emph{The flowers} weep and \emph{the birds} are startled, sharing the
+                poet's grief (pathetic fallacy);
+          \item \emph{I} shed tears on the flowers and \emph{my} heart is startled by the
+                birds: things that should give joy now cause pain.
+        \end{enumerate}
+        The grammar allows both, and translations must choose. (Mine, ``flowers splash
+        tears'', keeps the first but hints at the second.)
+  \item \textbf{Couplet 3 (parallel)}: ``three months'' of war vs ``ten thousand'' in gold:
+        numbers against numbers. War is public, the letter private.
+  \item \textbf{Couplet 4}: the turn from the nation to the body. The thinning hair that
+        cannot hold the official's hatpin (\zht{簪}) also means: can he still serve?
+        A grand public catastrophe ends in a small, almost comic gesture of scratching
+        one's head.
+\end{itemize}
+
+\begin{aside}
+In Japan, Matsuo Bashō quoted ``The state is broken; hills and rivers remain; spring in the
+city, the grass is green'' in \emph{The Narrow Road to the Deep North} (1689) at the
+battlefield of Hiraizumi, before his haiku about summer grasses. Du Fu was as canonical in
+Japan and Korea as in China.
+\end{aside}
+
+\section{``Moonlit Night'' \zht{月夜} (756)}
+
+Written in captivity, imagining his wife in Fuzhou (\zht{鄜州}) looking at the same
+moon.
+
+\begin{center}
+\begin{tabular}{p{0.3\textwidth}p{0.6\textwidth}}
+\toprule
+\zht{今夜鄜州月，} & Tonight, the moon over Fuzhou: \\
+\zht{閨中只獨看。} & in her room she watches it alone. \\
+\zht{遙憐小兒女，} & From far away I pity my little children, \\
+\zht{未解憶長安。} & too young to understand remembering Chang'an. \\
+\zht{香霧雲鬟濕，} & Fragrant mist dampens her cloud-like hair; \\
+\zht{清輝玉臂寒。} & in the clear light her jade-white arms are cold. \\
+\zht{何時倚虛幌，} & When shall we lean by the empty curtain, \\
+\zht{雙照淚痕乾。} & both lit by the moon, our tear-stains dried? \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Analysis.} A double displacement: the poet never describes himself but imagines
+his wife imagining him. The children ``don't understand'' why their mother is looking at
+the moon. Couplet 3 is a sensuous portrait of his wife (unusual: wives were rarely written
+about this way), seen through his longing. The last line's \zht{雙} ``both'' answers
+\zht{獨} ``alone'' in line 2.
+
+\section{``The Officer at Shihao'' \zht{石壕吏} (759)}
+
+One of the ``Three Officers'' poems (\zht{三吏}): old-style narrative verse in the
+\emph{yuefu} tradition. The opening:
+
+\begin{center}
+\begin{tabular}{p{0.3\textwidth}p{0.6\textwidth}}
+\toprule
+\zht{暮投石壕村，} & At dusk I sought lodging in Shihao village; \\
+\zht{有吏夜捉人。} & there was an officer seizing men by night. \\
+\zht{老翁踰牆走，} & The old man climbed the wall and fled; \\
+\zht{老婦出門看。} & the old woman went out to the gate to see. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The old woman tells the officer that her three sons were conscripted and two have died;
+only a grandson at the breast remains. To save her husband she volunteers herself, to
+cook for the army. At dawn the poet says goodbye ``only to the old man''. The poet never
+comments: he is a witness, and the woman's speech carries the poem.
+
+\section{The late octaves: ``Climbing High'' \zht{登高} (767)}
+
+Often called the greatest seven-character regulated octave in Chinese.
+
+\begin{center}
+\begin{tabular}{p{0.36\textwidth}p{0.54\textwidth}}
+\toprule
+\zht{風急天高猿嘯哀，} & Wind swift, sky high, the gibbons' howls are mournful; \\
+\zht{渚清沙白鳥飛回。} & isle clear, sand white, birds wheel and return. \\
+\zht{無邊落木蕭蕭下，} & Boundless, the falling leaves come rustling down; \\
+\zht{不盡長江滾滾來。} & endless, the Long River comes rolling on. \\
+\zht{萬里悲秋常作客，} & Ten thousand miles from home, grieving at autumn, always a guest; \\
+\zht{百年多病獨登臺。} & a lifetime of illness, alone I climb the terrace. \\
+\zht{艱難苦恨繁霜鬢，} & Hardship and bitter regret have frosted my temples; \\
+\zht{潦倒新停濁酒杯。} & worn down, I have lately given up even my cup of cloudy wine. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+  \item \textbf{All four couplets are parallel}, even the first and last, which is
+        extremely rare. Line 1 even has internal parallelism (wind swift / sky high).
+  \item \textbf{Couplet 2}: the cosmic scale of time and space (endless leaves, endless
+        river), against which couplet 3 sets the poet's tiny, failing life. Critics count
+        eight sorrows packed into line 5--6: far away, autumn, constantly, a guest, a
+        hundred years, many illnesses, alone, climbing (the ninth-day festival custom of
+        climbing heights with family).
+  \item \textbf{The ending}: even wine, the usual consolation, is denied by illness.
+\end{itemize}
+
+\section*{Summary}
+\begin{itemize}
+  \item Du Fu: Confucian official manqué; An Lushan rebellion; captive, Reminder, Chengdu
+        cottage, Kuizhou.
+  \item \zht{詩史} poet-historian and \zht{詩聖} Sage of Poetry.
+  \item ``Spring View'': regulated octave; nature endures as the state breaks; ambiguous
+        middle couplet; hairpin ending.
+  \item ``Moonlit Night'': imagining the wife; \zht{獨} / \zht{雙}.
+  \item ``Officer at Shihao'': narrative witness to conscription.
+  \item ``Climbing High'': fully parallel seven-character octave; cosmos vs ageing self.
+\end{itemize}
