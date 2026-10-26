@@ -1,0 +1,300 @@
+\chapter{Modularization and ADTs}
+
+\textbf{Readings:} CP:AMA 15 (writing large programs), 19.1--19.3.
+
+\section{Modularization}
+
+\begin{definition}
+\emph{Modularization} is dividing a program into smaller, well-defined pieces called
+\emph{modules}. A module provides a collection of functions (and possibly other things, such as
+constants or data structures) that share a common aspect or purpose.
+\end{definition}
+
+We have been doing a small version of this since CS 135 with helper functions. A module is the
+next level up: a whole group of related functions.
+
+\paragraph{Modules vs.\ files.} It is good style to store each module in its own file
+(in C, two files: \code{.h} and \code{.c}). In these notes ``module'' and ``file'' are used
+almost interchangeably.
+
+\subsection{Terminology}
+
+\begin{itemize}
+  \item A \emph{client} is a module (or program) that requires a function a module provides.
+  \item A module may itself be a client of other modules. The ``requires'' relationships form a
+    \emph{module dependency graph}.
+  \item The dependency graph must \textbf{not have cycles} (module A cannot require B if B
+    requires A).
+  \item There must be a \emph{root} (main) file that is only a client and is not required by
+    anything; in C it is the file that contains \code{main}.
+\end{itemize}
+
+\subsection{Motivation}
+
+\begin{enumerate}
+  \item \textbf{Re-usability.} A well-written module (e.g.\ a dictionary) can be used by many
+    programs.
+  \item \textbf{Maintainability.} Bugs can be found and fixed in one place; modules can be
+    tested independently; big projects can be split among team members.
+  \item \textbf{Abstraction.} A client only needs to know \emph{what} a module does, not
+    \emph{how} it does it.
+\end{enumerate}
+
+In computer science, modularization is also known as the \emph{separation of concerns} (SoC).
+
+\section{Modules in Racket}
+
+\begin{lstlisting}[style=racket]
+;; fun.rkt
+(provide fun?)
+
+(define lofn '(-3 7 42 136 1337 4010 8675309))
+
+;; (fun? n) determines if n is a fun integer
+;; fun?: Int -> Bool
+(define (fun? n)
+  (not (false? (member n lofn))))
+\end{lstlisting}
+The \code{provide} special form makes \code{fun?} available to clients; \code{lofn} is not
+provided, so it is private to the module.
+\begin{lstlisting}[style=racket]
+;; client.rkt
+(require "fun.rkt")
+(fun? 4010)    ; => #t
+(fun? 4011)    ; => #f
+\end{lstlisting}
+
+\section{Scope Revisited}
+
+\begin{itemize}
+  \item \textbf{Local scope:} the identifier is only visible inside the local region (e.g.\ the
+    function body or block) where it is defined.
+  \item \textbf{Global scope:} the identifier is defined at the top level and is visible to all
+    code that follows its definition.
+\end{itemize}
+Modules split global scope into two levels:
+\begin{itemize}
+  \item \textbf{Module scope:} visible only inside the module it is defined in.
+  \item \textbf{Program scope:} visible outside the module (to clients) as well.
+\end{itemize}
+In Racket, identifiers are module scope unless \code{provide}d. In C it is the other way round.
+
+\begin{important}[Scope in C]
+Global identifiers in C have \emph{program} scope by default. Adding the keyword
+\code{static} to a global definition gives it \emph{module} scope:
+\begin{lstlisting}[style=c]
+static const int secret = 42;     // module scope
+static int helper(int n) { ... }  // module scope ("private" helper)
+int visible(int n) { ... }        // program scope
+\end{lstlisting}
+(The keyword \code{static} means something different on local variables; we avoid that use.)
+\end{important}
+
+To use a program-scope identifier from another file, the client must \emph{declare} it.
+For variables this needs the keyword \code{extern} (\code{extern int counter;}); for functions
+a prototype is enough. Of course clients should get these declarations by including the
+module's header file rather than writing them by hand.
+
+\section{Interfaces}
+
+\begin{definition}
+A module's \emph{interface} is the list of functions (and other identifiers) it provides,
+together with their documentation. The \emph{implementation} is the code that defines them.
+\end{definition}
+
+Interface documentation should contain:
+\begin{itemize}
+  \item an overall description of the module;
+  \item the list of functions it provides;
+  \item the contract and purpose (and requires/effects/time) of each provided function.
+\end{itemize}
+The interface should \emph{not} describe how things are implemented; that is the point.
+
+\subsection{Example: a sum module in Racket}
+\begin{lstlisting}[style=racket]
+;; sum.rkt: a module for summing numbers
+(provide sum-first sum-squares)
+
+;; (sum-first n) produces 1 + 2 + ... + n
+;; sum-first: Nat -> Nat
+;; (sum-squares n) produces 1^2 + 2^2 + ... + n^2
+;; sum-squares: Nat -> Nat
+
+;;;;;;;;;;;;;;;; IMPLEMENTATION ;;;;;;;;;;;;;;;;
+(define (sum-first n)
+  (/ (* n (+ n 1)) 2))
+
+(define (sum-squares n)
+  (/ (* n (+ n 1) (+ (* 2 n) 1)) 6))
+
+(define (private-helper p) ...)   ; not provided
+\end{lstlisting}
+
+\subsection{The same module in C}
+
+\begin{lstlisting}[style=c]
+// sum.h -- INTERFACE
+// a module for summing numbers
+
+// sum_first(n) produces 1 + 2 + ... + n
+// requires: n >= 0
+int sum_first(int n);
+
+// sum_squares(n) produces 1^2 + 2^2 + ... + n^2
+// requires: n >= 0
+int sum_squares(int n);
+\end{lstlisting}
+\begin{lstlisting}[style=c]
+// sum.c -- IMPLEMENTATION
+#include "sum.h"
+
+int sum_first(int n) {
+  return n * (n + 1) / 2;
+}
+
+int sum_squares(int n) {
+  return n * (n + 1) * (2 * n + 1) / 6;
+}
+\end{lstlisting}
+\begin{lstlisting}[style=c]
+// main.c -- CLIENT (and test client)
+#include <assert.h>
+#include "sum.h"
+
+int main(void) {
+  assert(sum_first(1) == 1);
+  assert(sum_first(10) == 55);
+  assert(sum_squares(3) == 14);
+}
+\end{lstlisting}
+The implementation includes its own header so the compiler can check that the declarations
+and definitions match.
+
+\paragraph{Testing.} It is good practice to write a separate \emph{testing client} for each
+module that calls every provided function, so that all tests should pass (in Racket every test
+expression should produce \code{\#t}; in C every \code{assert} should succeed).
+
+\section{Designing Modules}
+
+\begin{important}[Goal: high cohesion, low coupling]
+\begin{itemize}
+  \item \textbf{High cohesion:} all of the interface functions of a module are related and work
+    towards a common goal.
+  \item \textbf{Low coupling:} there is little interaction between modules. It is impossible to
+    remove all coupling, but it should be minimal.
+\end{itemize}
+\end{important}
+
+\subsection{Information hiding}
+
+A module should hide its implementation details from clients:
+\begin{itemize}
+  \item \textbf{Security:} we may want to prevent the client from tampering with the data
+    used by the module (and breaking its invariants).
+  \item \textbf{Flexibility:} if clients cannot depend on implementation details, we are free
+    to change the implementation later (e.g.\ for efficiency) without breaking any client.
+\end{itemize}
+
+\section{Data Structures and Abstract Data Types}
+
+Consider a module for storing a single account (an ID and a balance). We could implement it
+with three different data structures: a two-element list, a structure with two fields, or a
+nested structure. If clients only use the interface functions (\code{account-id},
+\code{account-balance}, \dots), they cannot tell which one is used.
+
+\begin{definition}
+An \emph{abstract data type} (ADT) is a mathematical model for storing and accessing data
+through a set of operations. It is described only by the behaviour of its operations, not by
+how the data is stored.
+\end{definition}
+
+\begin{important}[Data structure vs.\ ADT]
+\begin{itemize}
+  \item With a \textbf{data structure}, you know how the data is organised and you can access it
+    directly in any way you like (e.g.\ a Racket list, a C array).
+  \item With an \textbf{ADT}, you do not know how the data is stored; you can only access it
+    through the interface functions (operations) the ADT provides.
+\end{itemize}
+An ADT is \emph{implemented} using some data structure, and the same ADT may have several
+implementations with different efficiency.
+\end{important}
+
+In Racket it is hard to truly hide a structure from clients. In C we will use \emph{opaque
+structures} (Units~06 and~10) to enforce the abstraction.
+
+\section{Collection ADTs}
+
+A \emph{collection ADT} stores an arbitrary number of items and has well-defined operations
+for adding, removing and accessing them.
+
+\subsection{Dictionary (revisited)}
+
+The \emph{dictionary} ADT (also called a map, associative array, or symbol table) is a
+collection of \emph{key/value pairs} with unique keys. (JSON objects in JavaScript are
+dictionaries.) Typical operations:
+\begin{itemize}
+  \item \code{lookup}: given a key, produce the corresponding value (or ``not found'');
+  \item \code{insert}: add a new key/value pair (or replace the value of an existing key);
+  \item \code{remove}: delete the pair with a given key.
+\end{itemize}
+A dictionary can be implemented with an association list, a (sorted) array, or a binary search
+tree (as in CS 135 --- we implement it in C in Unit~12).
+
+\subsection{Stack}
+
+A \emph{stack} is a collection where items are ``stacked'' on top of each other. Items are
+\emph{pushed} onto the top and \emph{popped} off the top, so the last item in is the first item
+out: LIFO. Think of a stack of plates. Uses: browser ``back'' history, undo in text editors, the
+call stack (Unit~05), matching brackets.
+
+Operations:
+\begin{itemize}
+  \item \code{push}: add an item to the top;
+  \item \code{pop}: remove the top item;
+  \item \code{top}: produce the top item (without removing it);
+  \item \code{is\_empty}: determine if the stack is empty.
+\end{itemize}
+
+\paragraph{Stack vs.\ Racket list.} The operations correspond closely to \code{cons},
+\code{rest}, \code{first} and \code{empty?}. The significant difference is that only the top
+item of a stack is accessible, whereas any element of a list can be accessed (e.g.\ with
+\code{list-ref}).
+
+\subsection{Queue}
+
+A \emph{queue} is a collection where items are added at the back and removed from the front:
+first in, first out (FIFO), like a line-up at a restaurant. Operations:
+\begin{itemize}
+  \item \code{add\_back}: add an item to the back;
+  \item \code{remove\_front}: remove the front item;
+  \item \code{front}: produce the front item;
+  \item \code{is\_empty}: determine if the queue is empty.
+\end{itemize}
+
+\subsection{Sequence}
+
+A \emph{sequence} ADT is useful when you want to retrieve, insert or delete at \emph{any}
+position. Operations:
+\begin{itemize}
+  \item \code{item\_at}: produce the item at a given position;
+  \item \code{insert\_at}: insert an item at a given position (later items shift back);
+  \item \code{remove\_at}: remove the item at a given position;
+  \item \code{length}: the number of items.
+\end{itemize}
+
+\begin{aside}
+Many languages' ``list'' types (Python's \code{list}, C++'s \code{std::vector}) are really
+sequence ADTs. Whether \code{item\_at} is fast depends on the implementation: $\bigO(1)$ with
+an array, $\bigO(n)$ with a linked list (Unit~09).
+\end{aside}
+
+\section{Summary}
+\begin{itemize}
+  \item Modules group related functions; the dependency graph is acyclic with a single root.
+  \item Interfaces (\code{.h}) contain declarations and documentation; implementations
+    (\code{.c}) contain definitions.
+  \item C globals have program scope by default; \code{static} makes them module scope.
+  \item Aim for high cohesion and low coupling; hide information for security and flexibility.
+  \item An ADT is defined by its operations, a data structure by its layout.
+  \item Collection ADTs: dictionary, stack (LIFO), queue (FIFO), sequence.
+\end{itemize}

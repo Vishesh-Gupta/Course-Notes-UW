@@ -1,0 +1,304 @@
+\chapter{Propositional Proof Systems}\label{ch:propproofs}
+
+Truth tables decide $\Sigma\models A$ for finite $\Sigma$, but they grow as $2^n$ and do not
+generalise to predicate logic (infinitely many interpretations). A \emph{proof system}
+gives purely syntactic rules for deriving formulas. We study three: natural deduction
+(the main system in the course), a Hilbert-style axiomatic system, and resolution.
+
+\section{Natural deduction}
+
+Natural deduction (following Huth and Ryan, \emph{Logic in Computer Science}) has, for
+each connective, \emph{introduction} rules (how to prove a formula with that main
+connective) and \emph{elimination} rules (how to use one).
+
+\begin{definition}[Sequent]
+A \emph{sequent} $\varphi_1,\dots,\varphi_n\vdash\psi$ asserts that $\psi$ can be derived
+from the premises $\varphi_1,\dots,\varphi_n$ using the rules. It is \emph{valid} if such a
+proof exists. If $\vdash\psi$ (no premises) is valid, $\psi$ is a \emph{theorem}.
+\end{definition}
+
+A proof is a numbered list of lines. Each line holds one formula and a justification:
+\emph{premise}, \emph{assumption} (which opens a box), or a rule name with the line numbers
+it uses. A \emph{box} (drawn as a vertical bar below) is a sub-proof that begins with an
+assumption; formulas inside a box may not be used after the box is closed. The box
+itself (a range of lines $i$--$j$) can be cited by the rules that discharge assumptions.
+
+\subsection{The rules}
+
+\newcommand{\ndbox}[2]{\begin{array}{|c|}\hline #1\\ \vdots\\ #2\\\hline\end{array}}
+\renewcommand{\arraystretch}{1.25}
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+ & Introduction & Elimination\\
+\midrule
+$\land$ &
+  $\dfrac{\varphi\quad\psi}{\varphi\land\psi}\ \land i$ &
+  $\dfrac{\varphi\land\psi}{\varphi}\ \land e_1\qquad\dfrac{\varphi\land\psi}{\psi}\ \land e_2$\\[3ex]
+$\lor$ &
+  $\dfrac{\varphi}{\varphi\lor\psi}\ \lor i_1\qquad\dfrac{\psi}{\varphi\lor\psi}\ \lor i_2$ &
+  $\dfrac{\varphi\lor\psi\quad\ndbox{\varphi}{\chi}\quad\ndbox{\psi}{\chi}}{\chi}\ \lor e$\\[6ex]
+$\to$ &
+  $\dfrac{\ndbox{\varphi}{\psi}}{\varphi\to\psi}\ \to i$ &
+  $\dfrac{\varphi\quad\varphi\to\psi}{\psi}\ \to e$\\[6ex]
+$\neg$ &
+  $\dfrac{\ndbox{\varphi}{\bot}}{\neg\varphi}\ \neg i$ &
+  $\dfrac{\varphi\quad\neg\varphi}{\bot}\ \neg e$\\[6ex]
+$\bot$ & & $\dfrac{\bot}{\varphi}\ \bot e$\\[3ex]
+$\neg\neg$ & & $\dfrac{\neg\neg\varphi}{\varphi}\ \neg\neg e$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\renewcommand{\arraystretch}{1}
+
+Useful \emph{derived} rules (each provable from the basic ones, so they may be used as
+shortcuts):
+\begin{center}
+$\dfrac{\varphi\to\psi\quad\neg\psi}{\neg\varphi}\ \text{MT}$\qquad
+$\dfrac{\varphi}{\neg\neg\varphi}\ \neg\neg i$\qquad
+$\dfrac{\ndbox{\neg\varphi}{\bot}}{\varphi}\ \text{PBC}$\qquad
+$\dfrac{}{\varphi\lor\neg\varphi}\ \text{LEM}$
+\end{center}
+PBC is \emph{proof by contradiction}. There is also a ``copy'' rule allowing an earlier
+visible formula to be repeated.
+
+\begin{important}[Box discipline]
+\begin{itemize}
+  \item Every box opens with an \emph{assumption} and must be closed before the proof
+        ends.
+  \item After a box closes, no line inside it may be cited individually; only the whole
+        box can be cited by $\to i$, $\neg i$, $\lor e$ or PBC.
+  \item Inside a box you may use any line above it that is still visible (premises, or
+        lines in enclosing open boxes).
+\end{itemize}
+\end{important}
+
+\subsection{Example proofs}
+
+\begin{example}[$p\land q\vdash q\land p$]
+\begin{ndproof}
+1 & $p\land q$ & premise\\
+2 & $q$ & $\land e_2$ 1\\
+3 & $p$ & $\land e_1$ 1\\
+4 & $q\land p$ & $\land i$ 2, 3
+\end{ndproof}
+\end{example}
+
+\begin{example}[$p\to q,\ q\to r\vdash p\to r$]
+\begin{ndproof}
+1 & $p\to q$ & premise\\
+2 & $q\to r$ & premise\\
+3 & \bx $p$ & assumption\\
+4 & \bx $q$ & $\to e$ 3, 1\\
+5 & \bx $r$ & $\to e$ 4, 2\\
+6 & $p\to r$ & $\to i$ 3--5
+\end{ndproof}
+\end{example}
+
+\begin{example}[Modus tollens: $p\to q,\ \neg q\vdash\neg p$]
+\begin{ndproof}
+1 & $p\to q$ & premise\\
+2 & $\neg q$ & premise\\
+3 & \bx $p$ & assumption\\
+4 & \bx $q$ & $\to e$ 3, 1\\
+5 & \bx $\bot$ & $\neg e$ 4, 2\\
+6 & $\neg p$ & $\neg i$ 3--5
+\end{ndproof}
+\end{example}
+
+\begin{example}[Disjunctive syllogism: $p\lor q,\ \neg p\vdash q$]
+\begin{ndproof}
+1 & $p\lor q$ & premise\\
+2 & $\neg p$ & premise\\
+3 & \bx $p$ & assumption\\
+4 & \bx $\bot$ & $\neg e$ 3, 2\\
+5 & \bx $q$ & $\bot e$ 4\\[3pt]
+6 & \bx $q$ & assumption\\
+7 & $q$ & $\lor e$ 1, 3--5, 6--6
+\end{ndproof}
+Lines 3--5 and 6--6 are two separate boxes (one per disjunct).
+\end{example}
+
+\begin{example}[Law of excluded middle: $\vdash p\lor\neg p$]
+\begin{ndproof}
+1 & \bx $\neg(p\lor\neg p)$ & assumption\\
+2 & \bx\bx $p$ & assumption\\
+3 & \bx\bx $p\lor\neg p$ & $\lor i_1$ 2\\
+4 & \bx\bx $\bot$ & $\neg e$ 3, 1\\
+5 & \bx $\neg p$ & $\neg i$ 2--4\\
+6 & \bx $p\lor\neg p$ & $\lor i_2$ 5\\
+7 & \bx $\bot$ & $\neg e$ 6, 1\\
+8 & $\neg\neg(p\lor\neg p)$ & $\neg i$ 1--7\\
+9 & $p\lor\neg p$ & $\neg\neg e$ 8
+\end{ndproof}
+\end{example}
+
+\begin{example}[De Morgan: $\neg(p\lor q)\vdash\neg p\land\neg q$]
+\begin{ndproof}
+1 & $\neg(p\lor q)$ & premise\\
+2 & \bx $p$ & assumption\\
+3 & \bx $p\lor q$ & $\lor i_1$ 2\\
+4 & \bx $\bot$ & $\neg e$ 3, 1\\
+5 & $\neg p$ & $\neg i$ 2--4\\
+6 & \bx $q$ & assumption\\
+7 & \bx $p\lor q$ & $\lor i_2$ 6\\
+8 & \bx $\bot$ & $\neg e$ 7, 1\\
+9 & $\neg q$ & $\neg i$ 6--8\\
+10 & $\neg p\land\neg q$ & $\land i$ 5, 9
+\end{ndproof}
+\end{example}
+
+\begin{example}[Exportation: $p\land q\to r\vdash p\to(q\to r)$]
+\begin{ndproof}
+1 & $p\land q\to r$ & premise\\
+2 & \bx $p$ & assumption\\
+3 & \bx\bx $q$ & assumption\\
+4 & \bx\bx $p\land q$ & $\land i$ 2, 3\\
+5 & \bx\bx $r$ & $\to e$ 4, 1\\
+6 & \bx $q\to r$ & $\to i$ 3--5\\
+7 & $p\to(q\to r)$ & $\to i$ 2--6
+\end{ndproof}
+\end{example}
+
+\subsection{Strategy}
+\begin{itemize}
+  \item Work \emph{backwards} from the goal using its main connective: to prove
+        $\varphi\to\psi$, assume $\varphi$ and aim for $\psi$; to prove $\neg\varphi$,
+        assume $\varphi$ and aim for $\bot$; to prove $\varphi\land\psi$, prove both.
+  \item Work \emph{forwards} from premises with elimination rules: split conjunctions,
+        apply $\to e$, and case-split disjunctions with $\lor e$.
+  \item If stuck (especially for a goal that is an atom or a disjunction), try PBC:
+        assume $\neg(\text{goal})$ and derive $\bot$.
+\end{itemize}
+
+\begin{aside}
+The rules $\neg\neg e$ (equivalently PBC or LEM) are what make this \emph{classical}
+logic. Dropping them gives \emph{intuitionistic} logic, where a proof of $\varphi\lor\psi$
+must actually prove one of the disjuncts. Intuitionistic proofs correspond to programs
+(Curry--Howard).
+\end{aside}
+
+\begin{aside}
+Some terms of CS 245 (following Lu's course notes) used an equivalent ``formal deduction''
+system written with sequents $\Sigma\vdash A$ and rules named
+(Ref) $A\vdash A$;\ (+) add premises;\ ($\neg-$) if $\Sigma,\neg A\vdash B$ and
+$\Sigma,\neg A\vdash\neg B$ then $\Sigma\vdash A$;\ ($\to-$), ($\to+$), ($\land\pm$),
+($\lor\pm$), ($\leftrightarrow\pm$) and ($\in$) $A\in\Sigma\Rightarrow\Sigma\vdash A$.
+The proofs are the same in spirit; only the bookkeeping differs.
+\end{aside}
+
+\section{An axiomatic (Hilbert-style) system}
+
+A Hilbert system has many axioms and very few rules. A common one uses only $\neg$ and
+$\to$ (an adequate set). For any formulas $\varphi,\psi,\chi$, every instance of these
+schemes is an axiom:
+\begin{align*}
+\text{(A1)}\quad & \varphi\to(\psi\to\varphi)\\
+\text{(A2)}\quad & (\varphi\to(\psi\to\chi))\to((\varphi\to\psi)\to(\varphi\to\chi))\\
+\text{(A3)}\quad & (\neg\psi\to\neg\varphi)\to(\varphi\to\psi)
+\end{align*}
+The only rule is \emph{modus ponens} (MP): from $\varphi$ and $\varphi\to\psi$ infer $\psi$.
+
+A \emph{proof of $\varphi$ from $\Sigma$} is a finite sequence of formulas, each an axiom,
+a member of $\Sigma$, or obtained by MP from two earlier ones, ending in $\varphi$.
+
+\begin{example}[$\vdash\varphi\to\varphi$]
+\begin{ndproof}
+1 & $(\varphi\to((\varphi\to\varphi)\to\varphi))\to((\varphi\to(\varphi\to\varphi))\to(\varphi\to\varphi))$ & A2\\
+2 & $\varphi\to((\varphi\to\varphi)\to\varphi)$ & A1\\
+3 & $(\varphi\to(\varphi\to\varphi))\to(\varphi\to\varphi)$ & MP 2, 1\\
+4 & $\varphi\to(\varphi\to\varphi)$ & A1\\
+5 & $\varphi\to\varphi$ & MP 4, 3
+\end{ndproof}
+Even this trivial theorem is awkward, which is why one proves the deduction theorem.
+\end{example}
+
+\begin{theorem}[Deduction theorem]
+$\Sigma\cup\{\varphi\}\vdash\psi$ iff $\Sigma\vdash\varphi\to\psi$.
+\end{theorem}
+\begin{proof}[Proof sketch]
+($\Leftarrow$) Add $\varphi$ and apply MP. ($\Rightarrow$) Induction on the length of a
+proof $\psi_1,\dots,\psi_n=\psi$ from $\Sigma\cup\{\varphi\}$, showing
+$\Sigma\vdash\varphi\to\psi_i$ for each $i$:
+if $\psi_i$ is an axiom or in $\Sigma$, use $\psi_i$, A1 ($\psi_i\to(\varphi\to\psi_i)$),
+and MP; if $\psi_i=\varphi$, use $\vdash\varphi\to\varphi$; if $\psi_i$ comes by MP from
+$\psi_j$ and $\psi_k=\psi_j\to\psi_i$, then by IH we have $\varphi\to\psi_j$ and
+$\varphi\to(\psi_j\to\psi_i)$, and two uses of A2 with MP give $\varphi\to\psi_i$.
+\end{proof}
+
+The deduction theorem plays the role of $\to i$ in natural deduction. Natural deduction
+and this Hilbert system prove exactly the same sequents (for formulas over $\neg,\to$).
+
+\section{Resolution}
+
+Resolution is a refutation system designed for machines. It works on formulas in CNF.
+
+\begin{definition}
+Represent a clause as a \emph{set} of literals, and a CNF formula as a set of clauses.
+The empty clause, written $\square$, is unsatisfiable.
+\end{definition}
+
+\begin{definition}[Resolution rule]
+From clauses $C\cup\{p\}$ and $D\cup\{\neg p\}$, infer the \emph{resolvent} $C\cup D$:
+\[
+\dfrac{C\lor p\qquad D\lor\neg p}{C\lor D}.
+\]
+\end{definition}
+
+The rule is sound: any valuation satisfying both premises satisfies $C\cup D$ (if $p$ is
+true then $D$ must be true; if $p$ is false then $C$ must be).
+
+\begin{theorem}[Soundness and refutation completeness of resolution]
+A finite set of clauses $S$ is unsatisfiable iff $\square$ can be derived from $S$ by
+repeated resolution.
+\end{theorem}
+
+\paragraph{Method.} To show $\Sigma\models\varphi$: convert each formula in
+$\Sigma\cup\{\neg\varphi\}$ to CNF, collect all the clauses, and derive $\square$.
+
+\begin{example}
+Show $\{p\to q,\ q\to r,\ p\}\models r$. Clauses:
+\[
+1.\ \{\neg p,q\}\qquad 2.\ \{\neg q,r\}\qquad 3.\ \{p\}\qquad 4.\ \{\neg r\}\ \text{(negated goal)}
+\]
+\begin{ndproof}
+5 & $\{q\}$ & resolve 1, 3 on $p$\\
+6 & $\{r\}$ & resolve 5, 2 on $q$\\
+7 & $\square$ & resolve 6, 4 on $r$
+\end{ndproof}
+\end{example}
+
+\begin{example}
+Show $\{p\lor q,\ p\to r,\ q\to r\}\models r$. Clauses: $\{p,q\}$, $\{\neg p,r\}$,
+$\{\neg q,r\}$, $\{\neg r\}$. Resolve $\{\neg p,r\}$ with $\{\neg r\}$ to get
+$\{\neg p\}$; $\{\neg q,r\}$ with $\{\neg r\}$ to get $\{\neg q\}$; $\{p,q\}$ with
+$\{\neg p\}$ to get $\{q\}$; $\{q\}$ with $\{\neg q\}$ to get $\square$.
+\end{example}
+
+\begin{important}[Resolution pitfalls]
+\begin{itemize}
+  \item Resolve on \emph{one} complementary pair at a time: from $\{p,q\}$ and
+        $\{\neg p,\neg q\}$ you may \emph{not} conclude $\square$ (the resolvents are
+        tautologies like $\{q,\neg q\}$, which can be discarded).
+  \item Duplicate literals merge because clauses are sets.
+  \item Resolution is refutation complete, not complete for direct derivation: it cannot
+        derive $p\lor q$ from $\{p\}$, but it can refute $\{p,\neg p\land\neg q\}$.
+\end{itemize}
+\end{important}
+
+\begin{aside}
+The Davis--Putnam procedure eliminates one atom at a time by forming all resolvents on it.
+Modern SAT solvers (DPLL/CDCL) combine backtracking search, unit propagation and learned
+clauses, which are resolvents.
+\end{aside}
+
+\section*{Summary}
+\begin{itemize}
+  \item Natural deduction: intro/elim rules per connective, boxes for assumptions;
+        $\to i$, $\neg i$, $\lor e$, PBC discharge assumptions.
+  \item Derived rules: MT, $\neg\neg i$, PBC, LEM.
+  \item Hilbert system: axioms A1--A3 plus modus ponens; the deduction theorem recovers
+        $\to i$.
+  \item Resolution: put $\Sigma\cup\{\neg\varphi\}$ in clause form and derive the empty
+        clause; sound and refutation complete.
+\end{itemize}

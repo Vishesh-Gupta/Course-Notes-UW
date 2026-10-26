@@ -1,0 +1,234 @@
+\chapter{Lecture 10: Copy Constructor, Destructor and Copy Assignment}
+\begin{center}
+\textit{February 6, 2018}
+\end{center}
+
+\section{Recap: Member Initialization List}
+\begin{itemize}
+  \item must be used to initialize \code{const} and reference fields;
+  \item can be used for all fields;
+  \item initialization occurs in declaration order;
+  \item can be more efficient than initializing in the ctor body.
+\end{itemize}
+\begin{lstlisting}[style=cpp]
+Student::Student(int id, int assns, int mt, int final)
+    : id{id}, assns{assns}, mt{mt}, final{final} {}
+\end{lstlisting}
+The name outside the \code{\{\}} is the field; the expression inside the
+\code{\{\}} is the value.
+
+\section{The Big Five}
+\begin{lstlisting}[style=cpp]
+Student billy{60, 70, 80};
+Student bobby{billy};      // or: Student bobby = billy;
+\end{lstlisting}
+Objects are copied by calling the \textbf{copy constructor}, and you get one
+for free. Every class comes with:
+\begin{enumerate}
+  \item a default constructor (only if you write no ctor),
+  \item a copy constructor,
+  \item a destructor,
+  \item a copy assignment operator,
+  \item a move constructor (C++11),
+  \item a move assignment operator (C++11).
+\end{enumerate}
+Items 2--6 are called the \textbf{Big Five}.
+
+\begin{quote}
+\textit{``There will be a question about them, and I have already made that
+question an hour ago.''} --- N.~Naeem
+\end{quote}
+
+\section{The Copy Constructor}
+The free copy ctor does a field-for-field copy. For \code{Student} it is
+equivalent to:
+\begin{lstlisting}[style=cpp]
+Student::Student(const Student &other)
+    : assns{other.assns}, mt{other.mt}, final{other.final} {}
+\end{lstlisting}
+\begin{quote}
+\textit{``Beggars can't be choosers.''} --- N.~Naeem
+\end{quote}
+Sometimes the free copy ctor does not do the right thing:
+\begin{lstlisting}[style=cpp]
+// node.h (include guard assumed)
+struct Node {
+    int data;
+    Node *next;
+    Node(int data, Node *next);
+    Node(const Node &other);
+};
+
+// node.cc
+Node::Node(int data, Node *next) : data{data}, next{next} {}
+Node::Node(const Node &other) : data{other.data}, next{other.next} {}  // = free one
+
+// main.cc
+Node *np = new Node{1, new Node{2, new Node{3, nullptr}}};
+Node m{*np};               // copy ctor; m is on the stack
+Node *m2 = new Node{*np};  // copy ctor; *m2 is on the heap
+\end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[box/.style={draw, minimum width=13mm, minimum height=7mm},
+  >={Stealth}]
+\node[box] (np) at (0,0) {\code{np}};
+\node[box] (a) at (2.5,0) {1 \,$\bullet$};
+\node[box] (b) at (5,0) {2 \,$\bullet$};
+\node[box] (c) at (7.5,0) {3 \,/};
+\node[box] (m) at (2.5,-1.5) {1 \,$\bullet$};
+\node[left=2mm of m] {\code{m}};
+\draw[->] (np) -- (a);
+\draw[->] (a) -- (b);
+\draw[->] (b) -- (c);
+\draw[->] (m.east) -- (b.south west);
+\end{tikzpicture}
+\end{center}
+
+This is not really a copy of the list: \code{m} shares nodes 2 and 3 with the
+original. This is called a \textbf{shallow copy}. For a pointer field we usually
+want to copy the object the pointer points to: a \textbf{deep copy}.
+
+\begin{lstlisting}[style=cpp]
+Node::Node(const Node &other)
+    : data{other.data},
+      next{other.next ? new Node{*other.next} : nullptr} {}
+\end{lstlisting}
+\code{new Node\{*other.next\}} is a recursive call to the copy ctor, which
+copies the rest of the list. The check is needed because \code{other.next} could
+be \code{nullptr}, and dereferencing it would crash.
+
+\subsection{When Is the Copy Constructor Called?}
+\begin{enumerate}
+  \item when an object is initialized from another object of the same type;
+  \item when an object is passed by value;
+  \item when an object is returned by value.
+\end{enumerate}
+(2 and 3 may be optimized away or replaced by a move; see Lecture~11--12.)
+
+\begin{important}[Why the parameter is a reference]
+Because of (2), the copy ctor's parameter must be passed by reference: if it were
+\code{Node(Node other)}, passing the argument would need a copy, which calls the
+copy ctor, which needs a copy, \dots{} infinite recursion. The language forces
+the reference.
+\end{important}
+
+\section{Single-Parameter Constructors}
+\begin{lstlisting}[style=cpp]
+Node::Node(int data) : data{data}, next{nullptr} {}
+
+Node n{4};
+Node n2 = 4;        // also compiles!
+void foo(Node n);
+foo(4);             // also compiles: 4 is converted to a Node
+\end{lstlisting}
+One-parameter ctors create \emph{implicit} (automatic) conversions. This is
+exactly how \code{string s = "hello";} works: \code{std::string} has a
+one-parameter ctor taking a \code{const char*}. But for \code{Node}, silently
+turning an \code{int} into a Node is surprising and can hide bugs. To disable
+the conversion, use \code{explicit}:
+\begin{lstlisting}[style=cpp]
+struct Node {
+    explicit Node(int data);
+    ...
+};
+Node n{4};    // OK
+Node n2 = 4;  // error
+foo(4);       // error
+foo(Node{4}); // OK
+\end{lstlisting}
+
+\section{The Destructor}
+When an object is destroyed, a method called the \textbf{destructor} (dtor)
+runs. Objects are destroyed when
+\begin{enumerate}
+  \item a stack-allocated object goes out of scope, or
+  \item a heap object is explicitly \code{delete}d.
+\end{enumerate}
+
+\begin{important}[Steps of object destruction]
+\begin{enumerate}
+  \item The dtor body runs.
+  \item Fields are destroyed: dtors are called for fields that are objects (in
+        reverse declaration order).
+  \item The space is reclaimed.
+\end{enumerate}
+\end{important}
+
+A class has exactly one dtor, named \code{\textasciitilde ClassName()}, with no
+parameters and no return type. The free dtor has an empty body (and still does
+step 2). But that might not be what we want:
+\begin{lstlisting}[style=cpp]
+Node *np = new Node{1, new Node{2, new Node{3, nullptr}}};
+delete np;    // calls the dtor for the node with value 1
+\end{lstlisting}
+\code{next} is a pointer, not an object, so step 2 does nothing for it: only the
+first node is freed, and nodes 2 and 3 are leaked. Let's write our own dtor:
+\begin{lstlisting}[style=cpp]
+Node::~Node() { delete next; }
+\end{lstlisting}
+This recursively deletes the rest of the list; the recursion ends at the last
+node because \code{delete nullptr} does nothing.
+
+\section{The Copy Assignment Operator}
+\begin{lstlisting}[style=cpp]
+Student billy{60, 70, 80};
+Student bobby{billy};   // copy ctor: bobby is being created
+Student jane;
+jane = billy;           // copy assignment: jane already exists
+                        // same as jane.operator=(billy);
+\end{lstlisting}
+The free \code{operator=} does a field-for-field copy. Once a class manages heap
+memory, we need to write our own. Let's implement \code{operator=} for
+\code{Node}.
+
+First, what should it return? Assignment associates to the right:
+\code{a = b = c = 0;} assigns \code{c = 0}, which produces \code{c}; then
+\code{b = c} produces \code{b}; then \code{a = b}. For objects,
+\begin{lstlisting}[style=cpp]
+n1 = n2 = n3;   // n1.operator=(n2.operator=(n3));
+\end{lstlisting}
+So \code{operator=} must return the object (by reference, to avoid a copy) to
+allow cascaded assignment.
+
+\begin{lstlisting}[style=cpp]
+Node &Node::operator=(const Node &other) {
+    if (this == &other) return *this;   // self-assignment check: see below
+    data = other.data;
+    delete next;     // important: next may already own heap memory
+    next = other.next ? new Node{*other.next} : nullptr;
+    return *this;
+}
+\end{lstlisting}
+The MIL cannot be used here: it is only available for constructors (the object
+already exists).
+
+\subsection{Why Check for Self-Assignment?}
+\begin{lstlisting}[style=cpp]
+Node n{1, new Node{2, nullptr}};
+n = n;       // n.operator=(n): unlikely to be written directly,
+             // but *p = *q where p == q happens easily
+\end{lstlisting}
+Without the check, \code{other.next} is the same pointer as \code{next}. We
+\code{delete next}, which makes \code{other.next} a dangling pointer, and then
+\code{new Node\{*other.next\}} copies freed memory. Solution: check for
+self-assignment first.
+
+\paragraph{Q.} What happens if \code{new} fails (no memory)?
+
+Then \code{next} has already been deleted, but has not been given a new value:
+the object is left holding a dangling pointer. Next lecture fixes this.
+
+\section*{Summary}
+\begin{itemize}
+  \item The Big Five: copy ctor, copy assignment, dtor, move ctor, move
+        assignment. The free versions copy/move field by field.
+  \item With pointer fields, the free copy is shallow; write a deep copy.
+  \item The copy ctor takes \code{const T\&} and is used for initialization,
+        pass-by-value and return-by-value.
+  \item Mark one-parameter ctors \code{explicit} unless you want implicit
+        conversion.
+  \item Dtor: body, then fields, then space. Write one to free owned heap memory.
+  \item \code{operator=} returns \code{*this} by reference, must free the old
+        resources, and must handle self-assignment.
+\end{itemize}

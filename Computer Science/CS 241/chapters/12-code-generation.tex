@@ -1,0 +1,352 @@
+\chapter{Code Generation}
+
+\section{Overview}
+
+The code generator traverses the annotated parse tree of a valid WLP4 program and emits MIPS
+assembly. There are infinitely many correct translations; our goal is a \emph{simple,
+correct} one, structured so each construct's code can be generated independently
+(syntax-directed translation). We write $\mathrm{code}(X)$ for the assembly produced for
+subtree $X$.
+
+\begin{important}[Invariant]
+$\mathrm{code}(\mathit{expr})$ leaves the value of \emph{expr} in \code{\$3}, and leaves every
+other register (except scratch \code{\$5}--\code{\$7}) and the stack as they were.
+\end{important}
+
+\section{Conventions}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+register & use \\
+\midrule
+\code{\$0} & zero \\
+\code{\$1}, \code{\$2} & parameters of \code{wain} (and arguments to runtime routines) \\
+\code{\$3} & result of every expression and procedure \\
+\code{\$4} & constant 4 \\
+\code{\$5}--\code{\$7} & scratch \\
+\code{\$11} & constant 1 \\
+\code{\$29} & frame pointer \\
+\code{\$30} & stack pointer \\
+\code{\$31} & return address \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Helper ``macros'' the generator emits often:
+\begin{lstlisting}[style=mips]
+; push($r)
+sw $r, -4($30)
+sub $30, $30, $4
+; pop($r)
+add $30, $30, $4
+lw $r, -4($30)
+\end{lstlisting}
+
+\section{Variables and the stack frame}
+
+All variables live on the stack, addressed relative to a \textbf{frame pointer} \code{\$29}
+that is fixed for the whole procedure (unlike \code{\$30}, which moves as temporaries are
+pushed). The symbol table records each variable's offset.
+
+\paragraph{Prologue of wain.} Import the runtime, set up constants, and push the parameters and locals:
+\begin{lstlisting}[style=mips]
+.import print
+.import init
+.import new
+.import delete
+lis $4
+.word 4
+lis $11
+.word 1
+sub $29, $30, $4     ; $29 points at first variable slot
+sw $1, -4($30)       ; a at offset 0
+sub $30, $30, $4
+sw $2, -4($30)       ; b at offset -4
+sub $30, $30, $4
+; locals: int x = 7;  -> offset -8
+lis $5
+.word 7
+sw $5, -4($30)
+sub $30, $30, $4
+\end{lstlisting}
+The $k$-th variable (counting from 0) is at offset $-4k$ from \code{\$29}.
+Reading a variable: \code{lw \$3, off(\$29)}; writing: \code{sw \$3, off(\$29)}.
+\paragraph{Epilogue.} \code{add \$30, \$29, \$4} (pop the frame) then \code{jr \$31}.
+
+\section{Expressions}
+
+\subsection{Constants and variables}
+\begin{lstlisting}[style=mips]
+; code(NUM)              ; code(ID)
+lis $3                   lw $3, off($29)
+.word NUM
+\end{lstlisting}
+(\code{NULL} is represented by the value 1, not 0: it is not word-aligned, so dereferencing
+NULL crashes the emulator, which is the desired behaviour. Use \code{add \$3, \$0, \$11}.)
+
+\subsection{Binary operators}
+Use the stack to hold the left operand while computing the right one:
+\begin{lstlisting}[style=mips]
+; code(e1 + e2), both int
+code(e1)
+push($3)
+code(e2)
+pop($5)
+add $3, $5, $3
+\end{lstlisting}
+Similarly \code{sub}; for \code{*} use \code{mult \$5, \$3; mflo \$3}; for \code{/} use
+\code{div \$5, \$3; mflo \$3}; for \code{\%} use \code{mfhi \$3}. This recursive scheme works
+for arbitrarily nested expressions because each subexpression restores the stack.
+
+\begin{aside}
+An easy optimisation: if \code{e2} is a constant or variable, compute it straight into a
+register without the push/pop. Another: allocate a different temporary register per nesting
+level and only spill to the stack when they run out.
+\end{aside}
+
+\subsection{Pointer arithmetic}
+Types (from semantic analysis) decide the code:
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+expression & code after \code{\$5} $=e_1$, \code{\$3} $= e_2$ \\
+\midrule
+\code{int* + int} & \code{mult \$3, \$4; mflo \$3; add \$3, \$5, \$3} \\
+\code{int + int*} & \code{mult \$5, \$4; mflo \$5; add \$3, \$5, \$3} \\
+\code{int* - int} & \code{mult \$3, \$4; mflo \$3; sub \$3, \$5, \$3} \\
+\code{int* - int*} & \code{sub \$3, \$5, \$3; div \$3, \$4; mflo \$3} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Pointers: \code{*}, \code{\&}, and assignment through pointers}
+\begin{lstlisting}[style=mips]
+; code(*e)           ; code(&ID)              ; code(&(*e)) = code(e)
+code(e)              lis $3
+lw $3, 0($3)         .word off
+                     add $3, $3, $29
+\end{lstlisting}
+Assignment:
+\begin{lstlisting}[style=mips]
+; ID = e;            ; *e1 = e2;
+code(e)              code(e1)          ; address
+sw $3, off($29)      push($3)
+                     code(e2)          ; value
+                     pop($5)
+                     sw $3, 0($5)
+\end{lstlisting}
+
+\section{Tests}
+
+Produce 1 (true) or 0 (false) in \code{\$3}. Use \code{slt} for \code{int} and
+\code{sltu} for pointers (addresses are unsigned).
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+test & code after \code{\$5} $=e_1$, \code{\$3} $=e_2$ \\
+\midrule
+$e_1 < e_2$ & \code{slt \$3, \$5, \$3} \\
+$e_1 > e_2$ & \code{slt \$3, \$3, \$5} \\
+$e_1 \ne e_2$ & \code{slt \$6, \$3, \$5; slt \$7, \$5, \$3; add \$3, \$6, \$7} \\
+$e_1 = e_2$ & ($\ne$ code), then \code{sub \$3, \$11, \$3} \\
+$e_1 \ge e_2$ & \code{slt \$3, \$5, \$3; sub \$3, \$11, \$3} \\
+$e_1 \le e_2$ & \code{slt \$3, \$3, \$5; sub \$3, \$11, \$3} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Control flow}
+
+Each \code{if} and \code{while} needs unique labels; keep a global counter.
+\begin{lstlisting}[style=mips]
+; if (T) {S1} else {S2}       ; while (T) {S}
+code(T)                       loop7:
+beq $3, $0, else4             code(T)
+code(S1)                      beq $3, $0, endWhile7
+beq $0, $0, endif4            code(S)
+else4:                        beq $0, $0, loop7
+code(S2)                      endWhile7:
+endif4:
+\end{lstlisting}
+A sequence of statements is just the concatenation of their code.
+
+\subsection{Printing}
+\code{print} (from \code{print.merl}) prints \code{\$1} as a decimal number and a newline.
+Since \code{\$1} holds \code{wain}'s parameter we save it:
+\begin{lstlisting}[style=mips]
+; println(e);
+push($1)
+code(e)
+add $1, $3, $0
+push($31)
+lis $5
+.word print
+jalr $5
+pop($31)
+pop($1)
+\end{lstlisting}
+
+\section{Procedures}
+
+\paragraph{Naming.} Prefix every WLP4 procedure label, e.g.\ \code{Ffoo}, so it cannot
+clash with generated labels (\code{else4}) or runtime routines (\code{print}, \code{new}).
+\code{wain}'s code comes first in the output so execution starts there; other procedures
+follow.
+
+\paragraph{Caller.} Saves \code{\$29} and \code{\$31}, pushes arguments in order, calls,
+pops the arguments, restores.
+\begin{lstlisting}[style=mips]
+; code(f(e1, ..., en))
+push($29)
+push($31)
+code(e1)
+push($3)
+...
+code(en)
+push($3)
+lis $5
+.word Ff
+jalr $5
+; pop n arguments (n adds, or one add of 4n)
+pop($31)
+pop($29)
+\end{lstlisting}
+
+\paragraph{Callee.} Sets up its frame, runs its body, and tears the frame down:
+\begin{lstlisting}[style=mips]
+Ff:
+sub $29, $30, $4     ; new frame pointer
+; push locals (initial values)
+; push registers this procedure will modify ($5, $6, $7, ...)
+code(statements)
+code(return expr)    ; result in $3
+; pop saved registers
+add $30, $29, $4     ; discard locals
+jr $31
+\end{lstlisting}
+
+\paragraph{Offsets.} With $n$ parameters, the caller pushed $a_1,\dots,a_n$, so after
+\code{sub \$29, \$30, \$4}, parameter $a_i$ is at offset $4(n-i+1)$ (positive) from
+\code{\$29}: $a_n$ at $4$, $a_1$ at $4n$. Locals are at $0, -4, -8,\dots$ as in \code{wain}.
+The symbol table is filled with these offsets while processing the procedure's declarations.
+
+\begin{center}
+\begin{tikzpicture}[cell/.style={draw,minimum width=3.6cm,minimum height=0.55cm,font=\small}]
+  \node[cell] (a) at (0,0) {saved \code{\$29}};
+  \node[cell,below=0pt of a] (b) {saved \code{\$31}};
+  \node[cell,below=0pt of b] (c) {$a_1$ \quad (off $4n$)};
+  \node[cell,below=0pt of c] (d) {$\vdots$};
+  \node[cell,below=0pt of d] (e) {$a_n$ \quad (off 4)};
+  \node[cell,below=0pt of e,fill=blue!5] (f) {local 1 \quad (off 0)};
+  \node[cell,below=0pt of f,fill=blue!5] (g) {local 2 \quad (off $-4$)};
+  \node[cell,below=0pt of g,fill=gray!10] (h) {saved registers};
+  \draw[Stealth-] (f.east) -- ++(1.2,0) node[right]{\code{\$29}};
+  \draw[Stealth-] (h.west) -- ++(-1.2,0) node[left]{\code{\$30}};
+  \draw ($(a.north east)+(0.2,0)$) -- node[right,font=\small]{caller pushes} ($(e.south east)+(0.2,0)$);
+  \draw ($(f.north west)+(-0.2,0)$) -- node[left,font=\small]{callee pushes} ($(h.south west)+(-0.2,0)$);
+\end{tikzpicture}
+\end{center}
+
+\begin{important}[Who saves what]
+Here the caller saves \code{\$29} and \code{\$31}; the callee saves any other register it
+modifies. \code{\$4}, \code{\$11} are never modified. Mixing up the order of pushes and pops
+is the most common bug: draw the stack!
+\end{important}
+
+\section{Dynamic memory: \code{new} and \code{delete}}
+
+The runtime \code{alloc.merl} provides \code{init}, \code{new} and \code{delete}.
+\begin{itemize}
+  \item \code{init} must be called once in \code{wain}'s prologue (with \code{\$31} saved). It
+        expects \code{\$1}/\code{\$2} as given by \code{mips.array}; if \code{wain}'s first
+        parameter is \code{int} (\code{mips.twoints}), set \code{\$2} to 0 first.
+  \item \code{new}: number of words in \code{\$1}; returns address in \code{\$3}, or 0 on failure.
+        WLP4 must return NULL on failure, so convert 0 to 1.
+  \item \code{delete}: address in \code{\$1}. Skip the call when the pointer is NULL.
+\end{itemize}
+
+\begin{lstlisting}[style=mips]
+; code(new int[e])
+code(e)
+add $1, $3, $0
+push($31)
+lis $5
+.word new
+jalr $5
+pop($31)
+bne $3, $0, 1      ; success: skip next instruction
+add $3, $11, $0    ; failure: return NULL (1)
+\end{lstlisting}
+\begin{lstlisting}[style=mips]
+; code(delete [] e;)
+code(e)
+beq $3, $11, skipDelete9   ; never free NULL
+add $1, $3, $0
+push($31)
+lis $5
+.word delete
+jalr $5
+pop($31)
+skipDelete9:
+\end{lstlisting}
+(Also save \code{\$1} around these if it is still needed.)
+
+\section{Putting it together}
+
+The output is assembled to MERL and linked with the runtime:
+\begin{lstlisting}[style=bash]
+wlp4scan < prog.wlp4 | wlp4parse | wlp4gen > prog.asm
+cs241.linkasm < prog.asm > prog.merl
+cs241.linker prog.merl print.merl alloc.merl > exec.mips
+mips.twoints exec.mips      # or mips.array
+\end{lstlisting}
+
+\begin{example}[Complete output for a small program]
+Imports and the call to \code{init} are omitted since this program uses no runtime routines.
+\begin{lstlisting}[style=cpp]
+int wain(int a, int b) { return a + b * 2; }
+\end{lstlisting}
+\begin{lstlisting}[style=mips]
+lis $4
+.word 4
+lis $11
+.word 1
+sub $29, $30, $4
+sw $1, -4($30)
+sub $30, $30, $4     ; a at 0
+sw $2, -4($30)
+sub $30, $30, $4     ; b at -4
+lw $3, 0($29)        ; a
+sw $3, -4($30)
+sub $30, $30, $4     ; push
+lw $3, -4($29)       ; b
+sw $3, -4($30)
+sub $30, $30, $4     ; push
+lis $3
+.word 2
+add $30, $30, $4
+lw $5, -4($30)       ; pop b
+mult $5, $3
+mflo $3              ; b*2
+add $30, $30, $4
+lw $5, -4($30)       ; pop a
+add $3, $5, $3       ; a + b*2
+add $30, $29, $4
+jr $31
+\end{lstlisting}
+\end{example}
+
+\section{Summary}
+\begin{itemize}
+  \item Syntax-directed translation: each construct's code is built from its children's code.
+  \item Every expression leaves its result in \code{\$3}; temporaries go on the stack.
+  \item Variables are at fixed offsets from the frame pointer \code{\$29}.
+  \item Types select instructions: scale by 4 for pointer arithmetic, \code{sltu} for pointer comparisons.
+  \item Unique labels for \code{if}/\code{while}; prefix procedure names.
+  \item Calls: caller saves \code{\$29}, \code{\$31} and pushes arguments; callee sets
+        \code{\$29}, pushes locals and saved registers.
+  \item \code{new}/\code{delete}/\code{print} come from runtime MERL modules linked in; NULL is 1.
+\end{itemize}

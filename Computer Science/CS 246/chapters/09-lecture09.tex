@@ -1,0 +1,225 @@
+\chapter{Lecture 9: Classes, Constructors and Member Initialization Lists}
+\begin{center}
+\textit{February 1, 2018}
+\end{center}
+
+\section{Separate Compilation: Rules}
+Last time we fixed the ``redefinition of struct Vec'' error
+(\code{lectures/separate/example3}) with an include guard
+(\code{lectures/separate/example4}). The rules:
+\begin{enumerate}
+  \item All \code{.h} files should have an include guard.
+  \item Never compile \code{.h} files.
+  \item Never \code{\#include} \code{.cc} files.
+\end{enumerate}
+
+\begin{important}[No \code{using namespace std} in headers]
+Never put \code{using namespace std;} in a header file: every file that includes
+your header would be forced to have it too (possibly causing name clashes). In a
+header, refer to \code{std::string}, \code{std::istream}, \code{std::ostream},
+etc.\ by their full names.
+\end{important}
+
+\section{C++ Classes}
+The big OO innovation: we can put functions inside a struct.
+
+\begin{lstlisting}[style=cpp]
+// student.h
+#ifndef STUDENT_H
+#define STUDENT_H
+struct Student {
+    int assns, mt, final;
+    float grade();
+};
+#endif
+
+// student.cc
+#include "student.h"
+float Student::grade() {
+    return assns * 0.4 + mt * 0.2 + final * 0.4;
+}
+
+// main.cc
+Student billy{80, 50, 75};
+cout << billy.grade() << endl;   // 70
+\end{lstlisting}
+
+\code{::} is the \textbf{scope resolution operator}. \code{Student::grade} means
+``the function \code{grade} in the scope of the class \code{Student}''.
+
+\begin{definition}
+\begin{itemize}
+  \item A \textbf{class} is (essentially) a struct type that can contain
+        functions. In C++ every struct is a class.
+  \item An \textbf{object} is an instance of a class: a value of type
+        \code{Student} is a \code{Student} object; \code{billy} is an object.
+  \item A function inside a class is a \textbf{member function} or
+        \textbf{method}.
+\end{itemize}
+\end{definition}
+
+A method can only be called on an object of its class, and has access to the
+fields of the object on which it was called. In \code{grade}, \code{assns}
+means \code{billy.assns} when we call \code{billy.grade()}.
+
+\subsection{The \code{this} Pointer}
+Every method has a hidden parameter called \code{this}, which points to the
+object on which the method was called. In \code{billy.grade()},
+\code{this == \&billy}. So the method above is really
+\begin{lstlisting}[style=cpp]
+float Student::grade() {
+    return this->assns * 0.4 + this->mt * 0.2 + this->final * 0.4;
+}
+\end{lstlisting}
+\begin{quote}
+\textit{``I like to use \code{this} when I need to use \code{this}.''} --- Nomair
+Naeem
+\end{quote}
+(\code{this} is a constant pointer: you cannot re-point it.)
+
+\section{Initializing Objects}
+\code{Student billy\{80, 50, 75\};} uses C-style field-by-field initialization.
+This is limited: we cannot validate the values, compute anything, or allocate
+memory. In C++, you can write special methods called \textbf{constructors}
+(ctors) to initialize objects.
+
+\begin{lstlisting}[style=cpp]
+struct Student {
+    int assns, mt, final;
+    Student(int assns, int mt, int final);
+    float grade();
+};
+
+Student::Student(int assns, int mt, int final) {
+    this->assns = assns < 0 ? 0 : assns;   // we can sanity-check now
+    this->mt = mt < 0 ? 0 : mt;
+    this->final = final < 0 ? 0 : final;
+}
+
+Student billy{80, 50, 75};   // calls the constructor
+\end{lstlisting}
+A constructor has the same name as the class and no return type. Here the
+parameter names shadow the field names, so we need \code{this->} to reach the
+fields.
+
+\begin{itemize}
+  \item \code{Student billy\{80, 50, 75\};} --- stack object, calls the ctor
+        with the three arguments.
+  \item \code{Student *pBilly = new Student\{80, 50, 75\};} --- heap object, same
+        ctor.
+  \item \code{Student billy = Student\{80, 50, 75\};} also works.
+\end{itemize}
+
+The \code{\{...\}} syntax is \textbf{uniform initialization} (C++11), and can be
+used for all types: \code{int x\{5\};}, \code{string s\{"hello"\};}. If a class
+has a ctor, \code{\{...\}} calls it; otherwise (for plain structs) it does
+field-by-field initialization.
+
+\subsection{Advantages of Constructors}
+Constructors are functions, so we get default arguments, overloading and
+sanity checks:
+\begin{lstlisting}[style=cpp]
+struct Student {
+    int assns, mt, final;
+    Student(int assns = 0, int mt = 0, int final = 0);
+};
+
+Student s1{60, 70};   // final = 0
+Student s2;           // all zero: calls Student(0, 0, 0)
+\end{lstlisting}
+
+\subsection{The Default Constructor}
+Every class comes with a \textbf{default constructor} (a ctor with no
+arguments) if you don't write any constructor. It default-constructs every
+field that is an object, and leaves primitive fields (\code{int}, pointers)
+\emph{uninitialized}.
+
+\begin{important}[You lose the free default ctor]
+As soon as you write \emph{any} constructor, the compiler no longer provides the
+default constructor.
+\begin{lstlisting}[style=cpp]
+struct Vec {
+    int x, y;
+    Vec(int x, int y) : x{x}, y{y} {}
+};
+Vec v;          // error: no default ctor
+Vec w{1, 2};    // OK
+\end{lstlisting}
+\end{important}
+
+\section{Member Initialization Lists}
+Consider a class with a constant or reference field:
+\begin{lstlisting}[style=cpp]
+int z;
+struct MyStruct {
+    const int myConst;   // must be initialized
+    int &myRef;          // must be initialized
+};
+\end{lstlisting}
+We can't give them default values in the class (every object could need a
+different value), and we can't assign to them in the ctor body. Why? Because of
+how objects are built.
+
+\begin{important}[Steps of object construction]
+\begin{enumerate}
+  \item Space is allocated (stack or heap).
+  \item Fields are initialized: each field that is an object has its
+        constructor called (default ctor, unless told otherwise).
+  \item The constructor body runs.
+\end{enumerate}
+\end{important}
+
+By the time the body runs, the fields have already been initialized, so
+\code{myConst = 5;} in the body would be an assignment, not an initialization.
+To hook into step 2, use the \textbf{member initialization list} (MIL):
+\begin{lstlisting}[style=cpp]
+struct Student {
+    const int id;          // a student's id never changes
+    int assns, mt, final;
+    Student(int id, int assns, int mt, int final);
+};
+
+Student::Student(int id, int assns, int mt, int final)
+    : id{id}, assns{assns}, mt{mt}, final{final} {}
+\end{lstlisting}
+In \code{id\{id\}}, the name outside the braces is always the \emph{field}, and
+the expression inside the braces is looked up normally (so here it is the
+parameter). No \code{this->} needed.
+
+Facts about the MIL:
+\begin{itemize}
+  \item You \emph{must} use it to initialize \code{const} fields, reference
+        fields, and object fields with no default constructor.
+  \item It can be used for all fields.
+  \item Fields are initialized in the order they are \emph{declared in the
+        class}, regardless of the order in the MIL (compile with \code{-Wall}
+        to be warned about mismatched orders).
+  \item It can be more efficient than assigning in the body: for an object
+        field like a \code{string}, assigning in the body means it is first
+        default-constructed and then assigned (two steps), whereas the MIL
+        constructs it directly with the right value (one step).
+\end{itemize}
+
+You can also give fields default values in the class (C++11); the MIL overrides
+them:
+\begin{lstlisting}[style=cpp]
+struct Vec {
+    int x = 0, y = 0;
+    Vec() {}                          // x = y = 0
+    Vec(int x) : x{x} {}              // y = 0
+    Vec(int x, int y) : x{x}, y{y} {}
+};
+\end{lstlisting}
+
+\section*{Summary}
+\begin{itemize}
+  \item Include guards in headers, never compile headers, never include
+        \code{.cc} files, no \code{using namespace std} in headers.
+  \item Classes are structs with methods; methods get a hidden \code{this}
+        pointer; \code{Class::method} defines a method outside the class.
+  \item Constructors initialize objects; writing any ctor removes the free
+        default ctor.
+  \item Construction: allocate, initialize fields (MIL), run body. Use the MIL
+        for \code{const}/reference fields and fields without default ctors;
+        fields are initialized in declaration order.
+\end{itemize}

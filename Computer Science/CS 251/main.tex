@@ -1,0 +1,26 @@
+\documentclass[11pt,oneside]{book}
+\input{../common/preamble}
+\usetikzlibrary{circuits.logic.US}
+% ARM assembly: MIPS style, but "#" marks immediates rather than comments
+\lstdefinestyle{arm}{language=MIPS, deletecomment=[l]{\#}}
+\title{CS 251 --- Computer Organization and Design}
+\author{Vishesh Gupta}
+\date{University of Waterloo}
+\begin{document}
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\include{chapters/01-introduction}
+\include{chapters/02-mips-basics}
+\include{chapters/03-combinational-logic}
+\include{chapters/04-sequential-logic}
+\include{chapters/05-data-representation}
+\include{chapters/06-mips-isa}
+\include{chapters/07-single-cycle-datapath}
+\include{chapters/08-multi-cycle-datapath}
+\include{chapters/09-pipelining}
+\include{chapters/10-caches}
+\include{chapters/11-virtual-memory}
+\include{chapters/12-arm}
+\end{document}

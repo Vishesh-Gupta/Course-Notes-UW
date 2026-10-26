@@ -1,0 +1,355 @@
+\chapter{Virtual Memory}
+
+\section{Physical vs virtual addresses}
+
+\begin{itemize}
+  \item \textbf{Physical memory}: if the machine has $P$ bytes of RAM, physical addresses range
+    over $0 \ldots P-1$. A machine with 32-bit physical addresses can address at most
+    $2^{32}$ bytes = 4\,GB.
+  \item \textbf{Virtual memory}: the kernel gives each process its own \textbf{address space},
+    a range of \textbf{virtual addresses} $0 \ldots 2^{V}-1$. All addresses that a process
+    generates (instruction fetches, loads, stores) are virtual.
+  \item The \textbf{MMU} (memory management unit) translates every virtual address to a
+    physical address, using information set up by the kernel.
+\end{itemize}
+
+Why virtualize memory?
+\begin{enumerate}
+  \item \textbf{Isolation/protection}: a process can only reach physical memory that the
+    kernel mapped into its address space.
+  \item \textbf{Convenience}: every program can be linked to start at the same virtual address;
+    the address space can be larger than physical memory.
+  \item \textbf{Efficient use of memory}: only the parts actually used need physical memory
+    (and pages can live on disk).
+\end{enumerate}
+
+\section{Dynamic relocation (base and bound)}
+
+The simplest scheme: each address space occupies one contiguous region of physical memory.
+The MMU has a \textbf{relocation register} $R$ (base) and a \textbf{limit register} $L$ (size).
+\[
+  \text{translate}(v) = \begin{cases} R + v & \text{if } v < L, \\ \text{exception} & \text{otherwise.}\end{cases}
+\]
+On a context switch the kernel reloads $R$ and $L$.
+
+\begin{example}
+$R = \mathtt{0x24000}$, $L = \mathtt{0x10000}$. Virtual \code{0x0F2A} $\to$ \code{0x24F2A}.
+Virtual \code{0x10004} $\ge L$ $\to$ exception.
+\end{example}
+
+\textbf{Problem}: the whole address space (including the big unused gap between heap and stack)
+must be physically contiguous. This causes \textbf{external fragmentation}: free physical memory
+is split into holes too small to use.
+
+\section{Segmentation}
+
+Divide the address space into a few \textbf{segments} (code, data, heap, stack), each relocated
+independently with its own base and limit. A virtual address is (segment number, offset).
+With $K$ bits for the segment number:
+\[
+  v = \underbrace{s}_{\text{top }K\text{ bits}} \mid \underbrace{o}_{\text{offset}}, \qquad
+  \text{translate}(v) = R_s + o \text{ if } o < L_s.
+\]
+Unused gaps between segments need no physical memory, but each segment is still contiguous,
+so external fragmentation remains.
+
+\begin{example}
+32-bit virtual addresses, 2-bit segment number. Segment 1 has base \code{0x40000} and limit
+\code{0x8000}. Virtual \code{0x40001F00} has segment $= 01_2 = 1$, offset \code{0x1F00} $<$ limit,
+so physical $=$ \code{0x41F00}.
+\end{example}
+
+\section{Paging}
+
+\begin{definition}[Paging]
+Physical memory is divided into fixed-size \textbf{frames}; each virtual address space is
+divided into \textbf{pages} of the same size (typically 4\,KB). Any page can be placed in any
+frame. A per-process \textbf{page table} maps page numbers to frame numbers.
+\end{definition}
+
+A virtual address with page size $2^{d}$ splits into a \textbf{page number} (high bits) and an
+\textbf{offset} (low $d$ bits). The offset is unchanged by translation.
+
+\begin{center}
+\begin{tikzpicture}[b/.style={draw,minimum height=0.7cm,font=\small}]
+  \node[b,minimum width=3cm,fill=blue!10] (vpn) {page number $p$};
+  \node[b,minimum width=2cm,right=0pt of vpn,fill=green!10] (off) {offset $o$};
+  \node[above=0.1cm of vpn.north west,anchor=south west,font=\small] {virtual address};
+  \node[draw,below=1.4cm of vpn,minimum width=2.6cm,minimum height=2.6cm,align=center] (pt) {};
+  \node[below=0pt of pt,font=\small] {page table};
+  \foreach \i in {0,...,3} {
+    \draw ($(pt.north west)+(0,-0.65*\i)$) -- ($(pt.north east)+(0,-0.65*\i)$);
+  }
+  \node[font=\small] at ($(pt.north)+(0.35,-1.62)$) {frame $f$ \, V};
+  \draw[-{Stealth}] (vpn.south) -- node[left,font=\small]{index} ($(pt.north)+(-0.6,-1.62)$);
+  \node[b,minimum width=3cm,fill=orange!15,right=2.5cm of pt.east,yshift=0.2cm] (pfn) {frame number $f$};
+  \node[b,minimum width=2cm,right=0pt of pfn,fill=green!10] (off2) {offset $o$};
+  \node[below=0.1cm of pfn.south west,anchor=north west,font=\small] {physical address};
+  \draw[-{Stealth}] ($(pt.north east)+(0,-1.62)$) -- (pfn.west);
+  \draw[-{Stealth}] (off.south) to[out=-60,in=90] (off2.north);
+  \node[draw,dashed,font=\small,left=0.6cm of pt] (ptbr) {PTBR};
+  \draw[-{Stealth}] (ptbr) -- (pt.west);
+\end{tikzpicture}
+\end{center}
+
+Each \textbf{page table entry (PTE)} contains the frame number plus flag bits:
+\begin{description}
+  \item[Valid] the page is mapped; access to an invalid page raises an exception.
+  \item[Write / read-only] protection (e.g.\ code pages read-only); also execute bits.
+  \item[Referenced (use)] set by hardware on access; used by page replacement.
+  \item[Dirty (modified)] set on write; a dirty page must be written back before eviction.
+  \item[Present] the page is in memory (vs.\ on disk) --- see page faults.
+\end{description}
+
+\begin{example}[Translation]
+16-bit virtual addresses, 4\,KB ($2^{12}$) pages: 4-bit page number, 12-bit offset.
+Page table: page $0 \to$ frame \code{0x0F}, page $1 \to$ frame \code{0x26}, page $2$ invalid,
+page $3 \to$ frame \code{0x01}.
+\begin{itemize}
+  \item \code{0x102C}: page 1, offset \code{0x02C} $\to$ \code{0x2602C}.
+  \item \code{0x3FFF}: page 3, offset \code{0xFFF} $\to$ \code{0x01FFF}.
+  \item \code{0x2004}: page 2 invalid $\to$ exception.
+\end{itemize}
+\end{example}
+
+\begin{important}[Paging pros and cons]
+No external fragmentation (all frames are interchangeable). Some \textbf{internal
+fragmentation}: on average half a page is wasted at the end of each segment. Main cost: the page
+table itself. With 32-bit addresses and 4\,KB pages there are $2^{20}$ pages; with 4-byte PTEs a
+\emph{linear} page table is 4\,MB \emph{per process}, even if the process uses little memory.
+With 48-bit or 64-bit virtual addresses, linear tables are impossible.
+\end{important}
+
+\section{Multi-level page tables}
+
+Make the page table itself paged: split the page number into several pieces. The first piece
+indexes a top-level \textbf{directory}; each directory entry points to a second-level page table
+(or is invalid, in which case that whole region needs no table at all).
+
+\begin{center}
+\begin{tikzpicture}[b/.style={draw,minimum height=0.7cm,font=\small},t/.style={draw,minimum width=1.5cm,minimum height=2cm}]
+  \node[b,minimum width=2cm,fill=blue!10] (p1) {$p_1$};
+  \node[b,minimum width=2cm,right=0pt of p1,fill=blue!20] (p2) {$p_2$};
+  \node[b,minimum width=2cm,right=0pt of p2,fill=green!10] (o) {$o$};
+  \node[t,below left=1.2cm and 0.0cm of p1] (dir) {};
+  \node[below=0pt of dir,font=\small] {directory};
+  \node[t,right=1.6cm of dir] (pt2) {};
+  \node[below=0pt of pt2,font=\small] {2nd-level table};
+  \node[b,minimum width=2.2cm,right=1.6cm of pt2,fill=orange!15] (f) {frame $f$};
+  \node[b,minimum width=1.4cm,right=0pt of f,fill=green!10] (o2) {$o$};
+  \draw ($(dir.west)+(0,0.2)$) -- ($(dir.east)+(0,0.2)$);
+  \draw ($(dir.west)+(0,-0.15)$) -- ($(dir.east)+(0,-0.15)$);
+  \draw ($(pt2.west)+(0,-0.4)$) -- ($(pt2.east)+(0,-0.4)$);
+  \draw ($(pt2.west)+(0,-0.75)$) -- ($(pt2.east)+(0,-0.75)$);
+  \draw[-{Stealth}] (p1.south) -- ($(dir.north)+(0,-0.8)$);
+  \draw[-{Stealth}] ($(dir.east)+(0,0.03)$) -- ($(pt2.north west)+(0,-0.1)$);
+  \draw[-{Stealth}] (p2.south) -- ($(pt2.north)+(0,-1.4)$);
+  \draw[-{Stealth}] ($(pt2.east)+(0,-0.58)$) -- (f.west);
+  \draw[-{Stealth}] (o.south) to[out=-70,in=110] (o2.north);
+\end{tikzpicture}
+\end{center}
+
+\begin{example}[Two-level table for 32-bit addresses]
+4\,KB pages $\Rightarrow$ 12-bit offset, 20-bit page number split $10 + 10$. Each table has
+$2^{10}$ 4-byte entries $=$ exactly one 4\,KB page. A small process with one code page, one data
+page and one stack page near the top needs the directory plus 2 second-level tables
+($\approx$12\,KB), instead of 4\,MB.
+
+General rule: choose the bits per level so each table fits in one page. With $2^{d}$-byte pages
+and $2^{e}$-byte PTEs, each level resolves $d-e$ bits, so the number of levels is
+$\ceil{(V-d)/(d-e)}$. E.g.\ x86-64: $V=48$, $d=12$, $e=3$ $\Rightarrow$ $\ceil{36/9} = 4$ levels.
+\end{example}
+
+Cost: a $k$-level table needs $k$ memory accesses to translate one address. This is why a TLB is
+essential.
+
+\section{Translation lookaside buffer (TLB)}
+
+\begin{definition}[TLB]
+A \textbf{TLB} is a small, fast, fully-associative cache in the MMU holding recent
+(page number $\to$ frame number, flags) translations. On a TLB \textbf{hit}, translation takes no
+extra memory access. On a \textbf{miss}, the translation must be found in the page table and
+loaded into the TLB.
+\end{definition}
+
+\begin{itemize}
+  \item \textbf{Hardware-managed TLB} (x86): on a miss the MMU walks the page table itself; the
+    format of the page table is fixed by the hardware.
+  \item \textbf{Software-managed TLB} (MIPS): on a miss the MMU raises an exception; the
+    kernel's handler finds the translation (any data structure it likes) and writes it into the
+    TLB with \code{tlbwr} (random slot) or \code{tlbwi} (given index).
+\end{itemize}
+
+Effective access time with hit rate $h$, memory access time $m$, TLB lookup negligible, and a
+$k$-level table walk on a miss:
+\[ \text{EAT} = h\cdot m + (1-h)(k+1)m. \]
+E.g.\ $h = 0.99$, $k=2$: EAT $= 0.99m + 0.03m = 1.02m$. Programs have \emph{locality}, so
+hit rates are typically very high.
+
+On a context switch, TLB entries of the old process are wrong for the new one: either
+\textbf{flush} (invalidate) the TLB, or tag each entry with an \textbf{address space ID}
+(ASID). The MIPS R3000 TLB has 64 entries, each with a VPN in \code{EntryHi} (with a 6-bit ASID
+that OS/161 ignores) and PFN plus \emph{valid}, \emph{dirty} (= writable), \emph{global},
+\emph{nocache} bits in \code{EntryLo}. OS/161's \code{as\_activate} simply invalidates all TLB
+entries.
+
+\section{OS/161 dumbvm}
+
+OS/161 starts with \code{dumbvm}, a deliberately simple VM system:
+\begin{itemize}
+  \item Each address space has exactly two segments (text and data) and a fixed-size stack
+    (12 pages), each \emph{contiguous in physical memory}: essentially segmentation with base
+    and size stored in \code{struct addrspace} (\code{as\_vbase1}, \code{as\_pbase1},
+    \code{as\_npages1}, \ldots).
+  \item Physical memory is grabbed with \code{ram\_stealmem} and never freed.
+  \item On a TLB miss, \code{vm\_fault} computes the physical address by relocation and writes a
+    TLB entry.
+\end{itemize}
+\begin{lstlisting}[style=c]
+int vm_fault(int faulttype, vaddr_t faultaddress) {
+    struct addrspace *as = proc_getas(curproc);
+    vaddr_t vbase1 = as->as_vbase1, vtop1 = vbase1 + as->as_npages1 * PAGE_SIZE;
+    vaddr_t vbase2 = as->as_vbase2, vtop2 = vbase2 + as->as_npages2 * PAGE_SIZE;
+    vaddr_t stackbase = USERSTACK - DUMBVM_STACKPAGES * PAGE_SIZE;
+    paddr_t paddr;
+
+    faultaddress &= PAGE_FRAME;               /* page-align */
+    if (faulttype == VM_FAULT_READONLY) return EFAULT;  /* A3: kill process */
+    if (faultaddress >= vbase1 && faultaddress < vtop1)
+        paddr = faultaddress - vbase1 + as->as_pbase1;
+    else if (faultaddress >= vbase2 && faultaddress < vtop2)
+        paddr = faultaddress - vbase2 + as->as_pbase2;
+    else if (faultaddress >= stackbase && faultaddress < USERSTACK)
+        paddr = faultaddress - stackbase + as->as_stackpbase;
+    else
+        return EFAULT;                        /* segmentation fault */
+
+    int spl = splhigh();
+    uint32_t ehi = faultaddress;
+    uint32_t elo = paddr | TLBLO_DIRTY | TLBLO_VALID;
+    tlb_random(ehi, elo);                     /* A3: replace a random entry when full */
+    splx(spl);
+    return 0;
+}
+\end{lstlisting}
+Assignment 3 improves this: make the text segment read-only after loading (clear
+\code{TLBLO\_DIRTY}), handle a full TLB, and replace \code{ram\_stealmem} with a \textbf{coremap}
+that tracks which physical frames are free so memory can be reclaimed.
+
+\section{Where address spaces come from}
+The kernel builds an address space from an ELF executable: the ELF header lists
+\emph{segments} (virtual address, size in file, size in memory, permissions). For each, the
+kernel defines a region (\code{as\_define\_region}), allocates memory (\code{as\_prepare\_load}),
+copies the file image in, zero-fills the rest (\code{.bss}), and finally sets up the stack
+(\code{as\_define\_stack}). In OS/161 user stacks grow down from \code{USERSTACK =
+0x80000000}.
+
+\section{Paging to secondary storage}
+
+Physical memory can be smaller than the sum of all address spaces. Keep only some pages in RAM;
+the rest live in a \textbf{swap} area on disk. The PTE \emph{present} bit says which.
+
+\begin{definition}[Page fault]
+A \textbf{page fault} is the exception raised when a process accesses a valid page that is not
+present in memory. The kernel:
+\begin{enumerate}
+  \item finds a free frame, or evicts a victim page (writing it to disk if dirty, and marking
+    its PTE not present);
+  \item reads the needed page from disk into the frame (the faulting thread blocks; another
+    thread runs meanwhile);
+  \item updates the PTE (present, frame number) and returns, re-executing the faulting
+    instruction.
+\end{enumerate}
+\end{definition}
+
+Demand paging: pages are loaded only when first touched. Prefetching (read nearby pages
+together) can reduce fault counts.
+
+\begin{important}[Cost]
+A disk access is $\sim$5--10\,ms vs.\ $\sim$100\,ns for memory: a factor of $10^{5}$. With fault
+rate $p$, EAT $= (1-p)\cdot 100\,\text{ns} + p \cdot 10\,\text{ms}$. To keep the slowdown under
+10\%, $p$ must be below about $10^{-6}$. Replacement policy matters.
+\end{important}
+
+\section{Page replacement policies}
+
+Measured with a \textbf{reference string} (sequence of page numbers) and a number of frames.
+
+\subsection{Optimal (MIN / Belady)}
+Evict the page whose next use is furthest in the future. Provably minimal faults but
+requires knowledge of the future; used as a benchmark.
+
+\subsection{FIFO}
+Evict the page that has been in memory longest. Simple but ignores usage.
+
+\begin{example}[3 frames, reference string \code{a b c d a b e a b c d e}]
+\begin{center}
+\begin{tabular}{@{}l*{12}{c}@{}}
+\toprule
+Ref & a & b & c & d & a & b & e & a & b & c & d & e \\
+\midrule
+FIFO F1 & a & a & a & d & d & d & e & e & e & e & e & e \\
+FIFO F2 &   & b & b & b & a & a & a & a & a & c & c & c \\
+FIFO F3 &   &   & c & c & c & b & b & b & b & b & d & d \\
+Fault & x & x & x & x & x & x & x &   &   & x & x &   \\
+\bottomrule
+\end{tabular}
+\end{center}
+FIFO: 9 faults. OPT on the same string: 7 faults (a, b, c, d, e, c, d). With 4 frames FIFO
+gives 10 faults --- more frames, more faults! This is \textbf{Belady's anomaly}.
+\end{example}
+
+\subsection{LRU (least recently used)}
+Evict the page whose most recent use is furthest in the past --- past behaviour predicts the
+future (locality). LRU is a \emph{stack algorithm} and does not suffer Belady's anomaly. On the
+string above with 3 frames LRU gives 10 faults (this string is adversarial for it).
+Exact LRU requires updating a timestamp or list on \emph{every} memory reference, which is too
+expensive; hardware only provides the use bit.
+
+\subsection{Clock (second chance)}
+Approximates LRU with the \emph{use bit}. Frames are arranged in a circle with a ``hand''.
+\begin{lstlisting}[style=c]
+int clock_choose_victim(void) {
+    for (;;) {
+        struct frame *f = &frames[hand];
+        hand = (hand + 1) % nframes;
+        if (f->use) f->use = 0;     /* give a second chance */
+        else return f - frames;     /* not used since last sweep: evict */
+    }
+}
+\end{lstlisting}
+Hardware sets \code{use = 1} on every access. On a MIPS software-managed TLB, the kernel can
+simulate use bits by invalidating TLB entries and setting the bit when the next TLB miss for
+that page occurs. A common refinement also prefers clean pages (use bit, dirty bit) over dirty
+ones.
+
+\subsection{Working sets and thrashing}
+\begin{definition}
+The \textbf{working set} $W(t,\Delta)$ of a process is the set of pages it referenced in the last
+$\Delta$ time units (or references). \textbf{Thrashing} occurs when the sum of working sets
+exceeds physical memory: processes fault continually, the CPU is mostly idle waiting for the
+disk, and throughput collapses.
+\end{definition}
+Remedies: give each process enough frames for its working set (\emph{page-fault frequency}
+control: if a process faults too often give it more frames, if rarely take some away), and if
+memory is overcommitted, suspend (swap out) whole processes to reduce the
+\emph{multiprogramming level}.
+
+\begin{aside}
+Locality: \emph{temporal} (recently used data is used again soon) and \emph{spatial} (nearby
+addresses are used soon). Both are what make TLBs, caches and LRU-like replacement effective.
+\end{aside}
+
+\section*{Summary}
+\begin{itemize}
+  \item The MMU translates virtual to physical addresses on every access; the kernel sets up
+    the mapping and handles exceptions.
+  \item Base/bound and segmentation are simple but suffer external fragmentation; paging avoids
+    it at the cost of page tables (internal fragmentation is small).
+  \item Multi-level page tables save space for sparse address spaces; TLBs make translation
+    fast. MIPS uses a software-managed 64-entry TLB.
+  \item \code{dumbvm} = contiguous segments + TLB refill by relocation.
+  \item Page faults bring pages in from disk; replacement policies: OPT (ideal), FIFO
+    (Belady's anomaly), LRU (good, expensive), clock (practical approximation).
+  \item Thrashing occurs when working sets do not fit in memory.
+\end{itemize}

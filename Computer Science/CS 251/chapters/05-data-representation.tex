@@ -1,0 +1,231 @@
+\chapter{Data Representation and Manipulation}
+
+Everything in a computer is a string of bits. What those bits \emph{mean}
+(an unsigned number, a signed number, a character, an instruction, a
+floating-point value) depends entirely on how they are interpreted.
+
+\section{Number Bases}
+
+A string $b_{n-1}\ldots b_1b_0$ in base $r$ has value
+$\sum_{i=0}^{n-1} b_i r^i$.
+
+\begin{itemize}
+  \item \textbf{Binary $\to$ decimal}: sum the powers of two.
+    $1011_2 = 8 + 2 + 1 = 11$.
+  \item \textbf{Decimal $\to$ binary}: repeatedly divide by 2 and read the
+    remainders bottom-up, or subtract the largest powers of 2.
+  \item \textbf{Hexadecimal} (base 16, digits 0--9, A--F): each hex digit is
+    exactly 4 bits, so conversion is grouping.
+    $1101\,0110\,1111_2 = \texttt{0xD6F}$.
+  \item Octal groups 3 bits.
+\end{itemize}
+
+\begin{example}
+$157 = 128 + 16 + 8 + 4 + 1 = 1001\,1101_2 = \texttt{0x9D}$.
+\end{example}
+
+Useful powers: $2^{10} \approx 10^3$ (Ki), $2^{20}$ (Mi), $2^{30}$ (Gi),
+$2^{32} \approx 4.29 \times 10^9$.
+
+\section{Unsigned Integers}
+
+With $n$ bits, unsigned integers range over $0$ to $2^n - 1$. Addition is
+done column by column with carries. If there is a carry out of the most
+significant bit, the true result does not fit: \textbf{unsigned overflow}
+(the stored result is the true sum mod $2^n$).
+
+\section{Signed Integers}
+
+\subsection{Sign--magnitude and one's complement}
+
+\textbf{Sign--magnitude}: MSB is the sign, rest is magnitude. Has two zeros
+($+0$, $-0$) and needs special adder logic. \textbf{One's complement}: negate
+by flipping all bits; still two zeros, end-around carry needed. Both are
+historical.
+
+\subsection{Two's complement}
+
+\begin{definition}
+In $n$-bit \textbf{two's complement}, the MSB has weight $-2^{n-1}$:
+\[
+\text{value}(b_{n-1}\ldots b_0) = -b_{n-1}2^{n-1} + \sum_{i=0}^{n-2} b_i 2^i.
+\]
+The range is $-2^{n-1}$ to $2^{n-1} - 1$ (for 32 bits: about $\pm 2.1$
+billion).
+\end{definition}
+
+\begin{itemize}
+  \item \textbf{Negation}: invert all bits and add 1. (Shortcut: copy bits
+    from the right up to and including the first 1, then invert the rest.)
+  \item There is exactly one zero. The most negative number $-2^{n-1}$ has
+    no positive counterpart (negating it gives itself).
+  \item Addition and subtraction use the \emph{same} hardware as unsigned
+    arithmetic; only the overflow rule differs.
+\end{itemize}
+
+\begin{example}
+In 8 bits: $5 = 0000\,0101$, so $-5 = 1111\,1010 + 1 = 1111\,1011$.
+Check: $-128 + 64 + 32 + 16 + 8 + 2 + 1 = -5$.
+\end{example}
+
+\subsection{Sign extension}
+
+To widen an $n$-bit two's complement number to $m > n$ bits, copy the sign
+bit into the new high bits. $1011$ ($-5$ in 4 bits) becomes $1111\,1011$
+($-5$ in 8 bits). MIPS sign-extends the 16-bit immediate of \code{addi},
+\code{lw}, \code{sw}, \code{beq}. Zero extension (fill with 0s) is used for
+unsigned values and for logical immediates (\code{andi}, \code{ori}).
+
+\subsection{Signed overflow}
+
+\begin{important}[Overflow rules]
+For two's complement addition $A + B$:
+\begin{itemize}
+  \item overflow is impossible if $A$ and $B$ have different signs;
+  \item overflow occurred iff $A$ and $B$ have the same sign and the result
+    has the opposite sign;
+  \item equivalently, carry into MSB $\ne$ carry out of MSB.
+\end{itemize}
+For $A - B$, overflow iff $A$ and $B$ have different signs and the result's
+sign differs from $A$'s.
+\end{important}
+
+\begin{example}
+4-bit: $0111 + 0001 = 1000$, i.e.\ $7 + 1 = -8$: overflow (two positives gave
+a negative). $1111 + 0001 = 0000$ ($-1 + 1 = 0$): carry out of MSB but
+\emph{no} signed overflow.
+\end{example}
+
+In MIPS, \code{add}, \code{addi}, \code{sub} trap (raise an exception) on
+signed overflow; \code{addu}, \code{addiu}, \code{subu} ignore it. C compilers
+use the unsigned forms.
+
+\section{Multiplication and Division}
+
+\paragraph{Multiplication.} Shift-and-add, exactly like long multiplication:
+for each 1 bit of the multiplier, add the shifted multiplicand. Product of
+two $n$-bit numbers needs $2n$ bits. MIPS \code{mult \$s, \$t} puts the
+64-bit product into the special registers \code{HI} (upper) and \code{LO}
+(lower), read with \code{mfhi}/\code{mflo}. Multiplying by $2^k$ is a left
+shift by $k$.
+
+\paragraph{Division.} Shift-and-subtract (restoring division). \code{div
+\$s, \$t} puts the quotient in \code{LO} and remainder in \code{HI}.
+Signed division: divide magnitudes, then the quotient is negative if the
+signs differ, and the remainder has the sign of the dividend.
+
+\section{Shifts and Logical Operations}
+
+\begin{itemize}
+  \item \code{sll} (logical left): fill with 0s; multiplies by $2^k$.
+  \item \code{srl} (logical right): fill with 0s; unsigned divide by $2^k$.
+  \item \code{sra} (arithmetic right): fill with copies of the sign bit;
+    signed divide by $2^k$ (rounding toward $-\infty$).
+  \item Bitwise \code{and} with a mask extracts bits; \code{or} sets bits;
+    \code{xor} toggles bits; \code{nor \$d, \$s, \$0} gives NOT.
+\end{itemize}
+
+\section{Floating Point: IEEE 754}
+
+Real numbers are stored in binary scientific notation
+$(-1)^s \times 1.f \times 2^{e}$. The leading 1 is not stored
+(\emph{hidden bit}) since normalized numbers always have it.
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+Format & sign & exponent & fraction & bias \\
+\midrule
+Single (32-bit) & 1 & 8 & 23 & 127 \\
+Double (64-bit) & 1 & 11 & 52 & 1023 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\[
+\text{value} = (-1)^S \times (1 + \text{Fraction}) \times 2^{\text{Exponent} - \text{Bias}}.
+\]
+The exponent is stored \textbf{biased} (as unsigned $E = e + 127$) so that
+floats can be compared like unsigned integers.
+
+\subsection{Special values (single precision)}
+\begin{center}
+\begin{tabular}{ccl}
+\toprule
+Exponent & Fraction & Meaning \\
+\midrule
+0 & 0 & $\pm 0$ \\
+0 & $\ne 0$ & denormalized: $(-1)^S \times 0.f \times 2^{-126}$ \\
+1--254 & any & normalized number \\
+255 & 0 & $\pm\infty$ \\
+255 & $\ne 0$ & NaN (not a number) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Range of normalized singles: about $\pm 1.2 \times 10^{-38}$ to
+$\pm 3.4 \times 10^{38}$, with about 7 decimal digits of precision
+(double: about 16 digits).
+
+\begin{example}[Decimal to IEEE single]
+Encode $-0.75$. $0.75 = 0.11_2 = 1.1_2 \times 2^{-1}$. So $S = 1$,
+$E = -1 + 127 = 126 = 0111\,1110$, fraction $= 100\ldots0$.
+\[
+1\;01111110\;10000000000000000000000 = \texttt{0xBF400000}.
+\]
+\end{example}
+
+\begin{example}[IEEE single to decimal]
+\texttt{0x41480000} $= 0\;10000010\;10010000\ldots$. $S = 0$, $E = 130$ so
+$e = 3$, significand $= 1.1001_2 = 1.5625$. Value $= 1.5625 \times 8 = 12.5$.
+\end{example}
+
+\subsection{Floating-point arithmetic}
+
+\textbf{Addition}: (1) align binary points by shifting the smaller number's
+significand right until exponents match; (2) add significands; (3) normalize
+(shift and adjust exponent, check over/underflow); (4) round (IEEE uses
+guard, round and sticky bits; default round-to-nearest-even).
+\textbf{Multiplication}: add exponents (subtracting one bias), multiply
+significands, normalize, round, sign = XOR of signs.
+
+\begin{important}[Pitfalls]
+Floating-point addition is \emph{not associative}:
+$(-10^{38} + 10^{38}) + 1 = 1$ but $-10^{38} + (10^{38} + 1) = 0$.
+Many decimal fractions (e.g.\ 0.1) have no exact binary representation.
+Never compare floats for exact equality.
+\end{important}
+
+\section{Characters}
+
+\begin{itemize}
+  \item \textbf{ASCII}: 7 bits (stored in a byte). \code{'0'} $= 48$
+    (0x30), \code{'A'} $= 65$ (0x41), \code{'a'} $= 97$ (0x61). Upper and
+    lower case differ by 32 (bit 5).
+  \item \textbf{Unicode}: up to 21-bit code points; UTF-8 encodes them in
+    1--4 bytes and is backward compatible with ASCII; UTF-16 uses 2 or 4.
+  \item Strings in C are null-terminated byte arrays. MIPS has \code{lb},
+    \code{lbu}, \code{sb} for bytes (\code{lb} sign-extends, \code{lbu}
+    zero-extends).
+\end{itemize}
+
+\section{Endianness}
+
+A word occupies 4 bytes at addresses $a, a+1, a+2, a+3$.
+\textbf{Big-endian} puts the most significant byte at the lowest address
+(MIPS, network order); \textbf{little-endian} puts the least significant
+byte first (x86, ARM usually). Storing \code{0x12345678} at address 0:
+big-endian memory reads \code{12 34 56 78}, little-endian
+\code{78 56 34 12}.
+
+\section*{Summary}
+\begin{itemize}
+  \item Hex = groups of 4 bits. Unsigned range $[0, 2^n - 1]$; two's
+    complement range $[-2^{n-1}, 2^{n-1}-1]$.
+  \item Negate: invert and add 1. Sign-extend by copying the MSB.
+  \item Signed overflow: same-sign operands, opposite-sign result
+    ($C_{in,MSB} \ne C_{out,MSB}$). Unsigned overflow: carry out.
+  \item IEEE 754 single: 1/8/23 bits, bias 127, hidden 1, special values
+    for 0, denormals, $\infty$, NaN. FP addition is not associative.
+  \item ASCII characters in bytes; endianness decides byte order in a word.
+\end{itemize}

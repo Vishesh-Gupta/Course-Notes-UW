@@ -1,0 +1,249 @@
+\chapter{I/O and Testing}
+
+\textbf{Readings:} CP:AMA 2.5, 3.1--3.2, 22.1--22.3 (selected).
+
+\section{Input and Output}
+
+\begin{definition}
+\emph{Input and output} (I/O) is how a program interacts with the outside world: receiving data
+(input) and displaying or sending data (output).
+\end{definition}
+
+A program may interact with humans (keyboard, screen) or with non-human entities: files,
+other programs, or other computers over a network (e.g.\ a web server). In CS 136 we only use
+\emph{standard input} (stdin, usually the keyboard) and \emph{standard output} (stdout, usually
+the screen). Either can be \emph{redirected} to come from or go to a file, which is how Seashell
+and Marmoset test our programs.
+
+\section{Output with \code{printf}}
+
+We have already used \code{printf} with the placeholders \code{\%d}, \code{\%c}, \code{\%f},
+\code{\%zd} and \code{\%p} (and \code{\%s} for strings in Unit~08). Some details:
+\begin{itemize}
+  \item The number of placeholders must match the number (and types) of extra arguments.
+    A mismatch is undefined behaviour, but the compiler usually warns.
+  \item \code{printf} produces output as a side effect. (It also returns the number of
+    characters printed, which we rarely use.)
+  \item Output is often \emph{buffered}: it may not appear until a newline is printed or the
+    program ends. If a program crashes, the last few lines of output can be lost, which can be
+    misleading when debugging.
+\end{itemize}
+
+\section{Debugging Output and Tracing}
+
+\emph{Tracing} means printing intermediate values to see what a program is doing. To avoid
+having to delete tracing code before submitting, wrap it in a flag:
+\begin{lstlisting}[style=c]
+const bool DEBUG = true;   // set to false before submitting
+
+int sum_first(int n) {
+  int sum = 0;
+  for (int i = 1; i <= n; ++i) {
+    sum += i;
+    if (DEBUG) {
+      printf("TRACE: i = %d, sum = %d\n", i, sum);
+    }
+  }
+  return sum;
+}
+\end{lstlisting}
+\begin{aside}
+A preprocessor version (\code{\#ifdef DEBUG ... \#endif}) removes the code completely at compile
+time. Printing traces to \code{stderr} with \code{fprintf(stderr, ...)} keeps them separate from
+the program's real output.
+\end{aside}
+
+\section{Input with \code{scanf}}
+
+\code{scanf} reads formatted input. It uses placeholders like \code{printf}, but each extra
+argument must be a \emph{pointer} to the variable that will receive the value.
+\begin{lstlisting}[style=c]
+int n = 0;
+int count = scanf("%d", &n);   // note the &
+\end{lstlisting}
+
+\begin{important}[The return value of \code{scanf}]
+\code{scanf} returns the number of values successfully read and stored:
+\begin{itemize}
+  \item \code{1} (for one placeholder): success;
+  \item \code{0}: the input was not in the expected format (e.g.\ a letter when reading an int);
+    the offending characters are left unread;
+  \item \code{EOF} (a negative constant): the end of the input was reached before anything
+    could be read.
+\end{itemize}
+Always check the return value. Never assume \code{scanf} succeeded.
+\end{important}
+
+\emph{End of file} (EOF) is a special signal that there is no more input. When input comes from
+a file it happens at the end of the file; when typing in Seashell you can send it with
+\textbf{Ctrl+D}.
+
+\subsection{Whitespace}
+
+\begin{itemize}
+  \item \code{\%d} (and \code{\%f}, \code{\%s}) skip leading whitespace (spaces, tabs, newlines)
+    automatically.
+  \item \code{\%c} does \emph{not}: it reads the very next character, which may be a space or
+    newline. To skip whitespace before reading a character use \code{" \%c"} (with a space).
+\end{itemize}
+
+\subsection{Reading all integers until EOF}
+
+\begin{lstlisting}[style=c]
+// read_sum() reads integers from input until EOF (or invalid input)
+//   and produces their sum
+// effects: reads input
+int read_sum(void) {
+  int sum = 0;
+  int n = 0;
+  while (scanf("%d", &n) == 1) {
+    sum += n;
+  }
+  return sum;
+}
+\end{lstlisting}
+
+\subsection{Reading commands}
+
+Many assignments read a sequence of commands. A typical structure:
+\begin{lstlisting}[style=c]
+int main(void) {
+  char cmd = 0;
+  int arg = 0;
+  while (scanf(" %c", &cmd) == 1) {
+    if (cmd == 'a') {            // "a 5" adds 5
+      if (scanf("%d", &arg) != 1) {
+        printf("invalid input\n");
+        break;
+      }
+      // ... add arg ...
+    } else if (cmd == 'p') {     // "p" prints
+      // ... print ...
+    } else if (cmd == 'q') {     // "q" quits
+      break;
+    } else {
+      printf("unknown command %c\n", cmd);
+    }
+  }
+}
+\end{lstlisting}
+
+\subsection{Reading characters with \code{getchar}}
+
+\code{getchar()} (in \code{<stdio.h>}) reads one character and returns it as an \code{int}, or
+\code{EOF}. The result must be stored in an \code{int}, not a \code{char}, so that \code{EOF} can
+be distinguished from every valid character.
+\begin{lstlisting}[style=c]
+// count_lines() counts the lines of input
+int count_lines(void) {
+  int count = 0;
+  int c = 0;
+  while ((c = getchar()) != EOF) {
+    if (c == '\n') ++count;
+  }
+  return count;
+}
+\end{lstlisting}
+
+\subsection{Invalid input}
+
+When \code{scanf("\%d", \&n)} returns 0, the bad characters are still waiting in the input, so
+calling it again in a loop would loop forever. Either stop, or skip the bad input (e.g.\ read
+characters with \code{getchar} until a newline). Unless an assignment says otherwise, you may
+assume input is valid, but your loops should still terminate on EOF.
+
+\section{Testing}
+
+\subsection{Why test?}
+
+Testing cannot prove a program correct, but good tests find most bugs. In CS 136, public tests
+on Marmoset only check basic functionality; private tests are much more thorough, so your own
+testing determines your mark.
+
+\subsection{Kinds of testing}
+
+\begin{itemize}
+  \item \textbf{Black-box testing:} tests are written from the specification (documentation)
+    alone, without looking at the code. Good for checking the interface is correct.
+  \item \textbf{White-box testing:} tests are written while looking at the code, to make sure
+    every branch, loop and special case is exercised.
+  \item \textbf{Assertion-based testing:} a test client calls functions and \code{assert}s the
+    results (no I/O required). Good for modules.
+  \item \textbf{I/O-driven testing:} the program reads input and produces output; tests compare
+    the actual output with the expected output.
+  \item \textbf{Regression testing:} re-running all old tests after every change to make sure
+    nothing that used to work is now broken.
+\end{itemize}
+
+\subsection{What to test}
+
+\begin{itemize}
+  \item \textbf{Boundary / edge cases:} 0, 1, negative numbers, \code{INT\_MAX}, empty input,
+    an empty collection, a collection with exactly one item, the first and last positions.
+  \item \textbf{Each branch} of every conditional, and loops that run 0, 1 and many times.
+  \item \textbf{Typical cases} (to check general correctness).
+  \item \textbf{Large cases} (to check efficiency and stack depth).
+  \item \textbf{Mutation:} check the state after each side effect, not only the returned value.
+\end{itemize}
+
+\subsection{Testing in Seashell}
+
+For a program \code{prog.c} that reads input, create a pair of files in the \code{tests}
+folder:
+\begin{itemize}
+  \item \code{name.in}: the input to feed to the program;
+  \item \code{name.expect}: the exact expected output.
+\end{itemize}
+Running tests feeds each \code{.in} file to the program and reports whether the output matched
+the \code{.expect} file exactly (whitespace matters, including the final newline). This is the
+same mechanism Marmoset uses. Outside Seashell you would do the same with redirection:
+\begin{lstlisting}[style=bash]
+./prog < test1.in > test1.out
+diff test1.out test1.expect
+\end{lstlisting}
+
+\subsection{Testing modules: a test client}
+
+\begin{lstlisting}[style=c]
+// test-stack.c: assertion-based tests for the stack module
+#include <assert.h>
+#include "stack.h"
+
+int main(void) {
+  struct stack s;
+  stack_init(&s);
+  assert(stack_is_empty(&s));       // empty case
+  stack_push(&s, 1);
+  assert(!stack_is_empty(&s));
+  assert(stack_top(&s) == 1);       // one item
+  stack_push(&s, 2);
+  stack_push(&s, 3);
+  assert(stack_pop(&s) == 3);       // LIFO order
+  assert(stack_pop(&s) == 2);
+  assert(stack_pop(&s) == 1);
+  assert(stack_is_empty(&s));       // back to empty
+}
+\end{lstlisting}
+An I/O-driven test harness is also common: \code{main} reads commands like
+\code{push 5} / \code{pop} / \code{top} and prints results, so many tests can be written as
+\code{.in}/\code{.expect} files without recompiling.
+
+\subsection{Debugging strategies}
+\begin{itemize}
+  \item Read the error message: assertion failures give the file and line.
+  \item Make the failing test as small as possible.
+  \item Add tracing output (with a \code{DEBUG} flag) around the suspected code.
+  \item Trace the memory model by hand: draw the stack frames and pointers.
+  \item Check the usual suspects: uninitialized variables, off-by-one loop bounds, \code{=} vs
+    \code{==}, missing \code{\&} in \code{scanf}, integer division.
+\end{itemize}
+
+\section{Summary}
+\begin{itemize}
+  \item \code{printf} writes to stdout; use a \code{DEBUG} flag for tracing output.
+  \item \code{scanf} needs pointers and returns the number of items read (or \code{EOF}); always
+    check it. \code{" \%c"} skips whitespace.
+  \item Ctrl+D sends EOF in Seashell; \code{getchar} returns an \code{int} so \code{EOF} fits.
+  \item Test black-box and white-box; cover edge cases; use \code{.in}/\code{.expect} files for
+    I/O tests and \code{assert}-based test clients for modules; re-run all tests after changes.
+\end{itemize}

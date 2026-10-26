@@ -1,0 +1,220 @@
+\chapter{Topic: Template Functions, STL Iterators and Algorithms}
+
+\begin{aside}
+Material from the remainder of the term, not covered in the original lecture
+notes. Builds on templates (Lecture 16), \code{vector} and \code{map}
+(Lectures 16 and 19), and the abstract iterator (Lecture 17).
+\end{aside}
+
+\section{Template Functions}
+Functions can be templates too:
+\begin{lstlisting}[style=cpp]
+template <typename T> T min(T x, T y) {
+    return x < y ? x : y;
+}
+
+int a = 1, b = 2;
+int c = min(a, b);          // T = int, deduced from the arguments
+double d = min(1.5, 2.5);   // T = double
+int e = min<int>(1, 2.5);   // T given explicitly (2.5 converted to int)
+\end{lstlisting}
+The compiler deduces \code{T} from the argument types. The template only works
+for types \code{T} that support everything the body uses (here
+\code{operator<} and copying); otherwise instantiation fails to compile.
+
+Recall \code{foreach} from Lecture 17, which required our own \code{AbsIter}.
+Templates make it fully general, with no inheritance at all:
+\begin{lstlisting}[style=cpp]
+template <typename Iter, typename Fn>
+void foreach(Iter start, Iter finish, Fn f) {
+    while (start != finish) {
+        f(*start);
+        ++start;
+    }
+}
+
+int a[] = {1, 2, 3, 4, 5};
+foreach(a, a + 5, addFive);    // raw pointers are iterators!
+vector<int> v{1, 2, 3};
+foreach(v.begin(), v.end(), addFive);
+\end{lstlisting}
+\code{Iter} can be any type supporting \code{!=}, \code{*} and prefix
+\code{++} --- including plain pointers. This is how the STL algorithms work.
+
+\section{Iterator Categories}
+Different containers support different iterator operations:
+\begin{center}
+\begin{tabular}{@{}lp{0.38\textwidth}l@{}}
+\toprule
+Category & Supports & Example \\
+\midrule
+input & read \code{*it}, \code{++}, single pass & \code{istream\_iterator} \\
+output & write \code{*it = x}, \code{++} & \code{ostream\_iterator} \\
+forward & read/write, multi-pass, \code{++} & \code{forward\_list} \\
+bidirectional & forward $+$ \code{--} & \code{list}, \code{map}, \code{set} \\
+random access & bidirectional $+$ \code{it + n}, \code{it[n]}, \code{<} & \code{vector}, pointers \\
+\bottomrule
+\end{tabular}
+\end{center}
+Algorithms state which category they need; e.g.\ \code{sort} needs random access,
+so it works on a \code{vector} but not on a \code{list}.
+
+\section{The \code{<algorithm>} Library}
+A suite of template functions, most of which work over iterator ranges
+\code{[start, finish)} (start included, finish excluded).
+
+\begin{lstlisting}[style=cpp]
+#include <algorithm>
+
+// for_each: apply f to every element
+template <typename Iter, typename Fn>
+Fn for_each(Iter start, Iter finish, Fn f);
+
+// find: iterator to the first element == val, or finish if none
+template <typename Iter, typename T>
+Iter find(Iter first, Iter last, const T &val) {
+    for (; first != last; ++first)
+        if (*first == val) return first;
+    return last;
+}
+
+// count: number of elements == val
+// copy: copy [first, last) to the range starting at result
+template <typename InIter, typename OutIter>
+OutIter copy(InIter first, InIter last, OutIter result) {
+    while (first != last) *result++ = *first++;
+    return result;
+}
+
+// transform: result[i] = f(first[i])
+template <typename InIter, typename OutIter, typename Fn>
+OutIter transform(InIter first, InIter last, OutIter result, Fn f) {
+    while (first != last) *result++ = f(*first++);
+    return result;
+}
+\end{lstlisting}
+
+\begin{important}[\code{copy} does not allocate]
+\code{copy} and \code{transform} \emph{assume} the destination has room:
+\begin{lstlisting}[style=cpp]
+vector<int> v{1, 2, 3, 4, 5, 6, 7};
+vector<int> w(4);                                  // 4 zeros: room for 4
+copy(v.begin() + 1, v.begin() + 5, w.begin());     // w = {2, 3, 4, 5}
+\end{lstlisting}
+Copying into an empty vector writes past its end: undefined behaviour.
+\end{important}
+
+\section{Function Objects}
+The parameter \code{Fn f} can be anything that can be called with \code{()}: a
+function, or an object of a class that overloads \code{operator()}.
+\begin{lstlisting}[style=cpp]
+class Plus1 {
+  public:
+    int operator()(int n) const { return n + 1; }
+};
+
+Plus1 p;
+p(4);     // 5: p looks like a function
+
+transform(v.begin(), v.end(), w.begin(), Plus1{});
+\end{lstlisting}
+Unlike functions, function objects can carry state:
+\begin{lstlisting}[style=cpp]
+class Plus {
+    int m;
+  public:
+    explicit Plus(int m) : m{m} {}
+    int operator()(int n) const { return n + m; }
+};
+transform(v.begin(), v.end(), w.begin(), Plus{5});
+
+class IncreasingPlus {         // state changes between calls
+    int m = 0;
+  public:
+    int operator()(int n) { return n + (m++); }
+};
+// v = {1, 1, 1} becomes w = {1, 2, 3}
+transform(v.begin(), v.end(), w.begin(), IncreasingPlus{});
+\end{lstlisting}
+
+\section{Lambdas}
+Writing a class for every little function is tedious. A \textbf{lambda}
+expression creates an anonymous function object inline:
+\begin{lstlisting}[style=cpp]
+// how many ints in v are even?
+bool even(int n) { return n % 2 == 0; }
+int x = count_if(v.begin(), v.end(), even);
+
+int y = count_if(v.begin(), v.end(), [](int n) { return n % 2 == 0; });
+\end{lstlisting}
+Syntax: \code{[captures](parameters) \{ body \}}. The capture list says which
+local variables the lambda may use:
+\begin{lstlisting}[style=cpp]
+int m = 5;
+transform(v.begin(), v.end(), w.begin(), [m](int n) { return n + m; });  // by value
+int total = 0;
+for_each(v.begin(), v.end(), [&total](int n) { total += n; });          // by ref
+\end{lstlisting}
+\code{[=]} captures everything used by value, \code{[\&]} by reference.
+
+\section{Iterator Adaptors}
+\code{<iterator>} provides iterators that don't walk over a container:
+\begin{lstlisting}[style=cpp]
+#include <iterator>
+
+// write to a stream: each assignment *it = x prints x followed by ", "
+ostream_iterator<int> out{cout, ", "};
+copy(v.begin(), v.end(), out);         // prints 1, 2, 3, 4, 5, 6, 7,
+
+// grow a container: each assignment does push_back
+vector<int> w;                         // empty!
+copy(v.begin(), v.end(), back_inserter(w));   // fine: w grows as needed
+\end{lstlisting}
+\code{back\_inserter} fixes the ``\code{copy} doesn't allocate'' problem.
+
+\section{More Containers}
+\begin{center}
+\begin{tabular}{@{}lp{0.62\textwidth}@{}}
+\toprule
+Container & Notes \\
+\midrule
+\code{vector<T>} & contiguous array; $\bigO(1)$ amortized \code{push\_back};
+                   $\bigO(n)$ insert/erase in the middle \\
+\code{deque<T>} & like vector, plus $\bigO(1)$ \code{push\_front} \\
+\code{list<T>} & doubly linked list; $\bigO(1)$ insert/erase anywhere given an
+                 iterator; no random access \\
+\code{map<K,V>} & sorted by key (balanced BST); $\bigO(\log n)$ operations \\
+\code{set<T>} & sorted unique elements \\
+\code{unordered\_map<K,V>} & hash table; expected $\bigO(1)$ operations; unordered \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Example}
+Read words from stdin, and print each distinct word with its frequency, sorted:
+\begin{lstlisting}[style=cpp]
+#include <iostream>
+#include <map>
+#include <string>
+using namespace std;
+
+int main() {
+    map<string, int> freq;
+    string w;
+    while (cin >> w) ++freq[w];
+    for (auto &p : freq) cout << p.first << " " << p.second << endl;
+}
+\end{lstlisting}
+
+\section*{Summary}
+\begin{itemize}
+  \item Template functions deduce their type parameters from the arguments.
+  \item STL algorithms work on iterator ranges \code{[first, last)} and any
+        type with the right operations, including pointers.
+  \item Iterator categories determine which algorithms apply.
+  \item Pass behaviour as functions, function objects (\code{operator()}), or
+        lambdas, written
+        \code{[captures](params)\{body\}}.
+  \item \code{copy}/\code{transform} don't allocate; use \code{back\_inserter}
+        or size the destination first; \code{ostream\_iterator} prints.
+\end{itemize}

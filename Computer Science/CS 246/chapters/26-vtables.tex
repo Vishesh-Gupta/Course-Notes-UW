@@ -1,0 +1,146 @@
+\chapter{Topic: How Virtual Methods Work (Vtables and Object Layout)}
+
+\begin{aside}
+Material from the remainder of the term, not covered in the original lecture
+notes.
+\end{aside}
+
+\section{The Question}
+\begin{lstlisting}[style=cpp]
+class Vec {
+    int x, y;
+    void f();
+};
+
+class Vec2 {
+    int x, y;
+    virtual void f();
+};
+
+Vec v{1, 2};
+Vec2 w{1, 2};
+cout << sizeof(v) << " " << sizeof(w);   // ?
+\end{lstlisting}
+On a typical 64-bit machine this prints \code{8 16}. Both have two \code{int}s
+(8 bytes); methods are not stored in objects at all (there is one copy of each
+method's code). So why is \code{w} bigger? Because of the virtual method.
+
+\section{Dynamic Dispatch Needs Run-Time Information}
+\begin{lstlisting}[style=cpp]
+Book *pb = (userSaysComic ? new Comic{...} : new Book{...});
+pb->isHeavy();   // Book::isHeavy or Comic::isHeavy?
+\end{lstlisting}
+The compiler can't know which method to call; the decision must be made at run
+time, so the \emph{object} has to carry enough information to find the right
+method.
+
+\section{Vtables and Vptrs}
+For each class with virtual methods, the compiler creates one \textbf{virtual
+table} (\textbf{vtable}): a static array of pointers to the class's virtual
+methods (plus the RTTI used by \code{dynamic\_cast}).
+
+Each object of such a class contains a hidden pointer, the \textbf{vptr}, to its
+class's vtable. The vptr is set by the constructor.
+
+\begin{lstlisting}[style=cpp]
+class Book {
+    std::string title, author;
+    int numPages;
+  public:
+    virtual bool isHeavy() const;
+    virtual ~Book();
+};
+class Comic : public Book {
+    std::string hero;
+  public:
+    bool isHeavy() const override;
+};
+\end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[f/.style={draw, minimum width=25mm, minimum height=6mm,
+  font=\small}, >={Stealth}]
+% Book object
+\node[font=\bfseries\small] at (0,0.9) {Book object};
+\node[f] (bv) at (0,0.3) {vptr};
+\node[f, below=0mm of bv] (bt) {title};
+\node[f, below=0mm of bt] (ba) {author};
+\node[f, below=0mm of ba] {numPages};
+% Comic object
+\node[font=\bfseries\small] at (0,-3.2) {Comic object};
+\node[f] (cv) at (0,-3.8) {vptr};
+\node[f, below=0mm of cv] (ct) {title};
+\node[f, below=0mm of ct] (ca) {author};
+\node[f, below=0mm of ca] (cn) {numPages};
+\node[f, below=0mm of cn] {hero};
+% vtables
+\node[font=\bfseries\small] at (6,0.9) {Book vtable};
+\node[f, minimum width=34mm] (bvt1) at (6,0.3) {RTTI: ``Book''};
+\node[f, minimum width=34mm, below=0mm of bvt1] (bvt2) {isHeavy};
+\node[f, minimum width=34mm, below=0mm of bvt2] {\textasciitilde Book};
+\node[font=\bfseries\small] at (6,-3.2) {Comic vtable};
+\node[f, minimum width=34mm] (cvt1) at (6,-3.8) {RTTI: ``Comic''};
+\node[f, minimum width=34mm, below=0mm of cvt1] (cvt2) {isHeavy};
+\node[f, minimum width=34mm, below=0mm of cvt2] {\textasciitilde Comic};
+\draw[->] (bv.east) -- (bvt1.west);
+\draw[->] (cv.east) -- (cvt1.west);
+\node[right=3mm of bvt2, font=\scriptsize] {$\to$ \code{Book::isHeavy}};
+\node[right=3mm of cvt2, font=\scriptsize] {$\to$ \code{Comic::isHeavy}};
+\end{tikzpicture}
+\end{center}
+
+Calling a virtual method \code{pb->isHeavy()}:
+\begin{enumerate}
+  \item follow \code{pb} to the object;
+  \item follow the object's vptr to its class's vtable;
+  \item fetch the function pointer stored in the \code{isHeavy} slot (whose
+        index is known at compile time);
+  \item call it.
+\end{enumerate}
+This happens at run time, and it selects the right method no matter what the
+declared type of the pointer is.
+
+\section{Costs}
+\begin{itemize}
+  \item \textbf{Space}: one vptr (8 bytes) per object, plus one vtable per class.
+  \item \textbf{Time}: two extra pointer dereferences per virtual call, and
+        virtual calls usually can't be inlined.
+\end{itemize}
+That is why C++ makes methods non-virtual by default: you don't pay for dynamic
+dispatch unless you ask for it. It is also why a class with no virtual methods
+has exactly the same layout as a C struct.
+
+\section{Object Layout and Inheritance}
+Why does \code{Book *pb = \&someComic;} work at all? The compiler lays out a
+subclass object as \emph{the superclass part first}, followed by the subclass's
+own fields (the vptr, if any, comes first of all, as in g++). So a pointer to a
+Comic is also a valid pointer to its Book part: the Book fields are at the same
+offsets in both, and code compiled for Book can access them.
+
+This also explains slicing: \code{Book b = comic;} copies only the first part of
+the Comic (the part that fits in a Book), and \code{b}'s vptr is set by Book's
+constructor to Book's vtable --- so \code{b.isHeavy()} calls
+\code{Book::isHeavy}.
+
+\section{Calling Virtual Methods in Constructors}
+During Book's constructor (step 2 of constructing a Comic), the vptr points to
+\emph{Book's} vtable; only once Comic's constructor starts is it switched to
+Comic's. So a virtual call made inside a base class constructor (or destructor)
+does \emph{not} dispatch to the subclass override: the subclass part isn't built
+yet (or has already been destroyed).
+\begin{important}[Rule]
+Don't rely on virtual dispatch inside constructors and destructors.
+\end{important}
+
+\section*{Summary}
+\begin{itemize}
+  \item Each class with virtual methods has a vtable of method pointers; each
+        object of such a class has a vptr to its class's vtable.
+  \item A virtual call follows object $\to$ vptr $\to$ vtable slot $\to$ code.
+  \item Cost: space for a vptr per object and an indirection per call; hence
+        non-virtual is the default.
+  \item Subclass objects start with the superclass part, which makes upcasting
+        free.
+  \item In ctors/dtors, virtual calls use the class currently being
+        constructed/destroyed.
+\end{itemize}

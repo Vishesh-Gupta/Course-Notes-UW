@@ -1,0 +1,257 @@
+\chapter{Lecture 8: Preprocessor, Separate Compilation and Make}
+\begin{center}
+\textit{January 30, 2018}
+\end{center}
+
+\section{The Preprocessor (continued)}
+Last time: \code{\#include}, and \code{g++ -E -P file.cc} to see the
+preprocessor output. Also \code{\#define VAR VALUE}:
+\begin{lstlisting}[style=cpp]
+#define MAX 10
+...
+int arr[MAX];
+\end{lstlisting}
+
+\subsection{Conditional Compilation}
+\begin{lstlisting}[style=cpp]
+#define IOS 1
+#define BBOS 2
+#define OS IOS
+
+#if OS == BBOS
+    long long int key;     // only one of these lines
+#elif OS == IOS
+    int key;               // survives preprocessing
+#endif
+\end{lstlisting}
+This requires manually editing the definition of \code{OS} to target IOS or
+BlackBerry OS. Better: define preprocessor variables from the command line.
+\begin{lstlisting}[style=bash]
+g++ -DOS=2 file.cc      # same as putting "#define OS 2" at the top
+\end{lstlisting}
+
+A handy trick for ``commenting out'' a large block of code (which may itself
+contain \code{/* */} comments):
+\begin{lstlisting}[style=cpp]
+#if 0
+    // block of code the compiler never sees
+#endif
+\end{lstlisting}
+
+\subsection{Defined or Not}
+\code{\#define VAR} with no value defines \code{VAR} with the empty string as its
+value.
+\begin{itemize}
+  \item \code{\#ifdef VAR} --- true if \code{VAR} has been defined.
+  \item \code{\#ifndef VAR} --- true if \code{VAR} has \emph{not} been defined.
+\end{itemize}
+\begin{lstlisting}[style=cpp]
+// preprocess/debug.cc
+int main() {
+#ifdef DEBUGGING
+    cerr << "setting x = 1" << endl;
+#endif
+    int x = 1;
+    ...
+}
+\end{lstlisting}
+\begin{lstlisting}[style=bash]
+g++ -DDEBUGGING debug.cc   # debug output on
+g++ debug.cc               # debug output compiled out
+\end{lstlisting}
+
+\section{Separate Compilation}
+Split a program into modules, each with:
+\begin{itemize}
+  \item a \textbf{header} (\code{.h}) file: type definitions and declarations
+        (prototypes) of functions --- the \emph{interface};
+  \item an \textbf{implementation} (\code{.cc}) file: the definitions
+        (bodies) of the functions --- the \emph{implementation}.
+\end{itemize}
+
+\begin{lstlisting}[style=cpp]
+// vec.h
+struct Vec {
+    int x, y;
+};
+Vec operator+(const Vec &v1, const Vec &v2);
+
+// vec.cc
+#include "vec.h"
+Vec operator+(const Vec &v1, const Vec &v2) {
+    return {v1.x + v2.x, v1.y + v2.y};
+}
+
+// main.cc
+#include "vec.h"
+int main() {
+    Vec v{1, 2};
+    v = v + v;
+}
+\end{lstlisting}
+
+\begin{definition}
+A \textbf{declaration} asserts that something exists (e.g.\ a function
+prototype). A \textbf{definition} gives its full details and allocates space
+(e.g.\ a function body). An entity can be declared many times but defined only
+once.
+\end{definition}
+
+\subsection{How to Compile}
+\begin{enumerate}
+  \item \code{g++ *.cc} --- only works if every \code{.cc} file in the
+        directory is part of the project.
+  \item List all the files: \code{g++ vec.cc main.cc}.
+  \item Compile separately. \code{g++ main.cc} on its own fails: by default
+        \code{g++} tries to produce an executable, so it tries to \emph{link},
+        and \code{operator+} is missing. Use \code{-c} to compile only:
+\begin{lstlisting}[style=bash]
+g++ -std=c++14 -c vec.cc     # produces vec.o
+g++ -std=c++14 -c main.cc    # produces main.o
+g++ main.o vec.o -o myprog   # link the object files
+\end{lstlisting}
+\end{enumerate}
+
+\begin{important}[Never compile headers]
+\code{.h} files are meant to be \emph{included}, never compiled.
+\end{important}
+
+\code{-c} produces \textbf{object files} (\code{.o}). An object file contains
+the compiled binary code, plus a list of what the file \emph{provides} and what
+it still \emph{needs} from other files. Linking matches these up. \code{-o name}
+names the output.
+
+The benefit: if only \code{vec.cc} changes, we only recompile \code{vec.cc}
+and re-link.
+
+\section{Make}
+The problem: keeping track of which files need to be recompiled after a change
+(and remembering that changing \code{vec.h} means recompiling both \code{.cc}
+files). The tool for this is \textbf{make}.
+
+Create a file called \code{Makefile} that describes the layout of the program
+and the dependencies between files:
+\begin{itemize}
+  \item \code{myprog} depends on \code{main.o} and \code{vec.o};
+  \item \code{vec.o} depends on \code{vec.cc} and \code{vec.h};
+  \item \code{main.o} depends on \code{main.cc} and \code{vec.h}.
+\end{itemize}
+
+\begin{lstlisting}[style=bash]
+# tools/make/example1/Makefile
+# target: dependencies
+#<TAB>recipe (the indentation MUST be a tab character)
+myprog: main.o vec.o
+	g++ main.o vec.o -o myprog
+
+vec.o: vec.cc vec.h
+	g++ -std=c++14 -c vec.cc
+
+main.o: main.cc vec.h
+	g++ -std=c++14 -c main.cc
+
+.PHONY: clean
+clean:
+	rm *.o myprog
+\end{lstlisting}
+
+\begin{itemize}
+  \item \code{make} builds the first target (\code{myprog}); \code{make clean}
+        builds the \code{clean} target. The first time, everything is compiled.
+  \item If \code{vec.cc} changes, make sees that the timestamp on \code{vec.cc}
+        is newer than \code{vec.o} $\Rightarrow$ recompile \code{vec.o}. Now
+        \code{vec.o} is newer than \code{myprog} $\Rightarrow$ relink
+        \code{myprog}. \code{main.o} is untouched.
+  \item The \code{clean} target deletes all binaries so you can start fresh.
+        \code{.PHONY} tells make that \code{clean} is not the name of a file.
+\end{itemize}
+
+\subsection{Generalizing with Variables}
+\begin{lstlisting}[style=bash]
+# example2
+CXX = g++
+CXXFLAGS = -std=c++14 -Wall
+OBJECTS = main.o vec.o
+EXEC = myprog
+
+${EXEC}: ${OBJECTS}
+	${CXX} ${CXXFLAGS} ${OBJECTS} -o ${EXEC}
+
+main.o: main.cc vec.h
+vec.o: vec.cc vec.h
+
+.PHONY: clean
+clean:
+	rm ${OBJECTS} ${EXEC}
+\end{lstlisting}
+For a rule of the form \code{x.o: x.cc a.h b.h}, we can leave out the recipe:
+make infers \code{\$\{CXX\} \$\{CXXFLAGS\} -c x.cc -o x.o}. (\code{-Wall} turns
+on all warnings --- always use it.)
+
+\subsection{Letting g++ Track Dependencies}
+Keeping the dependency lists correct by hand is error prone. \code{g++} can
+figure them out:
+\begin{lstlisting}[style=bash]
+g++ -MMD -c vec.cc
+# -c   produces vec.o
+# -MMD also produces vec.d containing:  vec.o: vec.cc vec.h
+\end{lstlisting}
+
+\begin{lstlisting}[style=bash]
+# example3 -- the general-purpose Makefile
+CXX = g++
+CXXFLAGS = -std=c++14 -Wall -MMD
+OBJECTS = main.o vec.o
+DEPENDS = ${OBJECTS:.o=.d}
+EXEC = myprog
+
+${EXEC}: ${OBJECTS}
+	${CXX} ${CXXFLAGS} ${OBJECTS} -o ${EXEC}
+
+-include ${DEPENDS}
+
+.PHONY: clean
+clean:
+	rm ${OBJECTS} ${EXEC} ${DEPENDS}
+\end{lstlisting}
+\code{-include \$\{DEPENDS\}} pastes in the generated \code{.d} files (the
+\code{-} means ``don't complain if they don't exist yet''). For a new project,
+only \code{OBJECTS} and \code{EXEC} need to change.
+
+\section{Include Guards}
+Suppose \code{main.cc} includes \code{vec.h} and also includes some other
+header (say \code{linalg.h}) which itself includes \code{vec.h}:
+\begin{lstlisting}[style=bash]
+$ g++ -c main.cc
+error: redefinition of 'struct Vec'
+\end{lstlisting}
+The struct was pasted in twice. The fix is an \textbf{include guard}:
+\begin{lstlisting}[style=cpp]
+// vec.h
+#ifndef VEC_H
+#define VEC_H
+struct Vec {
+    int x, y;
+};
+Vec operator+(const Vec &v1, const Vec &v2);
+#endif
+\end{lstlisting}
+The first time the file is included, \code{VEC\_H} is not defined, so it gets
+defined and the contents are kept. Every later inclusion sees \code{VEC\_H}
+already defined and skips everything.
+
+\begin{important}[Rule]
+Always put include guards in all \code{.h} files.
+\end{important}
+
+\section*{Summary}
+\begin{itemize}
+  \item \code{\#if}/\code{\#ifdef}/\code{\#ifndef} and \code{-DVAR=VALUE} give
+        conditional compilation.
+  \item Split code into headers (interface) and \code{.cc} files
+        (implementation); compile each with \code{-c} and link the \code{.o}
+        files.
+  \item \code{make} rebuilds only what is out of date, based on timestamps; use
+        variables and \code{-MMD} to get a reusable Makefile.
+  \item Every header gets an include guard.
+\end{itemize}

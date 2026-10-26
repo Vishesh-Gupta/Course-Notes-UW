@@ -1,0 +1,211 @@
+\chapter{Introduction to Imperative C}
+
+\textbf{Readings:} CP:AMA 4.2--4.5, 5.2, 7.1, 10.2--10.4.
+
+\section{Functional vs.\ Imperative Programming}
+
+\begin{definition}
+In the \emph{functional} paradigm, programs only use constant values that never change;
+functions produce values and have no other effect. In the \emph{imperative} paradigm, a program
+is a sequence of \emph{statements} (commands) that change the \emph{state} of the program.
+\end{definition}
+
+Racket is mostly functional (but has imperative features); C is primarily imperative.
+
+\section{Side Effects}
+
+\begin{definition}
+An expression or function has a \emph{side effect} if it does more than produce a value: it also
+changes the state of the program (or ``the world'').
+\end{definition}
+
+Printing is the simplest side effect: \code{printf} changes what is on the screen. In Racket,
+\code{printf} produces \code{(void)}, which is useless as a value; we only call it for its effect.
+To do several things in sequence in Racket we use \code{begin}, which evaluates each expression
+in order and produces the value of the \emph{last} one (the values of the others are ignored):
+\begin{lstlisting}[style=racket]
+(define (noisy-sqr n)
+  (begin
+    (printf "squaring ~a\n" n)
+    (* n n)))
+\end{lstlisting}
+Function bodies and \code{cond} answers in full Racket have an implicit \code{begin}.
+
+\subsection{Statements in C}
+
+C functions are written as sequences of statements:
+\begin{itemize}
+  \item an \emph{expression statement} is an expression followed by a semicolon; its value is
+    discarded, so it is only useful for its side effects (e.g.\ \code{printf("hi\textbackslash n");});
+  \item a \emph{compound statement} (block) is a sequence of statements in braces
+    \code{\{ ... \}};
+  \item \emph{control flow statements} (\code{return}, \code{if}, loops) change the order of
+    execution (Unit~05).
+\end{itemize}
+
+\subsection{\code{void} functions}
+
+A function that only has side effects and produces nothing has return type \code{void}. It may
+use \code{return;} (no value) to exit early, or simply reach the end of its body.
+\begin{lstlisting}[style=c]
+// print_square(n) prints the square of n
+// effects: produces output
+void print_square(int n) {
+  printf("%d squared is %d\n", n, n * n);
+}
+\end{lstlisting}
+
+\begin{important}[Documenting side effects]
+If a function has a side effect, its documentation must contain an \textbf{effects:} section,
+e.g.\ ``effects: produces output'' or ``effects: modifies *p'' or ``effects: modifies the
+global counter''.
+\end{important}
+
+\section{State}
+
+The biggest difference between the imperative and functional paradigms is the existence of side
+effects that change the state.
+
+\begin{definition}
+The \emph{state} of a program is the value of all of its data at a moment in time.
+\end{definition}
+
+In a functional program, the result of a function call depends only on its arguments. In an
+imperative program it may also depend on the state, so the same call can give different results
+at different times.
+
+\section{Mutation}
+
+\begin{definition}
+\emph{Mutation} is changing the value of a variable (or of data in memory).
+\end{definition}
+
+In Racket, \code{set!} mutates a variable:
+\begin{lstlisting}[style=racket]
+(define count 0)
+(define (increment!)
+  (set! count (add1 count))
+  count)
+(increment!)  ; => 1
+(increment!)  ; => 2   (same expression, different value!)
+\end{lstlisting}
+
+\subsection{Variables in C}
+
+A definition \emph{without} \code{const} creates a mutable \emph{variable}:
+\begin{lstlisting}[style=c]
+int count = 0;           // mutable global variable
+const int limit = 10;    // constant: cannot be changed
+
+int increment(void) {
+  count = count + 1;     // assignment
+  return count;
+}
+\end{lstlisting}
+
+\begin{important}[Assignment]
+\code{x = e} is the \emph{assignment operator}. It evaluates \code{e}, stores the result in
+\code{x}, and (as an expression) also produces that value. Initialization (\code{int x = 5;})
+and assignment (\code{x = 5;}) look similar but are different: \code{const} variables may be
+initialized but never assigned.
+\end{important}
+
+\begin{aside}
+Because assignment is an expression, \code{x = y = 0;} works (assigns right to left), and
+\code{if (x = 0)} compiles. The latter is almost always a bug. Some people write
+\code{if (0 == x)} so that the typo \code{0 = x} gives a compile error.
+\end{aside}
+
+\subsection{Uninitialized variables}
+
+In C, a variable can be defined without an initial value: \code{int x;}. A \emph{global}
+uninitialized variable is automatically set to 0, but a \emph{local} one contains whatever
+arbitrary bits were left in that memory. Reading it is a bug. Always initialize variables.
+
+\subsection{Compound assignment and increment}
+
+\begin{center}
+\begin{tabular}{ll}
+  \toprule
+  Shorthand & Meaning \\
+  \midrule
+  \code{x += y} & \code{x = x + y} \\
+  \code{x -= y} & \code{x = x - y} \\
+  \code{x *= y}, \code{x /= y}, \code{x \%= y} & similarly \\
+  \code{++x} & increment $x$, produce the \emph{new} value \\
+  \code{x++} & increment $x$, produce the \emph{old} value \\
+  \code{--x}, \code{x--} & likewise for decrement \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}[style=c]
+int x = 5;
+int a = x++;   // a is 5, x is 6
+int b = ++x;   // b is 7, x is 7
+\end{lstlisting}
+Prefer \code{++x} when the value is not used. Never use \code{x++} twice on the same variable in
+one expression (e.g.\ \code{x = x++ + x++;}): that is undefined behaviour.
+
+\section{Global Mutable State: Why It Is Dangerous}
+
+Mutable global variables make programs harder to reason about and test, because any function
+anywhere could change them. They also increase coupling between modules. In CS 136 they are
+allowed but discouraged; most state should be passed to functions explicitly (with pointers,
+Unit~06). When a module does need private state, make the variable \code{static} so only that
+module can change it:
+\begin{lstlisting}[style=c]
+// counter.c
+static int count = 0;      // module-scope state, hidden from clients
+
+// increment() increases the counter by one and produces the new value
+// effects: modifies the module's counter
+int increment(void) {
+  ++count;
+  return count;
+}
+
+void reset(void) {
+  count = 0;
+}
+\end{lstlisting}
+
+\section{Mutable Structures}
+
+Fields of a non-\code{const} structure can be mutated with assignment:
+\begin{lstlisting}[style=c]
+struct posn p = {1, 2};
+p.x = 5;           // p is now {5, 2}
+p.y += p.x;        // p is now {5, 7}
+
+struct posn q = p; // copies all fields; q is independent of p
+q.x = 0;           // p.x is still 5
+\end{lstlisting}
+Assigning one structure to another copies every field. This matters a lot once we pass
+structures to functions (Units~05 and~06).
+
+\section{Testing Imperative Code}
+
+With side effects, testing must check both the produced value and the changed state:
+\begin{lstlisting}[style=c]
+int main(void) {
+  reset();
+  assert(increment() == 1);
+  assert(increment() == 2);
+  reset();
+  assert(increment() == 1);
+}
+\end{lstlisting}
+Testing output requires comparing the printed output against an expected output file
+(Unit~07).
+
+\section{Summary}
+\begin{itemize}
+  \item Imperative programs are sequences of statements that change state.
+  \item A side effect is any change of state (output, mutation); document it under
+    \emph{effects}.
+  \item Variables without \code{const} are mutable; \code{=} assigns; \code{+=}, \code{++x},
+    \code{x++} are shorthands.
+  \item Always initialize local variables; avoid mutable globals (or make them \code{static}).
+  \item Structure assignment copies every field.
+\end{itemize}

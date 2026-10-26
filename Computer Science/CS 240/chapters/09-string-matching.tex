@@ -1,0 +1,297 @@
+\chapter{String Matching}
+
+\section{The Problem}
+
+\begin{definition}
+\emph{Pattern matching}: given a \emph{text} $T[0..n-1]$ and a \emph{pattern}
+$P[0..m-1]$ over an alphabet $\Sigma$, find the first index $i$ such that
+$T[i..i+m-1] = P$ (or report all such $i$, or ``FAIL'').
+\end{definition}
+
+Terminology: a \emph{substring} $T[i..j]$; a \emph{prefix} $T[0..i]$; a
+\emph{suffix} $T[i..n-1]$. A \emph{guess} (or shift) is a position $i$ where $P$
+might start; a \emph{check} compares one character $T[i+j]$ with $P[j]$.
+Algorithms differ in which guesses they skip and how they order checks.
+
+\section{Brute Force}
+
+\begin{lstlisting}
+brute-force(T, P):
+  for i <- 0 to n - m do
+    j <- 0
+    while j < m and T[i+j] = P[j] do j <- j + 1
+    if j = m then return i
+  return FAIL
+\end{lstlisting}
+Worst case $\Theta((n - m + 1) m)$, i.e.\ $\Theta(nm)$ for $m \le n/2$; e.g.\
+$T = a^n$, $P = a^{m-1}b$. The waste: after a mismatch we forget everything we
+learned about $T$.
+
+\section{Knuth--Morris--Pratt (KMP)}
+
+Idea: on a mismatch at $P[j]$, we know $T[i..i+j-1] = P[0..j-1]$. Shift the
+pattern so that the longest proper prefix of $P$ that is also a suffix of
+$P[0..j-1]$ lines up, and never move backwards in $T$.
+
+\begin{definition}
+The \emph{failure function} $F[j]$ is the length of the longest prefix of $P$
+that is a suffix of $P[1..j]$; equivalently, the longest proper suffix of
+$P[0..j]$ that is also a prefix of $P$.
+\end{definition}
+
+\begin{example}
+$P = \texttt{abacaba}$:
+\begin{center}
+\begin{tabular}{c|ccccccc}
+$j$ & 0 & 1 & 2 & 3 & 4 & 5 & 6\\
+$P[j]$ & a & b & a & c & a & b & a\\
+\hline
+$F[j]$ & 0 & 0 & 1 & 0 & 1 & 2 & 3
+\end{tabular}
+\end{center}
+E.g.\ $F[6] = 3$ because \texttt{aba} is both a prefix of $P$ and a suffix of
+\texttt{abacaba} (proper).
+\end{example}
+
+\begin{lstlisting}
+KMP(T, P):
+  F <- failure-array(P)
+  i <- 0; j <- 0                 // i indexes T, j indexes P
+  while i < n do
+    if T[i] = P[j] then
+      if j = m - 1 then return i - j      // match
+      i <- i + 1; j <- j + 1
+    else if j > 0 then
+      j <- F[j - 1]              // shift pattern, keep i
+    else
+      i <- i + 1
+  return FAIL
+
+failure-array(P):
+  F[0] <- 0
+  i <- 1; j <- 0
+  while i < m do
+    if P[i] = P[j] then
+      j <- j + 1; F[i] <- j; i <- i + 1
+    else if j > 0 then
+      j <- F[j - 1]
+    else
+      F[i] <- 0; i <- i + 1
+  return F
+\end{lstlisting}
+The failure array is computed by running KMP on $P$ against itself.
+
+\begin{theorem}
+KMP runs in $\Theta(n)$ time after $\Theta(m)$ preprocessing.
+\end{theorem}
+\begin{proof}
+Consider the potential $2i - j$. Each loop iteration either increases $i$ (and
+$j$ by at most 1), raising $2i - j$ by at least 1, or decreases $j$ (since
+$F[j-1] < j$) with $i$ fixed, again raising $2i - j$ by at least 1. Since
+$2i - j \le 2n$, there are at most $2n$ iterations. The same argument gives
+$\bigO(m)$ for the failure array.
+\end{proof}
+
+\section{Boyer--Moore}
+
+Boyer--Moore compares the pattern \emph{right to left}, and uses two heuristics
+to make large jumps:
+\begin{itemize}
+  \item \textbf{Bad character (last-occurrence) heuristic:} on a mismatch with
+        text character $c = T[i]$, shift so that the last occurrence of $c$ in
+        $P$ lines up with $T[i]$; if $c$ does not occur in $P$, shift $P$ entirely
+        past $T[i]$.
+  \item \textbf{Good suffix heuristic:} if a suffix $P[j+1..m-1]$ matched,
+        shift to align it with its previous occurrence in $P$ (similar to KMP's
+        failure function, but for suffixes).
+\end{itemize}
+The shift used is the larger of the two. In the course we mainly trace the bad
+character rule.
+
+\begin{definition}
+The \emph{last-occurrence function} $L(c)$ is the largest index $j$ with
+$P[j] = c$, or $-1$ if $c$ does not occur in $P$.
+\end{definition}
+
+\begin{example}
+$P = \texttt{abacab}$, $\Sigma = \{a,b,c,d\}$: $L(a) = 4$, $L(b) = 5$, $L(c) = 3$,
+$L(d) = -1$.
+\end{example}
+
+\begin{lstlisting}
+boyer-moore(T, P):
+  L <- last-occurrence array of P      // Theta(m + |Sigma|)
+  S <- good-suffix array of P          // Theta(m)
+  i <- m - 1; j <- m - 1               // i in T, j in P
+  while i < n do
+    if T[i] = P[j] then
+      if j = 0 then return i           // match
+      i <- i - 1; j <- j - 1
+    else
+      i <- i + m - 1 - min(L[T[i]], S[j])
+      j <- m - 1
+  return FAIL
+\end{lstlisting}
+With only the bad character rule, the update is
+$i \leftarrow i + m - \min(j, 1 + L(T[i]))$, which always shifts the pattern
+forward by at least one.
+
+\paragraph{Performance.} Worst case $\bigO(nm)$ for the simple version (e.g.\
+$T = a^n$, $P = ba^{m-1}$ with bad character only); with the full good suffix
+rule plus an extra trick (Galil's rule) it becomes $\bigO(n + m + |\Sigma|)$. In practice on English text it is the fastest: it typically checks
+only a fraction of the text characters, about $n/m$ for random text over a large
+alphabet.
+
+\section{Rabin--Karp Fingerprinting}
+
+Idea: use hashing to rule out most guesses with one comparison of numbers.
+Compute $h(P)$ and compare it with $h(T[i..i+m-1])$ for each $i$; only check
+character by character when the hashes are equal.
+
+To make this efficient, use a \emph{rolling hash}: interpret strings as base-$R$
+numbers modulo a prime $M$:
+\[
+h(T[i..i+m-1]) = \Big(\sum_{j=0}^{m-1} T[i+j] \cdot R^{m-1-j}\Big) \bmod M.
+\]
+Then the next window's hash is computed in $\bigO(1)$:
+\[
+h_{i+1} = \big((h_i - T[i] \cdot R^{m-1}) \cdot R + T[i+m]\big) \bmod M.
+\]
+
+\begin{lstlisting}
+rabin-karp(T, P):
+  M <- a suitable (random) prime
+  hP <- h(P[0..m-1]); hT <- h(T[0..m-1])
+  s <- R^(m-1) mod M
+  for i <- 0 to n - m do
+    if hT = hP then
+      if T[i..i+m-1] = P then return i     // verify (false positives possible)
+    if i < n - m then
+      hT <- ((hT - T[i]*s) * R + T[i+m]) mod M
+  return FAIL
+\end{lstlisting}
+
+\begin{example}
+$R = 10$, $M = 97$, $P = \texttt{59265}$: $h(P) = 59265 \bmod 97 = 95$.
+For $T = 31415926535\ldots$, the first window $31415 \bmod 97 = 84 \ne 95$; the
+next window's hash is
+\[h = \big((84 - 3 \cdot (10^4 \bmod 97))\cdot 10 + 9\big) \bmod 97,\]
+and so on.
+\end{example}
+
+\paragraph{Analysis.} Expected time $\bigO(n + m)$ if $M$ is a random prime
+large enough that false positives are rare (probability about $1/M$ per window).
+Worst case $\Theta(nm)$ (every window is a false positive). Nice property: it
+generalises easily to multiple patterns and 2D matching.
+
+\section{Suffix Tries and Suffix Trees}
+
+The previous algorithms preprocess the \emph{pattern}. If the text is fixed and
+we search many patterns, preprocess the \emph{text} instead.
+
+\begin{lemma}
+$P$ occurs in $T$ iff $P$ is a prefix of some suffix of $T$.
+\end{lemma}
+
+\begin{definition}
+The \emph{suffix trie} of $T$ is the trie of all $n+1$ suffixes of $T\$$. A
+\emph{suffix tree} is the compressed (Patricia) trie of these suffixes. Leaves
+store the start index of their suffix; edge labels are stored as index pairs
+into $T$ rather than as strings.
+\end{definition}
+
+\begin{itemize}
+  \item A suffix trie can have $\Theta(n^2)$ nodes.
+  \item A suffix tree has $n+1$ leaves and at most $n$ internal nodes, so
+        $\Theta(n)$ space (plus the text itself).
+  \item Construction: naively $\Theta(n^2)$ by inserting suffixes one by one;
+        $\Theta(n)$ with Ukkonen's or McCreight's algorithm (beyond CS 240).
+  \item Search for $P$: walk down from the root comparing characters of $P$ with
+        edge labels: $\bigO(m)$ (with $\bigO(|\Sigma|)$ or $\bigO(1)$ per child
+        lookup). If $P$ is exhausted, any leaf below the current point gives an
+        occurrence; reporting all $k$ occurrences takes $\bigO(m + k)$.
+\end{itemize}
+
+\begin{example}
+$T = \texttt{bananaban}$. The suffixes include \texttt{bananaban\$},
+\texttt{ananaban\$}, \texttt{nanaban\$}, \ldots, \texttt{n\$}, \texttt{\$}.
+Searching \texttt{ana} walks down the path spelling \texttt{a}, \texttt{n},
+\texttt{a} (some of these letters lie inside compressed edges) and ends in a
+subtree whose leaves are the suffixes starting at 1 and 3: two occurrences.
+\end{example}
+
+\section{Suffix Arrays}
+
+Suffix trees use a lot of memory in practice (pointers per node). A
+\emph{suffix array} stores only the sorted order of the suffixes.
+
+\begin{definition}
+The \emph{suffix array} $A^s$ of $T$ is the array of starting indices of the
+suffixes of $T\$$, sorted lexicographically (\$ smallest).
+\end{definition}
+
+\begin{example}
+$T = \texttt{banana\$}$:
+\begin{center}
+\begin{tabular}{ccl}
+\toprule
+$j$ & $A^s[j]$ & suffix\\
+\midrule
+0 & 6 & \texttt{\$}\\
+1 & 5 & \texttt{a\$}\\
+2 & 3 & \texttt{ana\$}\\
+3 & 1 & \texttt{anana\$}\\
+4 & 0 & \texttt{banana\$}\\
+5 & 4 & \texttt{na\$}\\
+6 & 2 & \texttt{nana\$}\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{example}
+
+\paragraph{Construction.} Sorting suffixes directly with MSD radix sort costs
+$\bigO(n^2)$ worst case. The course's approach: repeated doubling. Sort by the
+first character, then by the first 2, 4, 8, \ldots\ characters, where the sort
+key for length $2\ell$ is the pair (rank of first $\ell$ chars, rank of the next
+$\ell$ chars), sorted by radix sort in $\bigO(n)$. There are $\log n$ rounds:
+$\bigO(n \log n)$ total.
+
+\paragraph{Search.} The occurrences of $P$ form a contiguous block of $A^s$.
+Binary search, comparing $P$ with the suffix at the midpoint ($\bigO(m)$ per
+comparison):
+\begin{lstlisting}
+suffix-array-search(T, A, P):
+  l <- 0; r <- n - 1
+  while l <= r do
+    v <- floor((l + r) / 2)
+    i <- A[v]
+    compare P with T[i..i+m-1]
+    if P is a prefix of T[i..] then return i
+    else if P < T[i..i+m-1] then r <- v - 1
+    else l <- v + 1
+  return FAIL
+\end{lstlisting}
+Time $\bigO(m \log n)$; finding all $k$ occurrences takes $\bigO(m\log n + k)$.
+
+\section{Summary}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Algorithm & Preprocessing & Search time & Extra space\\
+\midrule
+Brute force & -- & $\bigO(nm)$ & $\bigO(1)$\\
+KMP & $\bigO(m)$ & $\bigO(n)$ & $\bigO(m)$\\
+Boyer--Moore & $\bigO(m + |\Sigma|)$ & $\bigO(n)$ (often sublinear) & $\bigO(m + |\Sigma|)$\\
+Rabin--Karp & $\bigO(m)$ & $\bigO(n + m)$ expected & $\bigO(1)$\\
+Suffix tree & $\bigO(n)$ (or $n^2$ naive) on $T$ & $\bigO(m)$ & $\bigO(n)$\\
+Suffix array & $\bigO(n\log n)$ on $T$ & $\bigO(m\log n)$ & $\bigO(n)$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+  \item KMP never moves backward in $T$; its failure function encodes self-overlap.
+  \item Boyer--Moore scans right to left and jumps using last occurrences.
+  \item Rabin--Karp filters guesses with a rolling hash.
+  \item Suffix trees/arrays preprocess the text so each pattern search is fast.
+\end{itemize}

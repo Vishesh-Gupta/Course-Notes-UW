@@ -1,0 +1,172 @@
+\chapter{Working with Recursion on Lists}
+
+Having seen the list template, we now practise \textbf{structural recursion}:
+recursion whose shape follows exactly the shape of the data definition.
+
+\begin{definition}[Pure structural recursion]
+A function uses \textbf{pure structural recursion} if every recursive call is
+on one of the self-referential parts of the data (for a list, \code{(rest lst)})
+and all other parameters are passed unchanged.
+\end{definition}
+
+\section{Functions producing Booleans}
+
+\begin{lstlisting}[style=racket]
+;; (contains? item lst) produces true if item is in lst.
+;; Examples:
+(check-expect (contains? 'b '(a b c)) true)
+(check-expect (contains? 'z empty) false)
+
+;; contains?: Any (listof Any) -> Bool
+(define (contains? item lst)
+  (cond [(empty? lst) false]
+        [else (or (equal? item (first lst))
+                  (contains? item (rest lst)))]))
+\end{lstlisting}
+Because \code{or} short-circuits, the recursion stops as soon as the item is
+found. (Built-in: \code{member?}.)
+
+\section{Functions producing lists}
+
+\subsection{Transforming each element (a ``map'' pattern)}
+\begin{lstlisting}[style=racket]
+;; (double-all lon) produces a list with each number in lon doubled.
+;; Examples:
+(check-expect (double-all empty) empty)
+(check-expect (double-all '(1 2 3)) '(2 4 6))
+
+;; double-all: (listof Num) -> (listof Num)
+(define (double-all lon)
+  (cond [(empty? lon) empty]
+        [else (cons (* 2 (first lon)) (double-all (rest lon)))]))
+\end{lstlisting}
+
+\subsection{Selecting some elements (a ``filter'' pattern)}
+\begin{lstlisting}[style=racket]
+;; (keep-positive lon) produces the positive numbers of lon, in order.
+;; Examples:
+(check-expect (keep-positive '(3 -1 0 5)) '(3 5))
+
+;; keep-positive: (listof Num) -> (listof Num)
+(define (keep-positive lon)
+  (cond [(empty? lon) empty]
+        [(positive? (first lon)) (cons (first lon) (keep-positive (rest lon)))]
+        [else (keep-positive (rest lon))]))
+\end{lstlisting}
+
+These patterns recur so often that Chapter~\ref{ch:abstraction} abstracts them
+into the built-in higher-order functions \code{map} and \code{filter}.
+
+\subsection{Appending}
+\begin{lstlisting}[style=racket]
+;; (my-append l1 l2) produces the elements of l1 followed by those of l2.
+;; my-append: (listof Any) (listof Any) -> (listof Any)
+(check-expect (my-append '(1 2) '(3 4)) '(1 2 3 4))
+(define (my-append l1 l2)
+  (cond [(empty? l1) l2]
+        [else (cons (first l1) (my-append (rest l1) l2))]))
+\end{lstlisting}
+Only \code{l1} is recursed on; \code{l2} goes along unchanged. This is still
+pure structural recursion on \code{l1}.
+
+\section{Non-empty lists}
+Some functions make no sense on \code{empty}, such as the maximum:
+\begin{lstlisting}[style=racket]
+;; (list-max lon) produces the largest number in lon.
+;; list-max: (ne-listof Num) -> Num
+(check-expect (list-max '(3 9 2)) 9)
+(check-expect (list-max '(4)) 4)
+(define (list-max lon)
+  (cond [(empty? (rest lon)) (first lon)]
+        [else (max (first lon) (list-max (rest lon)))]))
+\end{lstlisting}
+The template for \code{(ne-listof X)} has base case \code{(empty? (rest lst))}.
+
+\begin{aside}
+A version that computes \code{(list-max (rest lon))} \emph{twice} (once in a
+comparison and once as the answer) takes exponential time: each call makes two
+recursive calls. Avoid repeating recursive calls; use \code{max}, a helper, or
+\code{local} (Chapter~\ref{ch:local}).
+\end{aside}
+
+\section{Insertion sort}
+
+Sorting is a classic application of structural recursion. If we can sort the
+rest of the list, we only need to \emph{insert} the first element into the
+correct place.
+
+\begin{lstlisting}[style=racket]
+;; (sort lon) produces lon sorted in non-decreasing order.
+;; Examples:
+(check-expect (sort empty) empty)
+(check-expect (sort '(3 1 2)) '(1 2 3))
+
+;; sort: (listof Num) -> (listof Num)
+(define (sort lon)
+  (cond [(empty? lon) empty]
+        [else (insert (first lon) (sort (rest lon)))]))
+
+;; (insert n slon) inserts n into the sorted list slon so that the
+;;   result is sorted.
+;; Examples:
+(check-expect (insert 4 '(1 3 5)) '(1 3 4 5))
+(check-expect (insert 0 empty) '(0))
+
+;; insert: Num (listof Num) -> (listof Num)
+;;   requires: slon is sorted in non-decreasing order
+(define (insert n slon)
+  (cond [(empty? slon) (cons n empty)]
+        [(<= n (first slon)) (cons n slon)]
+        [else (cons (first slon) (insert n (rest slon)))]))
+\end{lstlisting}
+
+\paragraph{Condensed trace.}
+\begin{lstlisting}[style=racket]
+(sort (list 3 1 2))
+=> (insert 3 (sort (list 1 2)))
+=> (insert 3 (insert 1 (sort (list 2))))
+=> (insert 3 (insert 1 (insert 2 (sort empty))))
+=> (insert 3 (insert 1 (insert 2 empty)))
+=> (insert 3 (insert 1 (list 2)))
+=> (insert 3 (list 1 2))
+=> (cons 1 (insert 3 (list 2)))
+=> (cons 1 (cons 2 (insert 3 empty)))
+=> (list 1 2 3)
+\end{lstlisting}
+
+Insertion sort takes time proportional to $n^2$ in the worst case (a
+reverse-sorted list), since each of $n$ insertions may traverse the whole
+sorted list. (The name \code{sort} clashes with a built-in in later levels;
+call it \code{insertion-sort} there.)
+
+\section{Lists of lists}
+A list element may itself be a list. With nested data, the template calls a
+helper (or another template) on \code{(first lst)}:
+\begin{lstlisting}[style=racket]
+;; (sum-all lolon) produces the sum of all numbers in all lists of lolon.
+;; sum-all: (listof (listof Num)) -> Num
+(check-expect (sum-all '((1 2) () (3))) 6)
+(define (sum-all lolon)
+  (cond [(empty? lolon) 0]
+        [else (+ (sum (first lolon)) (sum-all (rest lolon)))]))
+\end{lstlisting}
+
+\section{Wrapper functions}
+A \textbf{wrapper} is a short non-recursive function that adapts its input and
+calls a recursive helper, e.g.\ \code{count-vowels} (Chapter~\ref{ch:lists})
+converts a string to a list of characters and calls the list function. The
+wrapper has the nice interface; the helper does the recursion.
+
+\section{Testing recursive functions}
+Test at least: the empty list; a one-element list; a longer list; lists where
+the interesting element is first, last, absent, or repeated; already sorted
+and reverse-sorted input for sorting functions.
+
+\section{Summary}
+\begin{itemize}
+  \item Structural recursion follows the data definition; one recursive call on \code{(rest lst)}.
+  \item Common patterns: count/sum (combine), contains (search with \code{or}), map (transform each), filter (keep some).
+  \item Non-empty lists have a base case at a one-element list.
+  \item Insertion sort: sort the rest, then insert the first; $\bigO(n^2)$ worst case.
+  \item Never repeat the same recursive call in one body.
+\end{itemize}

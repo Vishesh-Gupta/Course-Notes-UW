@@ -1,0 +1,170 @@
+\chapter{Patterns of Recursion and Dictionaries}
+
+This chapter consolidates the recursive patterns seen so far and applies them
+to a very common abstract data type: the \textbf{dictionary}.
+
+\section{A catalogue of patterns}
+Most list functions written so far fall into one of a few shapes. Recognizing
+the shape tells you most of the code before you write it.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Pattern & Base case & Recursive case \\
+\midrule
+Combine (sum, count) & identity value & \code{(op (f (first l)) (recur (rest l)))} \\
+Search (contains?) & \code{false} & \code{(or (test (first l)) (recur (rest l)))} \\
+All-satisfy & \code{true} & \code{(and (test (first l)) (recur (rest l)))} \\
+Transform (map) & \code{empty} & \code{(cons (f (first l)) (recur (rest l)))} \\
+Select (filter) & \code{empty} & \code{cons} first only if it passes the test \\
+Accumulate & accumulator & recur on rest with updated accumulator \\
+Find-first & \code{false} & first if it passes, else recur \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+These shapes are exactly what higher-order functions (\code{foldr},
+\code{ormap}, \code{andmap}, \code{map}, \code{filter}, \code{foldl}) capture in
+Chapter~\ref{ch:abstraction}.
+
+\section{Dictionaries}
+
+\begin{definition}[Dictionary]
+A \textbf{dictionary} (also map, table, associative array) stores
+\emph{key--value pairs} where each key occurs at most once. Operations:
+\begin{itemize}
+  \item \textbf{lookup}: given a key, produce its value (or indicate absence);
+  \item \textbf{add}: add a key and value (or replace the value of an existing key);
+  \item \textbf{remove}: delete the pair with a given key.
+\end{itemize}
+\end{definition}
+Examples: student ID $\to$ name, word $\to$ definition, symbol $\to$ count.
+The dictionary is an \textbf{abstract data type} (ADT): it is defined by its
+operations, and may be implemented in different ways with different
+efficiency.
+
+\section{Association lists}
+
+The simplest implementation is a list of two-element lists.
+
+\begin{lstlisting}[style=racket]
+;; An Association List (AL) is one of:
+;; * empty
+;; * (cons (list Num Str) AL)
+;;   requires: each key (Num) is unique
+
+(define marks '((12345 "Ada") (31415 "Grace") (27182 "Alan")))
+\end{lstlisting}
+
+\paragraph{Template.}
+\begin{lstlisting}[style=racket]
+;; al-template: AL -> Any
+(define (al-template alst)
+  (cond [(empty? alst) ...]
+        [else (... (first (first alst)) ...     ; key
+                   (second (first alst)) ...    ; value
+                   (al-template (rest alst)) ...)]))
+\end{lstlisting}
+
+\subsection{Lookup}
+\begin{lstlisting}[style=racket]
+;; (lookup-al k alst) produces the value associated with k in alst,
+;;   or false if k is not a key.
+;; Examples:
+(check-expect (lookup-al 31415 marks) "Grace")
+(check-expect (lookup-al 99999 marks) false)
+
+;; lookup-al: Num AL -> (anyof Str false)
+(define (lookup-al k alst)
+  (cond [(empty? alst) false]
+        [(= k (first (first alst))) (second (first alst))]
+        [else (lookup-al k (rest alst))]))
+\end{lstlisting}
+Producing \code{false} for ``not found'' is a common CS 135 convention; the
+contract uses \code{(anyof Str false)} to document it.
+
+\paragraph{Trace.}
+\begin{lstlisting}[style=racket]
+(lookup-al 3 (list (list 1 "a") (list 3 "c")))
+=> (cond [(empty? (list (list 1 "a") (list 3 "c"))) false] ...)
+...  ; first clause false, second: (= 3 1) is false
+=> (lookup-al 3 (rest (list (list 1 "a") (list 3 "c"))))
+=> (lookup-al 3 (list (list 3 "c")))
+...  ; (= 3 3) is true
+=> (second (first (list (list 3 "c"))))
+=> (second (list 3 "c"))
+=> "c"
+\end{lstlisting}
+
+\subsection{Add or update}
+\begin{lstlisting}[style=racket]
+;; (add-al k v alst) produces an AL like alst but with k mapped to v,
+;;   replacing any previous value for k.
+;; Examples:
+(check-expect (add-al 1 "x" empty) '((1 "x")))
+(check-expect (add-al 1 "y" '((1 "x") (2 "z"))) '((1 "y") (2 "z")))
+(check-expect (add-al 3 "w" '((1 "x"))) '((1 "x") (3 "w")))
+
+;; add-al: Num Str AL -> AL
+(define (add-al k v alst)
+  (cond [(empty? alst) (list (list k v))]
+        [(= k (first (first alst))) (cons (list k v) (rest alst))]
+        [else (cons (first alst) (add-al k v (rest alst)))]))
+\end{lstlisting}
+
+\subsection{Remove}
+\begin{lstlisting}[style=racket]
+;; (remove-al k alst) produces alst without the pair with key k.
+;; remove-al: Num AL -> AL
+(check-expect (remove-al 2 '((1 "a") (2 "b") (3 "c"))) '((1 "a") (3 "c")))
+(check-expect (remove-al 9 '((1 "a"))) '((1 "a")))
+(define (remove-al k alst)
+  (cond [(empty? alst) empty]
+        [(= k (first (first alst))) (rest alst)]
+        [else (cons (first alst) (remove-al k (rest alst)))]))
+\end{lstlisting}
+
+\subsection{Efficiency}
+Each operation may traverse the whole list, so all three take time
+proportional to $n$, the number of pairs. Keeping the list sorted by key does
+not help asymptotically for a linked list (we still have to walk to the
+position). Binary search trees (Chapter~\ref{ch:trees}) bring lookup down to
+proportional to the tree's height.
+
+\section{Application: word frequencies}
+\begin{lstlisting}[style=racket]
+;; A FreqTable is a (listof (list Sym Nat)) with unique symbols.
+
+;; (count-words los) produces a FreqTable giving how often each symbol
+;;   occurs in los.
+;; count-words: (listof Sym) -> FreqTable
+(check-expect (count-words '(a b a)) '((a 2) (b 1)))
+(define (count-words los)
+  (cond [(empty? los) empty]
+        [else (increment (first los) (count-words (rest los)))]))
+
+;; (increment s ft) adds 1 to the count of s in ft (adding s with
+;;   count 1 if absent), keeping s at the front.
+;; increment: Sym FreqTable -> FreqTable
+(define (increment s ft)
+  (cond [(empty? ft) (list (list s 1))]
+        [(symbol=? s (first (first ft)))
+         (cons (list s (add1 (second (first ft)))) (rest ft))]
+        [else (cons (first ft) (increment s (rest ft)))]))
+\end{lstlisting}
+(Order of the result depends on processing order; tests should match the
+order your design specifies, or the purpose should promise none.)
+
+\section{Pairs: lists or structures?}
+A key--value pair could be \code{(list k v)} or \code{(make-entry k v)}.
+Lists are convenient with list abbreviations and quoting; structures give
+named selectors and a type predicate. CS 135 uses both; be consistent within a
+program and say which in the data definition.
+
+\section{Summary}
+\begin{itemize}
+  \item Many list functions follow a small number of recursive patterns.
+  \item A dictionary maps unique keys to values with lookup, add, remove.
+  \item Association lists implement dictionaries in linear time per operation.
+  \item ``Not found'' is commonly signalled by producing \code{false}.
+\end{itemize}

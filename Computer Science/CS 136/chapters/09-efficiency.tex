@@ -1,0 +1,290 @@
+\chapter{Efficiency}
+
+\textbf{Readings:} none in CP:AMA (this material is not in the textbook).
+
+\section{Algorithms and Efficiency}
+
+\begin{definition}
+An \emph{algorithm} is a step-by-step description of how to solve a problem.
+\end{definition}
+
+Different algorithms for the same problem can take very different amounts of resources.
+\begin{itemize}
+  \item \textbf{Time efficiency:} how long it takes an algorithm to solve a problem (the most
+    common measure).
+  \item \textbf{Space efficiency:} how much memory it requires.
+\end{itemize}
+Unless stated otherwise, ``efficiency'' means time efficiency.
+
+\section{Running Time}
+
+Measuring with a stopwatch depends on the machine, the compiler and the input, so instead we
+count the number of \emph{elementary operations} (arithmetic, comparisons, assignments, array
+indexing, function calls, \dots), each of which takes constant time.
+
+The running time depends on the size of the input, so it is a function $T(n)$, where $n$ is the
+size of the input. What $n$ means depends on the function: the length of an array, the number of
+nodes in a tree, the value of an integer argument, the length of a string. Other letters (such
+as $m$ or $k$) are common when there are several inputs; always state what each variable means.
+
+\subsection{Worst case}
+
+The running time can depend on the \emph{contents} of the input, not just its size (e.g.\ linear
+search finds the item immediately if it is first). We usually care about the \textbf{worst-case
+running time}: the maximum over all inputs of size $n$. It is a conservative guarantee: the
+function will never be slower than this. (Best case is rarely useful; average case is useful but
+harder to analyse.)
+
+\section{Big-O Notation}
+
+In practice we are interested in the \emph{order} (growth rate) of the running time, not the
+exact constants. For example $17n + 1$ and $8n + 7$ are both ``order $n$'', written $\bigO(n)$.
+
+\begin{definition}
+$f(n) \in \bigO(g(n))$ if there exist constants $c > 0$ and $n_0 > 0$ such that
+$f(n) \le c \cdot g(n)$ for all $n \ge n_0$.
+\end{definition}
+
+\begin{example}
+$17n + 1 \in \bigO(n)$: take $c = 18$, $n_0 = 1$; then $17n + 1 \le 18n$ for all $n \ge 1$.
+Also $17n + 1 \in \bigO(n^2)$, but that is not a useful (tight) bound. In CS 136 we always give
+the tightest simple bound.
+\end{example}
+
+\subsection{Rules for simplifying}
+\begin{itemize}
+  \item Drop constant factors: $\bigO(5n) = \bigO(n)$.
+  \item Keep only the dominant term: $\bigO(3n^2 + 100n + 7) = \bigO(n^2)$.
+  \item Sum: $\bigO(f) + \bigO(g) = \bigO(\max(f, g))$ (sequential code).
+  \item Product: $\bigO(f) \cdot \bigO(g) = \bigO(f \cdot g)$ (nested loops).
+  \item Bases of logarithms do not matter: $\log_2 n$ and $\log_{10} n$ differ by a constant
+    factor, so we just write $\bigO(\log n)$.
+\end{itemize}
+
+\subsection{Common orders}
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  Order & Name & Example \\
+  \midrule
+  $\bigO(1)$ & constant & array indexing, \code{first} \\
+  $\bigO(\log n)$ & logarithmic & binary search \\
+  $\bigO(n)$ & linear & linear search, \code{strlen} \\
+  $\bigO(n \log n)$ & linearithmic & merge sort \\
+  $\bigO(n^2)$ & quadratic & selection sort \\
+  $\bigO(n^3)$ & cubic & naive matrix multiplication \\
+  $\bigO(2^n)$ & exponential & naive Fibonacci \\
+  \bottomrule
+\end{tabular}
+\end{center}
+Each is strictly worse than the one above it for large $n$. For $n = 10^6$: $\log n \approx 20$,
+$n \log n \approx 2\times 10^7$ (instant), $n^2 = 10^{12}$ (many minutes), and $2^n$ is
+hopeless.
+
+\begin{aside}
+$\bigO$ is an \emph{upper} bound. CS 240 introduces $\Omega$ (lower bound) and $\Theta$ (tight
+bound). When CS 136 says ``the running time is $\bigO(n)$'' it really means $\Theta(n)$.
+\end{aside}
+
+\section{Analysing Iterative Code}
+
+\begin{enumerate}
+  \item Each elementary statement is $\bigO(1)$.
+  \item A sequence of blocks takes the sum (i.e.\ the maximum) of their times.
+  \item A loop takes (number of iterations) $\times$ (time per iteration), or, if the time per
+    iteration varies, the sum over all iterations.
+  \item A function call takes the running time of the function (not $\bigO(1)$!).
+\end{enumerate}
+
+\begin{example}
+\begin{lstlisting}[style=c]
+for (int i = 0; i < n; ++i) {          // n iterations
+  for (int j = 0; j < n; ++j) {        //   n iterations each
+    sum += i * j;                      //     O(1)
+  }
+}
+\end{lstlisting}
+$n \cdot n \cdot \bigO(1) = \bigO(n^2)$.
+\end{example}
+
+\begin{example}[Selection sort]
+The inner loop runs $n - 1 - i$ times for $i = 0, \dots, n-2$, so the total is
+\[ \sum_{i=0}^{n-2} (n - 1 - i) = (n-1) + (n-2) + \dots + 1 = \frac{n(n-1)}{2} \in \bigO(n^2). \]
+Selection sort is $\bigO(n^2)$ in \emph{every} case.
+\end{example}
+
+\begin{example}[Halving loop]
+\begin{lstlisting}[style=c]
+while (n > 1) {
+  n /= 2;
+  ++count;
+}
+\end{lstlisting}
+$n$ is halved each iteration, so there are about $\log_2 n$ iterations: $\bigO(\log n)$. This is
+why binary search is $\bigO(\log n)$.
+\end{example}
+
+\begin{important}[Hidden costs]
+Watch out for function calls in loop conditions:
+\begin{lstlisting}[style=c]
+for (int i = 0; i < strlen(s); ++i) { ... }   // O(n^2)! strlen is O(n)
+\end{lstlisting}
+Compute \code{strlen(s)} once before the loop to make it $\bigO(n)$.
+\end{important}
+
+\section{Analysing Recursive Code}
+
+For a recursive function, write a \emph{recurrence relation} for $T(n)$: the time for the
+non-recursive work plus the time of the recursive calls. Then look it up in the table (you are
+expected to know these; deriving them is covered in later courses).
+
+\begin{center}
+\begin{tabular}{ll}
+  \toprule
+  Recurrence & Solution \\
+  \midrule
+  $T(n) = \bigO(1) + T(n-k)$ & $\bigO(n)$ \\
+  $T(n) = \bigO(n) + T(n-k)$ & $\bigO(n^2)$ \\
+  $T(n) = \bigO(n^2) + T(n-k)$ & $\bigO(n^3)$ \\
+  $T(n) = \bigO(1) + T(n/k)$ & $\bigO(\log n)$ \\
+  $T(n) = \bigO(1) + k \cdot T(n/k)$ & $\bigO(n)$ \\
+  $T(n) = \bigO(n) + k \cdot T(n/k)$ & $\bigO(n \log n)$ \\
+  $T(n) = \bigO(1) + T(n-k_1) + T(n-k_2)$ & $\bigO(2^n)$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+(for constants $k, k_1, k_2 \ge 1$; for the $n/k$ rows, $k \ge 2$).
+
+\begin{example}
+\begin{itemize}
+  \item \code{sum\_first(n)} (Unit 02) does $\bigO(1)$ work and recurses on $n-1$: $\bigO(n)$.
+  \item Recursive binary search: $T(n) = \bigO(1) + T(n/2)$: $\bigO(\log n)$.
+  \item Naive \code{fib(n) = fib(n-1) + fib(n-2)}: $\bigO(2^n)$.
+  \item A Racket function that calls \code{append} or \code{length} ($\bigO(n)$) on the rest of
+    the list at each step: $T(n) = \bigO(n) + T(n-1) = \bigO(n^2)$.
+\end{itemize}
+\end{example}
+
+\section{Sorting Algorithms Revisited}
+
+\subsection{Insertion sort}
+
+In the worst case (reverse-sorted input) inserting element $i$ takes $i$ swaps, so the total is
+$1 + 2 + \dots + (n-1) \in \bigO(n^2)$. In the best case (already sorted) each insertion is
+$\bigO(1)$, giving $\bigO(n)$.
+
+\subsection{Quicksort}
+
+Partitioning is $\bigO(n)$. If the pivot always splits the array in half,
+$T(n) = \bigO(n) + 2T(n/2) = \bigO(n \log n)$. But in the worst case (e.g.\ an already sorted array
+with the first element as pivot) one side is empty every time: $T(n) = \bigO(n) + T(n-1) =
+\bigO(n^2)$. Quicksort's \emph{average} case is $\bigO(n \log n)$, and it is very fast in practice,
+especially with a random pivot.
+
+\subsection{Merge sort}
+
+Merge sort guarantees $\bigO(n \log n)$: split the array into halves, sort each half recursively,
+and \emph{merge} the two sorted halves in $\bigO(n)$ time.
+\begin{lstlisting}[style=c]
+// merge(dest, src1, len1, src2, len2) merges the sorted arrays src1 and
+//   src2 into dest
+// requires: dest has length len1 + len2 and does not overlap src1/src2
+void merge(int dest[], const int src1[], int len1,
+           const int src2[], int len2) {
+  int i = 0, j = 0, k = 0;
+  while (i < len1 && j < len2) {
+    if (src1[i] <= src2[j]) {
+      dest[k++] = src1[i++];
+    } else {
+      dest[k++] = src2[j++];
+    }
+  }
+  while (i < len1) dest[k++] = src1[i++];
+  while (j < len2) dest[k++] = src2[j++];
+}
+
+void merge_sort(int a[], int len) {
+  if (len <= 1) return;
+  int llen = len / 2;
+  int rlen = len - llen;
+  int *left = malloc(llen * sizeof(int));    // see Unit 10
+  int *right = malloc(rlen * sizeof(int));
+  for (int i = 0; i < llen; ++i) left[i] = a[i];
+  for (int i = 0; i < rlen; ++i) right[i] = a[llen + i];
+  merge_sort(left, llen);
+  merge_sort(right, rlen);
+  merge(a, left, llen, right, rlen);
+  free(left);
+  free(right);
+}
+\end{lstlisting}
+$T(n) = \bigO(n) + 2T(n/2) = \bigO(n \log n)$ in every case, at the cost of $\bigO(n)$ extra space.
+
+\begin{center}
+\begin{tabular}{lccc}
+  \toprule
+  Algorithm & Best & Worst & Extra space \\
+  \midrule
+  Selection sort & $\bigO(n^2)$ & $\bigO(n^2)$ & $\bigO(1)$ \\
+  Insertion sort & $\bigO(n)$ & $\bigO(n^2)$ & $\bigO(1)$ \\
+  Quicksort & $\bigO(n \log n)$ & $\bigO(n^2)$ & $\bigO(\log n)$ to $\bigO(n)$ stack \\
+  Merge sort & $\bigO(n \log n)$ & $\bigO(n \log n)$ & $\bigO(n)$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\section{Running Times of Library Functions}
+
+\subsection{Racket}
+\begin{itemize}
+  \item $\bigO(1)$: \code{cons}, \code{cons?}, \code{empty}, \code{empty?}, \code{first},
+    \code{rest}, \code{second}, arithmetic on small numbers, \code{equal?} on simple values.
+  \item $\bigO(n)$: \code{length}, \code{last}, \code{reverse}, \code{append} (in the length of
+    the first list), \code{list-ref} (in the index), \code{member}.
+  \item Abstract list functions (\code{map}, \code{filter}, \code{foldr}) are $\bigO(n)$ when the
+    function they apply is $\bigO(1)$.
+  \item Racket's \code{sort} is $\bigO(n \log n)$.
+\end{itemize}
+
+\subsection{C}
+\begin{itemize}
+  \item All the \code{<string.h>} functions are $\bigO(n)$, where $n$ is the length of the string.
+    For \code{strcmp}, $n$ is the length of the \emph{shorter} string; for \code{strcat},
+    \code{strlen(dest) + strlen(src)}.
+  \item \code{printf} and \code{scanf} are $\bigO(1)$ for numbers and characters, and $\bigO(n)$
+    for strings (\code{\%s}) of length $n$.
+  \item Array indexing and pointer arithmetic are $\bigO(1)$.
+  \item \code{malloc} and \code{free} are $\bigO(1)$ for our purposes; \code{realloc} is $\bigO(n)$
+    where $n$ is the size of the block (Unit 10).
+\end{itemize}
+
+\section{Documenting Efficiency}
+
+From now on, the documentation of every function includes its time efficiency, with the meaning
+of each variable:
+\begin{lstlisting}[style=c]
+// find_sorted(item, a, len) produces the index of item in a, or -1
+// requires: a is sorted in increasing order
+// time: O(log n), where n is len
+\end{lstlisting}
+
+\section{Space Efficiency}
+
+Space efficiency is analysed the same way: how much additional memory does the function need as
+a function of $n$? Remember that recursion uses stack space: a non-tail recursive function with
+depth $n$ uses $\bigO(n)$ space even if it allocates nothing, whereas the equivalent loop uses
+$\bigO(1)$.
+
+\section{Summary}
+\begin{itemize}
+  \item Measure efficiency by counting elementary operations as a function of input size $n$;
+    focus on the worst case.
+  \item Big-O ignores constant factors and lower-order terms; know the common orders and their
+    ranking.
+  \item Loops: iterations $\times$ cost; nested loops multiply; watch hidden $\bigO(n)$ calls.
+  \item Recursion: write a recurrence and use the table.
+  \item Selection sort $\bigO(n^2)$; insertion sort $\bigO(n^2)$ worst, $\bigO(n)$ best; quicksort
+    $\bigO(n \log n)$ average, $\bigO(n^2)$ worst; merge sort $\bigO(n \log n)$ always.
+  \item Document \emph{time:} in every contract.
+\end{itemize}

@@ -1,0 +1,46 @@
+\documentclass[11pt,oneside]{book}
+\input{../common/preamble}
+
+%------------------------------------------------------------------------------
+% Course-specific macros (CS 245)
+\newcommand{\TT}{\mathsf{T}}                 % truth value true
+\newcommand{\FF}{\mathsf{F}}                 % truth value false
+\newcommand{\Prop}{\mathcal{P}}              % set of propositional variables
+\newcommand{\Fm}{\mathrm{Form}}            % set of well-formed formulas
+\newcommand{\lequiv}{\mathrel{\models\!\!\!\mid}} % logical equivalence
+\newcommand{\nentails}{\not\models}
+\newcommand{\nproves}{\nvdash}
+\newcommand{\Dom}{\mathrm{dom}}
+\newcommand{\interp}[1]{#1^{I}}
+\newcommand{\hoare}[3]{\{\,#1\,\}\ #2\ \{\,#3\,\}}   % Hoare triple
+\newcommand{\pc}{\models_{\mathrm{par}}}       % partial correctness
+\newcommand{\tc}{\models_{\mathrm{tot}}}       % total correctness
+\newcommand{\rulename}[1]{\textup{#1}}
+
+% Natural deduction proofs: numbered lines in a tabular. Each \bx draws one
+% level of "box" (a vertical bar spanning the line) for subproofs.
+\newenvironment{ndproof}
+  {\leavevmode\begin{center}\begin{tabular}{r@{\quad}l@{\qquad}l}}
+  {\end{tabular}\end{center}}
+\newcommand{\bx}{\vrule height\ht\strutbox depth\dp\strutbox\hspace{0.6em}}
+
+\title{CS 245 --- Logic and Computation}
+\author{Vishesh Gupta}
+\date{University of Waterloo}
+\begin{document}
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\include{chapters/01-introduction}
+\include{chapters/02-propositional-syntax}
+\include{chapters/03-propositional-semantics}
+\include{chapters/04-propositional-proofs}
+\include{chapters/05-soundness-completeness}
+\include{chapters/06-predicate-syntax}
+\include{chapters/07-predicate-semantics}
+\include{chapters/08-predicate-deduction}
+\include{chapters/09-peano-arithmetic}
+\include{chapters/10-program-verification}
+\include{chapters/11-undecidability}
+\end{document}

@@ -1,0 +1,310 @@
+\chapter{Propositional Logic: Semantics}\label{ch:propsem}
+
+\section{Truth valuations}
+
+\begin{definition}[Truth valuation]
+A \emph{truth valuation} (or assignment) is a function $t:\Prop\to\{\TT,\FF\}$ assigning
+a truth value to every atom. (Some texts write $1,0$ instead of $\TT,\FF$.)
+\end{definition}
+
+By unique readability, $t$ extends uniquely to a function $A \mapsto A^t$ on all formulas,
+defined by structural recursion:
+\begin{align*}
+  p^t &= t(p),\\
+  (\neg A)^t &= \TT \text{ iff } A^t = \FF,\\
+  (A\land B)^t &= \TT \text{ iff } A^t=\TT \text{ and } B^t=\TT,\\
+  (A\lor B)^t &= \TT \text{ iff } A^t=\TT \text{ or } B^t=\TT,\\
+  (A\to B)^t &= \TT \text{ iff } A^t=\FF \text{ or } B^t=\TT,\\
+  (A\leftrightarrow B)^t &= \TT \text{ iff } A^t = B^t.
+\end{align*}
+
+As truth tables:
+\begin{center}
+\begin{tabular}{cc|c|cccc}
+$A$ & $B$ & $\neg A$ & $A\land B$ & $A\lor B$ & $A\to B$ & $A\leftrightarrow B$\\
+\hline
+$\TT$&$\TT$&$\FF$&$\TT$&$\TT$&$\TT$&$\TT$\\
+$\TT$&$\FF$&$\FF$&$\FF$&$\TT$&$\FF$&$\FF$\\
+$\FF$&$\TT$&$\TT$&$\FF$&$\TT$&$\TT$&$\FF$\\
+$\FF$&$\FF$&$\TT$&$\FF$&$\FF$&$\TT$&$\TT$\\
+\end{tabular}
+\end{center}
+
+\begin{important}[Material implication]
+$A\to B$ is false \emph{only} when $A$ is true and $B$ is false. In particular, an
+implication with a false antecedent is (vacuously) true: ``if $1=2$ then the moon is
+cheese'' is true. This is the convention that makes logic work smoothly, even if it
+sounds odd in English.
+\end{important}
+
+\begin{lemma}[Relevance]
+$A^t$ depends only on the values $t$ assigns to atoms occurring in $A$: if $t_1(p)=t_2(p)$
+for every $p\in\mathrm{atoms}(A)$, then $A^{t_1}=A^{t_2}$.
+\end{lemma}
+\begin{proof}
+Structural induction on $A$, using the recursive definition at each step.
+\end{proof}
+
+So a formula with $n$ distinct atoms has only $2^n$ relevantly different valuations,
+which is what makes truth tables finite.
+
+\begin{example}
+Truth table for $(p\to q)\land(q\to r)\to(p\to r)$:
+\begin{center}
+\begin{tabular}{ccc|cccc}
+$p$&$q$&$r$& $p\to q$ & $q\to r$ & $p\to r$ & whole\\\hline
+$\TT$&$\TT$&$\TT$&$\TT$&$\TT$&$\TT$&$\TT$\\
+$\TT$&$\TT$&$\FF$&$\TT$&$\FF$&$\FF$&$\TT$\\
+$\TT$&$\FF$&$\TT$&$\FF$&$\TT$&$\TT$&$\TT$\\
+$\TT$&$\FF$&$\FF$&$\FF$&$\TT$&$\FF$&$\TT$\\
+$\FF$&$\TT$&$\TT$&$\TT$&$\TT$&$\TT$&$\TT$\\
+$\FF$&$\TT$&$\FF$&$\TT$&$\FF$&$\TT$&$\TT$\\
+$\FF$&$\FF$&$\TT$&$\TT$&$\TT$&$\TT$&$\TT$\\
+$\FF$&$\FF$&$\FF$&$\TT$&$\TT$&$\TT$&$\TT$\\
+\end{tabular}
+\end{center}
+The last column is all $\TT$: the formula is a tautology (transitivity of $\to$).
+\end{example}
+
+\section{Satisfiability and validity}
+
+\begin{definition}
+Let $A$ be a formula and $\Sigma$ a set of formulas.
+\begin{itemize}
+  \item $t$ \emph{satisfies} $A$ if $A^t=\TT$; $t$ satisfies $\Sigma$ if it satisfies
+        every formula in $\Sigma$ (write $\Sigma^t=\TT$).
+  \item $A$ is a \emph{tautology} (valid) if every valuation satisfies it.
+  \item $A$ is a \emph{contradiction} (unsatisfiable) if no valuation satisfies it.
+  \item $A$ is \emph{satisfiable} if some valuation satisfies it; a set $\Sigma$ is
+        satisfiable if some single valuation satisfies all of its members.
+  \item A formula that is satisfiable but not a tautology is \emph{contingent}.
+\end{itemize}
+\end{definition}
+
+\begin{itemize}
+  \item $p\lor\neg p$ is a tautology (law of excluded middle);
+  \item $p\land\neg p$ is a contradiction;
+  \item $p \to q$ is contingent.
+\end{itemize}
+Note: $A$ is a tautology iff $\neg A$ is a contradiction (unsatisfiable).
+
+\begin{important}[Satisfiable sets]
+A set can consist of satisfiable formulas and still be unsatisfiable:
+$\{p,\ p\to q,\ \neg q\}$ has each member satisfiable, but no single valuation satisfies
+all three. The empty set is satisfiable (every valuation satisfies it vacuously).
+\end{important}
+
+\section{Logical consequence}
+
+\begin{definition}[Tautological consequence]
+$\Sigma \models A$ (\emph{$A$ is a tautological consequence of $\Sigma$}) if every
+valuation that satisfies $\Sigma$ also satisfies $A$. We write $\models A$ for
+$\emptyset\models A$; this holds iff $A$ is a tautology.
+\end{definition}
+
+To show $\Sigma\models A$, argue that any $t$ with $\Sigma^t=\TT$ has $A^t=\TT$ (or check a
+truth table restricted to rows where all premises are true). To show
+$\Sigma\not\models A$, exhibit one valuation making all of $\Sigma$ true and $A$ false.
+
+\begin{theorem}[Useful facts]
+For formulas $A,B$ and sets $\Sigma$:
+\begin{enumerate}
+  \item $\Sigma\models A$ iff $\Sigma\cup\{\neg A\}$ is unsatisfiable.
+  \item (Deduction) $\Sigma\cup\{A\}\models B$ iff $\Sigma\models A\to B$.
+  \item $\{A_1,\dots,A_n\}\models B$ iff $\models (A_1\land\dots\land A_n)\to B$.
+  \item (Monotonicity) If $\Sigma\models A$ and $\Sigma\subseteq\Sigma'$ then
+        $\Sigma'\models A$.
+  \item If $\Sigma$ is unsatisfiable, then $\Sigma\models A$ for every $A$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Proof of 2]
+($\Rightarrow$) Let $t$ satisfy $\Sigma$. If $A^t=\FF$, then $(A\to B)^t=\TT$. If
+$A^t=\TT$, then $t$ satisfies $\Sigma\cup\{A\}$ so $B^t=\TT$ and $(A\to B)^t=\TT$.
+($\Leftarrow$) Let $t$ satisfy $\Sigma\cup\{A\}$. Then $(A\to B)^t=\TT$ and $A^t=\TT$,
+so $B^t=\TT$.
+\end{proof}
+
+Fact 1 is the basis of \emph{refutation} methods such as resolution: to prove $A$ from
+$\Sigma$, show $\Sigma\cup\{\neg A\}$ has no model.
+
+\section{Logical equivalence}
+
+\begin{definition}
+$A$ and $B$ are \emph{logically equivalent}, written $A\equiv B$ (or $A\lequiv B$), if
+$A^t=B^t$ for every valuation $t$. Equivalently, $A\leftrightarrow B$ is a tautology, or
+both $A\models B$ and $B\models A$.
+\end{definition}
+
+\begin{important}[Standard equivalences]
+\begin{tabular}{@{}ll@{}}
+Double negation & $\neg\neg A\equiv A$\\
+De Morgan & $\neg(A\land B)\equiv\neg A\lor\neg B$, \quad $\neg(A\lor B)\equiv\neg A\land\neg B$\\
+Commutativity & $A\land B\equiv B\land A$, \quad $A\lor B\equiv B\lor A$\\
+Associativity & $(A\land B)\land C\equiv A\land(B\land C)$, similarly for $\lor$\\
+Distributivity & $A\land(B\lor C)\equiv(A\land B)\lor(A\land C)$\\
+ & $A\lor(B\land C)\equiv(A\lor B)\land(A\lor C)$\\
+Idempotence & $A\land A\equiv A$, \quad $A\lor A\equiv A$\\
+Absorption & $A\land(A\lor B)\equiv A$, \quad $A\lor(A\land B)\equiv A$\\
+Implication & $A\to B\equiv\neg A\lor B$\\
+Contrapositive & $A\to B\equiv\neg B\to\neg A$\\
+Biconditional & $A\leftrightarrow B\equiv(A\to B)\land(B\to A)$\\
+Exportation & $(A\land B)\to C\equiv A\to(B\to C)$\\
+Simplification & $A\lor\top\equiv\top$, $A\land\top\equiv A$, $A\lor\bot\equiv A$,
+  $A\land\bot\equiv\bot$\\
+Complement & $A\lor\neg A\equiv\top$, \quad $A\land\neg A\equiv\bot$
+\end{tabular}
+\end{important}
+
+\begin{theorem}[Replaceability / substitution]
+\begin{enumerate}
+  \item If $B\equiv C$ and $A'$ results from $A$ by replacing one or more occurrences
+        of the subformula $B$ by $C$, then $A\equiv A'$.
+  \item If $A$ is a tautology and $A'$ results from replacing every occurrence of an atom
+        $p$ in $A$ by a formula $B$, then $A'$ is a tautology.
+\end{enumerate}
+\end{theorem}
+
+Together these let us do \emph{algebraic} proofs of equivalence.
+
+\begin{example}
+Show $(p\to q)\land(p\to r)\equiv p\to(q\land r)$:
+\begin{align*}
+(p\to q)\land(p\to r)
+ &\equiv (\neg p\lor q)\land(\neg p\lor r) && \text{implication}\\
+ &\equiv \neg p\lor(q\land r) && \text{distributivity}\\
+ &\equiv p\to(q\land r) && \text{implication.}
+\end{align*}
+\end{example}
+
+\begin{example}
+Simplify $\neg(p\lor\neg q)\lor(\neg p\land\neg q)$:
+\begin{align*}
+ &\equiv (\neg p\land\neg\neg q)\lor(\neg p\land\neg q) && \text{De Morgan}\\
+ &\equiv (\neg p\land q)\lor(\neg p\land\neg q) && \text{double negation}\\
+ &\equiv \neg p\land(q\lor\neg q) && \text{distributivity}\\
+ &\equiv \neg p\land\top \equiv \neg p. &&
+\end{align*}
+\end{example}
+
+\section{Adequate sets of connectives}
+
+Every formula with atoms $p_1,\dots,p_n$ defines a \emph{truth function}
+$\{\TT,\FF\}^n\to\{\TT,\FF\}$. There are $2^{2^n}$ truth functions of $n$ arguments
+(16 binary ones).
+
+\begin{definition}
+A set of connectives is \emph{adequate} (functionally complete) if every truth function
+of every arity $n\ge 1$ is represented by some formula using only those connectives.
+\end{definition}
+
+\begin{theorem}
+$\{\neg,\land,\lor\}$ is adequate.
+\end{theorem}
+\begin{proof}
+Let $f$ be an $n$-ary truth function. If $f$ is always $\FF$, use $p_1\land\neg p_1$.
+Otherwise, for each row $(v_1,\dots,v_n)$ with $f(v_1,\dots,v_n)=\TT$ form the conjunction
+$\ell_1\land\dots\land\ell_n$ where $\ell_i=p_i$ if $v_i=\TT$ and $\ell_i=\neg p_i$ if
+$v_i=\FF$. This conjunction is true exactly on that row. The disjunction of all such
+conjunctions is true exactly on the rows where $f$ is $\TT$.
+\end{proof}
+
+\begin{corollary}
+$\{\neg,\land\}$, $\{\neg,\lor\}$ and $\{\neg,\to\}$ are adequate.
+\end{corollary}
+\begin{proof}
+It suffices to express the missing connectives of an adequate set:
+$A\lor B\equiv\neg(\neg A\land\neg B)$;\quad
+$A\land B\equiv\neg(\neg A\lor\neg B)$;\quad
+$A\lor B\equiv\neg A\to B$ (so $\{\neg,\to\}$ gives $\lor$, hence reduces to
+$\{\neg,\lor\}$).
+\end{proof}
+
+The single connectives NAND ($A\uparrow B \equiv \neg(A\land B)$, the Sheffer stroke) and
+NOR ($A\downarrow B\equiv\neg(A\lor B)$) are each adequate on their own:
+$\neg A\equiv A\uparrow A$ and $A\land B\equiv(A\uparrow B)\uparrow(A\uparrow B)$.
+
+\subsection{Proving a set is \emph{not} adequate}
+
+Find a property preserved by all formulas built from the set that some truth function
+lacks, and prove it by structural induction.
+
+\begin{example}
+$\{\land,\lor\}$ is not adequate. \emph{Claim}: every formula $A$ built from atoms with
+only $\land,\lor$ satisfies $A^t=\TT$ when $t$ makes every atom true. Base: trivially.
+Step: $\TT\land\TT=\TT$, $\TT\lor\TT=\TT$. So $\neg p$ cannot be expressed.
+\end{example}
+
+\begin{example}
+$\{\to\}$ is not adequate: every formula built from $\to$ alone is true under the
+all-$\TT$ valuation (since $\TT\to\TT=\TT$), so again $\neg p$ is not expressible.
+Similarly $\{\neg,\leftrightarrow\}$ is not adequate: one can show every such formula in
+two variables has an even number of $\TT$s in its truth table, but $p\land q$ has one.
+\end{example}
+
+\section{Normal forms}
+
+\begin{definition}
+A \emph{literal} is an atom $p$ or its negation $\neg p$. A \emph{clause} (disjunctive
+clause) is a disjunction of literals; a \emph{conjunctive clause} is a conjunction of
+literals.
+\begin{itemize}
+  \item A formula is in \emph{disjunctive normal form} (DNF) if it is a disjunction of
+        conjunctions of literals: $\bigvee_i\bigwedge_j \ell_{ij}$.
+  \item A formula is in \emph{conjunctive normal form} (CNF) if it is a conjunction of
+        disjunctions of literals: $\bigwedge_i\bigvee_j \ell_{ij}$.
+\end{itemize}
+\end{definition}
+
+The proof of adequacy above constructs a DNF directly from the truth table. Dually, a CNF
+can be read off the rows where $f$ is $\FF$: for each such row include the clause that
+is false exactly on that row (flip each literal).
+
+\begin{theorem}
+Every formula is equivalent to one in DNF and to one in CNF.
+\end{theorem}
+
+\subsection{Algorithm for CNF by transformation}
+\begin{enumerate}
+  \item Eliminate $\leftrightarrow$ and $\to$: $A\leftrightarrow B\equiv(\neg A\lor B)\land(A\lor\neg B)$
+        and $A\to B\equiv\neg A\lor B$.
+  \item Push negations inward (to atoms) using De Morgan and double negation
+        (\emph{negation normal form}).
+  \item Distribute $\lor$ over $\land$: $A\lor(B\land C)\equiv(A\lor B)\land(A\lor C)$,
+        until no $\land$ is inside a $\lor$.
+\end{enumerate}
+For DNF, distribute $\land$ over $\lor$ in the last step instead.
+
+\begin{example}
+Convert $(p\to q)\to r$ to CNF:
+\begin{align*}
+(p\to q)\to r &\equiv \neg(\neg p\lor q)\lor r
+  \equiv (p\land\neg q)\lor r
+  \equiv (p\lor r)\land(\neg q\lor r).
+\end{align*}
+In DNF it is $(p\land\neg q)\lor r$.
+\end{example}
+
+\begin{aside}
+CNF conversion by distribution can blow up exponentially: $(p_1\land q_1)\lor\dots\lor
+(p_n\land q_n)$ has a CNF with $2^n$ clauses. In practice SAT solvers use the
+\emph{Tseitin transformation}, which introduces fresh atoms and produces an
+\emph{equisatisfiable} (not equivalent) CNF of linear size. Deciding satisfiability of a
+CNF formula (SAT) is NP-complete; deciding it for DNF is trivial (some conjunct must not
+contain both $p$ and $\neg p$).
+\end{aside}
+
+\section*{Summary}
+\begin{itemize}
+  \item A valuation fixes atoms; truth values of compound formulas follow by recursion.
+  \item Tautology: true under all valuations; contradiction: none; satisfiable: some.
+  \item $\Sigma\models A$: every valuation satisfying $\Sigma$ satisfies $A$; equivalently
+        $\Sigma\cup\{\neg A\}$ is unsatisfiable.
+  \item $A\equiv B$ iff they agree on every valuation; use known equivalences and
+        replaceability for algebraic proofs.
+  \item $\{\neg,\land,\lor\}$, $\{\neg,\land\}$, $\{\neg,\to\}$, $\{\uparrow\}$,
+        $\{\downarrow\}$ are adequate; show non-adequacy with an invariant proved by
+        structural induction.
+  \item Every formula has equivalent CNF and DNF forms (from truth tables or by
+        rewriting).
+\end{itemize}

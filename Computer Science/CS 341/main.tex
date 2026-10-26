@@ -1,0 +1,33 @@
+\documentclass[11pt,oneside]{book}
+\input{../common/preamble}
+
+% Pseudocode listings for this course: write math between $...$ inside code.
+\lstdefinelanguage{Pseudo}{
+  morekeywords={for,to,downto,do,if,then,else,elif,return,while,each,in,and,
+    or,not,repeat,until,function,procedure,break,continue,true,false,nil,
+    output,accept,reject,let},
+  sensitive=true,
+  morecomment=[l]{//},
+}
+\lstdefinestyle{pseudo}{language=Pseudo,mathescape=true}
+
+\title{CS 341 --- Algorithms}
+\author{Vishesh Gupta}
+\date{University of Waterloo}
+\begin{document}
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\include{chapters/01-introduction}
+\include{chapters/02-recurrences}
+\include{chapters/03-divide-and-conquer}
+\include{chapters/04-greedy}
+\include{chapters/05-dynamic-programming}
+\include{chapters/06-graph-search}
+\include{chapters/07-mst}
+\include{chapters/08-shortest-paths}
+\include{chapters/09-reductions-np}
+\include{chapters/10-np-completeness}
+\include{chapters/11-undecidability}
+\end{document}

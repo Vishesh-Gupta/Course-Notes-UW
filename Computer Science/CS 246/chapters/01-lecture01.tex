@@ -1,0 +1,147 @@
+\chapter{Lecture 1: The Linux Shell and File System}
+\begin{center}
+\textit{January 4, 2018}
+\end{center}
+
+\section{Module 1: The Linux Shell}
+
+\begin{definition}
+A \textbf{shell} is an interface to the operating system. The OS talks to the
+hardware; the shell lets the user talk to the OS. With a shell we
+\begin{enumerate}
+  \item manipulate files, and
+  \item run programs.
+\end{enumerate}
+\end{definition}
+
+\subsection{Types of Shells}
+
+\paragraph{Graphical shell.} Windows, macOS and Linux all have one: point and
+click, drag and drop. Intuitive to use.
+
+The big disadvantage of a graphical shell is that it is not very powerful:
+every feature has to be explicitly implemented by somebody. For example, suppose
+a folder contains a lot of files with the extension \code{.c} and we want to
+rename all of them to have extension \code{.cc}. Unless someone built a ``bulk
+rename'' button, we are stuck doing it one file at a time.
+
+\paragraph{Command-line shell.} We type commands at a \emph{prompt} (basically
+a blinking cursor). The biggest disadvantage is the steep learning curve; the big
+advantage is that it is very powerful. You do not need someone to have
+``supported'' a feature: you combine small commands to build the feature
+yourself.
+
+DOS used to be the command-line shell on PCs, but it has gotten stale.
+
+\subsection{History of the Linux Shell}
+The Linux command-line shell is a descendant of the original Unix shell (1970s),
+called simply \emph{the shell} and written by Stephen Bourne. It had a dozen or
+two commands. Over time many shells appeared:
+\begin{itemize}
+  \item the Korn shell (\code{ksh}),
+  \item the C shell (\code{csh}), which became the Turbo C shell (\code{tcsh}).
+\end{itemize}
+By then the original shell was called the \emph{Bourne shell} (\code{sh}), and
+its successor became the \textbf{Bourne Again Shell} (\code{bash}), which is
+what we use in CS 246.
+
+To check that you are running bash:
+\begin{lstlisting}[style=bash]
+$ echo $0
+-bash
+\end{lstlisting}
+(\code{\$0} is the name of the currently running program; the leading \code{-}
+means it is a login shell.)
+
+\section{The Linux File System}
+
+The file system is similar to the one on Windows. In Linux, there are files
+which can contain other files.
+
+\begin{definition}
+A \textbf{directory} is a file that can contain other files. Other than that,
+Linux does not really distinguish between files and directories.
+\end{definition}
+
+The Linux file system is a \textbf{tree}. The root of the tree is a directory
+called the \textbf{root directory}, written \code{/}.
+
+\begin{center}
+\begin{tikzpicture}[level distance=11mm,
+  level 1/.style={sibling distance=30mm},
+  level 2/.style={sibling distance=18mm},
+  every node/.style={font=\ttfamily\small}]
+\node {/}
+  child {node {bin}}
+  child {node {usr}
+    child {node {share}
+      child {node {dict}
+        child {node {words}}}}
+    child {node {bin}}}
+  child {node {u}
+    child {node {nanaeem}}};
+\end{tikzpicture}
+\end{center}
+
+\begin{definition}
+A \textbf{path} specifies the location of a file in the file system. An
+\textbf{absolute path} begins at the root directory, e.g.\
+\code{/usr/share/dict/words}. A \textbf{relative path} starts at the current
+directory.
+\end{definition}
+
+If \code{pwd} is \code{/Users/nanaeem}, then the absolute path
+\code{/Users/nanaeem/cs246/a1} names the same directory as the relative path
+\code{cs246/a1}.
+
+\begin{aside}
+Special directory names:
+\begin{itemize}
+  \item \code{.} is the current directory,
+  \item \code{..} is the parent directory, \code{../..} the grandparent,
+  \item \code{\textasciitilde} is your home directory, and
+        \code{\textasciitilde userid} is \code{userid}'s home directory.
+\end{itemize}
+\end{aside}
+
+\section{Basic Commands}
+
+\begin{center}
+\begin{tabular}{@{}lp{0.62\textwidth}@{}}
+\toprule
+Command & Meaning \\
+\midrule
+\code{clear} & clear the screen \\
+\code{ls} & list the (non-hidden) files in the current directory \\
+\code{ls -a} & list all files, including hidden ones (names starting with \code{.}) \\
+\code{ls -l} & long listing (permissions, owner, size, date) \\
+\code{pwd} & print the present working directory \\
+\code{cd <path>} & change directory to \code{<path>} \\
+\code{cd} & with no argument: go to your home directory \\
+\code{cd -} & go back to the previous directory \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The \code{-a} in \code{ls -a} is called an \emph{option} (or \emph{flag}); it
+modifies the behaviour of the command. Options can usually be combined, e.g.\
+\code{ls -la}.
+
+\begin{lstlisting}[style=bash]
+$ cd /Users/nanaeem/cs246/a1    # absolute path
+$ cd ..                          # now in /Users/nanaeem/cs246
+$ cd a1                          # relative path, back in a1
+$ pwd
+/Users/nanaeem/cs246/a1
+\end{lstlisting}
+
+\section*{Summary}
+\begin{itemize}
+  \item A shell is an interface to the OS; command-line shells trade a learning
+        curve for power. We use \code{bash}.
+  \item The file system is a tree rooted at \code{/}; directories are files that
+        contain files.
+  \item Absolute paths start at \code{/}; relative paths start at the current
+        directory, with \code{.}, \code{..}, \code{\textasciitilde} as shortcuts.
+  \item First commands: \code{clear}, \code{ls}, \code{pwd}, \code{cd}.
+\end{itemize}

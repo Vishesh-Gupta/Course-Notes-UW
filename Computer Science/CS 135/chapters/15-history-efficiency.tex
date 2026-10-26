@@ -1,0 +1,118 @@
+\chapter{Efficiency, Computing History, and What's Next}
+
+\section{Measuring efficiency}
+Two correct programs can differ hugely in running time. Rather than timing
+programs (which depends on the machine), we count the number of substitution
+steps (or basic operations) as a function of the input size $n$, and care
+about how this grows for large $n$.
+
+\begin{definition}[Big-O, informally]
+A function $T(n)$ is $\bigO(f(n))$ if there are constants $c > 0$ and $n_0$ such
+that $T(n) \le c\, f(n)$ for all $n \ge n_0$. We write $\Theta(f(n))$ when the
+bound is also a lower bound up to constants.
+\end{definition}
+
+\subsection{Typical running times in CS 135}
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Function & Running time \\
+\midrule
+\code{first}, \code{rest}, \code{cons}, \code{empty?} & $\bigO(1)$ \\
+\code{length}, \code{member?}, \code{list-ref}, \code{sum} & $\bigO(n)$ \\
+\code{(append l1 l2)} & $\bigO(\text{length of } l1)$ \\
+\code{map}, \code{filter}, \code{foldr} (constant-time function) & $\bigO(n)$ \\
+association list lookup & $\bigO(n)$ \\
+BST search/insert & $\bigO(h)$; $\bigO(\log n)$ balanced, $\bigO(n)$ worst \\
+insertion sort & $\bigO(n^2)$ worst, $\bigO(n)$ on sorted input \\
+quicksort & $\bigO(n \log n)$ typical, $\bigO(n^2)$ worst \\
+mergesort & $\bigO(n \log n)$ \\
+structural reverse with \code{append} & $\bigO(n^2)$ \\
+accumulative reverse & $\bigO(n)$ \\
+\code{list-max} with repeated recursive call & $\bigO(2^n)$ \\
+Euclid's gcd & $\bigO(\log n)$ calls \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Analysing recursive functions}
+Write a \textbf{recurrence} for the running time and solve it:
+\begin{itemize}
+  \item $T(n) = T(n-1) + \bigO(1)$ $\Rightarrow$ $\bigO(n)$ (sum, length).
+  \item $T(n) = T(n-1) + \bigO(n)$ $\Rightarrow$ $\bigO(n^2)$ (insertion sort, naive reverse).
+  \item $T(n) = 2T(n-1) + \bigO(1)$ $\Rightarrow$ $\bigO(2^n)$ (repeated recursive call).
+  \item $T(n) = 2T(n/2) + \bigO(n)$ $\Rightarrow$ $\bigO(n \log n)$ (mergesort, balanced quicksort).
+  \item $T(n) = T(n/2) + \bigO(1)$ $\Rightarrow$ $\bigO(\log n)$ (search in a balanced BST).
+\end{itemize}
+
+\begin{example}[Why repeated calls are exponential]
+\begin{lstlisting}[style=racket]
+(define (bad-max lon)
+  (cond [(empty? (rest lon)) (first lon)]
+        [(> (first lon) (bad-max (rest lon))) (first lon)]
+        [else (bad-max (rest lon))]))
+\end{lstlisting}
+On an increasing list, the test fails at every level, so both calls
+happen: $T(n) = 2T(n-1) + c$, giving $T(n) \approx c\,2^n$. A list of 30
+elements needs about a billion steps. The \code{local} version is linear.
+\end{example}
+
+\section{A short history of computing}
+
+\subsection{Before electronic computers}
+\begin{itemize}
+  \item \textbf{Euclid} (c.\ 300 BCE) gave one of the oldest known algorithms (gcd).
+  \item \textbf{al-Khwarizmi} (9th century) wrote on systematic procedures for arithmetic and algebra; the word ``algorithm'' derives from his name.
+  \item \textbf{Charles Babbage} designed the Difference Engine and the programmable Analytical Engine (1830s--40s), never completed in his lifetime.
+  \item \textbf{Ada Lovelace} wrote notes on the Analytical Engine including what is considered the first published program (computing Bernoulli numbers), and foresaw that such machines could manipulate symbols, not just numbers.
+\end{itemize}
+
+\subsection{Foundations: what can be computed?}
+\begin{itemize}
+  \item \textbf{David Hilbert} (1928) posed the \emph{Entscheidungsproblem}: is there a mechanical procedure to decide whether any mathematical statement is provable?
+  \item \textbf{Kurt G\"odel} (1931) showed that any consistent formal system strong enough for arithmetic contains true but unprovable statements (incompleteness).
+  \item \textbf{Alonzo Church} (1936) introduced the \textbf{lambda calculus}, a model of computation based purely on function definition and application --- the direct ancestor of \code{lambda} in Racket --- and used it to show the Entscheidungsproblem is unsolvable.
+  \item \textbf{Alan Turing} (1936) independently answered the same question with \textbf{Turing machines} and the undecidability of the halting problem. The Church--Turing thesis states that these models capture exactly what is ``effectively computable''.
+\end{itemize}
+
+\begin{aside}
+The halting problem connects to Chapter~\ref{ch:generative}: there is no
+general algorithm that decides whether an arbitrary function terminates on a
+given input, which is why termination arguments must be made case by case.
+\end{aside}
+
+\subsection{Electronic computers and programming languages}
+\begin{itemize}
+  \item 1940s: electronic machines (Colossus, ENIAC); \textbf{John von Neumann}'s stored-program architecture, where programs and data share memory --- the basis of almost all modern computers and of the imperative programming style.
+  \item 1950s: \textbf{Grace Hopper} built early compilers; \textbf{John Backus} led FORTRAN (1957), the first widely used high-level language.
+  \item 1958: \textbf{John McCarthy} created \textbf{Lisp}, based on lambda calculus: lists, recursion, functions as data, garbage collection.
+  \item 1975: \textbf{Scheme} (Sussman and Steele), a small, lexically scoped Lisp dialect; later used in the textbook \emph{Structure and Interpretation of Computer Programs}.
+  \item 1990s--2000s: the PLT group (Felleisen, Findler, Flatt, Krishnamurthi) built DrScheme and the \emph{How to Design Programs} curriculum, on which CS 135 is based; renamed Racket in 2010.
+  \item Functional ideas (lambda, map/filter/reduce, immutability) are now mainstream in Python, JavaScript, Java, C++, Haskell, OCaml, Scala, Rust, and in large-scale systems such as MapReduce.
+\end{itemize}
+
+\section{What CS 135 did not cover}
+\begin{itemize}
+  \item \textbf{Mutation and state}: \code{set!}, mutable structures, sequencing with \code{begin}. These break the simple substitution model; CS 136 introduces them along with a memory model.
+  \item \textbf{Input/output} and interaction with the outside world.
+  \item \textbf{Arrays} and constant-time indexed access.
+  \item \textbf{Low-level memory} and how programs actually execute on hardware.
+\end{itemize}
+
+\section{What's next}
+\begin{itemize}
+  \item \textbf{CS 136} (Elementary Algorithm Design and Data Abstraction) starts in full Racket with mutation, then moves to \textbf{C}: memory, pointers, arrays, modules, ADTs, and efficiency.
+  \item \textbf{CS 245}/\textbf{CS 240}/\textbf{CS 341}: logic, data structures and algorithms, building on recursion, trees, graphs, and big-O.
+  \item \textbf{CS 241} and \textbf{CS 442}-level courses revisit the semantics and implementation of languages, including functional ones.
+\end{itemize}
+
+The design recipe's habits --- think about data first, write contracts and
+examples before code, test thoroughly --- carry over to every language.
+
+\section{Summary}
+\begin{itemize}
+  \item Efficiency is measured by growth of step counts with input size; use big-O and recurrences.
+  \item Avoid repeated recursive calls and quadratic \code{append} patterns.
+  \item Lambda calculus (Church) and Turing machines founded computability; Lisp brought lambda to programming, leading to Scheme and Racket.
+  \item CS 136 adds mutation, memory, and C.
+\end{itemize}

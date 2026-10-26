@@ -1,0 +1,261 @@
+\chapter{External Memory}
+
+\section{The External Memory Model}
+
+When data is too large for main memory it lives on disk (or SSD). Accessing a
+disk is many orders of magnitude slower than accessing RAM, but data is
+transferred in large \emph{blocks}, so reading a whole block costs about the
+same as reading one word of it.
+
+\begin{definition}[External memory model (EMM)]
+There is an internal memory of size $M$ and an unbounded external memory.
+Data moves between them in blocks of $B$ consecutive items. The cost of an
+algorithm is the number of \emph{block transfers} (reads and writes); computation
+in internal memory is free.
+\end{definition}
+
+The goal: design algorithms whose block transfers are a factor $B$ (or better)
+less than their RAM operation counts, by using every item of each block we read.
+
+\begin{example}
+Scanning an array of $n$ items costs $\Theta(n/B)$ transfers. Binary search on a
+sorted array costs $\Theta(\log(n/B))$ transfers, barely better than $\log n$, because successive probes are in
+different blocks. A balanced BST with nodes scattered on disk costs
+$\Theta(\log n)$ transfers per search.
+\end{example}
+
+\section{External Sorting}
+
+HeapSort and QuickSort access memory all over the place: $\Theta(n \log n)$
+transfers in the worst case. MergeSort is naturally sequential, and adapts well.
+
+\paragraph{Merging.} Merging two sorted runs of total length $\ell$ needs three
+blocks of internal memory (two inputs, one output) and $\Theta(\ell / B)$
+transfers.
+
+\paragraph{$d$-way merge.} Merge $d$ runs at once: keep one block per run plus an
+output block, and a min-heap of the $d$ current front items to pick the next
+smallest. Requires $(d + 1)B \le M$, so take $d \approx M/B - 1$.
+
+\begin{lstlisting}
+d-way-merge(S1, ..., Sd):          // each Si sorted, read block by block
+  P <- min-heap of (front item of Si, i) for i = 1..d
+  S <- empty output (written block by block)
+  while P is not empty do
+    (x, i) <- P.deleteMin()
+    append x to S
+    remove x from Si
+    if Si is not empty then P.insert((front of Si, i))
+  return S
+\end{lstlisting}
+
+\paragraph{External MergeSort.}
+\begin{enumerate}
+  \item Create initial runs: read $M$ items at a time, sort them internally, write
+        them back. This gives $n/M$ sorted runs, costing $\Theta(n/B)$ transfers.
+  \item Repeatedly $d$-way merge groups of $d \approx M/B$ runs. Each round reads
+        and writes everything once ($\Theta(n/B)$ transfers) and divides the
+        number of runs by $d$.
+\end{enumerate}
+Number of rounds: $\log_{d}(n/M)$. Total transfers:
+\[
+\Theta\!\left(\frac nB \log_{M/B} \frac nM\right).
+\]
+This is optimal: any comparison-based external sort needs
+$\Omega\big(\frac nB \log_{M/B} \frac nB\big)$ transfers.
+
+\begin{example}
+With $n = 10^{10}$, $M = 10^8$, $B = 10^4$: initial runs give $100$ runs; one
+merge round with $d = M/B = 10^4 \ge 100$ suffices. So the whole sort reads and
+writes the data only twice.
+\end{example}
+
+\section{External Dictionaries: B-Trees}
+
+To make search efficient in the EMM we want trees whose nodes fill a block and
+have many children, reducing the height from $\log_2 n$ to $\log_B n$.
+
+\subsection{Multiway Search Trees}
+
+A node of a \emph{multiway search tree} stores $k$ sorted keys
+$k_1 < \cdots < k_k$ and has $k + 1$ subtrees $T_0, \ldots, T_k$, where all keys
+in $T_i$ lie between $k_i$ and $k_{i+1}$ (with $k_0 = -\infty$, $k_{k+1} = +\infty$).
+Search: at each node find the subtree to descend into (inside the node this is
+free in the EMM, or $\bigO(\log k)$ by binary search).
+
+\subsection{2-3 Trees}
+
+\begin{definition}
+A \emph{2-3 tree} is a multiway search tree in which
+\begin{itemize}
+  \item every internal node has either 1 key and 2 children, or 2 keys and 3
+        children;
+  \item all empty subtrees (leaves) are at the same depth.
+\end{itemize}
+\end{definition}
+
+\paragraph{Insert.} Search for $k$; it ends at the lowest internal level. Add $k$
+to that node. If the node now has 3 keys (\emph{overflow}), \emph{split} it: the
+middle key moves up into the parent, and the left and right keys become two
+separate nodes. The parent may overflow in turn; if the root splits, a new root
+is created and the tree grows by one level (the only way height increases).
+
+\begin{example}
+Insert 10, 20, 30 into an empty 2-3 tree: [10, 20] then [10, 20, 30] overflows;
+split: root [20] with children [10] and [30]. Insert 40, 50: [30, 40] then
+[30, 40, 50] overflows; 40 moves up: root [20, 40] with children [10], [30], [50].
+\end{example}
+
+\paragraph{Delete.} If $k$ is in an internal node, swap it with its successor (in
+a bottom node) first. Remove $k$ from the bottom node. If the node becomes
+empty (\emph{underflow}):
+\begin{itemize}
+  \item if an immediate sibling has 2 keys, \emph{transfer} (rotate): a key moves
+        from the sibling up to the parent and the parent's separating key moves
+        down;
+  \item otherwise \emph{merge} with a sibling, pulling the separating key down
+        from the parent; the parent may underflow in turn. If the root becomes
+        empty, delete it (height decreases).
+\end{itemize}
+
+\subsection{(a,b)-Trees}
+
+\begin{definition}
+For $2 \le a \le \ceil{b/2}$, an \emph{$(a,b)$-tree} is a multiway search tree
+in which
+\begin{itemize}
+  \item every non-root internal node has between $a$ and $b$ children (so
+        between $a-1$ and $b-1$ keys);
+  \item the root has between 2 and $b$ children;
+  \item all leaves (empty subtrees) are at the same depth.
+\end{itemize}
+A 2-3 tree is a $(2,3)$-tree; a $(2,4)$-tree is also called a 2-3-4 tree.
+\end{definition}
+
+The condition $a \le \ceil{b/2}$ makes splitting work: an overflowing node has
+$b$ keys; splitting it around the median yields two nodes with at least
+$\ceil{b/2} - 1 \ge a - 1$ keys each.
+
+\begin{theorem}
+An $(a,b)$-tree with $n$ keys has height $\Theta(\log_a n)$; more precisely
+$h \in \bigO(\log_a n)$ and $h \in \Omega(\log_b n)$.
+\end{theorem}
+\begin{proof}
+Count nodes at each level: the root has at least 2 children, and each other
+internal node at least $a$. So level $i \ge 1$ has at least $2a^{i-1}$ nodes, and
+the number of leaves (empty subtrees) is at least $2a^{h-1}$. A multiway tree
+with $n$ keys has exactly $n + 1$ empty subtrees, so $n + 1 \ge 2a^{h-1}$, giving
+$h \le 1 + \log_a\frac{n+1}{2}$. Similarly $n + 1 \le b^{h}$ gives the lower bound.
+\end{proof}
+
+Insert and delete work exactly as for 2-3 trees (split on overflow, transfer or
+merge on underflow), touching $\bigO(h)$ nodes.
+
+\subsection{B-Trees}
+
+\begin{definition}
+A \emph{B-tree of order $m$} is an $(\ceil{m/2}, m)$-tree. In the EMM we choose
+$m \in \Theta(B)$ so that one node fills one block.
+\end{definition}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Operation & Block transfers & Internal work\\
+\midrule
+\code{search} & $\Theta(\log_B n)$ & $\bigO(\log B)$ per node (binary search)\\
+\code{insert} & $\Theta(\log_B n)$ & $\bigO(B)$ per node\\
+\code{delete} & $\Theta(\log_B n)$ & $\bigO(B)$ per node\\
+\bottomrule
+\end{tabular}
+\end{center}
+Since $\log_B n = \frac{\log n}{\log B}$, a B-tree with $B = 1000$ and
+$n = 10^{9}$ has height about 3, and the root (and often level 1) can be kept in
+internal memory.
+
+\paragraph{Variants.}
+\begin{itemize}
+  \item \textbf{B$^+$-trees}: all KVPs stored in leaves; internal nodes hold only
+        keys for routing, so they have higher fanout; leaves are linked for fast
+        range queries. Used by databases and file systems.
+  \item \textbf{Pre-emptive splitting/merging}: split full nodes on the way down
+        during insert, so a single top-down pass
+        suffices.
+  \item \textbf{Red-black trees} are a binary encoding of 2-3-4 trees: a 2-3-4
+        node becomes a black node with 0, 1 or 2 red children.
+\end{itemize}
+
+\section{Extendible Hashing}
+
+Hashing in external memory: we want $\bigO(1)$ block transfers per operation,
+and to grow without rehashing everything.
+
+\paragraph{Structure.}
+\begin{itemize}
+  \item Each key's hash $h(k)$ is a long bit string (say $L$ bits).
+  \item A \emph{directory} (kept in internal memory) is an array of size $2^d$,
+        where $d$ is the \emph{global depth}. Entry $i$ points to the block for keys
+        whose hash starts with the $d$-bit string $i$.
+  \item Each block (on disk) stores up to $S \approx B$ keys and has a \emph{local
+        depth} $k \le d$: all keys in the block agree on their first $k$ bits.
+        A block with local depth $k$ is pointed to by $2^{d - k}$ directory entries.
+\end{itemize}
+
+\paragraph{Search.} Read the first $d$ bits of $h(k)$, look up the directory
+(free), load one block: 1 transfer.
+
+\paragraph{Insert.} Search for the block $P$. If $P$ has room, add $k$. Otherwise
+\emph{split} $P$:
+\begin{enumerate}
+  \item If $P$'s local depth $k_P < d$: create a new block $P'$, set both local
+        depths to $k_P + 1$, redistribute the keys of $P$ by bit $k_P + 1$, and
+        redirect half of the directory entries that pointed to $P$ to $P'$.
+  \item If $k_P = d$: first \emph{double the directory} ($d \leftarrow d + 1$,
+        each old entry is copied into two), then split as above.
+\end{enumerate}
+Repeat if all keys went to one side.
+
+\begin{lstlisting}
+extendible-insert(k):
+  P <- block for the first d bits of h(k)
+  while P is full do
+    if local-depth(P) = d then double the directory; d <- d + 1
+    split P into P and P' by bit local-depth(P) + 1
+    update directory pointers
+    P <- block for the first d bits of h(k)
+  insert k into P
+\end{lstlisting}
+
+\paragraph{Delete.} Remove $k$ from its block. Optionally merge a block with its
+``buddy'' (the block differing only in the last of the $k$ bits) if their
+combined contents fit, and halve the directory when all local depths are less
+than $d$.
+
+\begin{example}
+$S = 2$ keys per block, $d = 1$: block $A$ (prefix 0, $k_A = 1$) holds keys with
+hashes \texttt{0010}, \texttt{0111}; block $B$ (prefix 1) holds \texttt{1000}.
+Insert \texttt{0101}: $A$ is full and $k_A = d$, so double the directory to
+$d = 2$ (entries 00, 01, 10, 11; both 10 and 11 point to $B$, whose local depth
+stays 1). Split $A$ by the second bit: $A$ = \{\texttt{0010}\} (prefix 00),
+$A'$ = \{\texttt{0111}, \texttt{0101}\} (prefix 01), both with local depth 2.
+\end{example}
+
+\paragraph{Analysis.} Search and delete: 1 block transfer. Insert: usually 1-2,
+plus occasionally a directory doubling, which is done in internal memory (no
+block transfers for the data). No global rehash ever moves all the data; a split
+touches only one block. Space: blocks may be partly empty (about 69\% full on
+average for random hashes); the directory can blow up if many hashes share long
+prefixes.
+
+\section{Summary}
+\begin{itemize}
+  \item In the EMM we count block transfers of size $B$, with internal memory $M$.
+  \item External MergeSort: initial runs of size $M$, then $(M/B)$-way merges:
+        $\Theta(\frac nB \log_{M/B} \frac nM)$ transfers.
+  \item 2-3 trees, $(a,b)$-trees and B-trees keep all leaves at the same depth
+        using split/transfer/merge; a B-tree of order $\Theta(B)$ uses
+        $\Theta(\log_B n)$ transfers per operation.
+  \item Extendible hashing: a directory on the first $d$ hash bits, blocks with
+        local depths; $\bigO(1)$ transfers per operation and local splits instead
+        of global rehashing.
+\end{itemize}
