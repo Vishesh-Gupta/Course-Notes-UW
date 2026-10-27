@@ -56,13 +56,20 @@ website/              site generator (pandoc + KaTeX + TikZ->SVG) and its TypeSc
 Needs TeX Live (latex-extra; xetex and lang-chinese for the language books) with the Noto CJK fonts, `latexmk`, `pandoc`, `pdftocairo` (poppler-utils) and Node 20 (the website scripts are TypeScript, bundled with esbuild; see `website/README.md`).
 
 ```
+make deps                     # install everything below (Homebrew on macOS, apt on Linux)
 make pdfs COURSE="CS 246"     # compile one course (omit COURSE for all) into build/pdfs
 make site COURSE="CS 246"     # build the website into website/_site
 make check                    # everything CI checks: PDFs, TypeScript, strict site build, KaTeX formulas
+make build                    # the full website with PDFs and search, as it is deployed
 make serve                    # preview the site on http://localhost:8000
+make login                    # log in to Cloudflare in the browser (once per computer)
+make deploy                   # build everything and upload it to Cloudflare Pages
+make upload                   # upload the site already built in website/_site
 make new-course SUBJECT=Mathematics CODE="Math 237" TITLE="Calculus 3 for Honours Mathematics"
                               # add XELATEX=1 for a book with Chinese, Japanese or Korean
 ```
+
+Builds are incremental: `make pdfs` (and so `make build`/`make deploy`) only recompiles courses whose files changed since their last clean build, courses compile in parallel, the website reuses converted chapters and figures from `website/.cache`, and the upload sends only files that changed. `FORCE=1` rebuilds every PDF.
 
 Inside a course folder, `latexmk -pdf main.tex` builds that book on its own.
 
@@ -75,6 +82,8 @@ CI deploys the site to Cloudflare Pages on every push to `main`. One-time setup:
 3. In this repository: Settings → Secrets and variables → Actions → add `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`.
 
 The first deploy creates the `course-notes-uw` Pages project. Until the secrets exist, the deploy step is skipped with a notice.
+
+To deploy from your own computer instead (for example while GitHub Actions is unavailable), run `make login` once and then `make deploy`; no API token is needed.
 
 ## Checks
 

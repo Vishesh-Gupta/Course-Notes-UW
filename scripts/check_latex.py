@@ -9,18 +9,24 @@ directory (nothing is written next to the sources) and fails on:
   - chapter files in chapters/ that main.tex never \\include's (and the reverse).
 
 With --pdf-dir, the PDFs are saved there as <slug>.pdf (e.g. cs-246.pdf); CI
-publishes them on the website and in the "notes-latest" GitHub release.
+publishes them on the website and in the "notes-latest" GitHub release. A
+<slug>.inputs file next to each PDF records what it was built from, so a later
+run skips courses that have not changed (--force rebuilds them anyway).
+Courses compile in parallel (-j, default: one per CPU).
 
-Usage: python3 scripts/check_latex.py [--pdf-dir DIR] [COURSE ...]
+Usage: python3 scripts/check_latex.py [--pdf-dir DIR] [--force] [-j N] [COURSE ...]
        e.g. python3 scripts/check_latex.py "CS 246" "Math 135"
 """
 
 import argparse
+import hashlib
+import os
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -95,10 +101,50 @@ def compile_course(course, pdf_dir):
         return problems, pages
 
 
+# Files LaTeX writes next to main.tex (not inputs of the book).
+BUILD_OUTPUTS = {".aux", ".log", ".fls", ".fdb_latexmk", ".out", ".toc", ".xdv", ".synctex.gz",
+                 ".lof", ".lot", ".bbl", ".blg"}
+
+
+def inputs_hash(course):
+    """Hash of everything a course's PDF is built from (its folder and the shared preamble)."""
+    h = hashlib.sha1()
+    files = [ROOT / "common" / "preamble.tex"]
+    files += sorted(f for f in course.rglob("*") if f.is_file()
+                    and "".join(f.suffixes[-2:]) not in BUILD_OUTPUTS and f.suffix not in BUILD_OUTPUTS
+                    and f.name != "main.pdf")
+    for f in files:
+        h.update(str(f.relative_to(ROOT)).encode() + b"\0" + f.read_bytes() + b"\0")
+    return h.hexdigest()
+
+
+def check_course(course, pdf_dir, force):
+    """Returns (problems, pages, skipped)."""
+    stamp = Path(pdf_dir) / f"{slugify(course.name)}.inputs" if pdf_dir else None
+    digest = inputs_hash(course) if stamp else None
+    if (stamp and not force and stamp.exists() and stamp.read_text() == digest
+            and stamp.with_suffix(".pdf").exists()):
+        return [], None, True
+    problems = check_includes(course)
+    compile_problems, pages = compile_course(course, pdf_dir)
+    problems += compile_problems
+    if stamp:
+        # Only a clean build may be skipped next time.
+        if problems:
+            stamp.unlink(missing_ok=True)
+        else:
+            stamp.write_text(digest)
+    return problems, pages, False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("courses", nargs="*", help="course folder names (default: all)")
-    ap.add_argument("--pdf-dir", help="copy the built PDFs here")
+    ap.add_argument("--pdf-dir", help="copy the built PDFs here; courses whose files have not "
+                    "changed since their last clean build there are skipped")
+    ap.add_argument("--force", action="store_true", help="rebuild every course, changed or not")
+    ap.add_argument("-j", "--jobs", type=int, default=os.cpu_count() or 2,
+                    help="courses to compile at once (default: number of CPUs)")
     args = ap.parse_args()
     if args.pdf_dir:
         Path(args.pdf_dir).mkdir(parents=True, exist_ok=True)
@@ -107,21 +153,24 @@ def main():
     if not courses:
         raise SystemExit("no courses found")
     failed = 0
-    for course in courses:
-        problems = check_includes(course)
-        compile_problems, pages = compile_course(course, args.pdf_dir)
-        problems += compile_problems
-        name = f"{course.parent.name}/{course.name}"
-        if problems:
-            failed += 1
-            print(f"FAIL {name}")
-            for p in problems[:20]:
-                print(f"     {p}")
-            if len(problems) > 20:
-                print(f"     ... and {len(problems) - 20} more")
-        else:
-            print(f"ok   {name} ({pages} pages)")
-        sys.stdout.flush()
+    with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
+        jobs = {pool.submit(check_course, c, args.pdf_dir, args.force): c for c in courses}
+        for job in as_completed(jobs):
+            course = jobs[job]
+            problems, pages, skipped = job.result()
+            name = f"{course.parent.name}/{course.name}"
+            if problems:
+                failed += 1
+                print(f"FAIL {name}")
+                for p in problems[:20]:
+                    print(f"     {p}")
+                if len(problems) > 20:
+                    print(f"     ... and {len(problems) - 20} more")
+            elif skipped:
+                print(f"ok   {name} (unchanged)")
+            else:
+                print(f"ok   {name} ({pages} pages)")
+            sys.stdout.flush()
     if failed:
         raise SystemExit(f"{failed} of {len(courses)} course(s) failed")
 
