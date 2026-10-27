@@ -4,7 +4,7 @@ This repository contains course notes for the UW courses that I have taken.
 
 Every course is a LaTeX book split into one file per chapter/lecture. The original notes I wrote during each term (Markdown, Word and LaTeX) are kept next to them for reference; their content is part of the LaTeX books, which are the one version on the website and in the PDFs.
 
-- **Website:** https://course-notes-uw.pages.dev — each course as one continuous scroll, with notes, highlights and Apple Pencil handwriting (hosted free on Cloudflare Pages, so this repository can stay private).
+- **Website:** https://course-notes-uw.pages.dev — each course as one continuous scroll, with notes, highlights, Apple Pencil handwriting, and AI study tools (ask, practice tests, flashcards, study plans) that use your own model (hosted free on Cloudflare Pages, so this repository can stay private).
 - **PDFs:** built by CI on every change and attached to the [`notes-latest` release](https://github.com/Vishesh-Gupta/Course-Notes-UW/releases/tag/notes-latest) (also linked from each course page on the website).
 
 ## Courses
@@ -46,30 +46,31 @@ Every course is a LaTeX book split into one file per chapter/lecture. The origin
   Readme.md           chapter list for the course
   *.md, *.docx, ...   original notes from the term (their content is in the LaTeX book)
 common/preamble.tex   packages, theorem environments, boxes and macros shared by every book
-scripts/              check_latex.py (compile + checks), new_course.py (scaffold a course)
-website/              site generator (pandoc + KaTeX + TikZ->SVG) and its TypeScript page scripts
+common/web-macros.tex definitions used only on the website
+marginalia.toml       website settings: title, subjects, Cloudflare project
+scripts/new_course.py scaffold a new course
 .github/workflows/    CI: compile all PDFs, build and check the website, publish PDFs, deploy
 ```
 
 ## Working on the notes
 
-Needs TeX Live (latex-extra; xetex and lang-chinese for the language books) with the Noto CJK fonts, `latexmk`, `pandoc`, `pdftocairo` (poppler-utils) and Node 20 (the website scripts are TypeScript, bundled with esbuild; see `website/README.md`).
+The website is built by [Marginalia](https://github.com/Soboku-Labs/marginalia), which turns folders of LaTeX books, Markdown notes and PDFs into a site like this one; `marginalia.toml` holds this site's settings. Building needs TeX Live (latex-extra; xetex and lang-chinese for the language books) with the Noto CJK fonts, `latexmk`, `pandoc`, poppler (`pdftocairo`) and Node 20.
 
 ```
 make deps                     # install everything below (Homebrew on macOS, apt on Linux)
-make pdfs COURSE="CS 246"     # compile one course (omit COURSE for all) into build/pdfs
-make site COURSE="CS 246"     # build the website into website/_site
-make check                    # everything CI checks: PDFs, TypeScript, strict site build, KaTeX formulas
+make pdfs COURSE="CS 246"     # compile one course (omit COURSE for all)
+make site COURSE="CS 246"     # build the website into _site, reusing the last PDFs
+make check                    # everything CI checks: PDFs, strict site build, KaTeX formulas
 make build                    # the full website with PDFs and search, as it is deployed
 make serve                    # preview the site on http://localhost:8000
 make login                    # log in to Cloudflare in the browser (once per computer)
 make deploy                   # build everything and upload it to Cloudflare Pages
-make upload                   # upload the site already built in website/_site
+make upload                   # upload the site already built in _site
 make new-course SUBJECT=Mathematics CODE="Math 237" TITLE="Calculus 3 for Honours Mathematics"
                               # add XELATEX=1 for a book with Chinese, Japanese or Korean
 ```
 
-Builds are incremental: `make pdfs` (and so `make build`/`make deploy`) only recompiles courses whose files changed since their last clean build, courses compile in parallel, the website reuses converted chapters and figures from `website/.cache`, and the upload sends only files that changed. `FORCE=1` rebuilds every PDF.
+Builds are incremental: `make pdfs` (and so `make build`/`make deploy`) only recompiles courses whose files changed since their last clean build, courses compile in parallel, the website reuses converted chapters and figures from `.marginalia/`, and the upload sends only files that changed. `FORCE=1` rebuilds every PDF.
 
 Inside a course folder, `latexmk -pdf main.tex` builds that book on its own.
 

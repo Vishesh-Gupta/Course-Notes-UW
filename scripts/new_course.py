@@ -12,10 +12,14 @@ Creates <SUBJECT>/<CODE>/ with main.tex (shared preamble, title in the
 a Readme.md.
 """
 
+import re
 import sys
+from pathlib import Path
 from string import Template
 
-from check_latex import ROOT, SUBJECTS
+ROOT = Path(__file__).resolve().parent.parent
+# Subjects are the [[group]] paths in marginalia.toml.
+SUBJECTS = re.findall(r'^path\s*=\s*"([^"]+)"', (ROOT / "marginalia.toml").read_text(), re.M)
 
 MAIN = Template(r"""\documentclass[11pt,oneside]{book}
 \input{../../common/preamble}
@@ -70,8 +74,7 @@ def main():
     subject, code, title = args
     if subject not in SUBJECTS:
         raise SystemExit(f"unknown subject {subject!r}; expected one of {', '.join(SUBJECTS)} "
-                         "(a new subject also needs adding to SUBJECTS in scripts/check_latex.py "
-                         "and website/build.py)")
+                         "(a new subject also needs a [[group]] in marginalia.toml)")
     folder = ROOT / subject / code
     if (folder / "main.tex").exists():
         raise SystemExit(f"{folder} already has a main.tex")

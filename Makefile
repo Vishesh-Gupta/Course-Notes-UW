@@ -1,41 +1,36 @@
-# Common tasks. COURSE limits a target to one course, e.g. make site COURSE="CS 246"
+# Common tasks. The website is built by Marginalia (https://github.com/Soboku-Labs/marginalia),
+# configured in marginalia.toml. COURSE limits a target to one course, e.g. make site COURSE="CS 246".
 COURSE ?=
-PDF_DIR := build/pdfs
-SITE_DIR := website/_site
-course_arg = $(if $(COURSE),"$(COURSE)")
-site_course_arg = $(if $(COURSE),--course "$(COURSE)")
+SITE_DIR := _site
+only = $(if $(COURSE),--only "$(COURSE)")
+force = $(if $(FORCE),--force)
+MARGINALIA := npx --no-install marginalia
 # MacTeX installs into /Library/TeX/texbin, which a terminal opened before the
 # install does not have on PATH yet.
 ifneq ($(wildcard /Library/TeX/texbin),)
 export PATH := /Library/TeX/texbin:$(PATH)
 endif
-TOOLS := latexmk xelatex pdflatex pandoc pdftocairo node npm python3
-PAGES_PROJECT ?= course-notes-uw
-WRANGLER := npx -y wrangler@4.20.0
+TOOLS := latexmk xelatex pdflatex pandoc pdftocairo pdfinfo node npm
 # Same packages CI installs (Ubuntu/Debian); macOS uses Homebrew and MacTeX.
 APT_PACKAGES := texlive-latex-base texlive-latex-recommended texlive-latex-extra \
   texlive-fonts-recommended texlive-pictures lmodern latexmk texlive-xetex \
   texlive-lang-cjk texlive-lang-chinese fonts-noto-cjk pandoc poppler-utils nodejs npm
 
-.PHONY: tools no-course help deps pdfs js typecheck site math search check build serve login deploy upload new-course clean
+.PHONY: tools no-course help deps pdfs site check build serve login deploy upload new-course clean
 
 help:
 	@echo "make deps        install TeX Live, pandoc, poppler, Node and the CJK fonts (Homebrew or apt)"
-	@echo "make pdfs        compile every course book (checks errors/undefined refs) into $(PDF_DIR)"
-	@echo "make js          bundle the TypeScript page scripts (website/src -> website/dist)"
-	@echo "make typecheck   type-check the TypeScript"
-	@echo "make site        build the website into $(SITE_DIR) (strict: fails on warnings)"
-	@echo "make math        check every formula on the site renders with KaTeX"
-	@echo "make search      build the Pagefind search index for the site"
-	@echo "make check       pdfs + typecheck + site + math: what CI runs"
-	@echo "make build       pdfs + site + search: the full website with PDFs, ready to deploy"
+	@echo "make pdfs        compile every course book (checks errors/undefined refs)"
+	@echo "make site        build the website into $(SITE_DIR), reusing the last PDFs"
+	@echo "make build       PDFs + website + search: the full site, ready to deploy"
+	@echo "make check       strict build + check every formula renders: what CI runs"
 	@echo "make serve       serve the built site on http://localhost:8000"
 	@echo "make login       log in to Cloudflare in the browser (once per computer)"
-	@echo "make deploy      build everything and upload it to Cloudflare Pages ($(PAGES_PROJECT))"
+	@echo "make deploy      build everything and upload it to Cloudflare Pages"
 	@echo "make upload      upload the already built site without rebuilding"
 	@echo "make new-course  SUBJECT=Mathematics CODE=\"Math 237\" TITLE=\"Calculus 3\" (XELATEX=1 for CJK text)"
 	@echo "make clean       remove build outputs"
-	@echo "Add COURSE=\"CS 246\" to pdfs/site/check to work on one course."
+	@echo "Add COURSE=\"CS 246\" to pdfs/site/build/check to work on one course."
 	@echo "Only courses whose files changed are recompiled; add FORCE=1 to rebuild every PDF."
 
 deps:
@@ -53,51 +48,40 @@ tools:
 	@missing=""; for t in $(TOOLS); do command -v $$t >/dev/null 2>&1 || missing="$$missing $$t"; done; \
 	if [ -n "$$missing" ]; then echo "Missing:$$missing. Run make deps (then open a new terminal)."; exit 1; fi
 
-pdfs: tools
-	python3 scripts/check_latex.py --pdf-dir $(PDF_DIR) $(if $(FORCE),--force) $(course_arg)
+node_modules: package.json package-lock.json
+	npm ci --no-audit --no-fund
+	touch node_modules
 
-website/node_modules: website/package.json website/package-lock.json
-	cd website && npm ci --no-audit --no-fund
-	touch website/node_modules
+pdfs: tools node_modules
+	$(MARGINALIA) pdf $(force) $(only)
 
-js: website/node_modules
-	cd website && npm run build
+site: tools node_modules
+	$(MARGINALIA) build --no-pdf --strict $(only)
 
-typecheck: website/node_modules
-	cd website && npm run typecheck
+build: tools node_modules
+	$(MARGINALIA) build $(force) $(only)
 
-site: tools js
-	python3 website/build.py --strict --pdf-dir $(PDF_DIR) --out $(SITE_DIR) $(site_course_arg)
+check: tools node_modules
+	$(MARGINALIA) check $(force) $(only)
 
-math: website/node_modules
-	node website/check_math.mjs $(SITE_DIR)
+serve: node_modules
+	$(MARGINALIA) serve
 
-search:
-	npx -y pagefind@1.1.1 --site $(SITE_DIR)
-
-check: pdfs typecheck site math
-
-build: pdfs site search
-
-serve:
-	python3 -m http.server -d $(SITE_DIR) 8000
-
-login:
-	$(WRANGLER) login
-
-deploy: no-course build upload
-
-upload: no-course
-	@test -f $(SITE_DIR)/index.html || { echo "No site in $(SITE_DIR); run make deploy (or make build) first."; exit 1; }
-	$(WRANGLER) pages project create $(PAGES_PROJECT) --production-branch=main 2>/dev/null || true
-	$(WRANGLER) pages deploy $(SITE_DIR) --project-name=$(PAGES_PROJECT) --branch=main --commit-dirty=true
+login: node_modules
+	$(MARGINALIA) login
 
 # A deploy replaces the whole site, so it must never be a one-course build.
 no-course:
 	@test -z "$(COURSE)" || { echo "Deploy the full site: run without COURSE=."; exit 1; }
 
+deploy: no-course tools node_modules
+	$(MARGINALIA) deploy $(force)
+
+upload: no-course node_modules
+	$(MARGINALIA) upload
+
 new-course:
 	python3 scripts/new_course.py $(if $(XELATEX),--xelatex) "$(SUBJECT)" "$(CODE)" "$(TITLE)"
 
 clean:
-	rm -rf build $(SITE_DIR) website/.cache website/dist
+	rm -rf $(SITE_DIR) .marginalia build
