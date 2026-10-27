@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "esbuild": "0.21.5",
-    "katex": "0.16.9",
+    "katex": "0.18.2",
     "typescript": "5.4.5"
   }
 }
