@@ -36,7 +36,7 @@ jobs:
 
       - name: Upload PDFs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: notes-pdfs
           path: pdfs
@@ -93,7 +93,7 @@ jobs:
         run: npx -y pagefind@1.1.1 --site website/_site
 
       - name: Upload site
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: site
           path: website/_site
