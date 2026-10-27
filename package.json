@@ -9,6 +9,6 @@
     "deploy": "marginalia deploy"
   },
   "devDependencies": {
-    "marginalia": "github:Soboku-Labs/marginalia#76b3a2cb846ba98cf97ed86432331d15e206a5f1"
+    "marginalia": "github:Soboku-Labs/marginalia#8b6c65077a1bf019c5fda01a0b1a13bb4b2f24fb"
   }
 }
