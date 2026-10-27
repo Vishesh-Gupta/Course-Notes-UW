@@ -43,6 +43,26 @@ Without \code{local}, writing \code{(list-max (rest lon))} in both the
 question and the answer makes two recursive calls per level, i.e.\
 $\Theta(2^n)$ time. With \code{local} it is evaluated once: $\Theta(n)$.
 
+The difference is easiest to see in the tree of calls made for a
+three-element list (on an increasing list, where the first comparison fails at every level):
+
+\begin{center}
+\begin{tikzpicture}[level distance=11mm,
+  cl/.style={draw,rounded corners,fill=blue!6,font=\scriptsize\ttfamily,inner sep=2pt,minimum height=5mm}]
+  \begin{scope}[level 1/.style={sibling distance=36mm},level 2/.style={sibling distance=17mm}]
+  \node[cl] {lm (1 2 3)}
+    child {node[cl] {lm (2 3)} child {node[cl] {lm (3)}} child {node[cl] {lm (3)}}}
+    child {node[cl] {lm (2 3)} child {node[cl] {lm (3)}} child {node[cl] {lm (3)}}};
+  \node[font=\scriptsize] at (0,-3.1) {without \code{local}: 7 calls, doubling per level};
+  \end{scope}
+  \begin{scope}[xshift=6.2cm]
+  \node[cl] {lm (1 2 3)} child {node[cl] {lm (2 3)} child {node[cl] {lm (3)}}};
+  \node[font=\scriptsize,align=center] at (0,-3.1) {with \code{local}: 3 calls};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+(Here \code{lm} abbreviates \code{list-max}.)
+
 \subsection{3. Encapsulation: hiding helper functions}
 Helpers that are only meaningful to one function can be hidden inside it,
 for example the accumulator helper of reverse:
@@ -150,6 +170,31 @@ result is $10 + 10 = 20$.
 It helps to draw \textbf{contour diagrams}: a box around each scope (top
 level, each function body, each \code{local}); a use refers to the nearest
 enclosing box that binds the name.
+
+For the shadowing example the contours are:
+
+\begin{center}
+\begin{tikzpicture}[lab/.style={font=\scriptsize,anchor=north west,inner sep=3pt},
+  cd/.style={font=\scriptsize\ttfamily},
+  ref/.style={-{Stealth},thick,blue!60!black}]
+  \draw[rounded corners,fill=gray!6] (0,0) rectangle (10,4.4);
+  \node[lab] at (0,4.4) {top level: \code{x} = 1, \code{f}};
+  \draw[rounded corners,fill=blue!5] (0.3,0.25) rectangle (9.7,3.85);
+  \node[lab] at (0.3,3.85) {body of \code{f}: parameter \code{x} = 5};
+  \draw[rounded corners,fill=blue!11] (0.6,0.5) rectangle (9.4,3.3);
+  \node[lab] at (0.6,3.3) {\code{local}: defines};
+  \node[cd,draw=blue!60!black,fill=white,inner sep=2pt] (bx) at (5.0,2.95) {x = 10};
+  \node[cd,anchor=west] at ($(bx.east)+(0.05,0)$) {and g};
+  \draw[rounded corners,fill=green!8] (0.9,0.75) rectangle (5.6,2.5);
+  \node[lab] at (0.9,2.5) {body of \code{g}: parameter \code{y}};
+  \node[cd] (use1) at (3.6,1.4) {(+ \textcolor{blue!60!black}{\textbf{x}} y)};
+  \node[cd] (use2) at (7.5,1.4) {(g \textcolor{blue!60!black}{\textbf{x}})};
+  \draw[ref] ($(use1.north)+(-0.1,0)$) to[out=80,in=-100] (bx.south);
+  \draw[ref] ($(use2.north)+(0.05,0)$) to[out=90,in=-60] (bx.south east);
+\end{tikzpicture}
+\end{center}
+Both uses of \code{x} find their binding in the nearest enclosing box that
+binds \code{x}: the \code{local}.
 
 \section{Style}
 \begin{itemize}

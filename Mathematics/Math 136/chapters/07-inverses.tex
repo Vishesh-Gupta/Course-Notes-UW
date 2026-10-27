@@ -11,6 +11,20 @@ called \emph{singular}.
 The inverse is unique: if $B$ and $C$ are both inverses then $B=BI=B(AC)=(BA)C=IC=C$.
 Only square matrices have (two-sided) inverses.
 
+Thinking of matrices as maps, $A^{-1}$ undoes $A$:
+\begin{center}
+\begin{tikzpicture}[>={Stealth}]
+  \node[draw,circle,minimum size=1.6cm] (L) at (0,0) {$\R^n$};
+  \node[draw,circle,minimum size=1.6cm] (R) at (4,0) {$\R^n$};
+  \fill (0.2,0.3) circle (1.5pt) node[left,font=\small] {$\vec x$};
+  \fill (3.8,0.3) circle (1.5pt) node[right,font=\small] {$A\vec x$};
+  \draw[->,thick] (0.3,0.4) to[bend left=30] node[above] {$A$} (3.7,0.4);
+  \draw[->,thick,red!70!black] (3.7,0.2) to[bend left=30] node[below] {$A^{-1}$} (0.3,0.2);
+\end{tikzpicture}
+\end{center}
+Undoing a composite reverses the order, which is why $(AB)^{-1} = B^{-1}A^{-1}$ below
+(take off your shoes before your socks).
+
 \begin{theorem}[One-sided suffices]
 If $A,B$ are $n\times n$ and $AB=I$, then $BA=I$; so $A$ and $B$ are inverses of each other.
 \end{theorem}
@@ -89,6 +103,26 @@ $(1,2,3)\cdot(9,-3,-1)=9-6-3=0$.
 The left block has rank $1<2$, so $\begin{bmatrix}1&2\\2&4\end{bmatrix}$ is not invertible (consistent
 with $ad-bc=4-4=0$).
 \end{example}
+
+Geometrically, $\begin{bmatrix}1&2\\2&4\end{bmatrix}$ squashes the whole plane onto the line
+$\Span\{(1,2)\}$: both $\vec e_1$ and $\vec e_2$ land on that line, so the unit square collapses to a
+segment and many vectors share each image. No map can undo that.
+\begin{center}
+\begin{tikzpicture}[scale=0.8,>={Stealth}]
+  \draw[->,gray] (-0.5,0) -- (1.8,0); \draw[->,gray] (0,-0.5) -- (0,1.8);
+  \fill[orange!25] (0,0) rectangle (1,1); \draw (0,0) rectangle (1,1);
+  \draw[->,thick,blue!70!black] (0,0) -- (1,0) node[below] {$\vec e_1$};
+  \draw[->,thick,green!50!black] (0,0) -- (0,1) node[left] {$\vec e_2$};
+  \draw[->,thick] (2.2,1) -- node[above] {$A$} (3.6,1);
+  \begin{scope}[xshift=4.8cm]
+    \draw[->,gray] (-0.5,0) -- (3.5,0); \draw[->,gray] (0,-0.5) -- (0,6.4);
+    \draw[gray,dotted] (-0.25,-0.5) -- (3.1,6.2);
+    \draw[orange!80!black,line width=3pt] (0,0) -- (3,6);
+    \draw[->,thick,green!50!black] (0,0) -- (2,4) node[left] {$A\vec e_2 = (2,4)$};
+    \draw[->,thick,blue!70!black] (0,0) -- (1,2) node[right] {$A\vec e_1 = (1,2)$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
 
 If $A$ is invertible, then $A\vec x=\vec b$ has the unique solution $\vec x=A^{-1}\vec b$. (In practice
 row reducing $[A\mid\vec b]$ is cheaper than computing $A^{-1}$.)

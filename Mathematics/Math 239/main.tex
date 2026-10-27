@@ -1,0 +1,29 @@
+\documentclass[11pt,oneside]{book}
+\input{../../common/preamble}
+\usetikzlibrary{decorations.pathreplacing}
+
+%------------------------------------------------------------------------------
+% Course-specific macros (Math 239)
+\newcommand{\coef}[1]{\left[x^{#1}\right]}     % coefficient extraction [x^n]
+\newcommand{\eps}{\varepsilon}                 % empty string
+
+\title{Math 239 --- Introduction to Combinatorics}
+\author{Vishesh Gupta}
+\date{University of Waterloo}
+\begin{document}
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+\include{chapters/01-counting-basics}
+\include{chapters/02-generating-series}
+\include{chapters/03-compositions}
+\include{chapters/04-binary-strings}
+\include{chapters/05-recurrences}
+\include{chapters/06-graph-theory-intro}
+\include{chapters/07-paths-cycles-connectedness}
+\include{chapters/08-trees}
+\include{chapters/09-planar-graphs}
+\include{chapters/10-graph-colouring}
+\include{chapters/11-matchings}
+\end{document}

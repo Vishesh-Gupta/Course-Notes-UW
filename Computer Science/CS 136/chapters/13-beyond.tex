@@ -63,6 +63,29 @@ free(q);                      // the client frees its own items
 stack_destroy(s);
 \end{lstlisting}
 
+The stack's array holds only addresses; what they point at belongs to the client:
+
+\begin{center}
+\begin{tikzpicture}[fld/.style={draw,minimum width=1.9cm,minimum height=6mm,font=\scriptsize\ttfamily},
+  c/.style={draw,minimum width=1.0cm,minimum height=6mm,font=\scriptsize},
+  ptr/.style={-{Stealth[length=2mm]},thick}]
+  \node[fld] (len) at (0,0) {len: 2};
+  \node[fld,below=0pt of len] (mx) {maxlen: 4};
+  \node[fld,below=0pt of mx] (dt) {data:};
+  \node[font=\scriptsize,above=0pt of len] {\code{struct stack}};
+  \foreach \i in {0,...,3} \node[c] (d\i) at (3+\i*1.0,-0.6) {};
+  \node[font=\scriptsize,above=0pt of d1,xshift=5mm] {\code{void *data[]}};
+  \fill ($(dt.east)+(-0.3,0)$) circle (1.5pt);
+  \draw[ptr] ($(dt.east)+(-0.3,0)$) -- ++(0.9,0) |- (d0.west);
+  \node[draw,rounded corners,fill=blue!8,font=\scriptsize\ttfamily] (i1) at (3,-2.4) {42};
+  \node[draw,rounded corners,fill=blue!8,font=\scriptsize\ttfamily] (i2) at (4.8,-2.4) {7};
+  \foreach \i in {0,1} \fill (d\i.center) circle (1.5pt);
+  \draw[ptr] (d0.center) -- (i1.north);
+  \draw[ptr] (d1.center) -- (i2.north);
+  \node[font=\scriptsize,anchor=west] at (5.6,-2.4) {client's heap \code{int}s};
+\end{tikzpicture}
+\end{center}
+
 \begin{important}[Ownership of generic items]
 With \code{void *} ADTs the interface must say who frees the items. Common choices: the client
 frees them (as above), or the client passes a ``destroy'' function pointer to
@@ -208,6 +231,26 @@ int main(int argc, char *argv[]) {
   }
 }
 \end{lstlisting}
+
+Running \code{./prog hello 42} gives \code{argc} = 3 and:
+
+\begin{center}
+\begin{tikzpicture}[c/.style={draw,minimum width=1.0cm,minimum height=6mm,font=\scriptsize},
+  s/.style={draw,minimum width=4.5mm,minimum height=5mm,inner sep=0pt,font=\scriptsize\ttfamily,fill=gray!8},
+  ptr/.style={-{Stealth[length=2mm]},thick}]
+  \node[font=\small\ttfamily,anchor=south] at (0,0.35) {argv};
+  \foreach \i in {0,...,3} {
+    \node[c] (a\i) at (0,-\i*0.6) {};
+    \node[font=\scriptsize\ttfamily,anchor=east,gray] at (-0.55,-\i*0.6) {[\i]};
+  }
+  \node[font=\scriptsize\ttfamily] at (a3) {NULL};
+  \foreach \i/\w in {0/{.,/,p,r,o,g,\textbackslash 0},1/{h,e,l,l,o,\textbackslash 0},2/{4,2,\textbackslash 0}} {
+    \foreach \ch [count=\k from 0] in \w \node[s] (s\i\k) at (2+\k*0.45,-\i*0.6) {\ch};
+    \fill (a\i.center) circle (1.5pt);
+    \draw[ptr] (a\i.center) -- (s\i0.west);
+  }
+\end{tikzpicture}
+\end{center}
 
 \section{C vs.\ Racket vs.\ Other Languages}
 

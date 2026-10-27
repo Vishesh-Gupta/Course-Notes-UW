@@ -68,6 +68,34 @@ In 8 bits: $5 = 0000\,0101$, so $-5 = 1111\,1010 + 1 = 1111\,1011$.
 Check: $-128 + 64 + 32 + 16 + 8 + 2 + 1 = -5$.
 \end{example}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >=Stealth]
+  \draw[thick, gray!60] (0,0) circle (2.3);
+  \foreach \i in {0,...,15} {
+    \pgfmathsetmacro{\ang}{90 - 22.5*\i}
+    \pgfmathtruncatemacro{\sv}{\i < 8 ? \i : \i - 16}
+    \pgfmathtruncatemacro{\bA}{mod(floor(\i/8),2)}
+    \pgfmathtruncatemacro{\bB}{mod(floor(\i/4),2)}
+    \pgfmathtruncatemacro{\bC}{mod(floor(\i/2),2)}
+    \pgfmathtruncatemacro{\bD}{mod(\i,2)}
+    \fill (\ang:2.3) circle (1.5pt);
+    \node[font=\ttfamily\scriptsize] at (\ang:2.85) {\bA\bB\bC\bD};
+    \node[font=\scriptsize, blue!60!black] at (\ang:1.85) {$\sv$};
+  }
+  \draw[->, thick, green!45!black] (80:1.2) arc (80:-60:1.2);
+  \node[font=\scriptsize, green!45!black] at (0,0.1) {$+1$ moves};
+  \node[font=\scriptsize, green!45!black] at (0,-0.25) {clockwise};
+  \draw[very thick, red!70!black] (-78.75:1.6) -- (-78.75:3.3);
+  \node[font=\scriptsize, red!70!black, align=center] at (-80:3.65) {signed overflow: $7 + 1 \to -8$};
+  \draw[very thick, orange!80!black, densely dashed] (101.25:1.6) -- (101.25:3.3);
+  \node[font=\scriptsize, orange!80!black] at (98:3.6) {unsigned overflow: $15 + 1 \to 0$};
+\end{tikzpicture}
+\caption{The 4-bit patterns arranged in a circle with their two's
+complement values. Adding 1 moves one step clockwise; crossing the bottom
+boundary is signed overflow, crossing the top is unsigned overflow.}
+\end{figure}
+
 \subsection{Sign extension}
 
 To widen an $n$-bit two's complement number to $m > n$ bits, copy the sign
@@ -75,6 +103,20 @@ bit into the new high bits. $1011$ ($-5$ in 4 bits) becomes $1111\,1011$
 ($-5$ in 8 bits). MIPS sign-extends the 16-bit immediate of \code{addi},
 \code{lw}, \code{sw}, \code{beq}. Zero extension (fill with 0s) is used for
 unsigned values and for logical immediates (\code{andi}, \code{ori}).
+
+\begin{center}
+\begin{tikzpicture}[font=\ttfamily\small, >=Stealth, x=0.7cm, y=1cm]
+  \foreach \b/\c [count=\i from 0] in {1/blue!12, 0/white, 1/white, 1/white}
+    \node[draw, minimum size=0.6cm, fill=\c] (t\i) at (\i+4,1.6) {\b};
+  \foreach \b/\c [count=\i from 0] in {1/blue!12, 1/blue!12, 1/blue!12, 1/blue!12, 1/blue!12, 0/white, 1/white, 1/white}
+    \node[draw, minimum size=0.6cm, fill=\c] (b\i) at (\i,0) {\b};
+  \foreach \i in {0,...,3} \draw[->, blue!60!black] (t0.south) -- (b\i.north);
+  \foreach \i in {1,2,3} {\pgfmathtruncatemacro{\j}{\i+4} \draw[->, gray] (t\i.south) -- (b\j.north);}
+  \draw[->, blue!60!black] (t0.south) -- (b4.north);
+  \node[font=\small, anchor=west] at (8,1.6) {$-5$ (4 bits)};
+  \node[font=\small, anchor=west] at (8,0) {$-5$ (8 bits)};
+\end{tikzpicture}
+\end{center}
 
 \subsection{Signed overflow}
 
@@ -173,6 +215,27 @@ $E = -1 + 127 = 126 = 0111\,1110$, fraction $= 100\ldots0$.
 \[
 1\;01111110\;10000000000000000000000 = \texttt{0xBF400000}.
 \]
+
+\begin{center}
+\begin{tikzpicture}[font=\small, x=0.36cm, y=0.9cm]
+  \fill[red!12] (0,0) rectangle (1,1);
+  \fill[green!12] (1,0) rectangle (9,1);
+  \fill[blue!10] (9,0) rectangle (32,1);
+  \draw[thick] (0,0) rectangle (32,1);
+  \draw[thick] (1,0) -- (1,1) (9,0) -- (9,1);
+  \foreach \x in {2,...,8,10,11,...,31} \draw[gray!50] (\x,0) -- (\x,0.2);
+  \node[font=\ttfamily\scriptsize] at (0.5,0.5) {1};
+  \node[font=\ttfamily\scriptsize] at (5,0.5) {01111110};
+  \node[font=\ttfamily\scriptsize] at (20.5,0.5) {10000000000000000000000};
+  \node[above, font=\scriptsize] at (0.5,1) {$S$};
+  \node[above, font=\scriptsize] at (5,1) {exponent (8)};
+  \node[above, font=\scriptsize] at (20.5,1) {fraction (23)};
+  \node[below, font=\scriptsize] at (0.5,0) {$-$};
+  \node[below, font=\scriptsize] at (5,0) {$126 - 127 = -1$};
+  \node[below, font=\scriptsize] at (20.5,0) {$1.f = 1.1_2 = 1.5$};
+  \node[font=\scriptsize] at (16,-1) {value $= -1.5 \times 2^{-1} = -0.75$};
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \begin{example}[IEEE single to decimal]
@@ -217,6 +280,23 @@ A word occupies 4 bytes at addresses $a, a+1, a+2, a+3$.
 byte first (x86, ARM usually). Storing \code{0x12345678} at address 0:
 big-endian memory reads \code{12 34 56 78}, little-endian
 \code{78 56 34 12}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, x=1.1cm, y=0.8cm]
+  \foreach \a in {0,...,3} \node[font=\scriptsize] at (\a+0.5,2.8) {addr \a};
+  \foreach \v/\c [count=\i from 0] in {12/red!25, 34/orange!25, 56/green!20, 78/blue!15} {
+    \node[draw, fill=\c, minimum width=1.1cm, minimum height=0.7cm, font=\ttfamily] at (\i+0.5,2) {\v};
+    \pgfmathtruncatemacro{\j}{3-\i}
+    \node[draw, fill=\c, minimum width=1.1cm, minimum height=0.7cm, font=\ttfamily] at (\j+0.5,0.8) {\v};
+  }
+  \node[anchor=east] at (-0.1,2) {big-endian};
+  \node[anchor=east] at (-0.1,0.8) {little-endian};
+  \node[anchor=west, font=\scriptsize] at (4.2,2) {MSB first};
+  \node[anchor=west, font=\scriptsize] at (4.2,0.8) {LSB first};
+\end{tikzpicture}
+\caption{The word \code{0x12345678} stored at address 0 in both byte orders.}
+\end{figure}
 
 \section*{Summary}
 \begin{itemize}

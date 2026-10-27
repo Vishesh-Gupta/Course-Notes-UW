@@ -94,6 +94,34 @@ Sum of $n$ i.i.d.\ r.v.s & $\Norm(n\mu, n\sigma^2)$ & $n$ large (CLT) \\
         p_k^{x_k}$; each $X_i\sim\Bin(n,p_i)$; $\Cov(X_i,X_j) = -np_ip_j$ for $i\ne j$.
 \end{itemize}
 
+
+The diagram summarises how the named distributions are connected: solid arrows are limits
+and approximations, dashed arrows are exact relationships.
+
+\begin{center}
+\begin{tikzpicture}[dist/.style={draw, rounded corners, fill=blue!8, font=\small, minimum height=0.6cm, inner sep=4pt},
+    every node/.style={font=\small}, lab/.style={font=\scriptsize, fill=white, inner sep=1pt}]
+  \node[dist] (hyp) at (0,0) {$\Hyp(N,r,n)$};
+  \node[dist] (bin) at (4,0) {$\Bin(n,p)$};
+  \node[dist] (poi) at (8,0) {$\Poi(\mu)$};
+  \node[dist] (nor) at (6,-2.4) {$\Norm(\mu,\sigma^2)$};
+  \node[dist] (ber) at (4,1.9) {Bernoulli$(p)$};
+  \node[dist] (geo) at (0,-2.4) {$\Geo(p)$};
+  \node[dist] (nb) at (0,-4.4) {$\NB(k,p)$};
+  \node[dist] (exp) at (8,1.9) {$\Exp(1/\lambda)$};
+  \node[dist] (any) at (10.5,-2.4) {any i.i.d.\ sum};
+  \draw[-{Stealth}, thick] (hyp) -- node[lab, above] {$N$ large} (bin);
+  \draw[-{Stealth}, thick] (bin) -- node[lab, above] {$n$ large, $p$ small} (poi);
+  \draw[-{Stealth}, thick] (bin) -- node[lab, left] {$np, nq \ge 5$} (nor);
+  \draw[-{Stealth}, thick] (poi) -- node[lab, right] {$\mu$ large} (nor);
+  \draw[-{Stealth}, thick] (any) -- node[lab, above] {CLT} (nor);
+  \draw[-{Stealth}, dashed] (ber) -- node[lab, right] {sum of $n$} (bin);
+  \draw[-{Stealth}, dashed] (geo) -- node[lab, right] {sum of $k$} (nb);
+  \draw[-{Stealth}, dashed] (poi) -- node[lab, right, align=left] {Poisson process:\\waiting time} (exp);
+  \draw[-{Stealth}, dashed] (ber) -- node[lab, pos=0.8, right, align=left] {failures before\\1st success} (geo);
+\end{tikzpicture}
+\end{center}
+
 \section{Standard normal table}
 
 The table gives $\Phi(z) = P(Z\le z)$ for $Z\sim\Norm(0,1)$; the row gives $z$ to one

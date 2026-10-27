@@ -117,6 +117,22 @@ own fields (the vptr, if any, comes first of all, as in g++). So a pointer to a
 Comic is also a valid pointer to its Book part: the Book fields are at the same
 offsets in both, and code compiled for Book can access them.
 
+\begin{center}
+\begin{tikzpicture}[>=Stealth,f/.style={draw,minimum width=25mm,minimum height=6mm,font=\small}]
+  \node[f,fill=gray!10] (v) at (0,0) {vptr};
+  \node[f,fill=blue!6,below=0mm of v] (t) {title};
+  \node[f,fill=blue!6,below=0mm of t] (a) {author};
+  \node[f,fill=blue!6,below=0mm of a] (n) {numPages};
+  \node[f,fill=green!10,below=0mm of n] (h) {hero};
+  \node[font=\scriptsize,anchor=south] at (v.north) {a Comic object};
+  \draw[decorate,decoration={brace,amplitude=5pt}] ([xshift=3pt]v.north east) -- ([xshift=3pt]n.south east) node[midway,right=7pt,font=\scriptsize,align=left]{same layout as a Book:\\ what \code{Book b = comic;} copies};
+  \draw[<-] (v.west) -- ++(-1.2,0.35) node[left,font=\scriptsize]{\code{Comic *pc}};
+  \draw[<-] (v.west) -- ++(-1.2,-0.35) node[left,font=\scriptsize]{\code{Book *pb}};
+\end{tikzpicture}
+
+\small Upcasting needs no adjustment: both pointers hold the same address.
+\end{center}
+
 This also explains slicing: \code{Book b = comic;} copies only the first part of
 the Comic (the part that fits in a Book), and \code{b}'s vptr is set by Book's
 constructor to Book's vtable --- so \code{b.isHeavy()} calls
@@ -128,6 +144,15 @@ During Book's constructor (step 2 of constructing a Comic), the vptr points to
 Comic's. So a virtual call made inside a base class constructor (or destructor)
 does \emph{not} dispatch to the subclass override: the subclass part isn't built
 yet (or has already been destroyed).
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small]
+  \draw[->] (0,0) -- (10,0) node[right,font=\scriptsize]{time};
+  \draw[fill=blue!8] (0.5,0.2) rectangle node[font=\scriptsize]{Book ctor runs} (4.5,0.8);
+  \draw[fill=green!10] (4.5,0.2) rectangle node[font=\scriptsize]{Comic ctor runs} (8.5,0.8);
+  \node[font=\scriptsize,anchor=north] at (2.5,-0.05) {vptr $\to$ Book vtable};
+  \node[font=\scriptsize,anchor=north] at (6.5,-0.05) {vptr $\to$ Comic vtable};
+\end{tikzpicture}
+\end{center}
 \begin{important}[Rule]
 Don't rely on virtual dispatch inside constructors and destructors.
 \end{important}

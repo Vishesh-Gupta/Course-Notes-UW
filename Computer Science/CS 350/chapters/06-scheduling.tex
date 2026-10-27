@@ -125,6 +125,30 @@ MLFQ approximates SJF without knowing run times, by learning from behaviour.
   \item To prevent starvation and adapt to phase changes, periodically \textbf{boost} all
     threads back to the top queue.
 \end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=0.9cm, font=\small, >=Stealth,
+  th/.style={circle, draw, thick, minimum size=6mm, inner sep=0pt, font=\scriptsize}]
+  \foreach \y/\q/\lab in {2/{$q=10$\,ms}/{$Q_3$ (high)}, 1/{$q=20$\,ms}/{$Q_2$}, 0/{$q=40$\,ms}/{$Q_1$ (low)}} {
+    \node[anchor=east] at (-0.2,\y) {\lab};
+    \draw[thick] (0,\y-0.3) -- (3.4,\y-0.3) (0,\y+0.3) -- (3.4,\y+0.3);
+    \node[font=\scriptsize, gray, anchor=west] at (3.5,\y) {\q};
+  }
+  \node[th, fill=green!20] at (0.5,2) {A};
+  \node[th, fill=green!20] at (1.2,2) {B};
+  \node[th, fill=orange!25] at (0.5,1) {C};
+  \node[th, fill=red!20] at (0.5,0) {D};
+  \node[th, fill=red!20] at (1.2,0) {E};
+  \draw[->, thick] (-1.0,3.0) node[left, font=\scriptsize]{new threads} -- (0.2,2.35);
+  \draw[->, thick, red!70!black] (5.2,2) to[bend left=50] (5.2,1);
+  \draw[->, thick, red!70!black] (5.2,1) to[bend left=50] node[right, font=\scriptsize, align=left]{used whole\\quantum:\\demote} (5.2,0);
+  \draw[->, thick, blue!60!black, densely dashed] (-2.2,0) to[bend left=40] node[left, font=\scriptsize]{boost} (-2.2,2);
+\end{tikzpicture}
+\caption{MLFQ: the scheduler always picks from the highest non-empty queue.
+CPU-bound threads sink to lower queues with longer quanta; interactive
+threads that block early stay near the top.}
+\end{figure}
 Gaming: a thread that yields just before its quantum ends could stay on top forever; a fix is to
 charge accumulated CPU time at each level, not just per quantum. MLFQ-style schedulers were used
 in BSD Unix, Windows NT and Solaris.
@@ -169,6 +193,36 @@ $20 \cdot w_0/2$ and $10 \cdot w_0/1$ --- equal when $w_0 = 1$: both are ``fair'
     threads) or \textbf{work stealing}/pull migration (an idle core steals from a busy one).
     Migration costs cache warmth, so it is done sparingly.
 \end{description}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=1cm, font=\small, >=Stealth,
+  core/.style={draw, thick, fill=gray!15, minimum width=1.1cm, minimum height=0.7cm, font=\scriptsize},
+  th/.style={circle, draw, minimum size=4.5mm, inner sep=0pt, fill=blue!15}]
+  % shared queue
+  \draw[thick] (0,2.2) rectangle (3.4,2.8);
+  \foreach \x in {0.3,0.8,...,2.8} \node[th] at (\x,2.5) {};
+  \node[font=\scriptsize, above] at (1.7,2.8) {one shared ready queue (one lock)};
+  \foreach \c/\x in {0/0, 1/1.15, 2/2.3} {
+    \node[core] (c\c) at (\x+0.55,0.6) {core \c};
+    \draw[->, thick] (\x+0.55,2.2) -- (c\c.north);
+  }
+  % per-core
+  \begin{scope}[xshift=5.6cm]
+    \foreach \c/\x/\n in {0/0/3, 1/1.6/1, 2/3.2/0} {
+      \node[core] (d\c) at (\x+0.55,0.6) {core \c};
+      \draw[thick] (\x,1.3) rectangle (\x+1.1,2.8);
+      \ifnum\n>0 \foreach \k in {1,...,\n} \node[th] at (\x+0.55,1.3+0.45*\k) {}; \fi
+      \draw[->, thick] (\x+0.55,1.3) -- (d\c.north);
+    }
+    \draw[->, thick, red!70!black, densely dashed] (1.2,2.4) to[bend left=35] node[above, font=\scriptsize]{migrate / steal} (3.2,2.4);
+    \node[font=\scriptsize, above] at (2.15,3.1) {per-core ready queues};
+  \end{scope}
+\end{tikzpicture}
+\caption{Multicore ready queues. A shared queue balances load
+automatically but every core contends for one lock; per-core queues scale
+and preserve cache affinity but need load balancing.}
+\end{figure}
 
 \begin{aside}
 Cache affinity: after a thread runs on core $c$, its working set is in $c$'s L1/L2 cache.

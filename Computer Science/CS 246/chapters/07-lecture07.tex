@@ -35,6 +35,22 @@ g(b);                                // no copy; but g could change b
 void h(const ReallyBig &rb) { ... }  // no copy, and
 h(b);                                // h cannot change b
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,big/.style={draw,fill=blue!5,minimum width=2.4cm,minimum height=1cm}]
+  \node[big] (b) at (0,0) {\code{b}};
+  \node[font=\scriptsize,anchor=south] at (b.north) {\code{main}};
+  \node[big] (c) at (0,-1.8) {\code{rb} (a copy)};
+  \node[font=\scriptsize,anchor=north] at (c.south) {\code{f(ReallyBig rb)}};
+  \draw[->,dashed] (b) -- node[right,font=\scriptsize]{copied} (c);
+  \begin{scope}[xshift=6cm]
+  \node[big] (b2) at (0,0) {\code{b}};
+  \node[font=\scriptsize,anchor=south] at (b2.north) {\code{main}};
+  \node[draw,minimum width=1.2cm,minimum height=0.7cm] (r) at (0,-1.8) {\code{rb}};
+  \node[font=\scriptsize,anchor=north] at (r.south) {\code{h(const ReallyBig \&rb)}};
+  \draw[->] (r) -- node[right,font=\scriptsize]{another name for \code{b}} (b2);
+  \end{scope}
+\end{tikzpicture}
+\end{center}
 People often call \code{rb} a ``const reference''. Technically the correct
 reading is that \code{rb} is a \emph{reference to const} (a reference itself can
 never be re-bound anyway).
@@ -136,6 +152,16 @@ Node *getMeANode() {
 \end{lstlisting}
 The returned pointer is a \textbf{dangling pointer}: it points to memory that is
 no longer yours to access.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,cell/.style={draw,minimum width=3.2cm,minimum height=0.7cm}]
+  \node[cell,fill=blue!5] (m) at (0,0) {caller: \code{Node *p}};
+  \node[cell,fill=gray!15,draw=gray,text=gray,below=0pt of m] (dead) {\code{n} (frame popped)};
+  \node[font=\scriptsize,anchor=west,gray] at (dead.east) {\ was \code{getMeANode}'s frame};
+  \draw[->,red!60!black,thick] (m.west) to[out=180,in=180,looseness=1.6] (dead.west);
+  \node[font=\scriptsize,red!60!black,anchor=east] at (-2.3,-0.4) {dangling};
+\end{tikzpicture}
+\end{center}
 
 \begin{important}[Rule]
 Never return a pointer or a reference to stack-allocated (local) memory.

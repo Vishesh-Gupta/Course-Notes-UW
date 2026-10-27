@@ -37,6 +37,21 @@ $x_2$ (path $P_2$). Then each visited node is
 \end{itemize}
 So the time is $\bigO(h + s)$, i.e.\ $\bigO(\log n + s)$ in an AVL tree.
 
+\begin{center}
+\begin{tikzpicture}[level distance=10mm,level 1/.style={sibling distance=48mm},
+  level 2/.style={sibling distance=24mm},level 3/.style={sibling distance=12mm},
+  rn/.style={circle,draw,minimum size=6.5mm,inner sep=0pt,font=\small}]
+  \node[rn,fill=orange!30] {8} child {node[rn,fill=orange!30] {4} child {node[rn,fill=gray!10,text=gray] {2} child {node[rn,fill=gray!10,text=gray] {1}} child {node[rn,fill=gray!10,text=gray] {3}}} child {node[rn,fill=orange!30] {6} child {node[rn,fill=orange!30] {5}} child {node[rn,fill=green!15] {7}}}} child {node[rn,fill=orange!30] {12} child {node[rn,fill=green!15] {10} child {node[rn,fill=green!15] {9}} child {node[rn,fill=green!15] {11}}} child {node[rn,fill=gray!10,text=gray] {14} child {node[rn,fill=gray!10,text=gray] {13}} child {node[rn,fill=gray!10,text=gray] {15}}}};
+  \node[font=\scriptsize,anchor=north west,align=left] at (5.2,0.3) {query $[5, 12]$:\\
+    \textcolor{orange!80!black}{$\bullet$} boundary\\
+    \textcolor{green!50!black}{$\bullet$} inside\\
+    \textcolor{gray}{$\bullet$} outside};
+\end{tikzpicture}
+\end{center}
+Orange nodes lie on the search paths for 5 and 12 and are checked individually
+(5, 6, 8 and 12 are reported, 4 is not); green nodes lie strictly between the two
+paths and are all reported; grey nodes are outside the range.
+
 \section{Multidimensional Data}
 
 Now each item is a point in $\R^d$ (e.g.\ a laptop with price, weight, screen
@@ -64,6 +79,35 @@ otherwise it is an internal node with four children.
   \item \code{delete}: remove the point; if a node then has at most one point in
         its subtree, collapse it into a leaf.
 \end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[pt/.style={circle,fill=blue!60!black,inner sep=1.5pt},
+  qn/.style={circle,draw,fill=blue!6,minimum size=4mm,inner sep=0pt},
+  ql/.style={draw,fill=green!10,minimum size=4mm,inner sep=1pt,font=\scriptsize},
+  qe/.style={draw,minimum size=4mm,inner sep=0pt}]
+  \begin{scope}[scale=0.5]
+    \draw[thick] (0,0) rectangle (8,8);
+    \draw (4,0) -- (4,8) (0,4) -- (8,4);
+    \draw (2,4) -- (2,8) (0,6) -- (4,6);
+    \foreach \x/\y/\n in {1/6.5/a,2.8/7.3/b,6/6/c,1/1/d,5.4/2/e} {
+      \node[pt] at (\x,\y) {};
+      \node[font=\scriptsize,anchor=south west,inner sep=1pt] at (\x,\y) {\n};
+    }
+  \end{scope}
+  \begin{scope}[xshift=7.2cm,yshift=3.6cm,level distance=10mm,
+    level 1/.style={sibling distance=13mm},level 2/.style={sibling distance=8mm}]
+    \node[qn] {}
+      child {node[ql] {c} edge from parent node[font=\tiny,left] {NE}}
+      child {node[qn] {}
+        child {node[ql] {b}} child {node[ql] {a}} child {node[qe] {}} child {node[qe] {}}
+        edge from parent node[font=\tiny,left] {NW}}
+      child {node[ql] {d} edge from parent node[font=\tiny,right] {SW}}
+      child {node[ql] {e} edge from parent node[font=\tiny,right] {SE}};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+The NW quadrant holds two points, so it is split again (children in the order NE, NW, SW, SE);
+every other quadrant holds one point and is a leaf.
 
 \begin{lstlisting}
 QTree-RangeSearch(v, A):     // v: node with region R(v), A: query box
@@ -109,7 +153,39 @@ build-kdtree(P, dir):
   return v
 \end{lstlisting}
 Build time $T(n) = 2T(n/2) + \Theta(n) \in \Theta(n \log n)$ expected (or by
-presorting). Height $\Theta(\log n)$ (assuming general position), space
+presorting).
+
+\begin{center}
+\begin{tikzpicture}[pt/.style={circle,fill=blue!60!black,inner sep=1.5pt},
+  kn/.style={draw,rounded corners,fill=blue!6,font=\scriptsize,inner sep=2pt},
+  kl/.style={draw,fill=green!10,font=\scriptsize,inner sep=2pt}]
+  \begin{scope}[scale=0.5]
+    \draw[thick] (0,0) rectangle (10,8);
+    \draw[red!70!black,thick] (5,0) -- (5,8);
+    \draw[blue!60!black,thick] (0,4) -- (5,4);
+    \draw[red!70!black] (2,0) -- (2,4);
+    \draw[blue!60!black,thick] (5,2) -- (10,2);
+    \draw[red!70!black] (7,0) -- (7,2);
+    \foreach \x/\y in {2/3,5/4,9/6,4/7,8/1,7/2} {
+      \node[pt] at (\x,\y) {};
+      \node[font=\tiny,anchor=south west,inner sep=1pt] at (\x,\y) {(\x,\y)};
+    }
+  \end{scope}
+  \begin{scope}[xshift=8.6cm,yshift=3.7cm,level distance=9mm,
+    level 1/.style={sibling distance=26mm},level 2/.style={sibling distance=13mm},
+    level 3/.style={sibling distance=10mm}]
+    \node[kn,text=red!70!black] {$x \le 5$}
+      child {node[kn,text=blue!60!black] {$y \le 4$}
+        child {node[kn,text=red!70!black] {$x \le 2$} child {node[kl] {(2,3)}} child {node[kl] {(5,4)}}}
+        child {node[kl] {(4,7)}}}
+      child {node[kn,text=blue!60!black] {$y \le 2$}
+        child {node[kn,text=red!70!black] {$x \le 7$} child {node[kl] {(7,2)}} child {node[kl] {(8,1)}}}
+        child {node[kl] {(9,6)}}};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+Red lines split at a median $x$-coordinate, blue lines at a median $y$-coordinate;
+each split line corresponds to one internal node of the tree. Height $\Theta(\log n)$ (assuming general position), space
 $\Theta(n)$.
 
 Range search is the same as for quadtrees: each node has a region; skip disjoint

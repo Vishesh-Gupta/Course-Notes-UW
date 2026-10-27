@@ -111,6 +111,20 @@ $x$, then $x=0$ gives $c_2=0$ and $x=\pi/2$ gives $c_1=0$. (Note that the equati
 at every $x$.)
 \end{example}
 
+Functions add pointwise, just like vectors add componentwise; here $\sin x + \cos x$ is a vector
+in $\Span\{\sin x,\cos x\}$:
+\begin{center}
+\begin{tikzpicture}[x=0.9cm,y=1.1cm]
+  \draw[->] (-0.2,0) -- (6.6,0) node[right] {$x$};
+  \draw[->] (0,-1.6) -- (0,1.7);
+  \foreach \t/\l in {1.5708/{\frac\pi2},3.1416/{\pi},4.7124/{\frac{3\pi}2},6.2832/{2\pi}} { \draw (\t,0.05) -- (\t,-0.05) node[below,font=\scriptsize] {$\l$}; }
+  \draw[thick,blue!70!black,domain=0:6.2832,samples=80] plot (\x,{sin(\x r)});
+  \draw[thick,green!50!black,domain=0:6.2832,samples=80] plot (\x,{cos(\x r)});
+  \draw[very thick,red!70!black,domain=0:6.2832,samples=80] plot (\x,{sin(\x r)+cos(\x r)});
+  \node[font=\small,align=left,right] at (6.8,0.9) {{\color{blue!70!black}$\sin x$}\\{\color{green!50!black}$\cos x$}\\{\color{red!70!black}$\sin x + \cos x$}};
+\end{tikzpicture}
+\end{center}
+
 \section{Bases and dimension}
 
 \begin{theorem}[Replacement / Exchange Lemma]
@@ -181,6 +195,19 @@ independent (spans $\R^n$).
 
 This is why comparing coefficients worked in the examples above: we were really computing in $\R^n$ via
 coordinates with respect to the standard basis.
+
+\begin{center}
+\begin{tikzpicture}[>={Stealth}]
+  \node[draw,rounded corners,minimum width=3.2cm,minimum height=1.6cm,align=center,fill=blue!8] (V) at (0,0)
+    {$\Poly 2$\\[2pt]\small $3 + x + 2x^2$};
+  \node[draw,rounded corners,minimum width=3.2cm,minimum height=1.6cm,align=center,fill=green!8] (R) at (6,0)
+    {$\R^3$\\[2pt]\small $(2,1,2)$};
+  \draw[->,thick] (V.20) -- node[above,font=\small] {$[\,\cdot\,]_{\mathcal B}$} (R.160);
+  \draw[->,thick] (R.200) -- node[below,font=\small] {$c_1\vec v_1 + c_2\vec v_2 + c_3\vec v_3$} (V.340);
+\end{tikzpicture}
+\end{center}
+With $\mathcal B = \{1+x,\ 1-x,\ x^2\}$ (as in the example below), taking coordinates turns a question
+about polynomials into one about $\R^3$, and rebuilding from the coordinates goes back.
 
 \begin{example}
 Find $[p]_{\mathcal B}$ for $p=3+x+2x^2$ and $\mathcal B=\{1+x,\ 1-x,\ x^2\}$. Solve

@@ -1,5 +1,11 @@
 \chapter{Trees}\label{ch:trees}
 
+\tikzset{
+  tn/.style={circle,draw,minimum size=7mm,inner sep=1pt},
+  opn/.style={circle,draw,fill=blue!8,minimum size=7mm,inner sep=1pt,font=\ttfamily},
+  lfn/.style={rectangle,draw,rounded corners,fill=green!8,minimum size=6mm,inner sep=2pt}
+}
+
 Lists are linear: each element has one successor. \textbf{Trees} allow each
 node to have several children, which models hierarchies (file systems,
 organization charts), arithmetic expressions, and efficient search structures.
@@ -110,6 +116,25 @@ The work is proportional to the height of the tree: about $\log_2 n$ if the
 tree is balanced, but $n$ in the worst case (a ``stick'' created by inserting
 keys in sorted order).
 
+\begin{center}
+\begin{tikzpicture}[level distance=10mm]
+  \begin{scope}[level 1/.style={sibling distance=24mm},level 2/.style={sibling distance=12mm}]
+  \node[tn] {4}
+    child {node[tn] {2} child {node[tn] {1}} child {node[tn] {3}}}
+    child {node[tn] {6} child {node[tn] {5}} child {node[tn] {7}}};
+  \node[font=\scriptsize,align=center] at (0,-3) {balanced: height 3\\(insert 4, 2, 6, 1, 3, 5, 7)};
+  \end{scope}
+  \begin{scope}[xshift=5.5cm,level 1/.style={sibling distance=10mm}]
+  \node[tn] {1}
+    child[missing] child {node[tn] {2}
+      child[missing] child {node[tn] {3}
+        child[missing] child {node[tn] {4}
+          child[missing] child {node[tn] {5}}}}};
+  \node[font=\scriptsize,align=center] at (3.6,-1) {a ``stick'': height 5\\(insert 1, 2, 3, 4, 5)};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
 \subsection{Insertion}
 \begin{lstlisting}[style=racket]
 ;; (insert-bst k v t) produces a BST like t with k mapped to v.
@@ -171,6 +196,21 @@ needed.
         [(symbol=? op '-) (- a b)]))
 \end{lstlisting}
 
+The expression in the test, \code{(make-binode '* 2 (make-binode '+ 3 4))},
+is the tree below. \code{eval-bin} evaluates both subtrees and then applies
+the operator at the root:
+
+\begin{center}
+\begin{tikzpicture}[level distance=11mm,level 1/.style={sibling distance=22mm},
+  level 2/.style={sibling distance=12mm}]
+  \node[opn] (r) {*}
+    child {node[lfn] {2}}
+    child {node[opn] (p) {+} child {node[lfn] {3}} child {node[lfn] {4}}};
+  \node[font=\scriptsize,text=blue!50!black,right=2mm of p] {$\Rightarrow 7$};
+  \node[font=\scriptsize,text=blue!50!black,right=2mm of r] {$\Rightarrow 2 \times 7 = 14$};
+\end{tikzpicture}
+\end{center}
+
 \section{General trees and mutual recursion}
 If an operator may have any number of arguments, as in Racket itself
 (\code{(+ 1 2 3 4)}), a node holds a \emph{list} of subtrees. The data
@@ -220,6 +260,21 @@ The base case uses the identity of each operator: the empty sum is 0 and the
 empty product is 1. (These names clash with built-ins in Intermediate
 Student; rename to \code{my-eval}/\code{my-apply} there.)
 
+Each operator node can have any number of children, as in the test
+expression \code{(+ 1 (* 2 3 4))}:
+
+\begin{center}
+\begin{tikzpicture}[level distance=11mm,level 1/.style={sibling distance=24mm},
+  level 2/.style={sibling distance=10mm}]
+  \node[opn] (r) {+}
+    child {node[lfn] {1}}
+    child {node[opn] (m) {*} child {node[lfn] {2}} child {node[lfn] {3}} child {node[lfn] {4}}};
+  \node[font=\scriptsize,text=blue!50!black,right=2mm of m] {$\Rightarrow 24$};
+  \node[font=\scriptsize,text=blue!50!black,right=2mm of r] {$\Rightarrow 1 + 24 = 25$};
+  \node[font=\scriptsize,align=left,anchor=west,text=gray!30!black] at (3.6,-1.4) {\code{opnode-args} is the\\list of children, handled\\by \code{apply}};
+\end{tikzpicture}
+\end{center}
+
 \subsection{Condensed trace}
 \begin{lstlisting}[style=racket]
 (eval (make-opnode '+ (list 1 (make-opnode '* (list 2 3)))))
@@ -250,6 +305,21 @@ numbers:
         [(number? (first lst)) (cons (first lst) (flatten (rest lst)))]
         [else (append (flatten (first lst)) (flatten (rest lst)))]))
 \end{lstlisting}
+
+As a tree, each list is an internal node (drawn as a dot) whose children are
+its elements; \code{flatten} reads off the leaves from left to right:
+
+\begin{center}
+\begin{tikzpicture}[level distance=10mm,level 1/.style={sibling distance=20mm},
+  level 2/.style={sibling distance=10mm},
+  ln/.style={circle,fill=black,inner sep=1.6pt}]
+  \node[ln] {}
+    child {node[lfn] {1}}
+    child {node[ln] {} child {node[lfn] {2}} child {node[lfn] {3}}}
+    child {node[ln] {} child {node[ln] {} child {node[lfn] {4}}}};
+  \node[font=\scriptsize\ttfamily,anchor=west] at (2.8,0) {'(1 (2 3) ((4)))};
+\end{tikzpicture}
+\end{center}
 
 \section{Summary}
 \begin{itemize}

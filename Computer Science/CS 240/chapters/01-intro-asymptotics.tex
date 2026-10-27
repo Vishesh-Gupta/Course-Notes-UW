@@ -73,6 +73,31 @@ Let $f, g : \N \to \R_{\ge 0}$.
 Note the quantifier difference: for $\bigO$ we get to \emph{choose} one $c$; for
 $o$ the inequality must hold for \emph{all} $c$.
 
+\begin{center}
+\begin{tikzpicture}[x=0.65cm,y=0.22cm]
+  \begin{scope}
+  \draw[-{Stealth}] (0,0) -- (7.5,0) node[right,font=\scriptsize]{$n$};
+  \draw[-{Stealth}] (0,0) -- (0,19);
+  \draw[very thick,blue!60!black,dashed,domain=0:7,samples=40] plot (\x,{0.35*\x*\x}) node[right,font=\scriptsize]{$c\,g(n)$};
+  \draw[very thick,red!70!black,domain=0:7,samples=40] plot (\x,{3+0.5*\x+0.1*\x*\x}) node[right,font=\scriptsize]{$f(n)$};
+  \draw[densely dotted] (4.6,0) node[below,font=\scriptsize]{$n_0$} -- (4.6,10.4);
+  \node[font=\scriptsize] at (3.5,20.5) {$f(n) \in \bigO(g(n))$};
+  \end{scope}
+  \begin{scope}[xshift=7.2cm]
+  \draw[-{Stealth}] (0,0) -- (7.5,0) node[right,font=\scriptsize]{$n$};
+  \draw[-{Stealth}] (0,0) -- (0,19);
+  \fill[green!10,domain=4.6:7,samples=30] plot (\x,{0.35*\x*\x}) -- plot[domain=7:4.6] (\x,{0.12*\x*\x}) -- cycle;
+  \draw[very thick,blue!60!black,dashed,domain=0:7,samples=40] plot (\x,{0.35*\x*\x}) node[right,font=\scriptsize]{$c_2\,g(n)$};
+  \draw[very thick,red!70!black,domain=0:7,samples=40] plot (\x,{3+0.5*\x+0.1*\x*\x}) node[right,font=\scriptsize]{$f(n)$};
+  \draw[very thick,blue!60!black,dashed,domain=0:7,samples=40] plot (\x,{0.12*\x*\x}) node[right,font=\scriptsize]{$c_1\,g(n)$};
+  \draw[densely dotted] (4.6,0) node[below,font=\scriptsize]{$n_0$} -- (4.6,10.4);
+  \node[font=\scriptsize] at (3.5,20.5) {$f(n) \in \Theta(g(n))$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+To the right of $n_0$, $f$ stays below $c\,g$ (left), or between $c_1 g$ and
+$c_2 g$ (right); what happens before $n_0$ does not matter.
+
 \begin{example}
 Show $2n^2 + 3n + 11 \in \bigO(n^2)$. For $n \ge 1$ we have $3n \le 3n^2$ and
 $11 \le 11 n^2$, so $2n^2 + 3n + 11 \le 16 n^2$. Take $c = 16$, $n_0 = 1$.
@@ -254,6 +279,26 @@ With $k = \log_2 n$: $T(n) = n\,T(1) + cn \log n \in \Theta(n \log n)$.
 
 \paragraph{Recursion-tree view.} Level $i$ of the tree has $2^i$ subproblems of
 size $n/2^i$, so each level costs $cn$; there are $\log n + 1$ levels.
+
+\begin{center}
+\begin{tikzpicture}[b/.style={draw,fill=blue!8,minimum height=5mm,inner sep=0pt,font=\scriptsize},
+  e/.style={-,gray}]
+  \node[b,minimum width=1.6cm] (r) at (4,0) {$cn$};
+  \node[b,minimum width=1.4cm] (a) at (2,-0.9) {$cn/2$};
+  \node[b,minimum width=1.4cm] (b) at (6,-0.9) {$cn/2$};
+  \foreach \i in {0,...,3} \node[b,minimum width=1.2cm] (q\i) at (1+\i*2,-1.8) {$cn/4$};
+  \draw[e] (r) -- (a); \draw[e] (r) -- (b);
+  \draw[e] (a) -- (q0); \draw[e] (a) -- (q1); \draw[e] (b) -- (q2); \draw[e] (b) -- (q3);
+  \node at (4,-2.45) {$\vdots$};
+  \foreach \i in {0,...,7} \node[b,minimum width=0.7cm] at (0.5+\i,-3.1) {$c$};
+  \foreach \y/\t in {0/{$cn$},-0.9/{$2 \cdot cn/2 = cn$},-1.8/{$4 \cdot cn/4 = cn$},-3.1/{$n \cdot c = cn$}}
+    \node[font=\scriptsize,anchor=west] at (8.4,\y) {\t};
+  \node[font=\scriptsize\bfseries,anchor=west] at (8.4,0.55) {cost of level};
+  \draw[decorate,decoration={brace,mirror,amplitude=4pt}] (-0.25,0.25) -- (-0.25,-3.35)
+    node[midway,left=5pt,font=\scriptsize,align=right] {$\log n + 1$\\levels};
+\end{tikzpicture}
+\end{center}
+Summing $cn$ over $\log n + 1$ levels gives $\Theta(n \log n)$.
 
 \subsection{Common Recurrences}
 

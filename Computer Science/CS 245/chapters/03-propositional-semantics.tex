@@ -30,6 +30,23 @@ $\FF$&$\FF$&$\TT$&$\FF$&$\FF$&$\TT$&$\TT$\\
 \end{tabular}
 \end{center}
 
+Computing $A^t$ is a single bottom-up pass over the parse tree. For the formula
+$\neg p\land q\to(r\lor\neg p)$ of Chapter~2 and the valuation $t(p)=\FF$, $t(q)=\TT$,
+$t(r)=\FF$:
+\begin{center}
+\begin{tikzpicture}[level distance=11mm,level 1/.style={sibling distance=36mm},
+  level 2/.style={sibling distance=16mm},level 3/.style={sibling distance=10mm},
+  v/.style={label={[font=\scriptsize,text=blue!60!black,fill=blue!8,inner sep=1.5pt]right:$#1$}}]
+\node[v=\TT] {$\to$}
+  child {node[v=\TT] {$\land$}
+    child {node[v=\TT] {$\neg$} child {node[v=\FF] {$p$}}}
+    child {node[v=\TT] {$q$}}}
+  child {node[v=\TT] {$\lor$}
+    child {node[v=\FF] {$r$}}
+    child {node[v=\TT] {$\neg$} child {node[v=\FF] {$p$}}}};
+\end{tikzpicture}
+\end{center}
+
 \begin{important}[Material implication]
 $A\to B$ is false \emph{only} when $A$ is true and $B$ is false. In particular, an
 implication with a false antecedent is (vacuously) true: ``if $1=2$ then the moon is
@@ -88,11 +105,42 @@ Let $A$ be a formula and $\Sigma$ a set of formulas.
 \end{itemize}
 Note: $A$ is a tautology iff $\neg A$ is a contradiction (unsatisfiable).
 
+\begin{center}
+\begin{tikzpicture}[font=\small,>=Stealth]
+  \draw[fill=green!10] (0,0) rectangle node[align=center]{tautologies\\ \scriptsize $p\lor\neg p$} (3.2,1.1);
+  \draw[fill=yellow!12] (3.2,0) rectangle node[align=center]{contingent\\ \scriptsize $p\to q$} (7.2,1.1);
+  \draw[fill=red!8] (7.2,0) rectangle node[align=center]{contradictions\\ \scriptsize $p\land\neg p$} (10.4,1.1);
+  \draw[decorate,decoration={brace,amplitude=5pt}] (0,1.2) -- (7.2,1.2) node[midway,above=5pt]{satisfiable};
+  \draw[<->] (1.6,-0.1) to[bend right=18] node[below]{$A\mapsto\neg A$} (8.8,-0.1);
+\end{tikzpicture}
+
+\small All formulas, sorted by how many valuations satisfy them; negation swaps the outer two classes.
+\end{center}
+
 \begin{important}[Satisfiable sets]
 A set can consist of satisfiable formulas and still be unsatisfiable:
 $\{p,\ p\to q,\ \neg q\}$ has each member satisfiable, but no single valuation satisfies
 all three. The empty set is satisfiable (every valuation satisfies it vacuously).
 \end{important}
+
+Tabulating the four valuations of $p,q$ shows why: each formula is true somewhere, but the
+true regions have no column in common.
+\begin{center}
+\begin{tikzpicture}[x=1.2cm,y=0.6cm,font=\small]
+  \node[anchor=east] at (0.4,0.6) {$t(p)\ t(q)$};
+  \foreach \v [count=\i] in {{\TT\ \TT},{\TT\ \FF},{\FF\ \TT},{\FF\ \FF}} \node at (\i,0.6) {$\v$};
+  \foreach \f/\vals [count=\j] in {{$p$}/{1,1,0,0},{$p\to q$}/{1,0,1,1},{$\neg q$}/{0,1,0,1},{all three}/{0,0,0,0}} {
+    \node[anchor=east] at (0.4,-\j+0.5) {\f};
+    \foreach \b [count=\i] in \vals {
+      \ifnum\b=1 \fill[green!25] (\i-0.5,-\j) rectangle (\i+0.5,-\j+1); \node at (\i,-\j+0.5) {$\TT$};
+      \else \node[gray] at (\i,-\j+0.5) {$\FF$}; \fi
+    }
+  }
+  \foreach \i in {0.5,1.5,2.5,3.5,4.5} \draw (\i,-4) -- (\i,0);
+  \foreach \j in {0,-1,-2,-4} \draw (0.5,\j) -- (4.5,\j);
+  \draw[very thick] (0.5,-3) -- (4.5,-3);
+\end{tikzpicture}
+\end{center}
 
 \section{Logical consequence}
 

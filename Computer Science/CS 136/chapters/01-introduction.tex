@@ -182,6 +182,19 @@ and every key in the right subtree is larger than the node's key. A \emph{dictio
 to values; in CS 135 we implemented it with association lists and BSTs. We revisit both in C
 in Units~03, 11 and~12.
 
+\begin{center}
+\begin{tikzpicture}[level distance=11mm,level 1/.style={sibling distance=34mm},
+  level 2/.style={sibling distance=20mm},
+  kv/.style={draw,rounded corners,fill=blue!6,font=\small,inner sep=3pt}]
+  \node[kv] {5 : \code{"five"}}
+    child {node[kv] {2 : \code{"two"}}}
+    child {node[kv] {9 : \code{"nine"}}
+      child {node[kv] {7 : \code{"seven"}}}
+      child[missing]};
+  \node[font=\scriptsize,align=left,anchor=west] at (2.6,-0.2) {keys left of a node are smaller,\\keys right of it are larger};
+\end{tikzpicture}
+\end{center}
+
 \section{Summary}
 \begin{itemize}
   \item CS 136 moves from functional Racket to imperative C99, using Seashell.

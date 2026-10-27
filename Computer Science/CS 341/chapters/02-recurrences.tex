@@ -43,6 +43,22 @@ This is a decreasing geometric series, so $T(n)\le cn^2\sum_{i\ge0}(3/16)^i=\fra
 the root dominates.
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}[level distance=1.2cm,
+  level 1/.style={sibling distance=3.6cm},
+  level 2/.style={sibling distance=1.1cm},
+  every node/.style={font=\small}]
+\node {$cn^2$}
+  child {node {$c\frac{n^2}{16}$} child {node[font=\scriptsize] {$\frac{cn^2}{256}$}} child {node[font=\scriptsize] {$\cdots$}} child {node[font=\scriptsize] {$\frac{cn^2}{256}$}}}
+  child {node {$c\frac{n^2}{16}$} child {node[font=\scriptsize] {$\frac{cn^2}{256}$}} child {node[font=\scriptsize] {$\cdots$}} child {node[font=\scriptsize] {$\frac{cn^2}{256}$}}}
+  child {node {$c\frac{n^2}{16}$} child {node[font=\scriptsize] {$\frac{cn^2}{256}$}} child {node[font=\scriptsize] {$\cdots$}} child {node[font=\scriptsize] {$\frac{cn^2}{256}$}}};
+\node[anchor=west] at (6.0,0) {$cn^2$};
+\node[anchor=west] at (6.0,-1.2) {$\frac{3}{16}cn^2$};
+\node[anchor=west] at (6.0,-2.4) {$\left(\frac{3}{16}\right)^2cn^2$};
+\node[anchor=west] at (6.0,-3.2) {$\vdots$};
+\end{tikzpicture}
+\end{center}
+
 \begin{example}[$T(n)=4T(n/2)+cn$]
 Level $i$ costs $4^i\cdot c n/2^i=cn2^i$, an increasing geometric series dominated by the leaves.
 There are $4^{\log_2 n}=n^2$ leaves, so $T(n)\in\Theta(n^2)$.
@@ -52,6 +68,24 @@ There are $4^{\log_2 n}=n^2$ leaves, so $T(n)\in\Theta(n^2)$.
 Every full level costs $cn$. The shortest root-to-leaf path has length $\log_3 n$ and the longest $\log_{3/2}n$.
 So $cn\log_3 n\le T(n)\le cn\log_{3/2}n$ roughly, i.e.\ $T(n)\in\Theta(n\log n)$.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[level distance=1.2cm,
+  level 1/.style={sibling distance=4.4cm},
+  level 2/.style={sibling distance=2.2cm},
+  every node/.style={font=\small}, >=Stealth]
+\node (r) {$cn$}
+  child {node (l) {$\frac{cn}{3}$} child {node (ll) {$\frac{cn}{9}$}} child {node {$\frac{2cn}{9}$}}}
+  child {node (rr) {$\frac{2cn}{3}$} child {node {$\frac{2cn}{9}$}} child {node (rrr) {$\frac{4cn}{9}$}}};
+\node[anchor=west] at (5.0,0) {$cn$};
+\node[anchor=west] at (5.0,-1.2) {$cn$};
+\node[anchor=west] at (5.0,-2.4) {$cn$};
+\draw[->, thick, blue!60!black, dashed] (ll) -- ++(-0.6,-1.6) node[below, font=\scriptsize]{depth $\log_3 n$};
+\draw[->, thick, red!70!black, dashed] (rrr) -- ++(0.4,-2.4) node[below, font=\scriptsize]{depth $\log_{3/2} n$};
+\end{tikzpicture}
+\end{center}
+The leftmost branch shrinks fastest and the rightmost slowest, so the tree
+is ragged at the bottom; every level that is still complete costs $cn$.
 
 \section{The substitution method}
 Guess the answer (often from a recursion tree), then prove it by induction, with explicit constants.
@@ -95,6 +129,24 @@ Let $a\ge1$, $b>1$, and $T(n)=aT(n/b)+f(n)$. Let $c^*=\log_b a$ (the \emph{criti
 
 The intuition is the recursion tree: there are $a^{\log_b n}=n^{\log_b a}$ leaves, and level $i$ costs $a^if(n/b^i)$.
 The three cases say the level costs are increasing geometrically, roughly constant, or decreasing geometrically.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.32cm, y=0.32cm, font=\small]
+  \foreach \col/\title/\vals in {0/{Case 1: leaves dominate}/{1,2,4,8,16}, 14/{Case 2: balanced}/{6,6,6,6,6}, 28/{Case 3: root dominates}/{16,8,4,2,1}} {
+    \node[font=\scriptsize] at (\col+5,13.3) {\title};
+    \foreach \v [count=\i from 0] in \vals {
+      \fill[blue!25] (\col,-\i*2.4+10) rectangle (\col+\v*0.6,-\i*2.4+11.6);
+      \draw (\col,-\i*2.4+10) rectangle (\col+\v*0.6,-\i*2.4+11.6);
+    }
+    \draw[thick] (\col,12.2) -- (\col,-0.4);
+  }
+  \node[font=\scriptsize, rotate=90] at (-1,6) {level $0 \to \log_b n$};
+\end{tikzpicture}
+\caption{Cost per level of the recursion tree (one bar per level, root at
+the top). The total is dominated by the bottom level, spread evenly over
+$\Theta(\log n)$ levels, or dominated by the root.}
+\end{figure}
 
 \paragraph{Simplified version for $f(n)=\Theta(n^y)$.} Compare $y$ with $x=\log_b a$:
 \[

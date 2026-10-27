@@ -1,5 +1,8 @@
 \chapter{Minimum Spanning Trees}
 
+\tikzset{mv/.style={circle, draw, thick, minimum size=6.5mm, inner sep=0pt, font=\small},
+  mw/.style={font=\scriptsize, fill=white, text=black, inner sep=1pt}}
+
 \begin{definition}
 Let $G=(V,E)$ be a connected undirected graph with edge weights $w:E\to\R$. A \emph{spanning tree} is a subset $T\subseteq E$ forming a tree on all of $V$
 ($|T|=n-1$). A \emph{minimum spanning tree} (MST) minimizes $w(T)=\sum_{e\in T}w(e)$.
@@ -20,6 +23,32 @@ Let $T$ be an MST containing $A$. If $e=uv\in T$ we are done. Otherwise $T\cup\{
 again at some edge $e'\in T$, $e'\notin A$ (since $A$ respects the cut). Then $T'=T\cup\{e\}\setminus\{e'\}$ is a spanning tree (removing an edge of the cycle
 keeps it connected) with $w(T')=w(T)+w(e)-w(e')\le w(T)$ since $w(e)\le w(e')$. So $T'$ is an MST containing $A\cup\{e\}$.
 \end{proof}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1.1cm, y=1.1cm]
+  \fill[blue!6, rounded corners=10pt] (-0.6,-0.6) rectangle (2.6,2.6);
+  \node[font=\small] at (1,2.9) {$S$};
+  \node[font=\small] at (5,2.9) {$V\setminus S$};
+  \draw[very thick, gray, densely dashed] (3,-0.8) -- (3,2.8);
+  \node[mv] (u) at (2,0.3) {$u$};
+  \node[mv] (p1) at (0.6,1.8) {};
+  \node[mv] (p2) at (2,1.9) {$x$};
+  \node[mv] (q1) at (4.1,2.0) {$y$};
+  \node[mv] (q2) at (5.4,1.2) {};
+  \node[mv] (v) at (4.2,0.2) {$v$};
+  \node[mv] (r) at (0.3,0.4) {};
+  \draw[very thick] (u) -- (p1) -- (p2);
+  \draw[very thick, red!70!black] (p2) -- node[mw, above, pos=0.3]{$e'$} (q1);
+  \draw[very thick] (q1) -- (q2) -- (v);
+  \draw[very thick] (r) -- (p1);
+  \draw[very thick, green!50!black, densely dashed] (u) -- node[mw, below, pos=0.3]{$e$} (v);
+\end{tikzpicture}
+\caption{The exchange in the cut property. Adding the lightest crossing
+edge $e=uv$ to the tree $T$ (solid) creates a cycle, which must cross the
+cut a second time at some $e'\in T$; swapping $e'$ for $e$ gives a spanning
+tree no heavier than $T$.}
+\end{figure}
 
 \begin{theorem}[Cycle property]
 If $e$ is a strictly heaviest edge on some cycle, then $e$ is in no MST.
@@ -62,6 +91,34 @@ Union(x, y):
     parent[b] = a
     if rank[a] == rank[b] then rank[a] = rank[a] + 1
 \end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=1cm, >=Stealth, uf/.style={mv, minimum size=6mm}]
+  \node[uf, fill=gray!20] (r) at (0,3) {$r$};
+  \node[uf] (a) at (0,2) {$a$};
+  \node[uf] (b) at (0,1) {$b$};
+  \node[uf, fill=blue!15] (x) at (0,0) {$x$};
+  \node[uf] (s) at (1,2) {};
+  \node[uf] (t) at (1,1) {};
+  \draw[->, thick] (a) -- (r); \draw[->, thick] (b) -- (a); \draw[->, thick] (x) -- (b);
+  \draw[->, thick] (s) -- (r); \draw[->, thick] (t) -- (a);
+  \node[font=\small] at (0.5,-0.8) {before \code{Find(x)}};
+  \draw[->, very thick, gray] (2.0,1.5) -- (3.0,1.5);
+  \begin{scope}[xshift=4.3cm]
+    \node[uf, fill=gray!20] (r2) at (1.5,3) {$r$};
+    \foreach \n/\xx/\c in {a2/0/white, b2/1/white, x2/2/blue!15, s2/3/white}
+      \node[uf, fill=\c] (\n) at (\xx,1.8) {};
+    \node at (a2) {$a$}; \node at (b2) {$b$}; \node at (x2) {$x$};
+    \node[uf] (t2) at (0,0.8) {};
+    \foreach \n in {a2, b2, x2, s2} \draw[->, thick] (\n) -- (r2);
+    \draw[->, thick] (t2) -- (a2);
+    \node[font=\small] at (1.5,-0.8) {after};
+  \end{scope}
+\end{tikzpicture}
+\caption{Path compression: \code{Find(x)} makes every node on the path from
+$x$ to the root point directly at the root, so later finds are faster.}
+\end{figure}
 \textbf{Kruskal runtime}: sorting $\bigO(m\log m)=\bigO(m\log n)$ (since $m\le n^2$), plus $2m$ finds and $n-1$ unions, which is $\bigO(m\log n)$ even with the simple list
 structure. Total $\bigO(m\log n)$.
 
@@ -99,6 +156,20 @@ Vertices $a,b,c,d$ with edges $ab{:}1$, $bc{:}2$, $ac{:}3$, $cd{:}4$, $bd{:}5$.
 Kruskal: take $ab$ (1), $bc$ (2), skip $ac$ (cycle), take $cd$ (4): weight 7.
 Prim from $a$: add $ab$, then lightest edge leaving $\{a,b\}$ is $bc$, then $cd$. Same tree.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[x=1.4cm, y=1.2cm]
+  \node[mv] (a) at (0,1) {$a$}; \node[mv] (b) at (1.5,1) {$b$};
+  \node[mv] (c) at (0.75,0) {$c$}; \node[mv] (d) at (2.25,0) {$d$};
+  \draw[line width=2.4pt, blue!60] (a) -- node[mw]{1} (b);
+  \draw[line width=2.4pt, blue!60] (b) -- node[mw]{2} (c);
+  \draw[thick, densely dashed] (a) -- node[mw]{3} (c);
+  \draw[line width=2.4pt, blue!60] (c) -- node[mw]{4} (d);
+  \draw[thick, densely dashed] (b) -- node[mw]{5} (d);
+\end{tikzpicture}
+\end{center}
+The MST (bold) has weight 7; the dashed edges $ac$ and $bd$ are each the
+heaviest edge on a cycle, as the cycle property predicts.
 
 \section{Uniqueness and other facts}
 \begin{itemize}

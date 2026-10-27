@@ -96,6 +96,29 @@ jr $31             ; 0x14
 .word 0x01         ; 0x1c REL entry
 .word 0x10         ; 0x20 location to relocate
 \end{lstlisting}
+The same file as a picture: the REL entry in the table points at the one word of code that
+holds an address.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,cell/.style={draw,minimum width=3.2cm,minimum height=0.5cm,font=\ttfamily\small,anchor=west},
+  ad/.style={font=\ttfamily\scriptsize,anchor=east}]
+  \node[cell,fill=gray!10] (r0) at (0,0) {0x10000002};
+  \node[cell,fill=gray!10] (r1) at (0,-0.5) {0x24};
+  \node[cell,fill=gray!10] (r2) at (0,-1.0) {0x1c};
+  \node[cell] (r3) at (0,-1.5) {lis \$3};
+  \node[cell,fill=blue!8] (r4) at (0,-2.0) {.word 0x18};
+  \node[cell] (r5) at (0,-2.5) {jr \$31};
+  \node[cell] (r6) at (0,-3.0) {.word 10};
+  \node[cell,fill=yellow!12] (r7) at (0,-3.5) {0x01};
+  \node[cell,fill=yellow!12] (r8) at (0,-4.0) {0x10};
+  \foreach \k/\ad in {0/00,1/04,2/08,3/0c,4/10,5/14,6/18,7/1c,8/20} \node[ad] at (-0.1,-0.5*\k) {0x\ad};
+  \draw[decorate,decoration={brace,amplitude=5pt}] (-1.0,-1.25) -- (-1.0,0.25) node[midway,left=6pt,font=\small]{header};
+  \draw[decorate,decoration={brace,amplitude=5pt}] (-1.0,-3.25) -- (-1.0,-1.25) node[midway,left=6pt,font=\small]{code};
+  \draw[decorate,decoration={brace,amplitude=5pt}] (-1.0,-4.25) -- (-1.0,-3.25) node[midway,left=6pt,font=\small]{table};
+  \draw[->,thick,blue!60!black] (r8.east) -- ++(0.6,0) |- node[pos=0.25,right,font=\scriptsize]{REL: relocate the word at \code{0x10}} (r4.east);
+  \draw[->] (r1.east) -- ++(0.4,0) node[right,font=\scriptsize]{endModule: total bytes};
+  \draw[->] (r2.east) -- ++(0.4,0) node[right,font=\scriptsize]{endCode: start of table};
+\end{tikzpicture}
+\end{center}
 \end{example}
 
 \section{A relocating loader}
@@ -120,6 +143,29 @@ while (i < endMod) {
 Why $\alpha - 12$? The stored address already includes the header offset of 12 (code was
 assembled starting at \code{0x0c}), but the loader places the first code word (not the header)
 at $\alpha$. So the true address is $\mathit{stored} - 12 + \alpha$.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,cell/.style={draw,minimum width=3.0cm,minimum height=0.55cm,font=\ttfamily\small},
+  ad/.style={font=\scriptsize,anchor=east}]
+  \node[font=\small] at (0,0.65) {in the MERL file};
+  \node[cell] (f0) at (0,0) {lis \$3};
+  \node[cell,below=0pt of f0,fill=blue!8] (f1) {.word 0x18};
+  \node[cell,below=0pt of f1] (f2) {jr \$31};
+  \node[cell,below=0pt of f2] (f3) {.word 10};
+  \foreach \c/\ad in {f0/0x0c,f1/0x10,f2/0x14,f3/0x18} \node[ad,font=\ttfamily\scriptsize] at ([xshift=-2pt]\c.west) {\ad};
+  \node[font=\small] at (6,0.65) {in memory};
+  \node[cell] (m0) at (6,0) {lis \$3};
+  \node[cell,below=0pt of m0,fill=blue!8] (m1) {.word $\alpha$+0x0c};
+  \node[cell,below=0pt of m1] (m2) {jr \$31};
+  \node[cell,below=0pt of m2] (m3) {.word 10};
+  \foreach \c/\ad in {m0/$\alpha$,m1/$\alpha+4$,m2/$\alpha+8$,m3/$\alpha+12$} \node[ad] at ([xshift=-2pt]\c.west) {\ad};
+  \foreach \i in {0,2,3} \draw[->,gray] (f\i.east) -- ([xshift=-1.1cm]m\i.west);
+  \draw[->,thick,blue!60!black] (f1.east) -- node[above,font=\scriptsize]{$+(\alpha-12)$} ([xshift=-1.1cm]m1.west);
+  \draw[->,dashed] (m1.east) to[out=0,in=0,looseness=1.6] node[right,font=\scriptsize]{\code{ten}} (m3.east);
+\end{tikzpicture}
+
+\small Loading at $\alpha$: ordinary words are copied; the REL word also gets $\alpha-12$ added.
+\end{center}
 
 \begin{important}[Position-independent code]
 Code containing no absolute addresses (only PC-relative branches) is
@@ -159,6 +205,34 @@ To link $m_1$ and $m_2$ (producing a module in which $m_2$'s code follows $m_1$'
 \end{enumerate}
 ESRs that remain unresolved stay as ESRs, so linking can happen in stages; a final
 executable should have none left.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,
+  hd/.style={draw,fill=gray!10,minimum width=3cm,minimum height=0.5cm},
+  cd/.style={draw,minimum width=3cm,align=center},
+  tb/.style={draw,fill=yellow!12,minimum width=3cm,minimum height=0.6cm,align=center,font=\scriptsize}]
+  % m1
+  \node at (0,0.55) {$m_1$};
+  \node[hd] (h1) at (0,0) {header};
+  \node[cd,minimum height=1.6cm,fill=blue!5,below=0pt of h1] (c1) {code of $m_1$\\ \code{.word foo}};
+  \node[tb,below=0pt of c1] (t1) {ESR \code{foo}};
+  % m2
+  \node at (0,-2.85) {$m_2$};
+  \node[hd] (h2) at (0,-3.4) {header};
+  \node[cd,minimum height=1.2cm,fill=green!6,below=0pt of h2] (c2) {code of $m_2$\\ \code{foo:} \dots};
+  \node[tb,below=0pt of c2] (t2) {ESD \code{foo}, REL \dots};
+  % linked
+  \node at (6.5,0.55) {linked module};
+  \node[hd] (h) at (6.5,0) {header (recomputed)};
+  \node[cd,minimum height=1.6cm,fill=blue!5,below=0pt of h] (lc1) {code of $m_1$\\ \code{.word foo}};
+  \node[cd,minimum height=1.2cm,fill=green!6,below=0pt of lc1] (lc2) {code of $m_2$\\ \code{foo:} \dots};
+  \node[tb,minimum height=0.9cm,below=0pt of lc2] (lt) {REL (was ESR \code{foo}),\\ ESD \code{foo}$+\alpha$, $m_2$'s RELs $+\alpha$};
+  \draw[->,gray] (c1.east) -- (lc1.west);
+  \draw[->,gray] (c2.east) -- (lc2.west);
+  \node[below=2pt of lt,font=\scriptsize,align=center] {$m_2$'s code now starts $\alpha=\mathit{endCode}(m_1)-12$\\ bytes later, so its addresses are shifted by $\alpha$};
+  \draw[->,thick,red!60!black] ([yshift=-0.35cm]lc1.east) to[out=0,in=0,looseness=1.8] node[right,font=\scriptsize]{resolved} ([yshift=-0.2cm]lc2.east);
+\end{tikzpicture}
+\end{center}
 
 \begin{lstlisting}[style=c]
 alpha = m1.endCode - 12;

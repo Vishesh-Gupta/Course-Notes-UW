@@ -109,6 +109,24 @@ $2^n$ valuations, $\hat p_1,\dots,\hat p_n\vdash\eta$. Use LEM on $p_1$:
 $p_1\lor\neg p_1$, and apply $\lor e$. In each case, use LEM on $p_2$, and so on. At the
 leaves of this nested case analysis all of $\hat p_1,\dots,\hat p_n$ are available, and we
 plug in the proof from the lemma. Altogether $\vdash\eta$.
+For two atoms the case analysis looks like this:
+\begin{center}
+\begin{tikzpicture}[level distance=13mm,level 1/.style={sibling distance=56mm},
+  level 2/.style={sibling distance=28mm},every node/.style={font=\small},
+  lf/.style={draw,rounded corners,fill=green!8,inner sep=2pt,font=\scriptsize}]
+\node[draw,rounded corners,fill=blue!5] {LEM: $p_1\lor\neg p_1$}
+  child {node[draw,rounded corners,fill=blue!5] {LEM: $p_2\lor\neg p_2$}
+    child {node[lf] {$p_1,p_2\vdash\eta$} edge from parent node[left,font=\scriptsize] {$p_2$}}
+    child {node[lf] {$p_1,\neg p_2\vdash\eta$} edge from parent node[right,font=\scriptsize] {$\neg p_2$}}
+    edge from parent node[left,font=\scriptsize] {$p_1$}}
+  child {node[draw,rounded corners,fill=blue!5] {LEM: $p_2\lor\neg p_2$}
+    child {node[lf] {$\neg p_1,p_2\vdash\eta$} edge from parent node[left,font=\scriptsize] {$p_2$}}
+    child {node[lf] {$\neg p_1,\neg p_2\vdash\eta$} edge from parent node[right,font=\scriptsize] {$\neg p_2$}}
+    edge from parent node[right,font=\scriptsize] {$\neg p_1$}};
+\end{tikzpicture}
+
+\small Each split is an $\lor e$; each leaf is supplied by Kalm\'ar's lemma for one row of the truth table.
+\end{center}
 
 \subsection*{Step 3: put the premises back}
 From $\vdash\varphi_1\to(\dots\to\psi)$, add premises $\varphi_1,\dots,\varphi_n$ and use
@@ -138,6 +156,21 @@ Let $\Sigma_0=\Sigma$ and $\Sigma_{k+1}=\Sigma_k\cup\{\varphi_{k+1}\}$ if that i
 consistent, else $\Sigma_k\cup\{\neg\varphi_{k+1}\}$. One shows each $\Sigma_k$ is
 consistent, and so is $\Sigma^*=\bigcup_k\Sigma_k$ because proofs are finite.
 \end{proof}
+\begin{center}
+\begin{tikzpicture}[font=\small]
+  \draw[fill=gray!8] (3.6,0) ellipse (4.6cm and 1.5cm);
+  \draw[fill=blue!6] (2.5,0) ellipse (3.5cm and 1.2cm);
+  \draw[fill=blue!12] (1.6,0) ellipse (2.6cm and 0.9cm);
+  \draw[fill=blue!20] (0.8,0) ellipse (1.8cm and 0.6cm);
+  \node at (0.1,0) {$\Sigma=\Sigma_0$};
+  \node at (3.05,0) {$\Sigma_1$};
+  \node at (4.75,0) {$\Sigma_2$};
+  \node at (6.35,0) {$\cdots$};
+  \node at (7.6,0) {$\Sigma^*$};
+\end{tikzpicture}
+
+\small Each step adds $\varphi_{k+1}$ or its negation; the union decides every formula.
+\end{center}
 
 \begin{theorem}
 Every consistent set is satisfiable.
@@ -156,6 +189,22 @@ If $\Sigma\models\varphi$ then $\Sigma\vdash\varphi$.
 If $\Sigma\nvdash\varphi$, then $\Sigma\cup\{\neg\varphi\}$ is consistent, hence satisfiable;
 a valuation satisfying it shows $\Sigma\not\models\varphi$.
 \end{proof}
+
+The whole argument, read as a chain:
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,node distance=0.45cm,
+  st/.style={draw,rounded corners,fill=blue!4,align=center,minimum height=1cm,text width=2.6cm}]
+  \node[st] (a) {$\Sigma\nvdash\varphi$};
+  \node[st,right=of a] (b) {$\Sigma\cup\{\neg\varphi\}$\\ consistent};
+  \node[st,right=of b] (c) {maximal consistent\\ $\Sigma^*$ (Lindenbaum)};
+  \node[st,below=0.7cm of c] (d) {$t(p)=\TT$ iff\\ $p\in\Sigma^*$};
+  \node[st,left=of d] (e) {$t$ satisfies $\Sigma$,\\ falsifies $\varphi$};
+  \node[st,left=of e] (f) {$\Sigma\not\models\varphi$};
+  \draw[->] (a) -- (b); \draw[->] (b) -- (c);
+  \draw[->] (c) -- (d); \draw[->] (d) -- (e); \draw[->] (e) -- (f);
+\end{tikzpicture}
+\end{center}
+This is the contrapositive of completeness.
 
 \section{Compactness}
 

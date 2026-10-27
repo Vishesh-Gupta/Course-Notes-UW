@@ -45,6 +45,22 @@ space for a Book's fields. The Comic is copied using Book's copy ctor, and the
 \code{hero} field is chopped off. This is called \textbf{object slicing}
 (another professor calls it \emph{object coercion}). So \code{b1} really is a
 Book, and \code{Book::isHeavy} runs.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,f/.style={draw,minimum width=2.1cm,minimum height=0.55cm}]
+  \node[font=\scriptsize] at (0,0.55) {\code{Comic\{...\}}};
+  \node[f,fill=blue!6] (t) at (0,0) {\code{title}};
+  \node[f,fill=blue!6,below=0pt of t] (a) {\code{author}};
+  \node[f,fill=blue!6,below=0pt of a] (n) {\code{numPages}};
+  \node[f,fill=green!10,below=0pt of n] (h) {\code{hero}};
+  \node[font=\scriptsize] at (4.5,0.55) {\code{Book b1}};
+  \node[f,fill=blue!6] (t2) at (4.5,0) {\code{title}};
+  \node[f,fill=blue!6,below=0pt of t2] (a2) {\code{author}};
+  \node[f,fill=blue!6,below=0pt of a2] (n2) {\code{numPages}};
+  \draw[->] (a.east) -- node[above,font=\scriptsize]{Book's copy ctor} (a2.west);
+  \draw[red!70!black,thick] ([xshift=0.3cm]h.east) -- ++(0.4,0.25) ([xshift=0.3cm,yshift=0.25cm]h.east) -- ++(0.4,-0.25);
+  \node[font=\scriptsize,red!70!black,anchor=west] at ([xshift=0.8cm]h.east) {sliced off};
+\end{tikzpicture}
+\end{center}
 
 Slicing does not occur if a subclass object is pointed to by a superclass
 pointer (or reference):
@@ -96,6 +112,20 @@ cout << cp->isHeavy();   // Comic::isHeavy
 cout << bp->isHeavy();   // Comic::isHeavy
 cout << rb.isHeavy();    // Comic::isHeavy
 \end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small]
+  \node[draw,fill=blue!5,minimum width=1.4cm,minimum height=0.7cm] (bp) at (0,0) {\code{bp}};
+  \node[font=\scriptsize,anchor=north] at (bp.south) {declared type \code{Book*}};
+  \node[draw,fill=green!10,minimum width=2.2cm,minimum height=0.9cm] (c) at (3.4,0) {Comic object};
+  \draw[->] (bp) -- (c);
+  \node[draw,rounded corners] (b) at (8,0.7) {\code{Book::isHeavy}};
+  \node[draw,rounded corners] (cc) at (8,-0.7) {\code{Comic::isHeavy}};
+  \draw[->,gray] (c.east) -- node[above,sloped,font=\scriptsize]{non-virtual} (b.west);
+  \draw[->,thick,blue!60!black] (c.east) -- node[below,sloped,font=\scriptsize]{virtual} (cc.west);
+\end{tikzpicture}
+
+\small Static dispatch follows the pointer's declared type; dynamic dispatch follows the object.
+\end{center}
 
 \begin{definition}
 For a \textbf{virtual} method, the method to call is chosen while the program
@@ -121,6 +151,17 @@ for (int i = 0; i < 100; ++i) {
 }
 \end{lstlisting}
 \code{myBooks} is called a \emph{polymorphic array}.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,c/.style={draw,minimum width=1cm,minimum height=0.65cm}]
+  \foreach \i in {0,...,3} \node[c] (p\i) at (\i,0) {};
+  \node[c] at (4,0) {$\cdots$};
+  \node[anchor=east] at (-0.6,0) {\code{myBooks}};
+  \foreach \i/\t/\col/\x in {0/Book/blue!6/-1.2,1/Text/orange!15/1.2,2/Comic/green!12/3.6,3/Text/orange!15/6.0} {
+    \node[draw,fill=\col,rounded corners,minimum width=1.6cm,align=center] (o\i) at (\x,-1.7) {\t\\ \scriptsize\code{\t::isHeavy}};
+    \draw[->] (p\i.center) -- (o\i.north);
+  }
+\end{tikzpicture}
+\end{center}
 
 \begin{definition}
 \textbf{Polymorphism} (``many forms''): the ability of one variable/container to
@@ -173,6 +214,18 @@ delete myX;             // calls ~X() only!
 The dtor is non-virtual, so \code{delete myX} uses the declared type: only
 \code{\textasciitilde X} runs, and \code{y}'s array is leaked. Fix: make the base
 class dtor virtual (which makes all subclass dtors virtual too):
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,f/.style={draw,minimum width=1.4cm,minimum height=0.6cm}]
+  \node[f,fill=blue!6] (x) at (0,0) {\code{x}};
+  \node[f,fill=green!10,below=0pt of x] (y) {\code{y}};
+  \node[font=\scriptsize,anchor=south] at (x.north) {\code{*myX} (a Y)};
+  \node[draw,fill=blue!6,minimum width=2.6cm] (ax) at (4,0) {\code{int[10]}};
+  \node[draw,fill=red!12,draw=red!60!black,minimum width=2.6cm] (ay) at (4,-0.9) {\code{int[20]}};
+  \draw[->] (x.east) -- (ax.west); \draw[->] (y.east) -- (ay.west);
+  \node[font=\scriptsize,anchor=west] at (5.4,0) {freed by \code{\textasciitilde X}};
+  \node[font=\scriptsize,anchor=west,red!60!black] at (5.4,-0.9) {leaked: \code{\textasciitilde Y} never runs};
+\end{tikzpicture}
+\end{center}
 \begin{lstlisting}[style=cpp]
 class X {
     ...

@@ -39,6 +39,27 @@ So $\gcd(1386,322) = \gcd(322,98) = \gcd(98,28) = \gcd(28,14) = \gcd(14,0) = 14$
 
 The remainders strictly decrease and are non-negative, so the algorithm terminates.
 
+Geometrically, the Euclidean algorithm tiles a $1386 \times 322$ rectangle with squares: cut
+off as many $322 \times 322$ squares as fit (the quotient $4$), leaving a $98\times 322$ strip,
+and repeat on the strip. The smallest square, of side $14$, tiles everything left over, and
+hence (working back) the whole rectangle; that is why it divides both sides.
+\begin{center}
+\begin{tikzpicture}[x=0.009cm,y=0.009cm]
+  \foreach \i in {0,...,3} {
+    \draw[fill=blue!12] (322*\i,0) rectangle +(322,322);
+    \node at (322*\i+161,161) {$322$};
+  }
+  \foreach \j in {0,...,2} { \draw[fill=green!15] (1288,98*\j) rectangle +(98,98); }
+  \node[font=\tiny] at (1337,49) {$98$};
+  \foreach \i in {0,...,2} { \draw[fill=orange!25] (1288+28*\i,294) rectangle +(28,28); }
+  \foreach \j in {0,...,1} { \draw[fill=red!35] (1372,294+14*\j) rectangle +(14,14); }
+  \draw[thick] (0,0) rectangle (1386,322);
+  \draw[<->] (0,-40) -- node[below] {\small $1386$} (1386,-40);
+  \draw[<->] (-40,0) -- node[left] {\small $322$} (-40,322);
+  \draw[->] (1150,430) node[left,font=\scriptsize] {$28\times28$ and $14\times 14$ squares} -- (1330,315);
+\end{tikzpicture}
+\end{center}
+
 \section{Bezout's lemma and the extended Euclidean algorithm}
 
 \begin{theorem}[Bezout's Lemma / EEA]
@@ -212,6 +233,28 @@ $\gcd = 2\cdot 7 = 14$ (agreeing with the Euclidean algorithm) and
 $\lcm = 2\cdot 3^2\cdot 7\cdot 11\cdot 23 = 31878 = 1386\cdot 322/14$.
 $1386$ has $(1+1)(2+1)(1+1)(1+1) = 24$ positive divisors.
 \end{example}
+
+For two primes the divisors can be laid out on a grid by exponent. The divisors of
+$72 = 2^3 3^2$ form a $4 \times 3$ grid ($12$ divisors); with $a = 24 = 2^3 3^1$ and
+$b = 18 = 2^1 3^2$, the gcd takes the smaller exponent in each coordinate and the lcm the
+larger one:
+\begin{center}
+\begin{tikzpicture}[x=1.5cm,y=1.2cm]
+  \foreach \i in {0,...,3} { \node[below,font=\scriptsize] at (\i,-0.35) {$2^{\i}$}; }
+  \foreach \j in {0,...,2} { \node[left,font=\scriptsize] at (-0.4,\j) {$3^{\j}$}; }
+  \foreach \i in {0,...,3} { \foreach \j in {0,...,2} {
+    \pgfmathtruncatemacro{\v}{2^\i*3^\j}
+    \node[draw,circle,minimum size=0.75cm,inner sep=0pt,font=\small] (d\i\j) at (\i,\j) {$\v$};
+  } }
+  \foreach \i in {0,...,3} { \foreach \j in {0,1} { \draw[gray] (d\i\j) -- (d\i\the\numexpr\j+1\relax); } }
+  \foreach \i in {0,...,2} { \foreach \j in {0,...,2} { \draw[gray] (d\i\j) -- (d\the\numexpr\i+1\relax\j); } }
+  \node[draw,circle,minimum size=0.75cm,fill=blue!20,font=\small] at (3,1) {$24$};
+  \node[draw,circle,minimum size=0.75cm,fill=blue!20,font=\small] at (1,2) {$18$};
+  \node[draw,circle,minimum size=0.75cm,fill=green!25,font=\small] at (1,1) {$6$};
+  \node[draw,circle,minimum size=0.75cm,fill=orange!35,font=\small] at (3,2) {$72$};
+  \node[right,font=\scriptsize,align=left] at (3.5,1) {{\color{blue!70!black}$a,b$}\\{\color{green!50!black}$\gcd = 6$}\\{\color{orange!80!black}$\lcm = 72$}};
+\end{tikzpicture}
+\end{center}
 
 \begin{aside}
 Factoring large numbers is believed to be hard, while the Euclidean algorithm is very fast

@@ -33,6 +33,24 @@ The number of ordered outcomes of two dice is $6\times 6 = 36$; the number with
 different faces is $6\times 5 = 30$, so $P(\text{different faces}) = 30/36 = 5/6$.
 \end{example}
 
+
+A tree diagram makes the multiplication rule concrete: with $p=3$ choices at the first
+stage and $q=2$ at the second, every first-stage branch splits into the same number of
+second-stage branches, giving $3\times2 = 6$ leaves.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\small},
+    level 1/.style={sibling distance=3.4cm, level distance=1.3cm},
+    level 2/.style={sibling distance=1.4cm, level distance=1.3cm}]
+  \node[circle, fill=black, inner sep=1.5pt] {}
+    child { node {$a_1$} child { node {$a_1b_1$} } child { node {$a_1b_2$} } }
+    child { node {$a_2$} child { node {$a_2b_1$} } child { node {$a_2b_2$} } }
+    child { node {$a_3$} child { node {$a_3b_1$} } child { node {$a_3b_2$} } };
+  \node[anchor=west, gray] at (5.3,-1.3) {stage 1: $p = 3$};
+  \node[anchor=west, gray] at (5.3,-2.6) {stage 2: $q = 2$ each};
+\end{tikzpicture}
+\end{center}
+
 \section{Permutations}
 
 \begin{definition}[Factorial and falling factorial]
@@ -88,6 +106,22 @@ surprisingly small $n$ needed is because there are $\binom{n}{2}$ pairs of peopl
 which could match ($\binom{23}{2} = 253$).
 \end{example}
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5.5cm, xmin=0, xmax=60, ymin=0, ymax=1.02,
+    xlabel={number of people $n$}, ylabel={$P(\text{shared birthday})$},
+    xtick={0,10,23,30,40,50,60}, ytick={0,0.25,0.5,0.75,1},
+    grid=major, grid style={gray!20}, tick label style={font=\small},
+    label style={font=\small}]
+  \addplot[thick, blue!70!black, smooth] coordinates {(1,0) (2,0.0027) (4,0.0164) (6,0.0405) (8,0.0743) (10,0.1169) (12,0.167) (14,0.2231) (16,0.2836) (18,0.3469) (20,0.4114) (22,0.4757) (23,0.5073) (24,0.5383) (26,0.5982) (28,0.6545) (30,0.7063) (32,0.7533) (34,0.7953) (36,0.8322) (38,0.8641) (40,0.8912) (42,0.914) (44,0.9329) (46,0.9483) (48,0.9606) (50,0.9704) (52,0.978) (54,0.9839) (56,0.9883) (58,0.9917) (60,0.9941)};
+  \draw[dashed, red!70!black] (axis cs:23,0) -- (axis cs:23,0.5073) -- (axis cs:0,0.5073);
+  \addplot[only marks, mark=*, mark size=1.8pt, red!70!black] coordinates {(23,0.5073)};
+  \node[anchor=west, font=\small] at (axis cs:25,0.45) {$n = 23$: $0.5073$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+The probability passes $1/2$ at $n=23$ and is already above $0.97$ at $n = 50$.
+
 \section{Combinations}
 
 \begin{definition}[Binomial coefficient]
@@ -118,6 +152,51 @@ ordering it (in $k!$ ways). So $n^{(k)} = C\cdot k!$.
   \item (Vandermonde) $\sum_{k} \binom{a}{k}\binom{b}{n-k} = \binom{a+b}{n}$.
 \end{enumerate}
 \end{theorem}
+
+
+Pascal's identity is the rule that builds Pascal's triangle: each entry is the sum of the
+two entries above it (row $n$ lists $\binom n0,\dots,\binom nn$).
+
+\begin{center}
+\begin{tikzpicture}[x=0.75cm, y=0.62cm, every node/.style={font=\small}]
+  \node at (0,0) {1};
+  \node[gray, anchor=east] at (-3.6,0) {$n=0$};
+  \node at (-0.5,-1) {1};
+  \node at (0.5,-1) {1};
+  \node[gray, anchor=east] at (-3.6,-1) {$n=1$};
+  \node at (-1,-2) {1};
+  \node at (0,-2) {2};
+  \node at (1,-2) {1};
+  \node[gray, anchor=east] at (-3.6,-2) {$n=2$};
+  \node at (-1.5,-3) {1};
+  \node at (-0.5,-3) {3};
+  \node at (0.5,-3) {3};
+  \node at (1.5,-3) {1};
+  \node[gray, anchor=east] at (-3.6,-3) {$n=3$};
+  \node at (-2,-4) {1};
+  \node[fill=orange!30, circle, inner sep=1.5pt] at (-1,-4) {4};
+  \node[fill=orange!30, circle, inner sep=1.5pt] at (0,-4) {6};
+  \node at (1,-4) {4};
+  \node at (2,-4) {1};
+  \node[gray, anchor=east] at (-3.6,-4) {$n=4$};
+  \node at (-2.5,-5) {1};
+  \node at (-1.5,-5) {5};
+  \node[fill=blue!20, circle, inner sep=1.5pt] at (-0.5,-5) {10};
+  \node at (0.5,-5) {10};
+  \node at (1.5,-5) {5};
+  \node at (2.5,-5) {1};
+  \node[gray, anchor=east] at (-3.6,-5) {$n=5$};
+  \node at (-3,-6) {1};
+  \node at (-2,-6) {6};
+  \node at (-1,-6) {15};
+  \node at (0,-6) {20};
+  \node at (1,-6) {15};
+  \node at (2,-6) {6};
+  \node at (3,-6) {1};
+  \node[gray, anchor=east] at (-3.6,-6) {$n=6$};
+  \node[anchor=west, font=\scriptsize] at (3.6,-5) {$\binom52 = \binom41 + \binom42 = 4 + 6$};
+\end{tikzpicture}
+\end{center}
 
 \begin{proof}[Proof of (4)]
 Choose $n$ people from a group of $a$ women and $b$ men. Splitting according to the number

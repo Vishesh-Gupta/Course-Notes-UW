@@ -187,6 +187,24 @@ bool remove_item(int i, struct llist *lst) {
   return true;
 }
 \end{lstlisting}
+Removing 8 from the list 3, 8, 5: \code{prev->next} is redirected around the
+old node, which is then freed.
+
+\begin{center}
+\begin{tikzpicture}
+  \node[lnode] (a) {3 \nodepart{two} \phantom{x}};
+  \node[lnode,right=1.4cm of a,draw=red!70!black,fill=red!8] (b) {8 \nodepart{two} \phantom{x}};
+  \node[lnode,right=1.4cm of b] (c) {5 \nodepart{two} \phantom{x}};
+  \node[right=1cm of c] (n) {\code{NULL}};
+  \node[above=0mm of a,font=\scriptsize] {\code{prev}};
+  \node[above=0mm of b,font=\scriptsize,red!70!black] {\code{old} (freed)};
+  \draw[ptr,dashed,gray] (a.two east) ++(-0.2,0) -- (b);
+  \draw[ptr,dashed,gray] (b.two east) ++(-0.2,0) -- (c);
+  \draw[ptr] (c.two east) ++(-0.2,0) -- (n);
+  \draw[ptr,blue!60!black] (a.two south) to[out=-60,in=-120] node[below,font=\scriptsize]{\code{prev->next = old->next}} (c.south);
+\end{tikzpicture}
+\end{center}
+
 The pattern for both: handle the empty list and the front node as special cases, then walk a
 \code{prev} pointer to the node \emph{before} the position of interest.
 
@@ -231,6 +249,26 @@ int queue_remove_front(struct queue *q) {
   return item;
 }
 \end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[fld/.style={draw,minimum width=1.5cm,minimum height=6mm,font=\scriptsize\ttfamily}]
+  \node[fld] (fr) at (0,0) {front};
+  \node[fld,below=0pt of fr] (bk) {back};
+  \node[font=\scriptsize,above=0pt of fr] {\code{struct queue}};
+  \node[lnode] (a) at (3,1.2) {4 \nodepart{two} \phantom{x}};
+  \node[lnode,right=1cm of a] (b) {7 \nodepart{two} \phantom{x}};
+  \node[lnode,right=1cm of b] (c) {2 \nodepart{two} \phantom{x}};
+  \node[right=0.8cm of c] (n) {\code{NULL}};
+  \draw[ptr] (fr.east) to[out=0,in=180] (a.west);
+  \draw[ptr] (bk.east) -| (c.south);
+  \draw[ptr] (a.two east) ++(-0.2,0) -- (b);
+  \draw[ptr] (b.two east) ++(-0.2,0) -- (c);
+  \draw[ptr] (c.two east) ++(-0.2,0) -- (n);
+  \node[font=\scriptsize,anchor=north] at (a.south) {remove here};
+  \node[font=\scriptsize,anchor=south] at (c.north) {add here};
+\end{tikzpicture}
+\end{center}
+Both ends are reachable in one step, so both operations are $\bigO(1)$.
 
 \section{Arrays vs.\ Linked Lists}
 
@@ -333,6 +371,33 @@ void bst_destroy(struct bst *t) {
   free(t);
 }
 \end{lstlisting}
+
+In memory each node is a small structure with two child pointers; empty
+subtrees are \code{NULL} (drawn as a slash). Inserting 25 into the tree above
+follows the path $40 \to 20 \to 30$ and replaces the \code{NULL} left pointer of 30 by a
+new leaf:
+
+\begin{center}
+\begin{tikzpicture}[bn/.style={draw,rectangle split,rectangle split parts=3,rectangle split horizontal,
+    minimum height=6mm,inner sep=2pt,font=\small},
+  bp/.style={-{Stealth[length=1.6mm]},thick}]
+  \node[bn] (n40) at (0,0) {\phantom{x}\nodepart{two}40\nodepart{three}\phantom{x}};
+  \node[bn] (n20) at (-3,-1.3) {\phantom{x}\nodepart{two}20\nodepart{three}\phantom{x}};
+  \node[bn] (n60) at (3,-1.3) {\phantom{x}\nodepart{two}60\nodepart{three}\phantom{x}};
+  \node[bn] (n10) at (-4.6,-2.6) {\phantom{x}\nodepart{two}10\nodepart{three}\phantom{x}};
+  \node[bn] (n30) at (-1.4,-2.6) {\phantom{x}\nodepart{two}30\nodepart{three}\phantom{x}};
+  \node[bn] (n70) at (4.4,-2.6) {\phantom{x}\nodepart{two}70\nodepart{three}\phantom{x}};
+  \node[bn,fill=green!12] (n25) at (-2.6,-3.9) {\phantom{x}\nodepart{two}25\nodepart{three}\phantom{x}};
+  \draw[bp] (n40.one south) -- (n20.north);
+  \draw[bp] (n40.three south) -- (n60.north);
+  \draw[bp] (n20.one south) -- (n10.north);
+  \draw[bp,blue!60!black] (n20.three south) -- (n30.north);
+  \draw[bp,green!40!black] (n30.one south) -- (n25.north);
+  \draw[bp] (n60.three south) -- (n70.north);
+  \foreach \n in {n60,n10,n70,n25} \draw[gray] (\n.south west) -- (\n.one split north);
+  \foreach \n in {n10,n30,n70,n25} \draw[gray] (\n.two split south) -- (\n.north east);
+\end{tikzpicture}
+\end{center}
 
 A recursive insert is also natural; it returns the (possibly new) root of the subtree:
 \begin{lstlisting}[style=c]

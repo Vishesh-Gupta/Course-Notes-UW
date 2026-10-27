@@ -1,0 +1,253 @@
+\chapter{Lesson 1: The Japanese Sound System and Pitch Accent}
+
+\section{Course overview}
+
+JAPAN 101R is the first half of first-year Japanese at Renison. The course assumes no
+prior knowledge. By the end of the term we should be able to:
+\begin{itemize}
+  \item read and write all of hiragana and katakana, plus a few dozen basic kanji;
+  \item introduce ourselves, ask simple questions, talk about daily routines, shop,
+        tell time and give prices;
+  \item use the polite (\ja{です}/\ja{ます}) style and recognise the casual (short-form)
+        style used among friends.
+\end{itemize}
+
+Classes alternate between grammar explanation and drills/conversation practice. Quizzes
+are mostly kana and vocabulary early on and shift to grammar and kanji later. These notes
+follow the order of the lessons as they were taught.
+
+\begin{aside}
+The instructor's rule from week one: romaji (Japanese written in Roman letters) is a
+crutch for the first two weeks only. After the hiragana test, everything on quizzes is
+written in kana. These notes give romaji alongside the Japanese for review purposes.
+\end{aside}
+
+\section{The three writing systems (preview)}
+
+Japanese is written with a mix of three scripts:
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Script & Example & Used for \\
+\midrule
+hiragana & \ja{ひらがな} & grammatical endings, particles, native words \\
+katakana & \ja{カタカナ} & loanwords, foreign names, emphasis, sound effects \\
+kanji & \ja{漢字} & content words (nouns, verb and adjective stems) \\
+\bottomrule
+\end{tabular}
+\end{center}
+A single ordinary sentence mixes all three:
+\begin{center}
+\ja{私はカナダの大学生です。} \quad \emph{Watashi wa Kanada no daigakusei desu.} \quad
+``I am a Canadian university student.''
+\end{center}
+Here \ja{私}, \ja{大学生} are kanji, \ja{カナダ} is katakana, and \ja{は}, \ja{の},
+\ja{です} are hiragana. Hiragana and katakana are both \emph{kana}: each symbol stands
+for one sound unit (a \emph{mora}), not for a single consonant or vowel.
+
+\section{Vowels}
+
+Japanese has only five vowels. They are short, ``pure'' vowels, with no glide at the end
+(unlike English ``day'' [dei] or ``go'' [gou]).
+\begin{center}
+\begin{tabular}{cccl}
+\toprule
+Kana & Romaji & Approx.\ English & Notes \\
+\midrule
+\ja{あ} & a & f\underline{a}ther (but shorter) & mouth open \\
+\ja{い} & i & m\underline{ee}t (short) & lips spread \\
+\ja{う} & u & f\underline{oo}d without rounding & lips \emph{not} rounded \\
+\ja{え} & e & g\underline{e}t & \\
+\ja{お} & o & \underline{o}ld without the w-glide & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The order a--i--u--e--o is the dictionary order of Japanese and is the order of the rows
+of the kana chart (Lesson 2).
+
+\begin{important}[Vowel length matters]
+A long vowel is held for twice as long and can change the meaning of a word:
+\begin{itemize}
+  \item \ja{おばさん} \emph{obasan} ``aunt'' vs.\ \ja{おばあさん} \emph{obāsan} ``grandmother''
+  \item \ja{おじさん} \emph{ojisan} ``uncle'' vs.\ \ja{おじいさん} \emph{ojīsan} ``grandfather''
+  \item \ja{ゆき} \emph{yuki} ``snow'' vs.\ \ja{ゆうき} \emph{yūki} ``courage''
+\end{itemize}
+In romaji, long vowels are written with a macron (ā, ū, ō) or doubled (aa, uu, ou).
+\end{important}
+
+\subsection{Vowel devoicing}
+
+In standard (Tokyo) Japanese, the high vowels \emph{i} and \emph{u} are often whispered
+(devoiced) when they fall between voiceless consonants (k, s, t, h, p) or at the end of a
+phrase after a voiceless consonant.
+\begin{itemize}
+  \item \ja{です} \emph{desu} is pronounced close to ``dess''.
+  \item \ja{ます} \emph{masu} sounds like ``mass''.
+  \item \ja{すき} \emph{suki} ``like'' sounds like ``ski''.
+  \item \ja{ひと} \emph{hito} ``person'' has a whispered \emph{i}: [h\textsuperscript{i}to].
+\end{itemize}
+
+\section{Consonants}
+
+Most consonants are close to English. The ones that need attention:
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Sound & Example & Pronunciation tip \\
+\midrule
+r & \ja{ら} ra, \ja{り} ri & a single light tap of the tongue, between English r, l and d \\
+f (fu) & \ja{ふ} fu & lips close together, no teeth: blowing out a candle \\
+ts (tsu) & \ja{つ} tsu & like the end of ``ca\underline{ts}'' \\
+chi, shi & \ja{ち}, \ja{し} & not ``ti'', ``si'' (no such syllables in native words) \\
+g & \ja{が} ga & always hard as in ``go''; some speakers nasalize it mid-word \\
+n (syllabic) & \ja{ん} n & a full mora on its own; sound depends on what follows \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Morae: the timing unit of Japanese}
+
+\begin{definition}[Mora]
+A \emph{mora} (plural \emph{morae}) is a unit of timing. Each mora takes roughly the same
+amount of time. One kana symbol is (nearly always) one mora.
+\end{definition}
+
+Japanese counts in morae, not syllables. The following each count as one mora:
+\begin{itemize}
+  \item a (consonant +) vowel: \ja{か} ka, \ja{あ} a;
+  \item a contracted sound written with a small kana: \ja{きゃ} kya (two symbols, one mora);
+  \item the syllabic nasal \ja{ん} n;
+  \item the doubled-consonant pause \ja{っ} (a small tsu);
+  \item the second half of a long vowel.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[mora/.style={draw, minimum width=1.05cm, minimum height=0.9cm, font=\large}]
+  % Tokyo
+  \node[anchor=east] at (-0.3,0) {\ja{とうきょう}};
+  \foreach \k/\r [count=\i] in {\ja{と}/to, \ja{う}/o, \ja{きょ}/kyo, \ja{う}/o} {
+    \node[mora] at (\i*1.1,0) {\k};
+    \node[font=\scriptsize] at (\i*1.1,-0.7) {\r};
+  }
+  \node[anchor=west, font=\small] at (5.1,0) {4 morae, 2 syllables};
+  % Nippon
+  \node[anchor=east] at (-0.3,-1.8) {\ja{にっぽん}};
+  \foreach \k/\r [count=\i] in {\ja{に}/ni, \ja{っ}/(pause), \ja{ぽ}/po, \ja{ん}/n} {
+    \node[mora] at (\i*1.1,-1.8) {\k};
+    \node[font=\scriptsize] at (\i*1.1,-2.5) {\r};
+  }
+  \node[anchor=west, font=\small] at (5.1,-1.8) {4 morae, 2 syllables};
+\end{tikzpicture}
+\end{center}
+
+\begin{example}[Counting morae]
+\ja{がくせい} \emph{gakusei} ``student'' = \ja{が}・\ja{く}・\ja{せ}・\ja{い} = 4 morae.
+\ja{しんぶん} \emph{shinbun} ``newspaper'' = \ja{し}・\ja{ん}・\ja{ぶ}・\ja{ん} = 4 morae.
+\ja{きって} \emph{kitte} ``stamp'' = \ja{き}・\ja{っ}・\ja{て} = 3 morae.
+\end{example}
+
+\begin{aside}
+English speakers tend to swallow the \ja{っ} pause and the \ja{ん} mora and to shorten
+long vowels. A good habit: clap or tap once per mora while saying a new word. The
+instructor did this for every new vocabulary item in the first month.
+\end{aside}
+
+\section{Pitch accent}
+
+English uses \emph{stress} (loudness and length) to mark the prominent syllable of a word
+(\underline{re}cord vs.\ re\underline{cord}). Standard Japanese instead uses \emph{pitch}:
+each mora is pronounced either high (H) or low (L).
+
+\begin{important}[Basic rules of Tokyo pitch accent]
+\begin{enumerate}
+  \item The first and second morae of a word always differ in pitch: either L-H or H-L.
+  \item Once the pitch falls inside a word, it does not rise again within that word.
+  \item The place where pitch drops (the \emph{accent nucleus}) is part of the word and
+        must be memorised. Some words have no drop at all (\emph{flat} or \emph{heiban}).
+\end{enumerate}
+\end{important}
+
+\subsection{Accent patterns}
+
+For a word with $n$ morae there are $n+1$ possible patterns. The drop can come after
+mora 1, 2, \ldots, $n$, or never. Whether the drop is after the last mora only shows up
+when a particle such as \ja{が} follows.
+
+\begin{center}
+\begin{tikzpicture}[x=0.9cm, y=0.8cm, dot/.style={circle, fill, inner sep=1.6pt},
+    odot/.style={circle, draw, fill=white, inner sep=1.6pt}]
+  % hashi (chopsticks): H L | L
+  \node[anchor=east, align=right, font=\small] at (-0.4,1.3) {\ja{はし} ``chopsticks''\\ head-high};
+  \draw[thick] (0,2) -- (1,1) -- (2,1);
+  \node[dot] at (0,2) {}; \node[dot] at (1,1) {}; \node[odot] at (2,1) {};
+  \node[font=\scriptsize] at (0,0.4) {\ja{は}}; \node[font=\scriptsize] at (1,0.4) {\ja{し}};
+  \node[font=\scriptsize] at (2,0.4) {\ja{が}};
+  % hashi (bridge): L H | L
+  \begin{scope}[xshift=5.5cm]
+  \node[anchor=east, align=right, font=\small] at (-0.4,1.3) {\ja{はし} ``bridge''\\ tail-high};
+  \draw[thick] (0,1) -- (1,2) -- (2,1);
+  \node[dot] at (0,1) {}; \node[dot] at (1,2) {}; \node[odot] at (2,1) {};
+  \node[font=\scriptsize] at (0,0.4) {\ja{は}}; \node[font=\scriptsize] at (1,0.4) {\ja{し}};
+  \node[font=\scriptsize] at (2,0.4) {\ja{が}};
+  \end{scope}
+  % hashi (edge): L H | H
+  \begin{scope}[xshift=11cm]
+  \node[anchor=east, align=right, font=\small] at (-0.4,1.3) {\ja{はし} ``edge''\\ flat};
+  \draw[thick] (0,1) -- (1,2) -- (2,2);
+  \node[dot] at (0,1) {}; \node[dot] at (1,2) {}; \node[odot] at (2,2) {};
+  \node[font=\scriptsize] at (0,0.4) {\ja{は}}; \node[font=\scriptsize] at (1,0.4) {\ja{し}};
+  \node[font=\scriptsize] at (2,0.4) {\ja{が}};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+Filled dots are the word, the hollow dot is a following particle \ja{が}. ``Bridge'' and
+``edge'' sound identical on their own; only the particle reveals the difference.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Pattern (Japanese name) & Drop & Example & Pitch \\
+\midrule
+head-high (\ja{頭高}, atamadaka) & after mora 1 & \ja{いのち} inochi ``life'' & H L L \\
+middle-high (\ja{中高}, nakadaka) & inside the word & \ja{たまご} tamago ``egg'' & L H L \\
+tail-high (\ja{尾高}, odaka) & after last mora & \ja{おとこ} otoko ``man'' & L H H (+L) \\
+flat (\ja{平板}, heiban) & none & \ja{さかな} sakana ``fish'' & L H H (+H) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Minimal pairs worth knowing}
+\begin{itemize}
+  \item \ja{あめ} \emph{ame} (H-L) ``rain'' vs.\ \ja{あめ} \emph{ame} (L-H) ``candy''.
+  \item \ja{はし} chopsticks / bridge / edge (above).
+  \item \ja{かき} \emph{kaki} (H-L) ``oyster'' vs.\ \ja{かき} \emph{kaki} (L-H) ``persimmon''.
+\end{itemize}
+
+\begin{remark}
+Pitch accent is not tested in this course, and getting it wrong rarely causes
+misunderstanding (context almost always disambiguates). It is introduced so that we
+\emph{listen} for it and imitate the instructor's pitch rather than imposing English
+stress. Regional dialects (e.g.\ Kansai) have different patterns from Tokyo.
+\end{remark}
+
+\section{Intonation}
+Separate from word pitch, sentence intonation works much like English for questions:
+\begin{itemize}
+  \item Questions ending in \ja{か} \emph{ka} usually rise: \ja{がくせいですか。}
+        \emph{Gakusei desu ka?} ``Are you a student?''
+  \item Statements fall at the end: \ja{がくせいです。} \emph{Gakusei desu.}
+  \item In casual speech a rising intonation alone makes a question:
+        \ja{たべる？} \emph{Taberu?} ``(Will you) eat?''
+\end{itemize}
+
+\section*{Lesson 1 review}
+\begin{itemize}
+  \item Five short, pure vowels: a, i, u, e, o; long vowels are distinctive.
+  \item The mora is the timing unit; \ja{ん}, \ja{っ} and the second half of a long vowel
+        each take one beat.
+  \item \emph{i} and \emph{u} are often devoiced: \ja{です} ``dess''.
+  \item Standard Japanese has pitch accent (H/L), not stress. The first two morae differ;
+        pitch never rises again after a drop.
+  \item Japanese writing mixes hiragana, katakana and kanji.
+\end{itemize}

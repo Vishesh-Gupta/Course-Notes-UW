@@ -127,6 +127,31 @@ standard rewrite introduces one non-terminal per precedence level:
         $(a-b)-c$ (left-associative). Writing $E\to T + E$ would make it right-associative,
         which is wrong for $-$ and $/$ (but correct for e.g.\ exponentiation or assignment).
 \end{itemize}
+\begin{center}
+\begin{tikzpicture}[level distance=0.85cm,level 1/.style={sibling distance=1.3cm},
+  level 2/.style={sibling distance=0.9cm},every node/.style={font=\small}]
+\node {$E$}
+  child {node {$E$}
+    child {node {$E$} child {node {$T$} child {node {$a$}}}}
+    child {node {$-$}}
+    child {node {$T$} child {node {$b$}}}}
+  child {node {$-$}}
+  child {node {$T$} child {node {$c$}}};
+\end{tikzpicture}
+\hspace{1.5cm}
+\begin{tikzpicture}[level distance=0.85cm,level 1/.style={sibling distance=1.3cm},
+  level 2/.style={sibling distance=0.9cm},every node/.style={font=\small}]
+\node {$E$}
+  child {node {$T$} child {node {$a$}}}
+  child {node {$-$}}
+  child {node {$E$}
+    child {node {$T$} child {node {$b$}}}
+    child {node {$-$}}
+    child {node {$E$} child {node {$T$} child {node {$c$}}}}};
+\end{tikzpicture}
+
+\small Left: $E\to E-T$ groups $a-b-c$ as $(a-b)-c$. Right: $E\to T-E$ would give $a-(b-c)$.
+\end{center}
 
 \begin{example}
 Parse tree of $a - b * c$ in the unambiguous grammar:
@@ -150,6 +175,30 @@ Parse tree of $a - b * c$ in the unambiguous grammar:
 \mid \dots$ is ambiguous for \code{if a if b x else y}. The convention is ``else matches the
 nearest unmatched if''. WLP4 sidesteps the issue by requiring braces and always having an else:
 \code{if (test) \{ stmts \} else \{ stmts \}}.
+
+\begin{center}
+\begin{tikzpicture}[level distance=0.85cm,level 1/.style={sibling distance=1.1cm},
+  level 2/.style={sibling distance=0.75cm},every node/.style={font=\small}]
+\node {$S$}
+  child {node {\code{if}}}
+  child {node {$a$}}
+  child {node {$S$}
+    child {node {\code{if}}} child {node {$b$}} child {node {$x$}}
+    child {node {\code{else}}} child {node {$y$}}};
+\end{tikzpicture}
+\hspace{1.2cm}
+\begin{tikzpicture}[level distance=0.85cm,level 1/.style={sibling distance=1.1cm},
+  level 2/.style={sibling distance=0.75cm},every node/.style={font=\small}]
+\node {$S$}
+  child {node {\code{if}}}
+  child {node {$a$}}
+  child {node {$S$} child {node {\code{if}}} child {node {$b$}} child {node {$x$}}}
+  child {node {\code{else}}}
+  child {node {$y$}};
+\end{tikzpicture}
+
+\small The two parse trees of \code{if a if b x else y}. Left: the usual convention.
+\end{center}
 
 \section{The WLP4 grammar (excerpt)}
 

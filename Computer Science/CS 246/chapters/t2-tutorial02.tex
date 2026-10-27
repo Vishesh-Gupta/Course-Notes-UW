@@ -42,6 +42,18 @@ Think of a program as a black box with one input stream and two output streams:
 \end{itemize}
 We will solidify these concepts when we do I/O in C++.
 
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small]
+  \node[draw,fill=gray!15,minimum width=2.6cm,minimum height=1.6cm] (p) {program};
+  \node[left=1.6cm of p] (kb) {keyboard};
+  \node[right=1.6cm of p,yshift=0.45cm] (s1) {screen};
+  \node[right=1.6cm of p,yshift=-0.45cm] (s2) {screen};
+  \draw[->] (kb) -- node[above,font=\scriptsize]{stdin (0)} (p);
+  \draw[->] ([yshift=0.45cm]p.east) -- node[above,font=\scriptsize]{stdout (1)} (s1);
+  \draw[->,red!60!black] ([yshift=-0.45cm]p.east) -- node[below,font=\scriptsize]{stderr (2)} (s2);
+\end{tikzpicture}
+\end{center}
+
 \begin{lstlisting}[style=bash]
 g++ printer.cc -o print
 ./print > out.txt 2> err.txt   # stdout to out.txt, stderr to err.txt
@@ -54,6 +66,24 @@ stdin is 0, stdout is 1, stderr is 2. \code{2>\&1} redirects stderr to the same
 place as stdout; \code{\&>} redirects both. Order matters: \code{2>\&1} must come
 \emph{after} \code{> file}.
 \end{important}
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small]
+  \node[draw,fill=gray!15,minimum width=1.8cm,minimum height=1.2cm] (p) {\code{print}};
+  \node[draw,fill=yellow!10,right=1.8cm of p,yshift=0.4cm] (o) {\code{out.txt}};
+  \node[draw,fill=yellow!10,right=1.8cm of p,yshift=-0.4cm] (e) {\code{err.txt}};
+  \draw[->] ([yshift=0.4cm]p.east) -- node[above,font=\scriptsize]{1} (o);
+  \draw[->,red!60!black] ([yshift=-0.4cm]p.east) -- node[below,font=\scriptsize]{2} (e);
+  \node[font=\scriptsize,below=0.7cm of p.south east] {\code{./print > out.txt 2> err.txt}};
+  \begin{scope}[xshift=7.2cm]
+  \node[draw,fill=gray!15,minimum width=1.8cm,minimum height=1.2cm] (p) {\code{print}};
+  \node[draw,fill=yellow!10,right=1.8cm of p] (a) {\code{all.txt}};
+  \draw[->] ([yshift=0.4cm]p.east) -- node[above,font=\scriptsize]{1} (a.north west);
+  \draw[->,red!60!black] ([yshift=-0.4cm]p.east) -- node[below,font=\scriptsize]{2} (a.south west);
+  \node[font=\scriptsize,below=0.7cm of p.south east] {\code{./print > all.txt 2>\&1}};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
 
 \paragraph{Pipes.} \code{cmd1 | cmd2} connects stdout of \code{cmd1} to stdin of
 \code{cmd2}.

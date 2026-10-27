@@ -51,6 +51,28 @@ SortCount(A):                    // returns (sorted A, #inversions)
     append leftovers
     return (out, a + b + c)
 \end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.9cm, y=0.9cm, font=\small, >=Stealth,
+  cell/.style={draw, minimum size=0.75cm}]
+  \node[anchor=east] at (0.4,2) {$L$};
+  \node[anchor=east] at (5.4,2) {$R$};
+  \foreach \v [count=\i] in {2,5,8} \node[cell, fill=blue!8] (l\i) at (\i,2) {\v};
+  \foreach \v [count=\i] in {1,3,9} \node[cell, fill=orange!12] (r\i) at (\i+5,2) {\v};
+  \node[anchor=east] at (0.4,0) {out};
+  \foreach \v/\c [count=\i] in {1/orange!12,2/blue!8,3/orange!12,5/blue!8,8/blue!8,9/orange!12}
+    \node[cell, fill=\c] (o\i) at (\i+1,0) {\v};
+  \draw[->, red!70!black, thick] (r1.south) to[out=-90, in=60] (o1.north);
+  \draw[->, red!70!black, thick] (r2.south) to[out=-90, in=60] (o3.north);
+  \node[red!70!black, font=\scriptsize, anchor=west] at (7.5,0.9) {$1$: $+3$ (beats $2,5,8$)};
+  \node[red!70!black, font=\scriptsize, anchor=west] at (7.5,0.5) {$3$: $+2$ (beats $5,8$)};
+  \node[font=\scriptsize, anchor=west] at (7.5,0) {total $c=5$};
+\end{tikzpicture}
+\caption{Merging $L=[2,5,8]$ and $R=[1,3,9]$. Each time an element of $R$
+is output, it is smaller than every element still waiting in $L$, so it
+adds that many split inversions.}
+\end{figure}
 Same recurrence as mergesort: $\Theta(n\log n)$.
 
 \section{Integer multiplication: Karatsuba}
@@ -129,6 +151,30 @@ $\delta$ (they would be on the same side). So each square holds at most one poin
 points including $p$. Hence any $q$ above $p$ with $d(p,q)<\delta$ is among the next 7 entries.
 \end{proof}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=1cm, font=\small, >=Stealth]
+  \fill[yellow!20] (3,0) rectangle (7,6);
+  \draw[very thick] (5,-0.2) -- (5,6.2) node[above]{$x=x^*$};
+  \draw[dashed] (3,0) -- (3,6) (7,0) -- (7,6);
+  \draw[<->] (3,-0.3) -- node[below, font=\scriptsize]{$\delta$} (5,-0.3);
+  \draw[<->] (5,-0.3) -- node[below, font=\scriptsize]{$\delta$} (7,-0.3);
+  % grid above p
+  \foreach \x in {3,4,5,6} \foreach \y in {2,3} \draw[blue!60!black] (\x,\y) rectangle (\x+1,\y+1);
+  \node[blue!60!black, font=\scriptsize, anchor=west] at (7.1,3.5) {8 squares of side $\delta/2$};
+  % points
+  \foreach \x/\y in {0.4/1.2, 1.1/4.6, 1.8/2.6, 2.4/0.6, 0.8/5.4, 2.7/3.9, 8.2/1.1, 8.8/4.8, 9.3/2.7, 7.6/5.6, 3.5/5.2, 6.4/0.7}
+    \fill (\x,\y) circle (2pt);
+  \fill[red!70!black] (4.3,2) circle (2.5pt) node[below left=-1pt]{$p$};
+  \foreach \x/\y in {3.4/2.6, 5.7/3.3, 6.6/2.4}
+    \fill[blue!60!black] (\x,\y) circle (2pt);
+  \node at (1.4,6.2) {$Q$}; \node at (8.6,6.2) {$R$};
+\end{tikzpicture}
+\caption{The strip of width $2\delta$ around the dividing line. Above $p$,
+the $2\delta\times\delta$ rectangle splits into 8 squares, each holding at
+most one point, so only the next 7 points in $y$-order need checking.}
+\end{figure}
+
 Runtime: presorting $\bigO(n\log n)$ once; then $T(n)=2T(n/2)+\Theta(n)\in\Theta(n\log n)$.
 (Re-sorting by $y$ at each level would give $\Theta(n\log^2n)$.)
 
@@ -162,6 +208,28 @@ Each such group (except possibly $p$'s own group and a final partial group) cont
 (its median and the two larger ones). So at least $3(\frac{n}{10}-2)=\frac{3n}{10}-6$ elements are $\ge p$,
 hence $|L|\le\frac{7n}{10}+6$. Symmetrically for $G$.
 \end{proof}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.75cm, y=0.55cm, font=\small]
+  \fill[red!15] (-0.4,-0.4) rectangle (4.4,2.4);
+  \fill[green!15] (3.6,1.6) rectangle (8.4,4.4);
+  \foreach \c in {0,...,8} \foreach \r in {0,...,4} {
+    \ifnum\r=2 \fill[blue!50] (\c,\r) circle (4pt); \else \draw (\c,\r) circle (3pt); \fi
+  }
+  \draw[red!70!black, very thick] (4,2) circle (7pt);
+  \node[red!70!black, font=\scriptsize, anchor=south] at (4,4.6) {$p$ = median of medians};
+  \draw[->, red!70!black] (4,4.6) -- (4,2.35);
+  \node[font=\scriptsize, anchor=west] at (8.8,2) {medians};
+  \node[font=\scriptsize, anchor=west, green!40!black] at (8.8,4) {$\ge p$};
+  \node[font=\scriptsize, anchor=west, red!60!black] at (8.8,0) {$\le p$};
+  \draw[->, gray] (-0.9,0) -- node[left, font=\scriptsize, align=center]{each group\\sorted} (-0.9,4);
+  \draw[->, gray] (0,-1.1) -- node[below, font=\scriptsize]{groups ordered by their median} (8,-1.1);
+\end{tikzpicture}
+\caption{Groups of 5 drawn as columns. At least the green corner (about
+$3n/10$ elements) is $\ge p$ and the red corner is $\le p$, so neither side
+of the partition can have more than about $7n/10$ elements.}
+\end{figure}
 
 So $T(n)\le T(n/5)+T(7n/10+6)+\Theta(n)$. Since $\frac15+\frac7{10}=\frac9{10}<1$, the theorem from Chapter 2 gives
 $T(n)\in\Theta(n)$. (With groups of 3 the fractions sum to $1$ and we only get $\Theta(n\log n)$; groups of 7 also work.)

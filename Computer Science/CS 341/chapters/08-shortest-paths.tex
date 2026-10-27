@@ -1,5 +1,9 @@
 \chapter{Shortest Paths}
 
+\tikzset{sv/.style={circle, draw, thick, minimum size=7mm, inner sep=0pt, font=\small},
+  sw/.style={font=\scriptsize, fill=white, text=black, inner sep=1pt},
+  sa/.style={thick, -{Stealth[length=2.2mm]}}}
+
 Let $G=(V,E)$ be a directed graph with edge weights $w$. The weight of a path is the sum of its edge weights, and
 $\delta(u,v)$ is the minimum weight of a $u$-$v$ path ($\infty$ if none; $-\infty$ if a negative-weight cycle is reachable on the way).
 
@@ -72,8 +76,43 @@ yet $u$ was extracted before $y$, so $d[u]\le d[y]$. Contradiction.
 \end{proof}
 Runtime with a binary heap: $n$ extractions and $\le m$ decrease-keys, $\bigO((n+m)\log n)$; with a Fibonacci heap $\bigO(m+n\log n)$; with an array $\bigO(n^2)$.
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1.6cm, y=1.3cm]
+  \node[sv, fill=gray!20] (s) at (0,0.6) {$s$};
+  \node[sv] (t) at (1.2,1.5) {$t$}; \node[font=\scriptsize, above=1pt] at (t.north) {8};
+  \node[sv] (x) at (2.8,1.5) {$x$}; \node[font=\scriptsize, above=1pt] at (x.north) {9};
+  \node[sv] (y) at (1.2,-0.3) {$y$}; \node[font=\scriptsize, below left=0pt] at (y.south west) {5};
+  \node[sv] (z) at (2.8,-0.3) {$z$}; \node[font=\scriptsize, below=1pt] at (z.south) {7};
+  \node[font=\scriptsize, left=1pt] at (s.west) {0};
+  \draw[sa] (s) -- node[sw]{10} (t);
+  \draw[sa, very thick, blue!60!black] (s) -- node[sw]{5} (y);
+  \draw[sa, very thick, blue!60!black] (t) -- node[sw]{1} (x);
+  \draw[sa] (t) to[bend right=15] node[sw]{2} (y);
+  \draw[sa, very thick, blue!60!black] (y) to[bend right=15] node[sw]{3} (t);
+  \draw[sa] (y) -- node[sw, pos=0.3]{9} (x);
+  \draw[sa, very thick, blue!60!black] (y) -- node[sw]{2} (z);
+  \draw[sa] (x) to[bend left=15] node[sw]{4} (z);
+  \draw[sa] (z) to[bend left=15] node[sw]{6} (x);
+  \draw[sa] (z) to[out=-150, in=-80, looseness=1.2] node[sw, pos=0.35]{7} (s);
+\end{tikzpicture}
+\caption{Dijkstra from $s$ extracts $s, y, z, t, x$ in that order, with
+final distances shown next to each vertex. The parent pointers (bold) form
+a shortest-path tree.}
+\end{figure}
+
 \begin{important}[Negative edges break Dijkstra]
 Vertices $s,a,b$ with $w(s,a)=2$, $w(s,b)=3$, $w(b,a)=-2$. Dijkstra extracts $a$ with $d[a]=2$ and never updates it, but $\delta(s,a)=1$.
+
+\begin{center}
+\begin{tikzpicture}[x=1.5cm, y=1.1cm]
+  \node[sv] (s) at (0,0) {$s$}; \node[sv] (a) at (2,0.6) {$a$}; \node[sv] (b) at (2,-0.6) {$b$};
+  \draw[sa] (s) -- node[sw]{2} (a);
+  \draw[sa] (s) -- node[sw]{3} (b);
+  \draw[sa, red!70!black] (b) -- node[sw]{$-2$} (a);
+  \node[font=\scriptsize, anchor=west] at (2.3,0.6) {extracted with $d=2$, but $\delta(s,a)=1$};
+\end{tikzpicture}
+\end{center}
 Adding a constant to every edge does \emph{not} fix this: it penalizes paths with more edges.
 \end{important}
 
@@ -109,6 +148,16 @@ Running Bellman--Ford from every source is $\bigO(n^2m)$, which is $\bigO(n^4)$ 
 
 Number the vertices $1..n$. Let $D^{(k)}[i][j]$ be the minimum weight of an $i$-$j$ path whose \emph{intermediate} vertices all lie in $\{1,\dots,k\}$.
 A shortest such path either avoids vertex $k$, or passes through $k$ exactly once (no negative cycles), splitting into $i\leadsto k$ and $k\leadsto j$ with intermediates in $\{1..k-1\}$:
+
+\begin{center}
+\begin{tikzpicture}[x=1.4cm, y=1cm]
+  \node[sv] (i) at (0,0) {$i$}; \node[sv] (j) at (4,0) {$j$}; \node[sv, fill=orange!20] (k) at (2,1.4) {$k$};
+  \draw[sa, decorate, decoration={snake, amplitude=1.2pt, segment length=8pt, post length=2mm}] (i) -- node[sw, below=2pt]{$D^{(k-1)}[i][j]$} (j);
+  \draw[sa, decorate, decoration={snake, amplitude=1.2pt, segment length=8pt, post length=2mm}] (i) -- node[sw, above left]{$D^{(k-1)}[i][k]$} (k);
+  \draw[sa, decorate, decoration={snake, amplitude=1.2pt, segment length=8pt, post length=2mm}] (k) -- node[sw, above right]{$D^{(k-1)}[k][j]$} (j);
+  \node[font=\scriptsize, gray] at (2,-0.9) {all wiggly paths use only intermediates in $\{1,\dots,k-1\}$};
+\end{tikzpicture}
+\end{center}
 \[
 D^{(0)}[i][j]=\begin{cases}0 & i=j\\ w(i,j) & (i,j)\in E\\ \infty & \text{else}\end{cases},\qquad
 D^{(k)}[i][j]=\min\bigl(D^{(k-1)}[i][j],\ D^{(k-1)}[i][k]+D^{(k-1)}[k][j]\bigr).

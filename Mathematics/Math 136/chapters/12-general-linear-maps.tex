@@ -91,6 +91,28 @@ far simpler than the standard matrix $\frac15\begin{bmatrix}1&2\\2&4\end{bmatrix
 geometry is exactly what diagonalization does.
 \end{example}
 
+Coordinates with respect to $\mathcal B$ are read off a tilted grid built from $\vec v_1 = (1,2)$ and
+$\vec v_2 = (-2,1)$. In it the point $\vec x = (3,1)$ has $\mathcal B$-coordinates $(1,-1)$, and the
+projection simply keeps the first coordinate:
+\begin{center}
+\begin{tikzpicture}[scale=0.62,>={Stealth}]
+  \begin{scope}
+    \clip (-3.6,-2.6) rectangle (4.6,4.6);
+    \foreach \k in {-4,...,4} {
+      \draw[blue!25] ($\k*(-2,1) + (-3,-6)$) -- ($\k*(-2,1) + (3,6)$);
+      \draw[green!30] ($\k*(1,2) + (6,-3)$) -- ($\k*(1,2) + (-6,3)$);
+    }
+  \end{scope}
+  \draw[->,gray] (-3.6,0) -- (4.8,0); \draw[->,gray] (0,-2.6) -- (0,4.8);
+  \draw[->,very thick,blue!70!black] (0,0) -- (1,2) node[above left] {$\vec v_1$};
+  \draw[->,very thick,green!50!black] (0,0) -- (-2,1) node[above left] {$\vec v_2$};
+  \draw[->,thick,dashed] (0,0) -- (1,2) -- (3,1);
+  \fill[red!70!black] (3,1) circle (3pt) node[right] {$\vec x = (3,1)$, $[\vec x]_{\mathcal B} = (1,-1)$};
+  \fill[orange!80!black] (1,2) circle (3pt);
+  \node[orange!80!black,right,font=\small] at (1.2,2.6) {$L(\vec x) = \vec v_1$, $[L(\vec x)]_{\mathcal B} = (1,0)$};
+\end{tikzpicture}
+\end{center}
+
 \section{Change of coordinates}
 
 \begin{definition}
@@ -151,6 +173,20 @@ $[L]_{\mathcal B}=P^{-1}[L]P$.
 For every $\vec x$: $P^{-1}[L]_{\mathcal C}P[\vec x]_{\mathcal B}=P^{-1}[L]_{\mathcal C}[\vec x]_{\mathcal C}=P^{-1}[L(\vec x)]_{\mathcal C}
 =[L(\vec x)]_{\mathcal B}$. Read right to left: convert to $\mathcal C$-coordinates, apply $L$, convert back.
 \end{proof}
+
+\begin{center}
+\begin{tikzpicture}[>={Stealth}]
+  \node (xc) at (0,2) {$[\vec x]_{\mathcal C}$};
+  \node (lc) at (5,2) {$[L(\vec x)]_{\mathcal C}$};
+  \node (xb) at (0,0) {$[\vec x]_{\mathcal B}$};
+  \node (lb) at (5,0) {$[L(\vec x)]_{\mathcal B}$};
+  \draw[->,thick] (xc) -- node[above] {$[L]_{\mathcal C}$} (lc);
+  \draw[->,thick] (xb) -- node[below] {$[L]_{\mathcal B}$} (lb);
+  \draw[->,thick] (xb) -- node[left] {$P$} (xc);
+  \draw[->,thick] (lc) -- node[right] {$P^{-1}$} (lb);
+\end{tikzpicture}
+\end{center}
+Going along the bottom equals going up, across the top, and down: $[L]_{\mathcal B}=P^{-1}[L]_{\mathcal C}P$.
 
 So matrices of the same operator in different bases are \emph{similar}, and conversely similar matrices represent
 the same operator. Diagonalizing $A$ means finding a basis $\mathcal B$ in which the operator $\vec x\mapsto A\vec x$ has a

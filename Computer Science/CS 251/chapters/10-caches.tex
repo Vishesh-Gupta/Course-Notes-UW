@@ -29,6 +29,22 @@ Disk / SSD & magnetic / flash & $\mu$s--ms & TBs \\
 \end{tabular}
 \end{center}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >=Stealth]
+  \foreach \i/\lab/\c in {0/Registers/red!20, 1/L1 cache/orange!20, 2/{L2/L3 cache}/yellow!25, 3/Main memory (DRAM)/green!15, 4/{Disk / SSD}/blue!12} {
+    \pgfmathsetmacro{\wt}{0.6 + 0.75*\i}
+    \pgfmathsetmacro{\wb}{0.6 + 0.75*(\i+1)}
+    \filldraw[fill=\c, draw=black] (-\wt,-0.8*\i) -- (\wt,-0.8*\i) -- (\wb,-0.8*\i-0.8) -- (-\wb,-0.8*\i-0.8) -- cycle;
+    \node at (0,-0.8*\i-0.4) {\lab};
+  }
+  \draw[->, thick] (-4.8,-4) -- node[left, align=center, font=\scriptsize]{faster,\\smaller,\\costlier\\per byte} (-4.8,0);
+  \draw[->, thick] (4.8,0) -- node[right, align=center, font=\scriptsize]{larger,\\slower,\\cheaper} (4.8,-4);
+\end{tikzpicture}
+\caption{The memory hierarchy: each level holds copies of the data most
+likely to be used soon from the level below.}
+\end{figure}
+
 \section{Terminology}
 
 \begin{itemize}
@@ -73,6 +89,44 @@ tag $32 - 14 = 18$ bits. Total storage: $1024 \times (1 + 18 + 128) =
 150\,528$ bits $\approx 18.4$\,KB, more than the 16\,KB of data.
 \end{example}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >=Stealth, thick]
+  % address
+  \draw[fill=blue!10] (0,4) rectangle (4.5,4.7); \node at (2.25,4.35) {Tag (18)};
+  \draw[fill=green!12] (4.5,4) rectangle (7,4.7); \node at (5.75,4.35) {Index (10)};
+  \draw[fill=orange!15] (7,4) rectangle (8.5,4.7); \node at (7.75,4.35) {Off (4)};
+  \node[font=\scriptsize, above] at (0,4.7) {31};
+  \node[font=\scriptsize, above] at (8.5,4.7) {0};
+  % cache array
+  \foreach \y in {0,0.5,...,3} \draw (2,\y) -- (8.5,\y);
+  \draw (2,0) rectangle (8.5,3);
+  \draw (2.5,0) -- (2.5,3) (4.5,0) -- (4.5,3);
+  \node[font=\scriptsize] at (2.25,3.2) {V};
+  \node[font=\scriptsize] at (3.5,3.2) {Tag};
+  \node[font=\scriptsize] at (6.5,3.2) {Data (16 bytes)};
+  \foreach \i/\y in {0/2.75, 1/2.25, 2/1.75} \node[font=\scriptsize, anchor=east] at (2,\y) {\i};
+  \node[font=\scriptsize, anchor=east] at (2,1.25) {$i$};
+  \node[font=\scriptsize, anchor=east] at (2,0.8) {$\vdots$};
+  \node[font=\scriptsize, anchor=east] at (2,0.25) {1023};
+  \fill[green!20] (2,1) rectangle (8.5,1.5);
+  \draw (2,1) rectangle (8.5,1.5) (2.5,1) -- (2.5,1.5) (4.5,1) -- (4.5,1.5);
+  \draw[->] (5.75,4) -- (5.75,3.6) -- (1.2,3.6) |- (2,1.25);
+  % comparator
+  \node[draw, circle, inner sep=1pt] (eq) at (3.5,-1) {$=$};
+  \draw[->] (3.5,0) -- (eq);
+  \draw[->] (0.6,4) -- (0.6,-1) -- (eq);
+  \node[draw, inner sep=2pt, font=\scriptsize] (and) at (3.5,-2) {AND};
+  \draw[->] (eq) -- (and);
+  \draw[->] (2.25,0) |- (and.west);
+  \draw[->] (and.south) -- ++(0,-0.5) node[below]{Hit};
+  \draw[->] (6.5,0) -- (6.5,-1.2) node[below, font=\scriptsize, align=center]{data\\(offset selects byte/word)};
+\end{tikzpicture}
+\caption{Lookup in the 16\,KB direct-mapped cache: the index selects one
+line; it is a hit if the line is valid and its stored tag equals the
+address tag.}
+\end{figure}
+
 \begin{example}[Tracing accesses]
 8-line direct-mapped cache, 1-word blocks, word addresses
 22, 26, 22, 26, 16, 3, 16, 18. Index = address mod 8.
@@ -91,6 +145,22 @@ Addr & Binary & Index & Tag & Result \\
 18 & 10010 & 010 & 10 & miss (conflict: replaces 26) \\
 \bottomrule
 \end{tabular}
+\end{center}
+
+Final contents of the cache:
+\begin{center}
+\begin{tikzpicture}[font=\scriptsize, x=1cm, y=0.42cm]
+  \node at (0.4,0.7) {Index}; \node at (1.2,0.7) {V}; \node at (2.0,0.7) {Tag}; \node at (3.6,0.7) {Data};
+  \foreach \i/\v/\tg/\d [count=\r from 0] in {000/1/10/{Mem[16]}, 001/0/{}/{}, 010/1/10/{Mem[18]}, 011/1/00/{Mem[3]},
+      100/0/{}/{}, 101/0/{}/{}, 110/1/10/{Mem[22]}, 111/0/{}/{}} {
+    \node[font=\ttfamily\scriptsize] at (0.4,-\r) {\i};
+    \draw (0.9,-\r-0.5) rectangle (1.5,-\r+0.5);
+    \draw (1.5,-\r-0.5) rectangle (2.5,-\r+0.5);
+    \draw (2.5,-\r-0.5) rectangle (4.7,-\r+0.5);
+    \node at (1.2,-\r) {\v}; \node[font=\ttfamily\scriptsize] at (2.0,-\r) {\tg}; \node at (3.6,-\r) {\d};
+  }
+  \draw[->, red!70!black, thick] (5.6,-2) -- (4.8,-2) node[pos=0, right, font=\scriptsize, align=left]{26 evicted by 18:\\same index, different tag};
+\end{tikzpicture}
 \end{center}
 Hit rate $3/8$.
 \end{example}
@@ -123,6 +193,26 @@ conflicts), and the miss penalty grows (more data to transfer).
 Direct-mapped is 1-way; fully associative is $N$-way. For a fixed cache
 size, doubling associativity halves the number of sets: the index shrinks by
 one bit and the tag grows by one bit.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, x=0.8cm, y=0.5cm]
+  % direct mapped
+  \node[font=\small] at (1,1.4) {direct-mapped};
+  \foreach \s in {0,...,3} {\draw (0,-\s) rectangle (2,-\s+1); \node[anchor=east] at (-0.1,-\s+0.5) {set \s};}
+  % 2-way
+  \node[font=\small] at (5.5,1.4) {2-way set associative};
+  \foreach \s in {0,1} {\draw[fill=blue!6] (4.5,-\s) rectangle (6.5,-\s+1); \draw (5.5,-\s) -- (5.5,-\s+1);
+    \node[anchor=east] at (4.4,-\s+0.5) {set \s};}
+  % fully associative
+  \node[font=\small] at (10.5,1.4) {fully associative};
+  \draw[fill=green!8] (8.5,0) rectangle (12.5,1);
+  \foreach \x in {9.5,10.5,11.5} \draw (\x,0) -- (\x,1);
+  \node[anchor=east] at (8.4,0.5) {set 0};
+\end{tikzpicture}
+\caption{Three ways to organise the same four blocks of cache. A block
+maps to one set and may occupy any way (column) of that set.}
+\end{figure}
 
 \paragraph{Replacement.} In a set-associative cache, on a miss we must pick
 a victim: \textbf{LRU} (least recently used; easy for 2-way with one bit per

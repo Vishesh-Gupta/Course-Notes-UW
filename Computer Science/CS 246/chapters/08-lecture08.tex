@@ -121,6 +121,26 @@ the compiled binary code, plus a list of what the file \emph{provides} and what
 it still \emph{needs} from other files. Linking matches these up. \code{-o name}
 names the output.
 
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,
+  src/.style={draw,fill=yellow!10,minimum width=1.6cm,minimum height=0.7cm},
+  obj/.style={draw,fill=blue!6,minimum width=1.6cm,minimum height=0.7cm,align=center},
+  exe/.style={draw,fill=green!10,minimum width=1.6cm,minimum height=0.7cm}]
+  \node[src] (h) at (2.2,1.3) {\code{vec.h}};
+  \node[src] (vc) at (0,0) {\code{vec.cc}};
+  \node[src] (mc) at (4.4,0) {\code{main.cc}};
+  \node[obj] (vo) at (0,-1.8) {\code{vec.o}\\ \scriptsize provides \code{operator+}};
+  \node[obj] (mo) at (4.4,-1.8) {\code{main.o}\\ \scriptsize needs \code{operator+}};
+  \node[exe] (ex) at (2.2,-3.5) {\code{myprog}};
+  \draw[->,dashed] (h) -- node[above left,font=\scriptsize]{\code{\#include}} (vc);
+  \draw[->,dashed] (h) -- node[above right,font=\scriptsize]{\code{\#include}} (mc);
+  \draw[->] (vc) -- node[left,font=\scriptsize]{\code{g++ -c}} (vo);
+  \draw[->] (mc) -- node[right,font=\scriptsize]{\code{g++ -c}} (mo);
+  \draw[->] (vo) -- (ex); \draw[->] (mo) -- (ex);
+  \node[font=\scriptsize] at (2.2,-2.55) {link};
+\end{tikzpicture}
+\end{center}
+
 The benefit: if only \code{vec.cc} changes, we only recompile \code{vec.cc}
 and re-link.
 
@@ -162,6 +182,23 @@ clean:
         is newer than \code{vec.o} $\Rightarrow$ recompile \code{vec.o}. Now
         \code{vec.o} is newer than \code{myprog} $\Rightarrow$ relink
         \code{myprog}. \code{main.o} is untouched.
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,
+  t/.style={draw,rounded corners,minimum width=1.5cm,minimum height=0.65cm},
+  re/.style={t,fill=orange!20},ch/.style={t,fill=red!15,draw=red!60!black,thick}]
+  \node[re] (p) at (2,0) {\code{myprog}};
+  \node[t] (m) at (0,-1.3) {\code{main.o}};
+  \node[re] (v) at (4,-1.3) {\code{vec.o}};
+  \node[t] (mc) at (-1,-2.6) {\code{main.cc}};
+  \node[t] (h) at (2,-2.6) {\code{vec.h}};
+  \node[ch] (vc) at (5,-2.6) {\code{vec.cc}};
+  \draw[->] (m) -- (p); \draw[->] (v) -- (p);
+  \draw[->] (mc) -- (m); \draw[->] (h) -- (m); \draw[->] (h) -- (v); \draw[->] (vc) -- (v);
+  \node[font=\scriptsize,align=left,anchor=west] at (6,-0.6) {\textcolor{red!60!black}{red}: edited\\ \textcolor{orange!80!black}{orange}: rebuilt by \code{make}\\ white: untouched};
+\end{tikzpicture}
+
+\small The dependency graph from the Makefile; an arrow means ``is needed to build''.
+\end{center}
   \item The \code{clean} target deletes all binaries so you can start fresh.
         \code{.PHONY} tells make that \code{clean} is not the name of a file.
 \end{itemize}
@@ -226,6 +263,17 @@ $ g++ -c main.cc
 error: redefinition of 'struct Vec'
 \end{lstlisting}
 The struct was pasted in twice. The fix is an \textbf{include guard}:
+\begin{center}
+\begin{tikzpicture}[>=Stealth,font=\small,f/.style={draw,fill=yellow!10,minimum width=1.6cm,minimum height=0.65cm}]
+  \node[f] (m) at (0,0) {\code{main.cc}};
+  \node[f] (l) at (2.6,-1) {\code{linalg.h}};
+  \node[f,fill=red!10] (v) at (0,-2) {\code{vec.h}};
+  \draw[->] (m) -- node[left,font=\scriptsize]{includes} (v);
+  \draw[->] (m) -- (l);
+  \draw[->] (l) -- node[below right,font=\scriptsize]{includes} (v);
+  \node[font=\scriptsize,anchor=west] at (3.8,-1) {$\Rightarrow$ \code{struct Vec} appears twice in \code{main.cc}};
+\end{tikzpicture}
+\end{center}
 \begin{lstlisting}[style=cpp]
 // vec.h
 #ifndef VEC_H

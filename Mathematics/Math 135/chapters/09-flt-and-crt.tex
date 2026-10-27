@@ -16,6 +16,22 @@ a rearrangement of $1, 2, \dots, p-1$. Multiplying all of them,
 Since $\gcd((p-1)!, p) = 1$, we may cancel (CD) to get $a^{p-1} \equiv 1 \Mod p$.
 \end{proof}
 
+For example, with $p = 7$ and $a = 3$, multiplication by $3$ permutes the non-zero residues:
+\begin{center}
+\begin{tikzpicture}[x=1.2cm]
+  \foreach \i in {1,...,6} {
+    \node[draw,circle,minimum size=0.65cm,inner sep=0pt] (t\i) at (\i,1.6) {$\i$};
+    \pgfmathtruncatemacro{\r}{mod(3*\i,7)}
+    \node[draw,circle,minimum size=0.65cm,inner sep=0pt,fill=blue!15] (b\i) at (\r,0) {$\r$};
+    \draw[->,blue!70!black] (t\i) -- (b\i);
+  }
+  \node[left] at (0.4,1.6) {$i$};
+  \node[left] at (0.4,0) {$3i \bmod 7$};
+\end{tikzpicture}
+\end{center}
+so $(3\cdot 1)(3\cdot 2)\cdots(3\cdot 6) \equiv 1\cdot 2\cdots 6$, i.e.\ $3^6\cdot 6! \equiv 6!
+\Mod 7$.
+
 \begin{corollary}
 For every prime $p$ and every integer $a$, $a^p \equiv a \Mod p$. (If $p \mid a$ both sides are
 $0$; otherwise multiply FLT by $a$.)
@@ -90,6 +106,27 @@ $j \equiv 1 \Mod 7$, $j = 1 + 7t$, and $x = 23 + 105t$.
 
 Answer: $x \equiv 23 \Mod{105}$. Check: $23 = 7\cdot 3 + 2 = 4\cdot 5 + 3 = 3\cdot 7 + 2$.
 \end{example}
+
+To see why CRT holds, write each $x \in \{0, 1, \dots, 14\}$ in the cell given by its
+remainders mod $3$ and mod $5$. Walking $0, 1, 2, \dots$ moves diagonally (wrapping
+around), and because $\gcd(3,5) = 1$ the walk fills all $15$ cells exactly once, so every pair
+of remainders occurs for exactly one class mod $15$:
+\begin{center}
+\begin{tikzpicture}[x=0.9cm,y=0.75cm]
+  \foreach \c in {0,...,4} { \node[font=\small] at (\c+0.5,3.4) {$\c$}; }
+  \foreach \r in {0,...,2} { \node[font=\small] at (-0.35,2.5-\r) {$\r$}; }
+  \node[font=\scriptsize] at (2.5,4.05) {$x \bmod 5$};
+  \node[font=\scriptsize,rotate=90] at (-1.0,1.5) {$x \bmod 3$};
+  \draw (0,0) grid (5,3);
+  \foreach \x in {0,...,14} {
+    \pgfmathtruncatemacro{\r}{mod(\x,3)}
+    \pgfmathtruncatemacro{\c}{mod(\x,5)}
+    \node at (\c+0.5,2.5-\r) {$\x$};
+  }
+  \draw[thick,blue!70!black] (3,1) rectangle (4,0);
+  \node[right,font=\scriptsize,blue!70!black,align=left] at (5.2,0.5) {$x \equiv 2 \Mod 3$,\\$x \equiv 3 \Mod 5$:\\$x \equiv 8 \Mod{15}$};
+\end{tikzpicture}
+\end{center}
 
 \subsection{Method 2: the constructive formula}
 

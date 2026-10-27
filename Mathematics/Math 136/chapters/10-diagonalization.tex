@@ -80,6 +80,23 @@ Check $AP=\begin{bmatrix}4-2&4+1\\2-6&2+3\end{bmatrix}=\begin{bmatrix}2&5\\-4&5\
 $PD=\begin{bmatrix}2&5\\-4&5\end{bmatrix}$. Equal, so $P^{-1}AP=D$.
 \end{example}
 
+In the eigenvector basis the action of $A$ is pure stretching: the parallelogram on
+$\vec v_1 = (1,-2)$ and $\vec v_2 = (1,1)$ is sent to the one on $2\vec v_1$ and $5\vec v_2$. That is what
+$D = \diag(2,5)$ says.
+\begin{center}
+\begin{tikzpicture}[scale=0.42,>={Stealth}]
+  \draw[->,gray] (-1,0) -- (8,0); \draw[->,gray] (0,-4.6) -- (0,5.6);
+  \fill[orange!20] (0,0) -- (2,-4) -- (7,1) -- (5,5) -- cycle;
+  \draw[orange!80!black] (0,0) -- (2,-4) -- (7,1) -- (5,5) -- cycle;
+  \fill[blue!20] (0,0) -- (1,-2) -- (2,-1) -- (1,1) -- cycle;
+  \draw[blue!70!black] (0,0) -- (1,-2) -- (2,-1) -- (1,1) -- cycle;
+  \draw[->,thick,blue!70!black] (0,0) -- (1,-2) node[left] {$\vec v_1$};
+  \draw[->,thick,blue!70!black] (0,0) -- (1,1) node[above left] {$\vec v_2$};
+  \draw[->,thick,orange!80!black] (0,0) -- (2,-4) node[below] {$A\vec v_1 = 2\vec v_1$};
+  \draw[->,thick,orange!80!black] (0,0) -- (5,5) node[above] {$A\vec v_2 = 5\vec v_2$};
+\end{tikzpicture}
+\end{center}
+
 \begin{example}
 For $A=\begin{bmatrix}0&1&1\\1&0&1\\1&1&0\end{bmatrix}$ we found $a_{-1}=g_{-1}=2$ and $a_2=g_2=1$, so $A$ is
 diagonalizable with
@@ -116,7 +133,18 @@ $\frac13\begin{bmatrix}3&0\\0&3\end{bmatrix}=I$.
 \begin{example}[A Markov chain]
 Each year $10\%$ of city residents move to the suburbs and $20\%$ of suburban residents move to the city.
 If $\vec x_k=(c_k,s_k)$ are the population fractions in year $k$, then $\vec x_{k+1}=T\vec x_k$ with
-$T=\begin{bmatrix}0.9&0.2\\0.1&0.8\end{bmatrix}$. Its characteristic polynomial is
+$T=\begin{bmatrix}0.9&0.2\\0.1&0.8\end{bmatrix}$.
+\begin{center}
+\begin{tikzpicture}[>={Stealth},node distance=4cm]
+  \node[draw,circle,minimum size=1.5cm,fill=blue!10] (c) {city};
+  \node[draw,circle,minimum size=1.5cm,fill=green!10,right of=c] (s) {suburbs};
+  \draw[->,thick] (c) to[bend left=25] node[above] {$0.1$} (s);
+  \draw[->,thick] (s) to[bend left=25] node[below] {$0.2$} (c);
+  \draw[->,thick] (c) to[loop left] node[left] {$0.9$} (c);
+  \draw[->,thick] (s) to[loop right] node[right] {$0.8$} (s);
+\end{tikzpicture}
+\end{center}
+Column $j$ of $T$ lists where the people currently in place $j$ go. Its characteristic polynomial is
 $(0.9-\lambda)(0.8-\lambda)-0.02=\lambda^2-1.7\lambda+0.7=(\lambda-1)(\lambda-0.7)$.
 Eigenvectors: $T-I=\begin{bmatrix}-0.1&0.2\\0.1&-0.2\end{bmatrix}$ gives $(2,1)$; $T-0.7I=\begin{bmatrix}0.2&0.2\\0.1&0.1\end{bmatrix}$
 gives $(1,-1)$. Writing $\vec x_0=a(2,1)+b(1,-1)$,

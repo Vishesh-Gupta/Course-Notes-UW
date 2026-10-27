@@ -18,6 +18,18 @@ The relative frequency interpretation: if the experiment is repeated many times,
 average of the observed values of $X$ approaches $\E(X)$. Physically, $\E(X)$ is the
 balance point (centre of mass) of the p.f.
 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=5cm, ybar, bar width=12pt, ymin=-0.035, ymax=0.3,
+    xtick={0,...,10}, ytick={0,0.1,0.2,0.3}, xlabel={$x$}, ylabel={$f(x)$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed},
+    xmin=-0.7, xmax=10.7, axis x line=bottom, title={$\Bin(10,0.3)$ balances at $\E(X) = 3$},
+    title style={font=\small}]
+  \addplot[fill=blue!25, draw=blue!60!black] coordinates {(0,0.0282) (1,0.1211) (2,0.2335) (3,0.2668) (4,0.2001) (5,0.1029) (6,0.0368) (7,0.0090) (8,0.0014) (9,0.0001) (10,0.0000)};
+  \fill[red!70!black] (axis cs:3,0) -- (axis cs:2.7,-0.033) -- (axis cs:3.3,-0.033) -- cycle;
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
 \begin{example}[Fair die]
 For one roll of a fair die, $\E(X) = \frac16(1+2+3+4+5+6) = 3.5$. The expected value need
 not be a possible value of $X$.
@@ -83,6 +95,26 @@ The \emph{variance} of $X$ is
 the expected squared distance from the mean. The \emph{standard deviation} is
 $\sigma = \SD(X) = \sqrt{\Var(X)}$, which has the same units as $X$.
 \end{definition}
+
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=a1, width=6.5cm, height=4.5cm, ybar, bar width=10pt, ymin=0, ymax=0.55,
+    xmin=0.3, xmax=6.7, xtick={1,...,6}, xlabel={$x$}, ylabel={$f(x)$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed},
+    title={fair die: $\sigma^2 = 35/12$}, title style={font=\small}]
+  \addplot[fill=blue!25, draw=blue!60!black] coordinates {(1,0.1667) (2,0.1667) (3,0.1667) (4,0.1667) (5,0.1667) (6,0.1667)};
+  \draw[red!70!black, dashed] (axis cs:3.5,0) -- (axis cs:3.5,0.55);
+\end{axis}
+\begin{axis}[at={(a1.east)}, anchor=west, xshift=1cm, width=6.5cm, height=4.5cm, ybar,
+    bar width=10pt, ymin=0, ymax=0.55, xmin=0.3, xmax=6.7, xtick={1,...,6}, xlabel={$x$}, tick label style={font=\small}, label style={font=\small}, axis lines=left, scaled y ticks=false, yticklabel style={/pgf/number format/fixed},
+    title={$3$ or $4$, each w.p.\ $\tfrac12$: $\sigma^2 = 0.25$}, title style={font=\small}]
+  \addplot[fill=orange!50, draw=orange!70!black] coordinates {(3,0.5) (4,0.5)};
+  \draw[red!70!black, dashed] (axis cs:3.5,0) -- (axis cs:3.5,0.55);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Both distributions above have mean $3.5$ (dashed line), but the probability on the left is
+much farther from the mean on average, so its variance is larger.
 
 \begin{theorem}[Computing formulas]
 \[
@@ -221,6 +253,24 @@ At most $1/4$ of any distribution lies $2$ or more standard deviations from its 
 and at most $1/9$ lies $3$ or more away. For a specific distribution (like the normal)
 the true probabilities are usually much smaller (about $0.046$ and $0.003$).
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=10cm, height=4.5cm, xmin=-3.6, xmax=3.6, ymin=0, ymax=0.52,
+    xtick={-2,-1,0,1,2}, xticklabels={$\mu-2\sigma$,$\mu-\sigma$,$\mu$,$\mu+\sigma$,$\mu+2\sigma$},
+    ytick=\empty, axis lines=left, tick label style={font=\small}, samples=80]
+  \addplot[draw=none, fill=red!30, domain=-3.6:-2] {exp(-x^2/2)/sqrt(2*pi)} \closedcycle;
+  \addplot[draw=none, fill=red!30, domain=2:3.6] {exp(-x^2/2)/sqrt(2*pi)} \closedcycle;
+  \addplot[thick, blue!60!black, domain=-3.6:3.6] {exp(-x^2/2)/sqrt(2*pi)};
+  \draw[dashed, gray] (axis cs:-2,0) -- (axis cs:-2,0.45);
+  \draw[dashed, gray] (axis cs:2,0) -- (axis cs:2,0.45);
+  \node[font=\scriptsize, align=center] at (axis cs:2.9,0.17) {tails: $\le 1/4$\\(Chebyshev)};
+  \draw[<->] (axis cs:-2,0.45) -- node[above, font=\small] {$\abs{x-\mu} < 2\sigma$} (axis cs:2,0.45);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+Chebyshev bounds the shaded tail area by $1/k^2$ for \emph{every} distribution; for the
+normal curve drawn here the true area is only about $0.046$.
 
 \section{Common pitfalls}
 

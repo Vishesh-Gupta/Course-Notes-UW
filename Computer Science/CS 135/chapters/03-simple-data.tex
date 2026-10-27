@@ -90,6 +90,49 @@ Because clauses are tried in order, the second clause need not say
 when reordering.
 \end{example}
 
+The questions split the range of marks into intervals. Each boundary value
+belongs to the higher grade, and those boundaries are exactly what the tests
+check:
+
+\begin{center}
+\begin{tikzpicture}[x=1.2mm,y=1mm]
+  \foreach \a/\b/\g/\c in {0/50/F/red!25,50/60/D/orange!30,60/70/C/yellow!40,70/80/B/green!25,80/100/A/blue!20} {
+    \fill[\c] (\a,0) rectangle (\b,6);
+    \node at ({(\a+\b)/2},3) {\code{'\g}};
+  }
+  \draw (0,0) rectangle (100,6);
+  \foreach \t in {0,50,60,70,80,100} {
+    \draw (\t,0) -- (\t,-1.5) node[below,font=\scriptsize] {\t};
+  }
+  \foreach \t in {50,60,70,80} \fill (\t,0) circle (0.6mm);
+  \draw[-{Stealth},thick,blue!50!black] (75,14) node[above,font=\scriptsize]{\code{(letter-grade 75)}} -- (75,7);
+\end{tikzpicture}
+\end{center}
+
+Read as a flowchart, the \code{cond} asks its questions one at a time and
+stops at the first \code{true}:
+
+\begin{center}
+\begin{tikzpicture}[q/.style={draw,diamond,aspect=1.6,inner sep=1pt,fill=blue!6,font=\scriptsize},
+  a/.style={draw,rounded corners,font=\ttfamily\small,minimum width=8mm,minimum height=6mm},
+  arr/.style={-{Stealth},thick}, lbl/.style={font=\scriptsize}]
+  \node[q] (q1) at (0,0) {$\ge 80$?};
+  \node[q] (q2) at (2.6,0) {$\ge 70$?};
+  \node[q] (q3) at (5.2,0) {$\ge 60$?};
+  \node[q] (q4) at (7.8,0) {$\ge 50$?};
+  \node[a] (aF) at (10.3,0) {'F};
+  \node[a] (aA) at (0,-1.6) {'A};
+  \node[a] (aB) at (2.6,-1.6) {'B};
+  \node[a] (aC) at (5.2,-1.6) {'C};
+  \node[a] (aD) at (7.8,-1.6) {'D};
+  \node[lbl,left=3mm of q1] (m) {\code{mark}};
+  \draw[arr] (m) -- (q1);
+  \foreach \x/\y in {q1/q2,q2/q3,q3/q4} \draw[arr] (\x) -- node[lbl,above]{no} (\y);
+  \draw[arr] (q4) -- node[lbl,above]{else} (aF);
+  \foreach \x/\y in {q1/aA,q2/aB,q3/aC,q4/aD} \draw[arr] (\x) -- node[lbl,right]{yes} (\y);
+\end{tikzpicture}
+\end{center}
+
 \begin{example}[Trace of cond]
 \begin{lstlisting}[style=racket]
 (letter-grade 75)

@@ -110,6 +110,30 @@ pointer.
     \end{itemize}
 \end{enumerate}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=1cm, font=\small, >=Stealth]
+  \node[anchor=east] at (-0.1,1.4) {thread A};
+  \node[anchor=east] at (-0.1,0.4) {thread B};
+  \draw[line width=5pt, blue!50] (0,1.4) -- (3,1.4);
+  \draw[line width=5pt, gray!30] (4,1.4) -- (8,1.4);
+  \draw[line width=5pt, gray!30] (0,0.4) -- (4,0.4);
+  \draw[line width=5pt, green!50!black!50] (4,0.4) -- (8,0.4);
+  \draw[line width=5pt, blue!50] (9,1.4) -- (11,1.4);
+  \fill[orange!30] (3,0) rectangle (4,1.8);
+  \fill[orange!30] (8,0) rectangle (9,1.8);
+  \node[font=\scriptsize, align=center] at (3.5,2.2) {save A,\\restore B};
+  \node[font=\scriptsize, align=center] at (8.5,2.2) {save B,\\restore A};
+  \node[font=\scriptsize] at (1.5,1.75) {running};
+  \node[font=\scriptsize] at (6,1.75) {ready};
+  \node[font=\scriptsize] at (6,0.05) {running};
+  \draw[->] (0,-0.3) -- (11.3,-0.3) node[right, font=\scriptsize]{time};
+\end{tikzpicture}
+\caption{Two context switches on one CPU. During each switch (shaded) the
+kernel saves the outgoing thread's callee-saved registers in a
+\code{switchframe} and restores the incoming thread's.}
+\end{figure}
+
 \begin{lstlisting}[style=mips]
 # simplified switchframe_switch(a0 = &old->t_context, a1 = &new->t_context)
 switchframe_switch:
@@ -187,12 +211,40 @@ So the stack of a preempted thread contains (from bottom to top): its normal fra
 finally a \code{switchframe}. When the thread is later resumed, it unwinds in reverse order and
 returns from the interrupt exactly where it left off.
 
+\begin{center}
+\begin{tikzpicture}[f/.style={draw, text width=5cm, align=center, minimum height=0.6cm, font=\small}]
+  \node[f] (a) {thread's own frames};
+  \node[f, above=0pt of a, fill=gray!15] (b) {\code{trapframe} (all registers)};
+  \node[f, above=0pt of b] (c) {\code{mainbus\_interrupt}, \code{hardclock}};
+  \node[f, above=0pt of c] (d) {\code{thread\_yield}, \code{thread\_switch}};
+  \node[f, above=0pt of d, fill=blue!8] (e) {\code{switchframe} (callee-saved)};
+  \node[left=0.3cm of a, font=\small, align=right] {bottom};
+  \node[left=0.3cm of e, font=\small, align=right] {top (saved sp)};
+  \draw[decorate, decoration={brace, amplitude=5pt}] ($(b.north east)+(0.1,0)$) -- ($(b.south east)+(0.1,0)$)
+    node[midway, right=6pt, font=\scriptsize]{built by the timer interrupt};
+  \draw[decorate, decoration={brace, amplitude=5pt}] ($(e.north east)+(0.1,0)$) -- ($(e.south east)+(0.1,0)$)
+    node[midway, right=6pt, font=\scriptsize]{built by the context switch};
+\end{tikzpicture}
+\end{center}
+
 \begin{example}[Round-robin timesharing]
 Three CPU-bound threads A, B, C with quantum $q$ on one core run as
 $A, B, C, A, B, C, \ldots$, each for $q$ time units. Smaller $q$ gives better responsiveness but
 more context-switch overhead (each switch costs saving/restoring registers plus cache/TLB
 effects). Typical quanta are a few milliseconds.
 \end{example}
+
+\begin{center}
+\begin{tikzpicture}[x=0.85cm, y=0.6cm, font=\small]
+  \foreach \i/\n/\c in {0/A/blue!20, 1/B/green!20, 2/C/orange!25, 3/A/blue!20, 4/B/green!20, 5/C/orange!25, 6/A/blue!20, 7/B/green!20, 8/C/orange!25}
+    \draw[fill=\c] (\i*1.4,0) rectangle node{\n} (\i*1.4+1.2,1);
+  \foreach \i in {0,...,7} \fill[red!60] (\i*1.4+1.2,0) rectangle (\i*1.4+1.4,1);
+  \draw[decorate, decoration={brace, amplitude=4pt, mirror}] (0,-0.15) -- (1.2,-0.15) node[midway, below=4pt, font=\scriptsize]{$q$};
+  \node[font=\scriptsize, red!60!black, anchor=west] at (12.7,0.5) {context switches};
+\end{tikzpicture}
+\end{center}
+Round robin with quantum $q$; each thin bar is a context switch, pure
+overhead that grows relative to useful work as $q$ shrinks.
 
 \section{Common pitfalls}
 \begin{itemize}

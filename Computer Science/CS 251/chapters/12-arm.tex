@@ -32,6 +32,20 @@ suffix, e.g.\ \code{ADDS}) and then branches on them. Moreover, almost
 (bits 31--28): it executes only if the condition holds.
 
 \begin{center}
+\begin{tikzpicture}[font=\scriptsize, x=0.36cm, y=0.9cm]
+  \foreach \a/\b/\name/\c in {0/4/cond/red!15, 4/6/00/gray!15, 6/7/I/gray!15, 7/11/opcode/blue!10,
+      11/12/S/green!15, 12/16/Rn/white, 16/20/Rd/white, 20/32/{Operand2 (12)}/orange!12} {
+    \draw[thick, fill=\c] (\a,0) rectangle (\b,1);
+    \node at ({(\a+\b)/2},0.5) {\name};
+  }
+  \foreach \x/\l in {0/31, 4/27, 12/19, 16/15, 20/11, 32/0} \node[above] at (\x,1) {\l};
+  \node[below, align=center] at (2,0) {condition\\(EQ, NE, \ldots)};
+  \node[below, align=center] at (11.5,0) {set\\flags?};
+  \node[below, align=center] at (26,0) {immediate or\\shifted register};
+\end{tikzpicture}
+\end{center}
+
+\begin{center}
 \begin{tabular}{lll}
 \toprule
 Suffix & Meaning & Flags \\
@@ -84,6 +98,27 @@ PC-relative & \code{LDR r0, label} \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\scriptsize, >=Stealth, x=1.2cm, y=0.6cm]
+  \foreach \col/\title/\loadpos in {0/{Pre-indexed: \code{LDR r0, [r1, \#4]!}}/1, 5/{Post-indexed: \code{LDR r0, [r1], \#4}}/0} {
+    \node[font=\small] at (\col+2,4.2) {\title};
+    \fill[green!20] (\col+\loadpos,2) rectangle (\col+\loadpos+1,3);
+    \foreach \i in {0,...,3} {
+      \pgfmathtruncatemacro{\a}{100+4*\i}
+      \draw (\col+\i,2) rectangle (\col+\i+1,3);
+      \node at (\col+\i+0.5,2.5) {\a};
+    }
+    \draw[->, thick, blue!60!black] (\col+0.5,0.6) node[below, align=center]{\code{r1}\\before} -- (\col+0.5,2);
+    \draw[->, thick, red!70!black] (\col+1.5,0.6) node[below, align=center]{\code{r1}\\after} -- (\col+1.5,2);
+    \node[green!40!black] at (\col+\loadpos+0.5,3.5) {loaded};
+  }
+\end{tikzpicture}
+\caption{Both modes leave \code{r1} pointing at 104 (initially 100); they
+differ in whether the load uses the updated address (pre) or the old one
+(post).}
+\end{figure}
 Auto-increment addressing makes array loops shorter. \code{LDM}/\code{STM}
 (load/store multiple) save or restore a list of registers in one instruction,
 convenient for procedure entry and exit:

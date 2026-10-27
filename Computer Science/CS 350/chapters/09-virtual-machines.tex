@@ -73,6 +73,28 @@ System calls and exceptions from guest applications also trap into the hyperviso
 reflects them into the guest OS by jumping to the guest's exception handler as if the hardware
 had done so (and records that the virtual CPU is now in ``virtual kernel mode'').
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.85cm, y=1cm, font=\small, >=Stealth]
+  \node[anchor=east] at (-0.1,1.6) {guest kernel};
+  \node[anchor=east, align=right] at (-0.1,0.8) {(real user mode)};
+  \node[anchor=east] at (-0.1,0) {hypervisor};
+  \fill[blue!6] (0,-0.4) rectangle (11,0.4);
+  \draw[line width=4pt, green!50!black!60] (0,1.6) -- (2.5,1.6);
+  \node[font=\scriptsize] at (1.25,1.95) {ordinary instructions};
+  \node[font=\scriptsize] at (1.25,1.25) {(full speed)};
+  \draw[->, thick, red!70!black] (2.5,1.5) -- node[right, font=\scriptsize]{privileged instr.\ traps} (2.8,0.1);
+  \draw[line width=4pt, orange!70] (2.8,0) -- (6.2,0);
+  \node[font=\scriptsize, align=center] at (4.5,-0.85) {emulate on the VM's \emph{virtual} state\\(virtual TLB, interrupt flag, \ldots)};
+  \draw[->, thick] (6.2,0.1) -- (6.5,1.5);
+  \draw[line width=4pt, green!50!black!60] (6.5,1.6) -- (11,1.6);
+  \node[font=\scriptsize] at (8.7,1.95) {continue after the instruction};
+\end{tikzpicture}
+\caption{Trap and emulate: the deprivileged guest kernel runs directly on
+the CPU until it executes a privileged instruction, which traps to the
+hypervisor.}
+\end{figure}
+
 \begin{theorem}[Popek and Goldberg, 1974, informally]
 A machine can be virtualized by trap-and-emulate if every \emph{sensitive} instruction (one that
 reads or changes privileged machine state or behaves differently in user vs.\ kernel mode) is
@@ -102,6 +124,22 @@ Now there are three kinds of addresses:
 \]
 The guest OS believes it controls physical memory; the hypervisor actually allocates machine
 frames to the VM.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[font=\small, >=Stealth, thick,
+  as/.style={draw, rounded corners, minimum width=2.2cm, minimum height=0.9cm, align=center}]
+  \node[as, fill=blue!10] (gv) at (0,0) {guest virtual};
+  \node[as, fill=green!12] (gp) at (5,0) {guest physical};
+  \node[as, fill=orange!15] (mp) at (10,0) {machine physical};
+  \draw[->] (gv) -- node[above, font=\scriptsize]{guest page table} (gp);
+  \draw[->] (gp) -- node[above, font=\scriptsize]{hypervisor's map} (mp);
+  \draw[->, red!70!black, densely dashed] (gv.south) to[out=-25, in=-155] node[below, font=\scriptsize]{shadow page table (used by the real MMU)} (mp.south);
+\end{tikzpicture}
+\caption{Two levels of translation under virtualization. A shadow page
+table composes them so the hardware sees a single mapping; nested page
+tables (EPT/NPT) let the hardware walk both instead.}
+\end{figure}
 
 \begin{description}
   \item[Shadow page tables] The hypervisor write-protects the guest's page tables; whenever
@@ -142,6 +180,30 @@ Containers (Docker, LXC) isolate groups of processes that \emph{share one kernel
 each container its own view of PIDs, file system mounts, network interfaces and users; cgroups
 limit their resource usage. Much lighter than VMs (no guest kernel), but weaker isolation and the
 same OS kernel for everyone.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[b/.style={draw, minimum height=0.6cm, font=\small, align=center}]
+  \node[b, minimum width=4.4cm, fill=gray!20] (hw1) at (0,0) {hardware};
+  \node[b, minimum width=4.4cm, fill=blue!10, above=0pt of hw1] (hv) {hypervisor};
+  \foreach \x in {-1.47,0,1.47} {
+    \node[b, minimum width=1.47cm, fill=orange!15] at (\x,1.2) {\scriptsize guest OS};
+    \node[b, minimum width=1.47cm] at (\x,1.8) {\scriptsize app};
+  }
+  \node[font=\small] at (0,-0.65) {virtual machines};
+  \begin{scope}[xshift=6.2cm]
+    \node[b, minimum width=4.4cm, fill=gray!20] (hw2) at (0,0) {hardware};
+    \node[b, minimum width=4.4cm, fill=orange!15, above=0pt of hw2] (k) {one shared kernel};
+    \foreach \x in {-1.47,0,1.47} {
+      \node[b, minimum width=1.47cm, fill=green!10] at (\x,1.2) {\scriptsize container};
+      \node[b, minimum width=1.47cm] at (\x,1.8) {\scriptsize app};
+    }
+    \node[font=\small] at (0,-0.65) {containers};
+  \end{scope}
+\end{tikzpicture}
+\caption{Each VM runs its own guest kernel; containers are isolated groups
+of processes on a single shared kernel.}
+\end{figure}
 
 \section{Networking (brief, for context)}
 Not examined in the terms covered here, but for completeness: the OS implements the network
