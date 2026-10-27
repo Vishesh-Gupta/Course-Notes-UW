@@ -36,6 +36,7 @@ help:
 	@echo "make new-course  SUBJECT=Mathematics CODE=\"Math 237\" TITLE=\"Calculus 3\" (XELATEX=1 for CJK text)"
 	@echo "make clean       remove build outputs"
 	@echo "Add COURSE=\"CS 246\" to pdfs/site/check to work on one course."
+	@echo "Only courses whose files changed are recompiled; add FORCE=1 to rebuild every PDF."
 
 deps:
 ifeq ($(shell uname),Darwin)
@@ -53,7 +54,7 @@ tools:
 	if [ -n "$$missing" ]; then echo "Missing:$$missing. Run make deps (then open a new terminal)."; exit 1; fi
 
 pdfs: tools
-	python3 scripts/check_latex.py --pdf-dir $(PDF_DIR) $(course_arg)
+	python3 scripts/check_latex.py --pdf-dir $(PDF_DIR) $(if $(FORCE),--force) $(course_arg)
 
 website/node_modules: website/package.json website/package-lock.json
 	cd website && npm ci --no-audit --no-fund
