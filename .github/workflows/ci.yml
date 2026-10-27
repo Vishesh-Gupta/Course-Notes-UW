@@ -63,7 +63,7 @@ jobs:
       - name: Check Python scripts
         run: python3 -m py_compile website/build.py scripts/check_latex.py scripts/new_course.py
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -154,7 +154,7 @@ jobs:
           name: site
           path: site
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.secrets.outputs.ok == 'true'
         with:
           node-version: 20
