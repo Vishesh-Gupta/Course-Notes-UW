@@ -69,6 +69,8 @@ make new-course SUBJECT=Mathematics CODE="Math 237" TITLE="Calculus 3 for Honour
                               # add XELATEX=1 for a book with Chinese, Japanese or Korean
 ```
 
+Builds are incremental: `make pdfs` (and so `make build`/`make deploy`) only recompiles courses whose files changed since their last clean build, courses compile in parallel, the website reuses converted chapters and figures from `website/.cache`, and the upload sends only files that changed. `FORCE=1` rebuilds every PDF.
+
 Inside a course folder, `latexmk -pdf main.tex` builds that book on its own.
 
 ## Website hosting
