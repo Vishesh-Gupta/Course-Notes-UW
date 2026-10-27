@@ -428,3 +428,28 @@ code .er, code .al { color: #dc2626; font-weight: 600; }
   .nav-spacer { display: none; }
   .pager { grid-template-columns: 1fr; }
 }
+
+/* ---------- LaTeX / original notes toggle ---------- */
+.view-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 4px 4px 12px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg-soft);
+}
+.view-toggle a {
+  padding: 5px 8px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.view-toggle a:hover { color: var(--text); text-decoration: none; }
+.view-toggle a.active { background: var(--bg); color: var(--primary); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+.original-note { font-size: 14px; color: var(--text-muted); margin: -12px 0 24px; }
+.list-heading { font-size: 1.2rem; margin: 28px 0 12px; }
+.original-body h1 { font-size: 1.7rem; margin: 1.6em 0 0.6em; }

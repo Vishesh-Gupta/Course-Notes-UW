@@ -43,9 +43,16 @@ jobs:
 
   site:
     name: Build website
+    needs: latex
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download PDFs
+        uses: actions/download-artifact@v4
+        with:
+          name: notes-pdfs
+          path: pdfs
 
       - name: Install pandoc and TeX Live
         run: |
@@ -53,7 +60,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends pandoc poppler-utils $TEX_PACKAGES
 
       - name: Check Python scripts
-        run: python3 -m py_compile website/build.py scripts/check_latex.py
+        run: python3 -m py_compile website/build.py scripts/check_latex.py scripts/new_course.py
 
       - name: Cache compiled TikZ figures
         uses: actions/cache@v4
@@ -63,7 +70,7 @@ jobs:
           restore-keys: tikz-
 
       - name: Build site (fails on any conversion warning)
-        run: python3 website/build.py --strict
+        run: python3 website/build.py --strict --pdf-dir pdfs
 
       - uses: actions/setup-node@v4
         with:
@@ -77,21 +84,77 @@ jobs:
       - name: Build search index
         run: npx -y pagefind@1.1.1 --site website/_site
 
-      - uses: actions/upload-pages-artifact@v3
+      - name: Upload site
+        uses: actions/upload-artifact@v4
         with:
+          name: site
           path: website/_site
 
-  deploy:
-    name: Deploy website
+  release:
+    name: Publish PDFs
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [latex, site]
     runs-on: ubuntu-latest
     permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: notes-latest
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: notes-pdfs
+          path: pdfs
+
+      - name: Upload PDFs to the "notes-latest" release
+        run: |
+          notes="PDFs of every course, built by CI from ${GITHUB_SHA::7}."
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes "$notes"
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "Course notes (PDF)" --notes "$notes"
+          fi
+          gh release upload "$TAG" pdfs/*.pdf --repo "$GITHUB_REPOSITORY" --clobber
+
+  deploy:
+    # Cloudflare Pages (free) so the repository can stay private. Needs the
+    # CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets; without
+    # them this job only prints a notice.
+    name: Deploy website
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [latex, site]
+    runs-on: ubuntu-latest
+    env:
+      PROJECT: course-notes-uw
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check Cloudflare secrets
+        id: secrets
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Website not deployed: add the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets (see README)."
+          fi
+
+      - name: Download site
+        if: steps.secrets.outputs.ok == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: site
+
+      - uses: actions/setup-node@v4
+        if: steps.secrets.outputs.ok == 'true'
+        with:
+          node-version: 20
+
+      - name: Create the Pages project (first run only)
+        if: steps.secrets.outputs.ok == 'true'
+        run: npx -y wrangler@4.20.0 pages project create "$PROJECT" --production-branch=main || true
+
+      - name: Deploy to Cloudflare Pages
+        if: steps.secrets.outputs.ok == 'true'
+        run: npx -y wrangler@4.20.0 pages deploy site --project-name="$PROJECT" --branch=main --commit-dirty=true
