@@ -11,3 +11,9 @@
 *.bbl
 *.blg
 *.thm
+
+# Notes website build output
+website/_site/
+website/.cache/
+website/node_modules/
+__pycache__/
