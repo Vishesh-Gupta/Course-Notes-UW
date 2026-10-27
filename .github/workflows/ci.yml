@@ -24,7 +24,7 @@ jobs:
     name: Compile LaTeX notes
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install TeX Live
         run: |
@@ -47,7 +47,7 @@ jobs:
     needs: latex
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download PDFs
         uses: actions/download-artifact@v4
