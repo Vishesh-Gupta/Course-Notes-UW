@@ -8,7 +8,7 @@
     "check-math": "node check_math.mjs"
   },
   "devDependencies": {
-    "esbuild": "0.21.5",
+    "esbuild": "0.28.1",
     "katex": "0.16.9",
     "typescript": "5.4.5"
   }
