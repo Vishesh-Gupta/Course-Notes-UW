@@ -26,12 +26,21 @@ Every course is a LaTeX book split into one file per chapter/lecture. The origin
 | Statistics | Stat 230 | Probability |
 | | Stat 231 | Statistics |
 | Economics | ECON 102 | Introduction to Macroeconomics |
+| Languages | CHINA 101R | First-Year Chinese 1 |
+| | CHINA 102R | First-Year Chinese 2 |
+| | JAPAN 101R | First-Year Japanese 1 |
+| | KOREA 102R | First-Year Korean 2 |
+| East Asian Studies | EASIA 201R | Introduction to East Asia |
+| | EASIA 120R | Monsters and Magic in Japanese Popular Culture |
+| | Chinese Poetry | Classical Chinese Poetry |
 
 ## Repository layout
 
 ```
 <Subject>/<Course>/
   main.tex            the book: title, course macros, \include list of chapters
+                      (first line "% !TEX program = xelatex" for books with Chinese,
+                      Japanese or Korean text: \zh{..}, \zht{..}, \ja{..}, \ko{..})
   chapters/NN-*.tex   one file per chapter or lecture
   figures/            images used by the chapters (optional)
   Readme.md           chapter list for the course
@@ -44,7 +53,7 @@ website/              site generator (pandoc + KaTeX + TikZ->SVG) and its TypeSc
 
 ## Working on the notes
 
-Needs TeX Live (latex-extra), `latexmk`, `pandoc`, `pdftocairo` (poppler-utils) and Node 20 (the website scripts are TypeScript, bundled with esbuild; see `website/README.md`).
+Needs TeX Live (latex-extra; xetex and lang-chinese for the language books) with the Noto CJK fonts, `latexmk`, `pandoc`, `pdftocairo` (poppler-utils) and Node 20 (the website scripts are TypeScript, bundled with esbuild; see `website/README.md`).
 
 ```
 make pdfs COURSE="CS 246"     # compile one course (omit COURSE for all) into build/pdfs
@@ -52,6 +61,7 @@ make site COURSE="CS 246"     # build the website into website/_site
 make check                    # everything CI checks: PDFs, TypeScript, strict site build, KaTeX formulas
 make serve                    # preview the site on http://localhost:8000
 make new-course SUBJECT=Mathematics CODE="Math 237" TITLE="Calculus 3 for Honours Mathematics"
+                              # add XELATEX=1 for a book with Chinese, Japanese or Korean
 ```
 
 Inside a course folder, `latexmk -pdf main.tex` builds that book on its own.

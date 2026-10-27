@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Create a new course book with the standard layout.
 
-Usage: python3 scripts/new_course.py SUBJECT CODE TITLE
+Usage: python3 scripts/new_course.py [--xelatex] SUBJECT CODE TITLE
        e.g. python3 scripts/new_course.py Mathematics "Math 237" "Calculus 3 for Honours Mathematics"
+
+--xelatex builds the book with XeLaTeX (needed for Chinese, Japanese or Korean
+text; see \\zh, \\ja and \\ko in common/preamble.tex).
 
 Creates <SUBJECT>/<CODE>/ with main.tex (shared preamble, title in the
 "<CODE> --- <TITLE>" form the website reads), chapters/01-introduction.tex and
@@ -58,9 +61,13 @@ or from the repository root: `make pdfs COURSE="${code}"` and `make site COURSE=
 
 
 def main():
-    if len(sys.argv) != 4:
+    args = sys.argv[1:]
+    xelatex = "--xelatex" in args
+    if xelatex:
+        args.remove("--xelatex")
+    if len(args) != 3:
         raise SystemExit(__doc__)
-    subject, code, title = sys.argv[1:]
+    subject, code, title = args
     if subject not in SUBJECTS:
         raise SystemExit(f"unknown subject {subject!r}; expected one of {', '.join(SUBJECTS)} "
                          "(a new subject also needs adding to SUBJECTS in scripts/check_latex.py "
@@ -70,10 +77,16 @@ def main():
         raise SystemExit(f"{folder} already has a main.tex")
     values = {"code": code, "title": title}
     (folder / "chapters").mkdir(parents=True, exist_ok=True)
-    (folder / "main.tex").write_text(MAIN.substitute(values))
+    main = MAIN.substitute(values)
+    if xelatex:
+        main = "% !TEX program = xelatex\n" + main
+    (folder / "main.tex").write_text(main)
     (folder / "chapters" / "01-introduction.tex").write_text(CHAPTER.substitute(values))
     if not (folder / "Readme.md").exists():
-        (folder / "Readme.md").write_text(README.substitute(values))
+        readme = README.substitute(values)
+        if xelatex:
+            readme = readme.replace("latexmk -pdf", "latexmk -xelatex")
+        (folder / "Readme.md").write_text(readme)
     print(f"Created {folder.relative_to(ROOT)}")
 
 

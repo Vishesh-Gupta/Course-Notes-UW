@@ -25,7 +25,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE_SRC = ROOT / "website"
-SUBJECTS = ["Computer Science", "Mathematics", "Statistics", "Economics"]
+SUBJECTS = ["Computer Science", "Mathematics", "Statistics", "Economics", "Languages",
+            "East Asian Studies"]
 PREAMBLE = ROOT / "common" / "preamble.tex"
 CACHE = SITE_SRC / ".cache" / "tikz"
 REPO_URL = "https://github.com/Vishesh-Gupta/Course-Notes-UW"
@@ -113,10 +114,22 @@ def pandoc_defs(main_tex):
                     ("pgfplotsset", 1), ("tikzset", 1)]:
         chunk = remove_command(chunk, name, n)
     defs = "\n".join(shared) + "\n" + chunk + "\n"
+    # Language spans: placeholder babel names that filter.lua maps to zh-Hans,
+    # zh-Hant, ja and ko (pandoc has no babel name for Chinese).
+    defs += ("\\renewcommand{\\zh}[1]{\\foreignlanguage{icelandic}{#1}}\n"
+             "\\renewcommand{\\zht}[1]{\\foreignlanguage{irish}{#1}}\n"
+             "\\renewcommand{\\ja}[1]{\\foreignlanguage{japanese}{#1}}\n"
+             "\\renewcommand{\\ko}[1]{\\foreignlanguage{korean}{#1}}\n")
     if "\\newcommand{\\bx}" in defs:
         # Natural deduction box bars (a \vrule in the PDF).
         defs += "\\renewcommand{\\bx}{\u2502\\ }\n"
     return defs
+
+
+def engine(main_tex):
+    """TeX engine named by a first line "% !TEX program = xelatex" (default pdflatex)."""
+    m = re.match(r"%\s*!TEX\s+program\s*=\s*(\w+)", main_tex)
+    return m.group(1).lower() if m else "pdflatex"
 
 
 def tikz_preamble(main_tex):
@@ -128,7 +141,7 @@ def tikz_preamble(main_tex):
 TIKZ_RE = re.compile(r"\\begin\{tikzpicture\}.*?\\end\{tikzpicture\}", re.S)
 
 
-def compile_tikz(preamble, pictures):
+def compile_tikz(preamble, pictures, engine="pdflatex"):
     """Compile pictures {key: source} to CACHE/key.svg. Returns failed keys."""
     todo = {k: v for k, v in pictures.items() if not (CACHE / f"{k}.svg").exists()}
     if not todo:
@@ -140,7 +153,7 @@ def compile_tikz(preamble, pictures):
             doc = Path(tmp) / "pics.tex"
             doc.write_text(preamble + "\\begin{document}\n"
                            + "\n".join(batch.values()) + "\n\\end{document}\n")
-            r = subprocess.run(["pdflatex", "-interaction=nonstopmode", "-halt-on-error",
+            r = subprocess.run([engine, "-interaction=nonstopmode", "-halt-on-error",
                                 "pics.tex"], cwd=tmp, capture_output=True, text=True)
             if r.returncode != 0:
                 return False
@@ -238,7 +251,7 @@ def convert_chapter(ch, defs, out_dir, warnings):
         return "\\includegraphics{@@TIKZ@@" + key + "}"
 
     tex = TIKZ_RE.sub(take_tikz, tex)
-    failed = compile_tikz(tikz_pre, pictures)
+    failed = compile_tikz(tikz_pre, pictures, ch.course.engine)
     for key in failed:
         warnings.append(f"{ch.course.code} {ch.slug}: TikZ picture {key} failed to compile")
     tikz_out = out_dir / "tikz"
@@ -470,7 +483,7 @@ def render_index(courses, out):
         sections.append(f'<h2 class="subject">{subject}</h2>\n<div class="cards">{cards}</div>')
     body = f"""<section class="hero">
 <h1>{SITE_TITLE}</h1>
-<p class="lead">Notes for the core University of Waterloo Computer Science, Mathematics, Statistics and Economics courses, written in LaTeX and split by chapter.</p>
+<p class="lead">Notes for my University of Waterloo courses in Computer Science, Mathematics, Statistics, Economics, languages and East Asian studies, written in LaTeX and split by chapter.</p>
 </section>
 <div id="recent-pages"></div>
 {"".join(sections)}"""
@@ -538,6 +551,7 @@ def main():
     warnings = []
     for course in courses:
         course.tikz_pre = tikz_preamble(course.main_tex)
+        course.engine = engine(course.main_tex)
         defs = pandoc_defs(course.main_tex)
         course.macros = katex_macros(defs)
         cdir = out / course.slug

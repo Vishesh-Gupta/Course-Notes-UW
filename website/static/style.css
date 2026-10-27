@@ -288,6 +288,14 @@ blockquote { margin: 1em 0; padding: 0.2em 1em; border-left: 4px solid var(--bor
 .content th, .content td { border: 1px solid var(--border); padding: 6px 12px; vertical-align: top; }
 .content thead th { background: var(--bg-soft); }
 
+/* Chinese, Japanese and Korean text (\zh, \zht, \ja, \ko in the LaTeX):
+   system CJK fonts in the regional glyph forms, a bit larger to match Inter. */
+:lang(zh-Hans) { font-family: Inter, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", sans-serif; }
+:lang(zh-Hant) { font-family: Inter, "PingFang TC", "Microsoft JhengHei", "Noto Sans CJK TC", "Noto Sans TC", sans-serif; }
+:lang(ja) { font-family: Inter, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans CJK JP", "Noto Sans JP", sans-serif; }
+:lang(ko) { font-family: Inter, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", "Noto Sans KR", sans-serif; }
+span:is(:lang(zh-Hans), :lang(zh-Hant), :lang(ja), :lang(ko)) { font-size: 1.06em; }
+
 /* math */
 .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
 .math.display { display: block; }
