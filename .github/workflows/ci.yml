@@ -77,7 +77,7 @@ jobs:
           npm run build
 
       - name: Cache compiled TikZ figures
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: website/.cache
           key: tikz-${{ hashFiles('common/preamble.tex', '*/*/main.tex', '*/*/chapters/*.tex') }}
