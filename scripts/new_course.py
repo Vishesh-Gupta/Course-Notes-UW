@@ -6,8 +6,7 @@ Usage: python3 scripts/new_course.py SUBJECT CODE TITLE
 
 Creates <SUBJECT>/<CODE>/ with main.tex (shared preamble, title in the
 "<CODE> --- <TITLE>" form the website reads), chapters/01-introduction.tex and
-a Readme.md. Original notes (.md, .mdwn, .docx, .tex) dropped in the course
-folder later show up on the website under "Original notes".
+a Readme.md.
 """
 
 import sys

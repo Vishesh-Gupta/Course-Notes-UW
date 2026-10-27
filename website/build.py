@@ -89,7 +89,8 @@ def course_chunk(main_tex):
 
 
 # Text-mode commands KaTeX lacks, mapped to close equivalents.
-KATEX_EXTRA = {"\\textsc": "\\textrm{#1}", "\\textup": "\\textrm{#1}", "\\emph": "\\textit{#1}"}
+KATEX_EXTRA = {"\\textsc": "\\textrm{#1}", "\\textup": "\\textrm{#1}", "\\emph": "\\textit{#1}",
+               "\\break": "{}"}  # LaTeX line-break hint; nothing to do on the web
 
 
 def katex_macros(defs):
@@ -159,37 +160,9 @@ def compile_tikz(preamble, pictures):
 # --------------------------------------------------------------------------
 # Course model
 
-# Original notes kept next to the LaTeX book (shown in the "Original notes" view).
-ORIGINAL_FORMATS = {".md": "gfm", ".mdwn": "gfm", ".docx": "docx", ".tex": "latex"}
-IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".svg"}
-
-
 def slugify(text):
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
 
-
-def natural_key(text):
-    return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", text)]
-
-
-def match_key(text):
-    """Key used to pair a LaTeX chapter with the original notes it came from."""
-    t = text.lower()
-    for pattern, kind in [(r"lecture\s*0*(\d+)", "lecture"), (r"tutorial\s*0*(\d+)", "tutorial"),
-                          (r"\bch(?:apter|\.)\s*0*(\d+)", "chapter")]:
-        m = re.search(pattern, t)
-        if m:
-            return (kind, int(m.group(1)))
-    return ("outline", 0) if "outline" in t else None
-
-
-class Original:
-    def __init__(self, course, path):
-        self.course, self.path = course, path
-        self.title = path.stem
-        self.slug = slugify(path.stem)
-        self.key = match_key(path.stem)
-        self.body = self.toc = ""
 
 class Chapter:
     def __init__(self, course, number, path):
@@ -214,11 +187,6 @@ class Course:
         self.chapters = [Chapter(self, i, folder / f"{inc}.tex")
                          for i, inc in enumerate(includes, start=1)]
         self.pdf = None  # set from --pdf-dir (PDFs are built by CI, not committed)
-        self.originals = sorted(
-            (Original(self, p) for p in folder.iterdir()
-             if p.suffix.lower() in ORIGINAL_FORMATS
-             and p.name.lower() not in ("readme.md", "main.tex")),
-            key=lambda o: natural_key(o.title))
 
 
 def course_sort_key(folder):
@@ -318,51 +286,18 @@ def convert_chapter(ch, defs, out_dir, warnings):
                        r'<span class="toc-num">\1</span>', inner)
         items.append(f'<li class="toc-l{level}"><a href="#{hid}">{label}</a></li>')
     ch.toc = "\n".join(items)
-    ch.key = match_key(f"{ch.slug} {ch.title_text}")
-
-
-REPO_IMAGE_URL = re.compile(r"^https://github\.com/\S+/([^/\s]+\.(?:png|jpe?g|gif))\s*$", re.M | re.I)
-ORIG_HEADING_RE = re.compile(r'<h([1-3])[^>]*?\sid="([^"]+)"[^>]*>(.*?)</h\1>', re.S)
-
-
-def convert_original(orig, out_dir, warnings):
-    """Convert one original notes file (Markdown, Word or LaTeX) to an HTML body."""
-    fmt = ORIGINAL_FORMATS[orig.path.suffix.lower()]
-    cmd = ["pandoc", "-f", fmt, "-t", "html5", "--katex",
-           "--template", str(SITE_SRC / "templates" / "fragment.html"),
-           "--lua-filter", str(SITE_SRC / "filter.lua"),
-           "-M", "original=true", "-M", "imgprefix=", "-M", "pagetitle=original",
-           "--wrap=none"]
-    if fmt == "docx":
-        cmd += [f"--extract-media=media/{orig.slug}", str(orig.path)]
-        source = None
-    else:
-        source = orig.path.read_text(errors="replace")
-        if fmt == "gfm":
-            # A bare link to an image in this repository: show the image itself.
-            def local_image(m):
-                name = urllib.parse.unquote(m.group(1))
-                return f"![{name}](<{name}>)" if (orig.path.parent / name).exists() else m.group(0)
-            source = REPO_IMAGE_URL.sub(local_image, source)
-    r = subprocess.run(cmd, input=source, capture_output=True, text=True, cwd=out_dir)
-    if r.returncode != 0:
-        raise SystemExit(f"pandoc failed on {orig.path}:\n{r.stderr}")
-    for line in r.stderr.splitlines():
-        if "WARNING" in line:
-            warnings.append(f"{orig.course.code} {orig.path.name}: {line.strip()}")
-    orig.body = r.stdout.split("<!--@@SPLIT@@-->", 1)[-1].strip()
-    first = re.match(r"<h1[^>]*>(.*?)</h1>\s*", orig.body, re.S)
-    if first and strip_tags(first.group(1)).lower() == orig.title.lower():
-        orig.body = orig.body[first.end():]  # same as the page title
-    orig.toc = "\n".join(
-        f'<li class="toc-l{max(int(level), 2)}"><a href="#{hid}">{inner}</a></li>'
-        for level, hid, inner in ORIG_HEADING_RE.findall(orig.body))
 
 
 # --------------------------------------------------------------------------
 # Page rendering
 
-def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_class=""):
+PEN_ICON = ('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+            'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/>'
+            '<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>')
+
+
+def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_class="",
+         page_title=None, kind="page"):
     macros = json.dumps(current.macros if current else KATEX_EXTRA).replace("</", "<\\/")
     course_links, subject = [], None
     for c in courses:
@@ -377,6 +312,9 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
                 f'<ul>{toc}</ul></div></aside>') if toc else ""
     sidebar_html = (f'<nav class="sidebar" id="sidebar"><div class="sidebar-inner">{sidebar}</div></nav>'
                     if sidebar else "")
+    meta = (f'data-root="{root}" data-kind="{kind}" data-course="{current.slug if current else ""}" '
+            f'data-course-code="{html.escape(current.code) if current else ""}" '
+            f'data-page-title="{html.escape(page_title or title)}"')
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -389,8 +327,9 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <link rel="stylesheet" href="{root}pagefind/pagefind-ui.css">
 <link rel="stylesheet" href="{root}assets/style.css">
+<script type="speculationrules">{{"prefetch":[{{"where":{{"href_matches":"*.html"}},"eagerness":"moderate"}}]}}</script>
 </head>
-<body class="{page_class}">
+<body class="{page_class}" {meta}>
 <header class="navbar">
   <button class="nav-toggle" id="nav-toggle" aria-label="Toggle chapters">&#9776;</button>
   <a class="brand" href="{root}index.html"><span class="brand-mark">&#8721;</span> {SITE_TITLE}</a>
@@ -399,9 +338,13 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
     <div class="dropdown-menu">{course_links}</div>
   </div>
   <div class="nav-spacer"></div>
+  <button class="jump-btn" id="jump-open" aria-label="Jump to (Ctrl+K)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="jump-label">Jump to&hellip;</span><kbd class="jump-kbd">Ctrl K</kbd></button>
   <div id="search" class="search"></div>
+  <button class="notes-btn" id="notes-toggle" aria-label="Notes (n)" title="Notes (n)">{PEN_ICON}<span class="notes-btn-label">Notes</span><span class="notes-count" id="notes-count" hidden></span></button>
+  <button class="icon-nav" id="focus-toggle" aria-label="Focus mode (f)" title="Focus mode (f)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   <a class="nav-link" href="{REPO_URL}" aria-label="GitHub">GitHub</a>
   <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></button>
+  <div class="progress" id="progress"></div>
 </header>
 <div class="layout">
 {sidebar_html}
@@ -414,40 +357,45 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
 <script defer src="{root}pagefind/pagefind-ui.js"></script>
 <script>window.KATEX_MACROS = {macros};</script>
 <script defer src="{root}assets/app.js"></script>
+<script defer src="{root}assets/notes.js"></script>
+<script defer src="{root}assets/nav.js"></script>
 </body>
 </html>
 """
 
 
-def view_toggle(course, latex_href, original_href, mode):
-    """'LaTeX notes | Original notes' switch, shown when a course has originals."""
-    if not course.originals:
-        return ""
-    active = ' class="active"'
-    return (f'<div class="view-toggle">'
-            f'<a href="{latex_href}"{active if mode == "latex" else ""}>LaTeX notes</a>'
-            f'<a href="{original_href}"{active if mode == "original" else ""}>Original notes</a>'
-            f'</div>')
+LECTURE_TITLE_RE = re.compile(r"^(Lecture|Tutorial)\s+0*(\d+)\s*[:.\u2013\u2014-]\s*(.+)$", re.S)
 
 
-def sidebar_for(course, active=None, mode="latex", base="", toggle=""):
-    """Course sidebar. base is the path from the current page to the course folder."""
-    items = [f'<a class="sidebar-course" href="{base}index.html">{course.code}'
-             f'<span>{html.escape(course.name)}</span></a>', toggle]
-    if mode == "latex":
-        items.append(f'<a class="sidebar-link{" active" if active is None else ""}" '
-                     f'href="{base}index.html">Overview</a>')
-        items.append('<div class="sidebar-label">Chapters</div>')
-        for ch in course.chapters:
-            cls = " active" if ch is active else ""
-            items.append(f'<a class="sidebar-link{cls}" href="{base}{ch.slug}.html">'
-                         f'<span class="num">{ch.number}</span><span>{ch.title_html}</span></a>')
-    else:
-        items.append('<div class="sidebar-label">Original notes</div>')
-        for o in course.originals:
-            cls = " active" if o is active else ""
-            items.append(f'<a class="sidebar-link{cls}" href="{base}original/{o.slug}.html">'
-                         f'<span>{html.escape(o.title)}</span></a>')
+def chapter_label(ch):
+    """(short label, title without the 'Lecture N:' prefix) for sidebars and lists."""
+    m = LECTURE_TITLE_RE.match(ch.title_html)
+    if m:
+        return f"{m.group(1)[0]}{m.group(2)}", m.group(3).strip()
+    return str(ch.number), ch.title_html
+
+
+def chapter_crumb(ch):
+    m = LECTURE_TITLE_RE.match(ch.title_html)
+    return f"{m.group(1)} {m.group(2)}" if m else f"Chapter {ch.number}"
+
+
+SIDEBAR_FILTER = ('<input class="sidebar-filter" type="search" placeholder="Filter&hellip;" '
+                  'aria-label="Filter this list">')
+
+
+def sidebar_for(course, active=None):
+    """Course sidebar (for pages inside the course folder)."""
+    items = [f'<a class="sidebar-course" href="index.html">{course.code}'
+             f'<span>{html.escape(course.name)}</span></a>',
+             f'<a class="sidebar-link{" active" if active is None else ""}" href="index.html">Overview</a>',
+             '<div class="sidebar-label">Chapters</div>', SIDEBAR_FILTER]
+    for ch in course.chapters:
+        cls = " active" if ch is active else ""
+        label, short = chapter_label(ch)
+        items.append(f'<a class="sidebar-link{cls}" href="{ch.slug}.html" '
+                     f'title="{html.escape(ch.title_text)}">'
+                     f'<span class="num">{label}</span><span>{short}</span></a>')
     return "\n".join(items)
 
 
@@ -463,69 +411,34 @@ def pager(items, i, href, label):
     return "".join(parts)
 
 
-def original_for(course, ch):
-    match = [o for o in course.originals if ch.key and o.key == ch.key]
-    return (match or course.originals)[0]
-
-
-def chapter_for(course, orig):
-    return next((ch for ch in course.chapters if orig.key and ch.key == orig.key), None)
-
-
 def render_course(course, courses, out):
     cdir = out / course.slug
     for ch in course.chapters:
-        toggle = (view_toggle(course, f"{ch.slug}.html",
-                              f"original/{original_for(course, ch).slug}.html", "latex")
-                  if course.originals else "")
         nav = pager(course.chapters, ch.number - 1, lambda c: f"{c.slug}.html", lambda c: c.title_html)
         body = (f'<div class="breadcrumbs"><a href="index.html">{course.code}</a> / '
-                f'Chapter {ch.number}</div>'
+                f'{chapter_crumb(ch)}</div>'
                 f'<h1 class="chapter-title">{ch.title_html}</h1>\n{ch.body}\n{nav}')
         (cdir / f"{ch.slug}.html").write_text(page(
             f"{ch.title_text} | {course.code} | {SITE_TITLE}", body, "../",
-            sidebar_for(course, ch, toggle=toggle), ch.toc, courses, course, "doc"))
-
-    for i, orig in enumerate(course.originals):
-        ch = chapter_for(course, orig)
-        toggle = view_toggle(course, f"../{ch.slug}.html" if ch else "../index.html",
-                             f"{orig.slug}.html", "original")
-        nav = pager(course.originals, i, lambda o: f"{o.slug}.html", lambda o: html.escape(o.title))
-        body = (f'<div class="breadcrumbs"><a href="../index.html">{course.code}</a> / '
-                f'Original notes</div>'
-                f'<h1 class="chapter-title">{html.escape(orig.title)}</h1>'
-                f'<p class="original-note">Original notes from the term, as written in '
-                f'<code>{html.escape(orig.path.name)}</code></p>\n'
-                f'<div class="original-body">{orig.body}</div>\n{nav}')
-        (cdir / "original" / f"{orig.slug}.html").write_text(page(
-            f"{orig.title} (original) | {course.code} | {SITE_TITLE}", body, "../../",
-            sidebar_for(course, orig, "original", "../", toggle), orig.toc, courses, course, "doc"))
+            sidebar_for(course, ch), ch.toc, courses, course, "doc",
+            page_title=ch.title_text, kind="chapter"))
 
     rows = "\n".join(
-        f'<li><a href="{ch.slug}.html"><span class="num">{ch.number}</span>'
-        f'<span>{ch.title_html}</span></a></li>' for ch in course.chapters)
-    originals = ""
-    if course.originals:
-        orig_rows = "\n".join(
-            f'<li><a href="original/{o.slug}.html"><span>{html.escape(o.title)}</span></a></li>'
-            for o in course.originals)
-        originals = (f'<h2 class="list-heading">Original notes</h2>\n'
-                     f'<p class="muted">The notes as originally written during the term.</p>\n'
-                     f'<ul class="chapter-list">{orig_rows}</ul>')
+        f'<li><a href="{ch.slug}.html"><span class="num">{chapter_label(ch)[0]}</span>'
+        f'<span>{chapter_label(ch)[1]}</span></a></li>' for ch in course.chapters)
     pdf = f'<a class="button" href="{course.slug}.pdf">Download PDF</a>' if course.pdf else ""
     src = f"{REPO_URL}/tree/main/{course.subject}/{course.folder.name}".replace(" ", "%20")
-    toggle = (view_toggle(course, "index.html", f"original/{course.originals[0].slug}.html", "latex")
-              if course.originals else "")
     body = f"""<div class="breadcrumbs"><a href="../index.html">Courses</a> / {course.code}</div>
 <h1 class="chapter-title">{course.code} <span class="muted">&mdash; {html.escape(course.name)}</span></h1>
 <p class="lead">{len(course.chapters)} chapters, generated from the LaTeX notes.</p>
 <div class="actions">{pdf}<a class="button secondary" href="{src}">LaTeX source</a></div>
+<div id="continue-reading"></div>
 <h2 class="list-heading">Chapters</h2>
-<ol class="chapter-list">{rows}</ol>
-{originals}"""
+<ol class="chapter-list">{rows}</ol>"""
     (cdir / "index.html").write_text(page(
         f"{course.code} — {course.name} | {SITE_TITLE}", body, "../",
-        sidebar_for(course, toggle=toggle), "", courses, course, "doc"))
+        sidebar_for(course), "", courses, course, "doc",
+        page_title=f"{course.code} overview", kind="overview"))
     if course.pdf:
         shutil.copy(course.pdf, cdir / f"{course.slug}.pdf")
     figs = course.folder / "figures"
@@ -540,17 +453,33 @@ def render_index(courses, out):
         if not group:
             continue
         cards = "\n".join(
-            f'<a class="card" href="{c.slug}/index.html"><div class="card-code">{c.code}</div>'
+            f'<div class="card" data-course="{c.slug}">'
+            f'<a class="card-link" href="{c.slug}/index.html"><span class="card-code">{c.code}</span></a>'
             f'<div class="card-name">{html.escape(c.name)}</div>'
-            f'<div class="card-meta">{len(c.chapters)} chapters</div></a>' for c in group)
+            f'<div class="card-meta">{len(c.chapters)} chapters'
+            f'</div></div>' for c in group)
         sections.append(f'<h2 class="subject">{subject}</h2>\n<div class="cards">{cards}</div>')
     body = f"""<section class="hero">
 <h1>{SITE_TITLE}</h1>
-<p class="lead">Notes for the core University of Waterloo Computer Science, Mathematics, Statistics and Economics courses, written in LaTeX and split by chapter, alongside the original notes from each term.</p>
+<p class="lead">Notes for the core University of Waterloo Computer Science, Mathematics, Statistics and Economics courses, written in LaTeX and split by chapter.</p>
 </section>
+<div id="recent-pages"></div>
 {"".join(sections)}"""
     (out / "index.html").write_text(page(SITE_TITLE, body, "", courses=courses,
                                          page_class="home"))
+
+
+def write_nav_index(courses, out):
+    """Every course and chapter, for the Ctrl+K quick jump."""
+    entries = []
+    for c in courses:
+        entries.append({"t": f"{c.code} \u2014 {c.name}", "h": f"{c.slug}/index.html",
+                        "c": c.code, "k": "course"})
+        for ch in c.chapters:
+            label = chapter_label(ch)[0]
+            entries.append({"t": ch.title_text, "h": f"{c.slug}/{ch.slug}.html", "c": c.code,
+                            "k": "chapter", "l": label if not label.isdigit() else f"Ch {label}"})
+    (out / "assets" / "nav.json").write_text(json.dumps(entries, ensure_ascii=False))
 
 
 def check_output(out):
@@ -599,20 +528,13 @@ def main():
         cdir.mkdir(parents=True)
         for ch in course.chapters:
             convert_chapter(ch, defs, cdir, warnings)
-        if course.originals:
-            odir = cdir / "original"
-            odir.mkdir()
-            for f in course.folder.iterdir():
-                if f.suffix.lower() in IMAGE_EXTS:
-                    shutil.copy(f, odir / f.name)
-            for orig in course.originals:
-                convert_original(orig, odir, warnings)
         if args.pdf_dir and (Path(args.pdf_dir) / f"{course.slug}.pdf").exists():
             course.pdf = Path(args.pdf_dir) / f"{course.slug}.pdf"
         print(f"{course.code}: {len(course.chapters)} chapters", flush=True)
     for course in courses:
         render_course(course, courses, out)
     render_index(courses, out)
+    write_nav_index(courses, out)
     warnings += check_output(out)
     for w in warnings:
         print("warning:", w, file=sys.stderr)

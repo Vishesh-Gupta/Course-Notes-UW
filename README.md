@@ -2,38 +2,70 @@
 
 This repository contains course notes for the UW courses that I have taken.
 
-Some files are latex, some files are markdown. I also have the pdf files there for easier access.
+Every course is a LaTeX book split into one file per chapter/lecture. The original notes I wrote during each term (Markdown, Word and LaTeX) are kept next to them for reference; their content is part of the LaTeX books, which are the one version on the website and in the PDFs.
 
-## LaTeX notes
+- **Website:** https://course-notes-uw.pages.dev — every chapter as a page (hosted free on Cloudflare Pages, so this repository can stay private).
+- **PDFs:** built by CI on every change and attached to the [`notes-latest` release](https://github.com/Vishesh-Gupta/Course-Notes-UW/releases/tag/notes-latest) (also linked from each course page on the website).
 
-Each course has a `main.tex` with one file per chapter/lecture in `chapters/`, sharing `common/preamble.tex`.
-Build from inside the course folder with `latexmk -pdf main.tex`.
-The notes are also published as a website (see `website/`), and CI compiles every course and checks the website build on each pull request.
+## Courses
 
-### Computer Science
+| Subject | Course | Title |
+|---|---|---|
+| Computer Science | CS 135 | Designing Functional Programs |
+| | CS 136 | Elementary Algorithm Design and Data Abstraction |
+| | CS 240 | Data Structures and Data Management |
+| | CS 241 | Foundations of Sequential Programs |
+| | CS 245 | Logic and Computation |
+| | CS 246 | Object-Oriented Software Development |
+| | CS 251 | Computer Organization and Design |
+| | CS 341 | Algorithms |
+| | CS 350 | Operating Systems |
+| Mathematics | Math 135 | Algebra for Honours Mathematics |
+| | Math 136 | Linear Algebra 1 for Honours Mathematics |
+| | Math 239 | Introduction to Combinatorics |
+| Statistics | Stat 230 | Probability |
+| | Stat 231 | Statistics |
+| Economics | ECON 102 | Introduction to Macroeconomics |
 
-| Course | Title |
-|---|---|
-| CS 135 | Designing Functional Programs |
-| CS 136 | Elementary Algorithm Design and Data Abstraction |
-| CS 240 | Data Structures and Data Management |
-| CS 241 | Foundations of Sequential Programs |
-| CS 245 | Logic and Computation |
-| CS 246 | Object-Oriented Software Development |
-| CS 251 | Computer Organization and Design |
-| CS 341 | Algorithms |
-| CS 350 | Operating Systems |
+## Repository layout
 
-### Mathematics
+```
+<Subject>/<Course>/
+  main.tex            the book: title, course macros, \include list of chapters
+  chapters/NN-*.tex   one file per chapter or lecture
+  figures/            images used by the chapters (optional)
+  Readme.md           chapter list for the course
+  *.md, *.docx, ...   original notes from the term (their content is in the LaTeX book)
+common/preamble.tex   packages, theorem environments, boxes and macros shared by every book
+scripts/              check_latex.py (compile + checks), new_course.py (scaffold a course)
+website/              static site generator (pandoc + KaTeX + TikZ->SVG)
+.github/workflows/    CI: compile all PDFs, build and check the website, publish PDFs, deploy
+```
 
-| Course | Title |
-|---|---|
-| Math 135 | Algebra for Honours Mathematics |
-| Math 136 | Linear Algebra 1 for Honours Mathematics |
+## Working on the notes
 
-### Statistics
+Needs TeX Live (latex-extra), `latexmk`, `pandoc` and `pdftocairo` (poppler-utils); Node only for the formula and search checks.
 
-| Course | Title |
-|---|---|
-| Stat 230 | Probability |
-| Stat 231 | Statistics |
+```
+make pdfs COURSE="CS 246"     # compile one course (omit COURSE for all) into build/pdfs
+make site COURSE="CS 246"     # build the website into website/_site
+make check                    # everything CI checks: PDFs, strict site build, KaTeX formulas
+make serve                    # preview the site on http://localhost:8000
+make new-course SUBJECT=Mathematics CODE="Math 237" TITLE="Calculus 3 for Honours Mathematics"
+```
+
+Inside a course folder, `latexmk -pdf main.tex` builds that book on its own.
+
+## Website hosting
+
+CI deploys the site to Cloudflare Pages on every push to `main`. One-time setup:
+
+1. Create a free account at https://dash.cloudflare.com and copy the **Account ID** (Workers & Pages overview, right-hand side).
+2. My Profile → API Tokens → Create Token → "Custom token" with permission **Account → Cloudflare Pages → Edit**.
+3. In this repository: Settings → Secrets and variables → Actions → add `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN`.
+
+The first deploy creates the `course-notes-uw` Pages project. Until the secrets exist, the deploy step is skipped with a notice.
+
+## Checks
+
+CI runs the same checks on every pull request: it fails on LaTeX errors, undefined references, chapters missing from `main.tex`, pandoc/TikZ warnings, unconverted LaTeX on the website, and formulas KaTeX cannot render.

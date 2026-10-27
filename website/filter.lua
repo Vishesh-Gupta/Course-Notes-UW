@@ -4,9 +4,6 @@
 
 local chapnum = "1"
 local imgprefix = ""
-local original = false  -- converting the user's original notes, not a chapter
-
-local image_ext = { png = true, jpg = true, jpeg = true, gif = true, svg = true }
 
 -- lstlisting style -> highlighting language understood by pandoc
 local code_lang = {
@@ -26,7 +23,6 @@ end
 function Meta(meta)
   if meta.chapnum then chapnum = pandoc.utils.stringify(meta.chapnum) end
   if meta.imgprefix then imgprefix = pandoc.utils.stringify(meta.imgprefix) end
-  if meta.original then original = pandoc.utils.stringify(meta.original) == "true" end
 end
 
 -- Pseudocode keeps $...$ math (mathescape) rendered by KaTeX, so it is emitted
@@ -61,13 +57,6 @@ end
 
 function Image(el)
   local src = el.src
-  local ext = (src:match("%.([%w]+)$") or ""):lower()
-  if original and not image_ext[ext] and not src:match("^data:") then
-    -- e.g. a StarUML .mdj file linked as an image: show its name instead.
-    local label = pandoc.utils.stringify(el.caption)
-    if label == "" then label = src end
-    return pandoc.Emph({ pandoc.Str("[diagram: " .. label .. "]") })
-  end
   local tikz = src:match("^@@TIKZ@@(.+)$")
   if tikz then
     el.src = imgprefix .. "tikz/" .. tikz .. ".svg"

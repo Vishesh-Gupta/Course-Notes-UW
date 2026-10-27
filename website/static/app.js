@@ -80,4 +80,84 @@
     window.addEventListener("scroll", setActive, { passive: true });
     setActive();
   }
+  // Copy button on code blocks.
+  document.querySelectorAll("main.content pre, main.content .code-block").forEach(function (pre) {
+    var box = pre.closest("div.sourceCode") || pre;
+    if (box.querySelector(".copy-btn")) return;
+    var btn = document.createElement("button");
+    btn.className = "copy-btn hl-ignore";
+    btn.type = "button";
+    btn.textContent = "Copy";
+    btn.addEventListener("click", function () {
+      var text = pre.innerText.replace(/\n$/, "");
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(text).then(function () {
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = "Copy"; }, 1500);
+      });
+    });
+    box.classList.add("has-copy");
+    box.appendChild(btn);
+  });
+
+  // Reading progress bar under the navbar.
+  var progress = document.getElementById("progress");
+  if (progress && document.body.dataset.kind !== "page") {
+    var updateProgress = function () {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      progress.style.width = (max > 0 ? Math.min(100, (window.scrollY / max) * 100) : 0) + "%";
+    };
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    updateProgress();
+  }
+
+  // Keyboard: [ and ] for previous / next page, / for search.
+  document.addEventListener("keydown", function (e) {
+    var t = e.target;
+    if (e.metaKey || e.ctrlKey || e.altKey || (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))) return;
+    if (e.key === "[" || e.key === "]") {
+      var link = document.querySelector(e.key === "[" ? ".pager-link.prev" : ".pager-link.next");
+      if (link) location.href = link.href;
+    } else if (e.key === "/") {
+      var input = document.querySelector(".pagefind-ui__search-input");
+      if (input) { e.preventDefault(); input.focus(); }
+    }
+  });
+
+  // Remember the last page read in each course and offer to continue there.
+  var store = null;
+  try { store = window.localStorage; } catch (e) {}
+  var course = document.body.dataset.course;
+  var kind = document.body.dataset.kind;
+  if (store && course && kind === "chapter") {
+    try {
+      store.setItem("cnuw:v1:last:" + course, JSON.stringify({
+        href: location.pathname + location.search, title: document.body.dataset.pageTitle,
+      }));
+    } catch (e) {}
+  }
+  function lastRead(slug) {
+    try { return JSON.parse(store.getItem("cnuw:v1:last:" + slug)); } catch (e) { return null; }
+  }
+  var cont = document.getElementById("continue-reading");
+  if (store && cont && course) {
+    var last = lastRead(course);
+    if (last && last.href) {
+      cont.innerHTML = '<a class="continue-card" href=""><small>Continue where you left off</small><span></span></a>';
+      cont.querySelector("a").href = last.href;
+      cont.querySelector("span").textContent = last.title || "Last page";
+    }
+  }
+  if (store) {
+    document.querySelectorAll(".card[data-course]").forEach(function (card) {
+      var last = lastRead(card.dataset.course);
+      if (!last || !last.href) return;
+      var link = document.createElement("a");
+      link.className = "card-continue";
+      link.href = last.href;
+      link.textContent = "Continue: " + (last.title || "last page");
+      link.addEventListener("click", function (e) { e.stopPropagation(); });
+      card.appendChild(link);
+    });
+  }
 })();
