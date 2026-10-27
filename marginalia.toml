@@ -1,0 +1,37 @@
+# Website settings for Marginalia (https://github.com/Soboku-Labs/marginalia).
+title = "Course Notes UW"
+description = "Notes for my University of Waterloo courses in Computer Science, Mathematics, Statistics, Economics, languages and East Asian studies, written in LaTeX and split by chapter."
+label = "Courses"
+repo = "https://github.com/Vishesh-Gupta/Course-Notes-UW"
+storage = "cnuw"
+
+[[group]]
+name = "Computer Science"
+path = "Computer Science"
+
+[[group]]
+name = "Mathematics"
+path = "Mathematics"
+
+[[group]]
+name = "Statistics"
+path = "Statistics"
+
+[[group]]
+name = "Economics"
+path = "Economics"
+
+[[group]]
+name = "Languages"
+path = "Languages"
+
+[[group]]
+name = "East Asian Studies"
+path = "East Asian Studies"
+
+[latex]
+preamble = "common/preamble.tex"
+web_macros = "common/web-macros.tex"
+
+[deploy]
+cloudflare_project = "course-notes-uw"
