@@ -7,7 +7,8 @@ math is rendered in the browser by KaTeX and TikZ pictures are compiled to
 SVG with pdflatex + pdftocairo (cached in website/.cache).
 
 Usage: python3 website/build.py [--out DIR]
-Needs: pandoc, pdflatex (TeX Live with latex-extra), pdftocairo.
+Needs: pandoc, pdflatex (TeX Live with latex-extra), pdftocairo, and the page
+scripts built first (`npm ci && npm run build` in website/, or `make js`).
 """
 
 import argparse
@@ -108,7 +109,8 @@ def pandoc_defs(main_tex):
               if l.startswith(("\\newcommand", "\\theoremstyle", "\\newtheorem"))]
     chunk = strip_comments(course_chunk(main_tex))
     for name, n in [("usepackage", 1), ("usetikzlibrary", 1), ("lstdefinelanguage", 2),
-                    ("lstdefinestyle", 2), ("lstset", 1), ("setlength", 2)]:
+                    ("lstdefinestyle", 2), ("lstset", 1), ("setlength", 2),
+                    ("pgfplotsset", 1), ("tikzset", 1)]:
         chunk = remove_command(chunk, name, n)
     defs = "\n".join(shared) + "\n" + chunk + "\n"
     if "\\newcommand{\\bx}" in defs:
@@ -248,7 +250,7 @@ def convert_chapter(ch, defs, out_dir, warnings):
     cmd = ["pandoc", "-f", "latex", "-t", "html5", "--katex",
            "--template", str(SITE_SRC / "templates" / "fragment.html"),
            "--lua-filter", str(SITE_SRC / "filter.lua"),
-           "--number-sections", f"--number-offset={ch.number - 1}",
+           "--number-sections", f"--number-offset={ch.number - 1}", f"--id-prefix={ch.slug}-",
            "-M", f"chapnum={ch.number}", "-M", "imgprefix=", "-M", "pagetitle=chapter",
            "--wrap=none"]
     r = subprocess.run(cmd, input=defs + tex, capture_output=True, text=True)
@@ -297,7 +299,7 @@ PEN_ICON = ('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke=
 
 
 def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_class="",
-         page_title=None, kind="page"):
+         page_title=None, kind="page", toc_html=None):
     macros = json.dumps(current.macros if current else KATEX_EXTRA).replace("</", "<\\/")
     course_links, subject = [], None
     for c in courses:
@@ -308,8 +310,9 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
             f'<a class="dropdown-item{" active" if c is current else ""}" '
             f'href="{root}{c.slug}/index.html"><b>{c.code}</b> {html.escape(c.name)}</a>')
     course_links = "\n".join(course_links)
-    toc_html = (f'<aside class="toc"><div class="toc-inner"><div class="toc-title">On this page</div>'
-                f'<ul>{toc}</ul></div></aside>') if toc else ""
+    if toc_html is None:
+        toc_html = (f'<aside class="toc"><div class="toc-inner"><div class="toc-title">On this page</div>'
+                    f'<ul>{toc}</ul></div></aside>') if toc else ""
     sidebar_html = (f'<nav class="sidebar" id="sidebar"><div class="sidebar-inner">{sidebar}</div></nav>'
                     if sidebar else "")
     meta = (f'data-root="{root}" data-kind="{kind}" data-course="{current.slug if current else ""}" '
@@ -323,7 +326,7 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
 <title>{html.escape(title)}</title>
 <script>try{{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t;}}catch(e){{}}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Kalam:wght@400;700&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <link rel="stylesheet" href="{root}pagefind/pagefind-ui.css">
 <link rel="stylesheet" href="{root}assets/style.css">
@@ -341,6 +344,7 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
   <button class="jump-btn" id="jump-open" aria-label="Jump to (Ctrl+K)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="jump-label">Jump to&hellip;</span><kbd class="jump-kbd">Ctrl K</kbd></button>
   <div id="search" class="search"></div>
   <button class="notes-btn" id="notes-toggle" aria-label="Notes (n)" title="Notes (n)">{PEN_ICON}<span class="notes-btn-label">Notes</span><span class="notes-count" id="notes-count" hidden></span></button>
+  <button class="icon-nav" id="draw-toggle" aria-label="Draw / handwriting (d)" title="Draw with Apple Pencil, mouse or finger (d)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3-1 5-4 7-7l3 3c-3 2-6 4-7 7"/><path d="m14 7 3 3"/><path d="M10 14 19.5 4.5a2.1 2.1 0 0 1 3 3L13 17"/></svg></button>
   <button class="icon-nav" id="focus-toggle" aria-label="Focus mode (f)" title="Focus mode (f)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   <a class="nav-link" href="{REPO_URL}" aria-label="GitHub">GitHub</a>
   <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></button>
@@ -358,6 +362,7 @@ def page(title, body, root, sidebar="", toc="", courses=(), current=None, page_c
 <script>window.KATEX_MACROS = {macros};</script>
 <script defer src="{root}assets/app.js"></script>
 <script defer src="{root}assets/notes.js"></script>
+<script defer src="{root}assets/ink.js"></script>
 <script defer src="{root}assets/nav.js"></script>
 </body>
 </html>
@@ -384,61 +389,65 @@ SIDEBAR_FILTER = ('<input class="sidebar-filter" type="search" placeholder="Filt
                   'aria-label="Filter this list">')
 
 
-def sidebar_for(course, active=None):
-    """Course sidebar (for pages inside the course folder)."""
-    items = [f'<a class="sidebar-course" href="index.html">{course.code}'
+def sidebar_for(course):
+    """Course sidebar: every chapter is a section of the one course page."""
+    items = [f'<a class="sidebar-course" href="#top">{course.code}'
              f'<span>{html.escape(course.name)}</span></a>',
-             f'<a class="sidebar-link{" active" if active is None else ""}" href="index.html">Overview</a>',
              '<div class="sidebar-label">Chapters</div>', SIDEBAR_FILTER]
     for ch in course.chapters:
-        cls = " active" if ch is active else ""
         label, short = chapter_label(ch)
-        items.append(f'<a class="sidebar-link{cls}" href="{ch.slug}.html" '
-                     f'title="{html.escape(ch.title_text)}">'
+        items.append(f'<a class="sidebar-link" href="#{ch.slug}" data-chapter="{ch.slug}" '
+                     f'data-page-id="{course.slug}/{ch.slug}.html" title="{html.escape(ch.title_text)}">'
                      f'<span class="num">{label}</span><span>{short}</span></a>')
     return "\n".join(items)
 
 
-def pager(items, i, href, label):
-    prev = items[i - 1] if i > 0 else None
-    nxt = items[i + 1] if i + 1 < len(items) else None
-    parts = ['<nav class="pager">']
-    parts.append(f'<a class="pager-link prev" href="{href(prev)}"><small>Previous</small>'
-                 f'<span>{label(prev)}</span></a>' if prev else "<span></span>")
-    parts.append(f'<a class="pager-link next" href="{href(nxt)}"><small>Next</small>'
-                 f'<span>{label(nxt)}</span></a>' if nxt else "<span></span>")
-    parts.append("</nav>")
-    return "".join(parts)
+REDIRECT = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>{title}</title>
+<meta http-equiv="refresh" content="0; url=index.html#{slug}">
+<link rel="canonical" href="index.html#{slug}">
+<script>location.replace("index.html#{slug}" + location.search);</script></head>
+<body><a href="index.html#{slug}">{title}</a></body></html>
+"""
 
 
 def render_course(course, courses, out):
+    """One page per course: every chapter in order, one continuous scroll."""
     cdir = out / course.slug
+    sections, tocs = [], []
     for ch in course.chapters:
-        nav = pager(course.chapters, ch.number - 1, lambda c: f"{c.slug}.html", lambda c: c.title_html)
-        body = (f'<div class="breadcrumbs"><a href="index.html">{course.code}</a> / '
-                f'{chapter_crumb(ch)}</div>'
-                f'<h1 class="chapter-title">{ch.title_html}</h1>\n{ch.body}\n{nav}')
-        (cdir / f"{ch.slug}.html").write_text(page(
-            f"{ch.title_text} | {course.code} | {SITE_TITLE}", body, "../",
-            sidebar_for(course, ch), ch.toc, courses, course, "doc",
-            page_title=ch.title_text, kind="chapter"))
+        label = chapter_label(ch)[0]
+        sections.append(
+            f'<section class="chapter" id="{ch.slug}" data-chapter="{ch.slug}" '
+            f'data-page-id="{course.slug}/{ch.slug}.html" data-title="{html.escape(ch.title_text)}">'
+            f'<div class="chapter-head"><div class="chapter-kicker">'
+            f'<span class="chapter-label">{label if not label.isdigit() else "Chapter " + label}</span>'
+            f'<a class="chapter-anchor" href="#{ch.slug}" aria-label="Link to this chapter">#</a></div>'
+            f'<h1 class="chapter-title">{ch.title_html}</h1></div>'
+            f'<div class="chapter-body">{ch.body}</div></section>')
+        tocs.append(f'<ul class="toc-chapter" data-chapter="{ch.slug}" hidden>{ch.toc}</ul>')
+        (cdir / f"{ch.slug}.html").write_text(REDIRECT.format(title=html.escape(ch.title_text), slug=ch.slug))
 
-    rows = "\n".join(
-        f'<li><a href="{ch.slug}.html"><span class="num">{chapter_label(ch)[0]}</span>'
-        f'<span>{chapter_label(ch)[1]}</span></a></li>' for ch in course.chapters)
     pdf = f'<a class="button" href="{course.slug}.pdf">Download PDF</a>' if course.pdf else ""
     src = f"{REPO_URL}/tree/main/{course.subject}/{course.folder.name}".replace(" ", "%20")
-    body = f"""<div class="breadcrumbs"><a href="../index.html">Courses</a> / {course.code}</div>
-<h1 class="chapter-title">{course.code} <span class="muted">&mdash; {html.escape(course.name)}</span></h1>
-<p class="lead">{len(course.chapters)} chapters, generated from the LaTeX notes.</p>
+    contents = "\n".join(
+        f'<li><a href="#{ch.slug}"><span class="num">{chapter_label(ch)[0]}</span>'
+        f'<span>{chapter_label(ch)[1]}</span></a></li>' for ch in course.chapters)
+    body = f"""<header class="course-head" id="top">
+<div class="breadcrumbs"><a href="../index.html">Courses</a> / {course.subject}</div>
+<h1 class="course-title">{course.code} <span class="muted">&mdash; {html.escape(course.name)}</span></h1>
+<p class="lead">{len(course.chapters)} chapters in one scroll. Use the sidebar to jump, or just keep reading.</p>
 <div class="actions">{pdf}<a class="button secondary" href="{src}">LaTeX source</a></div>
 <div id="continue-reading"></div>
-<h2 class="list-heading">Chapters</h2>
-<ol class="chapter-list">{rows}</ol>"""
+<details class="contents"><summary>Contents</summary><ol class="chapter-list">{contents}</ol></details>
+</header>
+{"".join(sections)}"""
+    toc_html = ('<aside class="toc"><div class="toc-inner"><div class="toc-title">In this chapter</div>'
+                + "".join(tocs) + '</div></aside>')
     (cdir / "index.html").write_text(page(
         f"{course.code} — {course.name} | {SITE_TITLE}", body, "../",
         sidebar_for(course), "", courses, course, "doc",
-        page_title=f"{course.code} overview", kind="overview"))
+        page_title=f"{course.code} — {course.name}", kind="course", toc_html=toc_html))
     if course.pdf:
         shutil.copy(course.pdf, cdir / f"{course.slug}.pdf")
     figs = course.folder / "figures"
@@ -477,7 +486,7 @@ def write_nav_index(courses, out):
                         "c": c.code, "k": "course"})
         for ch in c.chapters:
             label = chapter_label(ch)[0]
-            entries.append({"t": ch.title_text, "h": f"{c.slug}/{ch.slug}.html", "c": c.code,
+            entries.append({"t": ch.title_text, "h": f"{c.slug}/index.html#{ch.slug}", "c": c.code,
                             "k": "chapter", "l": label if not label.isdigit() else f"Ch {label}"})
     (out / "assets" / "nav.json").write_text(json.dumps(entries, ensure_ascii=False))
 
@@ -495,6 +504,7 @@ def check_output(out):
         prose = re.sub(r'<span class="math[^"]*">.*?</span>', "", main, flags=re.S)
         prose = re.sub(r"<(pre|code)[^>]*>.*?</\1>", "", prose, flags=re.S)
         prose = re.sub(r'<div class="code-block.*?</div>', "", prose, flags=re.S)
+        prose = re.sub(r"<[^>]*>", " ", prose)  # visible text only, not attributes
         leftovers = sorted(set(re.findall(r"\\[A-Za-z]+", prose)))
         if leftovers:
             problems.append(f"{f.relative_to(out)}: unconverted LaTeX {' '.join(leftovers[:8])}")
@@ -513,6 +523,12 @@ def main():
         shutil.rmtree(out)
     (out / "assets").mkdir(parents=True)
     for f in (SITE_SRC / "static").iterdir():
+        shutil.copy(f, out / "assets" / f.name)
+    # Page scripts are TypeScript (website/src), bundled into website/dist by esbuild.
+    scripts = sorted((SITE_SRC / "dist").glob("*.js*")) if (SITE_SRC / "dist").is_dir() else []
+    if not scripts:
+        raise SystemExit("website/dist is empty: run `npm ci && npm run build` in website/ (or `make js`)")
+    for f in scripts:
         shutil.copy(f, out / "assets" / f.name)
     (out / ".nojekyll").write_text("")
 

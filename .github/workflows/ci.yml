@@ -62,6 +62,19 @@ jobs:
       - name: Check Python scripts
         run: python3 -m py_compile website/build.py scripts/check_latex.py scripts/new_course.py
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install, type-check and bundle the TypeScript page scripts
+        working-directory: website
+        run: |
+          npm ci --no-audit --no-fund
+          npm run typecheck
+          npm run build
+
       - name: Cache compiled TikZ figures
         uses: actions/cache@v4
         with:
@@ -72,14 +85,8 @@ jobs:
       - name: Build site (fails on any conversion warning)
         run: python3 website/build.py --strict --pdf-dir pdfs
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Check every formula renders with KaTeX
-        run: |
-          npm install --no-save --no-audit --no-fund --prefix website katex@0.16.9
-          node website/check_math.mjs website/_site
+        run: node website/check_math.mjs website/_site
 
       - name: Build search index
         run: npx -y pagefind@1.1.1 --site website/_site
