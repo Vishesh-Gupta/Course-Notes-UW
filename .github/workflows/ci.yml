@@ -24,7 +24,7 @@ jobs:
     name: Compile LaTeX notes
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install TeX Live
         run: |
@@ -36,7 +36,7 @@ jobs:
 
       - name: Upload PDFs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: notes-pdfs
           path: pdfs
@@ -47,7 +47,7 @@ jobs:
     needs: latex
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download PDFs
         uses: actions/download-artifact@v4
@@ -63,7 +63,7 @@ jobs:
       - name: Check Python scripts
         run: python3 -m py_compile website/build.py scripts/check_latex.py scripts/new_course.py
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -77,7 +77,7 @@ jobs:
           npm run build
 
       - name: Cache compiled TikZ figures
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: website/.cache
           key: tikz-${{ hashFiles('common/preamble.tex', '*/*/main.tex', '*/*/chapters/*.tex') }}
@@ -93,7 +93,7 @@ jobs:
         run: npx -y pagefind@1.1.1 --site website/_site
 
       - name: Upload site
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: site
           path: website/_site
@@ -154,7 +154,7 @@ jobs:
           name: site
           path: site
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.secrets.outputs.ok == 'true'
         with:
           node-version: 20
